@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for processor-state helper extraction.
+Working tree at last update: pending commit for agent guide.
 
 Latest committed work:
 
@@ -38,7 +38,8 @@ Latest committed work:
 - `a4683c5` Refresh local progress status
 - Pending: progress dashboard
 - `f75c99a` Add progress dashboard
-- Pending: processor-state helper extraction
+- `23e005e` Extract processor state comparison
+- Pending: agent guide
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -76,6 +77,7 @@ Next recommended tasks:
 - Added project documentation and a road map.
 - Added an issue-list backlog seed.
 - Added a progress dashboard to keep cleanup, simplification, bulk, and Svelte migration readiness aligned.
+- Added an agent guide to keep future work aligned with the product and maintenance mission.
 - Added an initial browser support policy note.
 - Added `npm run typecheck`.
 - Added `npm test` as an alias for the full baseline check.

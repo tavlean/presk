@@ -6,6 +6,7 @@ Website: [sqush.app](https://sqush.app)
 
 ## Project docs
 
+- [Agent guide](AGENTS.md)
 - [Project overview](docs/overview.md)
 - [Build and runtime map](docs/build-and-runtime.md)
 - [Browser support policy](docs/browser-support.md)
