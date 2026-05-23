@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for settings override path helper.
+Working tree at last update: clean, local branch ahead of `origin/main` by 8 commits.
 
 Latest committed work:
 
@@ -33,7 +33,8 @@ Latest committed work:
 - `5f038f9` Document browser support policy
 - `b17bb09` Add unit test alias
 - `e2b0bc5` Add bulk import summary
-- Pending: settings override path helper
+- `ec853a0` List bulk setting overrides
+- `2d72944` Test bulk override paths
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
