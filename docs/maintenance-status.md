@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for CSS stack migration.
+Working tree at last update: pending commit for terser audit cleanup.
 
 Latest committed work:
 
@@ -44,8 +44,9 @@ Latest verification run:
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:bulk`: passed.
-- `npm run check`: passed after the CSS stack migration.
-- Browser production-preview smoke: passed after CSS stack migration; app shell, Sqush logo, and drop target rendered.
+- `npm run check`: passed after the terser plugin upgrade.
+- `npm audit --audit-level=low`: passed, 0 vulnerabilities.
+- Browser production-preview smoke: passed after terser plugin upgrade; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 
 Next recommended tasks:
@@ -80,6 +81,7 @@ Next recommended tasks:
 - Refreshed compatible Rollup 2 plugins and set `@rollup/plugin-replace` `preventAssignment` explicitly.
 - Applied the non-force `npm audit fix` lockfile update for `brace-expansion`.
 - Migrated the CSS build stack to PostCSS 8-era packages.
+- Upgraded `@rollup/plugin-terser` to clear the remaining serialization audit findings.
 
 ## Current verification commands
 
@@ -100,11 +102,9 @@ On a fresh checkout, run `npm run build` before `npm run typecheck` because the 
 
 ## Remaining audit state
 
-`npm audit` is reduced to 2 findings but still not clean. The remaining findings are in terser serialization tooling:
+`npm audit --audit-level=low` currently reports 0 vulnerabilities.
 
-- `serialize-javascript` via `@rollup/plugin-terser`.
-
-Do not run `npm audit fix --force` blindly. The remaining fix requires changing terser tooling and should be handled as an explicit build-tool migration with browser verification.
+Keep avoiding blind `npm audit fix --force`; future findings should still be handled as explicit dependency or toolchain tasks with verification.
 
 ## Local npm cache issue
 

@@ -6,12 +6,12 @@ The cleanup goal is to reduce audit risk without destabilizing workers, WASM, CS
 
 ## Current audit shape
 
-Recent `npm audit` state after the CSS stack migration:
+Recent `npm audit` state after the terser plugin upgrade:
 
-- 2 total issues.
+- 0 total issues.
 - 0 critical.
-- 1 high.
-- 1 moderate.
+- 0 high.
+- 0 moderate.
 - 0 low.
 
 Most findings are development/build-chain transitive dependencies, mainly from:
@@ -80,7 +80,7 @@ Watch for:
 - terser/serialization output changes;
 - worker and service-worker bundle differences.
 
-Status: compatible Rollup 2 plugin patches were applied for commonjs, node-resolve, replace, and import-meta-assets. `preventAssignment` is now set explicitly for replace. The terser plugin still needs a separate audit because the safe compatible range does not fix the remaining `serialize-javascript` advisory.
+Status: compatible Rollup 2 plugin patches were applied for commonjs, node-resolve, replace, import-meta-assets, and terser. `preventAssignment` is now set explicitly for replace. The terser plugin was upgraded to the current compatible major and cleared the remaining `serialize-javascript` advisory.
 
 ### 4. High-risk major migrations
 
