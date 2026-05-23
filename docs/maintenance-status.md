@@ -53,13 +53,15 @@ Run these before committing substantial changes:
 
 ```sh
 npm run format:check
-npm run typecheck
 npm run build
 npm run smoke:build
+npm run typecheck
 ```
 
 For UI-sensitive changes, also run a browser smoke check against `build/` after `npm run build`.
 Use `npm run preview` for that production-build browser check; `npm run serve` is for dev output in `.tmp/build/static`.
+
+On a fresh checkout, run `npm run build` before `npm run typecheck` because the build creates ignored feature metadata files required by TypeScript. `npm run check` already runs commands in the safe order.
 
 ## Current known warnings
 

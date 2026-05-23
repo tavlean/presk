@@ -37,9 +37,12 @@ Use the Node version in [.nvmrc](.nvmrc).
 Useful maintenance commands:
 
 ```sh
+npm run check
 npm run typecheck
 npm run format:check
 ```
+
+Run `npm run build` before `npm run typecheck` on a fresh checkout so generated feature files exist.
 
 # Contributing
 
