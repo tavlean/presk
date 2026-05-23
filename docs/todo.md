@@ -7,10 +7,10 @@ This list is ordered by priority. Do the high-priority items before building new
 1. Decide the supported Node version.
 
    - `.nvmrc` says `20.16.0`.
-   - The toolchain is old enough that Node 20 already prints deprecation warnings.
-   - Document the required Node/npm versions in `README.md` after confirming the build is reliable on them.
+   - The baseline now builds on Node 20 without the previous TypeScript spawn deprecation warning.
+   - Keep the required Node/npm versions documented in `README.md`.
 
-2. Add basic project scripts.
+2. Completed: add basic project scripts.
 
    - Add `npm run typecheck`.
    - Add `npm run format` or `npm run lint`.
@@ -34,11 +34,10 @@ This list is ordered by priority. Do the high-priority items before building new
    - Most are development/build-chain dependencies, but this still matters because the build runs arbitrary package code.
    - Do not blindly run `npm audit fix --force` without checking the generated app after each upgrade.
 
-5. Upgrade or replace the stale local server.
+5. Completed: upgrade or replace the stale local server.
 
-   - `serve@11.3.2` is old and pulls several vulnerable transitive packages.
-   - `npm run dev` also reports that `serve` has a newer major version.
-   - Consider replacing it with a smaller maintained static server if upgrade friction is high.
+   - `serve` has been upgraded from the stale inherited version.
+   - Keep watching this dependency during audit cleanup.
 
 6. Upgrade Rollup and custom build plugins carefully.
 
@@ -46,23 +45,18 @@ This list is ordered by priority. Do the high-priority items before building new
    - Several audit findings are attached to Rollup/plugin transitive dependencies.
    - This is likely the hardest cleanup because the build is highly customized.
 
-7. Replace deprecated build patterns.
+7. Completed: replace deprecated build patterns.
 
-   - `lib/simple-ts.js` spawns TypeScript with `shell: true`, which triggers Node's DEP0190 warning.
-   - Remove `shell: true` if possible and pass executable/args directly.
+   - `lib/simple-ts.js` now spawns Node with the TypeScript CLI path directly.
+   - This also fixed the Windows CI `spawn EINVAL` failure.
 
-8. Refresh Browserslist data.
-   - The build reports stale `caniuse-lite`.
-   - Run the recommended update and commit the lockfile changes after reviewing them.
+8. Completed: refresh Browserslist data.
 
 ## Priority 2: project clarity and maintainability
 
-9. Update the root README for this fork.
+9. Completed: update the root README for this fork.
 
-   - Rename or explain Sqush.
-   - Add Node version, install, build, dev, and troubleshooting notes.
-   - Link to these docs.
-   - Mention that `build/` and `.tmp/` are generated.
+   - The README now explains Sqush, links the docs, and documents the baseline commands.
 
 10. Keep generated feature files untracked and verify generation remains reliable.
 
@@ -73,17 +67,15 @@ This list is ordered by priority. Do the high-priority items before building new
     - Make sure the build generates them before TypeScript needs them.
     - If feature generation breaks, fix the build rather than committing generated output.
 
-11. Clean up analytics and privacy.
+11. Completed: clean up analytics and privacy.
 
-    - The app still loads Google Analytics ID `UA-128752250-1`.
-    - Universal Analytics is obsolete.
-    - Decide whether this fork should remove analytics, replace it, or gate it behind configuration.
-    - Update privacy text accordingly.
+    - The inherited upstream Google Analytics integration has been removed.
+    - Do not add analytics back without a privacy and consent decision.
 
-12. Harden saved settings.
+12. Partially completed: harden saved settings.
 
-    - Wrap `JSON.parse(localStorage...)` in safe parsing.
-    - Validate settings before applying them.
+    - `JSON.parse(localStorage...)` is now wrapped in safe parsing.
+    - Saved side settings are validated before applying them.
     - Add a version number to saved settings.
     - Handle missing encoders/options after future upgrades.
 
@@ -102,6 +94,7 @@ This list is ordered by priority. Do the high-priority items before building new
 
 15. Add small unit tests for pure utilities.
 
+    - Bulk helper tests now cover settings merge/hash behavior, session changes, queue stale detection, and export summaries.
     - `clean-modify`
     - `pretty-bytes`
     - MIME sniffing behavior if it can be isolated
@@ -133,3 +126,14 @@ This list is ordered by priority. Do the high-priority items before building new
 20. Create an issue list from this todo.
     - Keep each task small enough to review.
     - Start with scripts, audit triage, analytics decision, and saved-settings hardening.
+
+## Current product-design hold
+
+Do not implement the bulk editor UI yet. The bulk UI and workflow need design discussion, idea iteration, and possibly prototypes first.
+
+Allowed before that discussion:
+
+- framework-neutral bulk model helpers;
+- tests for bulk helper behavior;
+- documentation and architecture notes;
+- maintenance, CI, dependency, and build cleanup.

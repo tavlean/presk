@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for bulk settings mutation helpers.
+Working tree at last update: pending commit for docs reflecting the bulk UI design hold.
 
 Latest committed work:
 
@@ -45,7 +45,7 @@ Latest verification run:
 Next recommended tasks:
 
 1. Continue bulk-image feature design in framework-neutral TypeScript modules before touching UI heavily.
-2. Decide whether to fix the Rollup unused external import warning now or leave it for the larger Rollup/toolchain upgrade.
+2. Do not implement bulk UI until the workflow design has been discussed and iterated.
 3. Keep remaining `npm audit` work as explicit build-tooling upgrade tasks; do not use `npm audit fix --force` blindly.
 
 ## Completed baseline cleanup

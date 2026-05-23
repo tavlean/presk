@@ -96,6 +96,8 @@ See [Bulk image architecture](bulk-image-architecture.md) for the current first-
 
 This is the first product milestone.
 
+Status: do not implement this phase yet. The bulk editor UI should go through design discussion, idea iteration, and prototypes before production implementation.
+
 1. Allow multiple image import.
 
    - File picker should accept multiple images.
