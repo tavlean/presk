@@ -63,10 +63,14 @@ export function hasSettingsOverrides(
 ): boolean {
   if (!overrides) return false;
   return Boolean(
-    overrides.encoderState ||
-      (overrides.processorState &&
-        Object.keys(overrides.processorState).length > 0),
+    overrides.encoderState || hasDefinedOverride(overrides.processorState),
   );
+}
+
+function hasDefinedOverride(value: unknown): boolean {
+  if (value === undefined) return false;
+  if (!isRecord(value)) return true;
+  return Object.values(value).some(hasDefinedOverride);
 }
 
 export function settingsHash(settings: BulkImageSettings): string {
