@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for agent guide.
+Working tree at last update: clean, local branch ahead of `origin/main` by 12 commits.
 
 Latest committed work:
 
@@ -39,7 +39,7 @@ Latest committed work:
 - Pending: progress dashboard
 - `f75c99a` Add progress dashboard
 - `23e005e` Extract processor state comparison
-- Pending: agent guide
+- `4fa0db9` Add agent guide
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
