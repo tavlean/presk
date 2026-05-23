@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for cross-platform serve scripts.
+Working tree at last update: pending commit for full upstream PR audit documentation.
 
 Latest committed work:
 
@@ -84,6 +84,7 @@ Next recommended tasks:
 - Added `src/client/lazy-app/bulk/urls.ts` to collect and revoke bulk preview, thumbnail, and download object URLs.
 - Fixed SVG `viewBox` size parsing for comma-separated values using a tested helper.
 - Replaced POSIX-only `dev` and `serve` script syntax with Node wrappers for better Windows compatibility.
+- Documented the full current upstream open PR audit in `docs/upstream-pr-notes.md`.
 - Removed the noisy Rollup unused external import warning by narrowing `path` imports in build plugins.
 - Refreshed low-risk dependencies while keeping Preact pinned because the newer Preact 10 typings require a separate migration.
 - Refreshed compatible Rollup 2 plugins and set `@rollup/plugin-replace` `preventAssignment` explicitly.
