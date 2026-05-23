@@ -1,7 +1,27 @@
 import { createImageJob, ImageJob } from './session';
 
+const supportedImageExtensions = new Set([
+  'avif',
+  'gif',
+  'jpeg',
+  'jpg',
+  'jxl',
+  'png',
+  'qoi',
+  'svg',
+  'webp',
+  'wp2',
+]);
+
+function getFileExtension(fileName: string): string {
+  const lastDot = fileName.lastIndexOf('.');
+  if (lastDot === -1 || lastDot === fileName.length - 1) return '';
+  return fileName.slice(lastDot + 1).toLocaleLowerCase();
+}
+
 export function isSupportedBulkImage(file: File): boolean {
-  return file.type.startsWith('image/');
+  if (file.type.startsWith('image/')) return true;
+  return supportedImageExtensions.has(getFileExtension(file.name));
 }
 
 export function createImageJobId(file: File, index: number): string {

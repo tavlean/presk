@@ -14,11 +14,13 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for stale roadmap cleanup.
+Working tree at last update: pending commit for bulk import extension fallback.
 
 Latest committed work:
 
 - `0e4118d` Ensure unique bulk job IDs
+- `3dd200d` Update roadmap analytics status
+- Pending: bulk import extension fallback
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -78,6 +80,7 @@ Next recommended tasks:
 - Added bulk export entry naming helpers for duplicate-safe future batch downloads.
 - Added session helpers for global setting changes and per-image override changes.
 - Hardened bulk session imports so repeated files receive unique job IDs.
+- Added a bulk import extension fallback for image files with missing MIME types.
 - Added a session helper to remove jobs while preserving valid selection and active-job counts.
 - Added a session helper to mark encoded jobs exported without double-counting repeat exports.
 - Added a lightweight Node assertion test for bulk helper behavior.
