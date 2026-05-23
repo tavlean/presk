@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for result cache type cleanup.
+Working tree at last update: clean after result cache type cleanup, ahead of `origin/main` by 5 local commits.
 
 Latest committed work:
 
@@ -44,7 +44,7 @@ Latest committed work:
 - `9b1496f` Note current cleanup state
 - `a7d7969` Reject array saved settings
 - `263763d` Tighten DOM helper types
-- Pending: result cache type cleanup
+- `ec2b652` Tighten result cache typing
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
