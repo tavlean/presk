@@ -10,11 +10,11 @@ Make Sqush a lean, maintainable, secure image optimization tool that is comforta
 
 | Area                                 | Progress | State                                                                                                             |
 | ------------------------------------ | -------: | ----------------------------------------------------------------------------------------------------------------- |
-| Stabilization, CI, and security      |      80% | Audit is clean, baseline scripts exist, CI covers Ubuntu, Windows, and macOS, smoke checks are stronger.          |
-| Documentation and handoff clarity    |      75% | Core docs exist. Progress, roadmap, issue list, codec provenance, and maintenance status are now tracked.         |
-| Bulk backend foundation              |      50% | Framework-neutral import/session/settings/queue/export/processor/runner helpers exist with tests.                 |
-| Repo simplification                  |      30% | Dependency and script cleanup started. Codec surface, Preact coupling, and custom Rollup complexity still remain. |
-| Svelte/SvelteKit migration readiness |      20% | Non-UI logic extraction has started. UI migration should wait until business logic is cleaner and better tested.  |
+| Stabilization, CI, and security      |      81% | Audit is clean, baseline scripts exist, CI covers Ubuntu, Windows, and macOS, smoke checks are stronger.          |
+| Documentation and handoff clarity    |      77% | Core docs exist. Progress, roadmap, issue list, codec provenance, and maintenance status are now tracked.         |
+| Bulk backend foundation              |      52% | Framework-neutral import/session/settings/queue/export/processor/runner/URL helpers exist with tests.             |
+| Repo simplification                  |      32% | Dependency and script cleanup started. Codec surface, Preact coupling, and custom Rollup complexity still remain. |
+| Svelte/SvelteKit migration readiness |      22% | Shared pipeline and bulk logic extraction has started. UI migration should wait until behavior is better tested.  |
 
 These percentages are rough planning signals, not release guarantees.
 

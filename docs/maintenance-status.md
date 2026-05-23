@@ -14,53 +14,27 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after bulk import fallback cleanup. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: clean after bulk object URL cleanup. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
-Latest committed work:
+Latest local-only committed work at last update:
 
-- `0e4118d` Ensure unique bulk job IDs
-- `3dd200d` Update roadmap analytics status
-- `bb8eb5a` Accept image imports by extension
-- `0fd84c0` Add bulk retry helper
-- `faef40e` Add detailed bulk progress
-- `57eb2a4` Guard zero-size bulk outputs
-- `9a9f50b` Strengthen build smoke checks
-- `c40b73f` Keep CI matrix jobs independent
-- `fb33d27` Add npm test alias
-- `c34598c` Verify generated feature files
-- `ed740b0` Add maintenance issue list
-- `d1eb2db` Update local handoff status
-- `5f038f9` Document browser support policy
-- `b17bb09` Add unit test alias
-- `e2b0bc5` Add bulk import summary
-- `ec853a0` List bulk setting overrides
-- `2d72944` Test bulk override paths
-- `a4683c5` Refresh local progress status
-- `f75c99a` Add progress dashboard
-- `23e005e` Extract processor state comparison
-- `4fa0db9` Add agent guide
-- `67a6ed5` Update handoff after agent guide
-- `c786510` Correct resume handoff status
-- `9b1496f` Note current cleanup state
-- `a7d7969` Reject array saved settings
-- `263763d` Tighten DOM helper types
-- `ec2b652` Tighten result cache typing
-- `24d9010` Preserve falsy bulk overrides
-- `743b91a` Update handoff after bulk settings fix
-- `b4b45ef` Clarify optimizer reliability mission
-- `3a78229` Guard build against external runtime assets
+- `df147a6` Deduplicate bulk object URL cleanup
+- `0c06bbe` Type encoder options rendering
+- `7971432` Type core encoder dispatch
+- `2732488` Use Preact constructor type for quality options
+- `557d935` Tighten worker bridge dispatch types
+- `27fb26a` Tighten clean modify types
+- `03edd81` Tighten shallowEqual types
+- `0dd042d` Keep bulk exported counts consistent
+- `28a16e2` Document Playwright CLI smoke flow
+- `a69317c` Define browser support baseline
+- `fbaf1ae` Validate saved processor settings
+- `df5f370` Validate saved encoder options
+- `f20c721` Harden bulk export filenames
+- `ae8e4c0` Update handoff after import fallback
 - `d7e19d4` Accept more extension-only image imports
-- `b9b7f0f` Add macOS CI coverage
-- `45f3050` Declare supported Node engine
-- `559b118` Tighten bulk override detection
-- `3eff941` Guard bulk queue transitions
-- `383705e` Add bulk job removal helper
-- `9002729` Document codec provenance
-- `e7542ae` Track exported bulk jobs
-- `d5e32ea` Add bulk export entries
-- `7eef5e4` Use primitive resize boolean prop
-- `352c6dc` Version saved side settings
-- `6032bee` Document audit command
+- `3a78229` Guard build against external runtime assets
+- `b4b45ef` Clarify optimizer reliability mission
 
 Latest verification run:
 
@@ -86,7 +60,7 @@ Next recommended tasks when work resumes:
 
 Quick investigation note:
 
-- `src/client/lazy-app/image-pipeline.ts` still has an `as any` around encoder options. This is caused by generated `encoderMap` union typing. Do not rush this under time pressure; fix it with generated type improvements or a well-typed dispatch helper.
+- `rg "as any|: any| any[),;]" src/client/lazy-app src/features lib/test-helpers.js` currently reports no remaining matches in the main lazy app, feature code, or helper tests. The only generated `as any` text found is emitted by `lib/feature-plugin.js` for worker exposure.
 
 ## Completed baseline cleanup
 
