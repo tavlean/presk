@@ -9,7 +9,7 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
    - Verify the app loads from a production build.
    - Verify a file can open the editor.
    - Started: production-build shell and local-image editor import are now covered by the Playwright CLI smoke flow in [Manual QA checklist](manual-qa.md).
-   - Verify output generation for at least WebP in a later browser test.
+   - Started: production-build WebP output generation is now covered manually with Playwright CLI; the smoke verifies WebP selection, a `.webp` blob download, and zero console errors.
    - Started: `npm run smoke:build` now checks that production runtime scripts, runtime links, and manifest media stay local so the offline/local-processing promise does not silently regress.
    - Started: `npm run smoke:build` now checks that service-worker precache entries point at files emitted into `build/`.
 

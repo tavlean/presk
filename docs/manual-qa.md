@@ -63,15 +63,13 @@ Use the system `playwright-cli` setup documented at `/Users/tav/Development/docs
 ```sh
 playwright-cli -s=sqush-smoke open http://127.0.0.1:5001
 playwright-cli -s=sqush-smoke snapshot
-playwright-cli -s=sqush-smoke click e11
-playwright-cli -s=sqush-smoke upload /Users/tav/Development/Tavlean/SquooshPlus/src/static-build/assets/icon-large.png
+playwright-cli -s=sqush-smoke run-code "async page => { const file = '/Users/tav/Development/Tavlean/SquooshPlus/src/static-build/assets/icon-large.png'; const input = page.locator('input[type=file]').first(); await input.setInputFiles(file); await page.waitForURL('**/editor', { timeout: 15000 }); await page.waitForFunction(() => document.title.includes('icon-large.png'), null, { timeout: 20000 }); await page.waitForFunction(() => !document.title.startsWith('⏳'), null, { timeout: 30000 }); return { url: page.url(), title: await page.title() }; }"
+playwright-cli -s=sqush-smoke run-code "async page => { const selects = page.locator('select'); await selects.nth(1).selectOption({ label: 'WebP' }); await page.waitForFunction(() => !document.title.startsWith('⏳'), null, { timeout: 30000 }); const selected = await selects.nth(1).evaluate(el => el.options[el.selectedIndex].text); const links = await page.locator('a[download], a[href^=blob]').evaluateAll(els => els.map(a => ({ href: a.href, download: a.getAttribute('download') }))); const bodyText = await page.locator('body').innerText(); return { selected, links, outputMentioned: /\\.webp|WebP|kB/.test(bodyText) }; }"
 playwright-cli -s=sqush-smoke console error
 playwright-cli -s=sqush-smoke close
 ```
 
-The `click` ref is the empty icon button that opens the file chooser in the preceding snapshot; refresh the snapshot and use the current ref if it changes.
-
-Expected result: the upload navigates to `/editor`, the title becomes `icon-large.png - Sqush`, and `console error` reports zero errors.
+Expected result: the upload navigates to `/editor`, the title becomes `icon-large.png - Sqush`, the output side can be changed to `WebP`, a blob download named `icon-large.webp` is present, and `console error` reports zero errors.
 
 ## Bulk foundation checks
 

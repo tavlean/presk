@@ -1,6 +1,6 @@
 # Maintenance status
 
-Last updated: 2026-05-23.
+Last updated: 2026-05-24.
 
 ## Resume handoff
 
@@ -14,14 +14,19 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after bulk failure stale-output cleanup. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: docs updated after a focused WebP production-build smoke. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
 Latest local-only committed work at last update:
 
+- `63adddf` Update handoff after failure cleanup
 - `09d0f7b` Clear stale output on bulk failure
+- `ffc9138` Update handoff after queue hardening
 - `1090c84` Keep exported count stable on completion
+- `93519a2` Update handoff after CI recovery
 - `7c2c39e` Reject null saved encoder options
+- `9d7ac14` Update handoff after abort cleanup
 - `ef12543` Clean up abortable listeners
+- `0bbe31a` Update handoff after smoke coverage
 - `64e7600` Verify service worker build assets
 - `1959482` Derive counters for restored bulk sessions
 - `82eb7b6` Reserve generated bulk export names
@@ -55,11 +60,12 @@ Latest verification run:
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
-- Latest observed GitHub Actions state: pushed commits through `ffc9138` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state: pushed commits through `63adddf` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 - Playwright CLI production-build image import smoke: passed on `2026-05-23`; built app loaded, `icon-large.png` imported into `/editor`, processing completed with title `icon-large.png - Sqush`, WebP options were present, and console errors were 0.
+- Playwright CLI production-build WebP output smoke: passed on `2026-05-24`; built app loaded, `icon-large.png` imported into `/editor`, output side switched to `WebP`, `icon-large.webp` blob download was present, output was `24.1 kB` with a 9% reduction, and console errors were 0.
 
 Next recommended tasks when work resumes:
 
@@ -93,6 +99,7 @@ Quick investigation note:
 - Expanded `npm run smoke:build` to verify service-worker precache assets exist in the production build.
 - Added `npm run preview` to serve the production `build/` directory.
 - Documented and verified a Playwright CLI smoke flow for the production app shell and local-image editor import path.
+- Documented and verified a Playwright CLI smoke flow for explicit WebP output generation and export-link presence.
 - Updated CI to use current checkout/setup-node actions and run the baseline checks.
 - Expanded CI to cover Ubuntu, Windows, and macOS.
 - CI matrix fail-fast is disabled so one platform failure does not hide the other platform results.
