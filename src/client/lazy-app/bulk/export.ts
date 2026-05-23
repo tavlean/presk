@@ -48,15 +48,19 @@ function sanitizeFileNamePart(value: string): string {
 
 function createDuplicateSafeName(
   fileName: string,
-  knownNames: Map<string, number>,
+  knownNames: Set<string>,
 ): string {
-  const collisionKey = fileName.toLowerCase();
-  const collisionCount = knownNames.get(collisionKey) ?? 0;
-  knownNames.set(collisionKey, collisionCount + 1);
-  if (collisionCount === 0) return fileName;
-
   const { baseName, extension } = splitFileName(fileName);
-  return `${baseName}-${collisionCount + 1}${extension ? `.${extension}` : ''}`;
+  let suffix = 1;
+  let candidate = fileName;
+
+  while (knownNames.has(candidate.toLowerCase())) {
+    suffix += 1;
+    candidate = `${baseName}-${suffix}${extension ? `.${extension}` : ''}`;
+  }
+
+  knownNames.add(candidate.toLowerCase());
+  return candidate;
 }
 
 export function getExportableJobs(session: BulkSession): ImageJob[] {
@@ -117,7 +121,7 @@ export function getBulkOutputFileName(job: ImageJob): string {
 }
 
 export function getBulkExportEntries(session: BulkSession): BulkExportEntry[] {
-  const knownNames = new Map<string, number>();
+  const knownNames = new Set<string>();
   return getExportableJobs(session).map((job) => {
     const output = job.output!;
     return {

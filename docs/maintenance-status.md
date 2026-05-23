@@ -119,6 +119,7 @@ Quick investigation note:
 - Added a bulk queue retry helper for failed and skipped jobs.
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.
 - Added bulk export entry naming helpers for duplicate-safe future batch downloads.
+- Hardened bulk export entry naming so names generated to resolve earlier collisions are also reserved against later files.
 - Hardened bulk export archive names so batch IDs cannot create path-like or invalid download names.
 - Hardened bulk export filenames for invalid characters, punctuation-only names, hidden-style names, and deterministic case-insensitive duplicate checks.
 - Added session helpers for global setting changes and per-image override changes.
