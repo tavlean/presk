@@ -111,6 +111,7 @@ Quick investigation note:
 - Added a settings override path helper for future per-image override highlighting.
 - Hardened bulk queue transitions so missing or repeated jobs do not corrupt active-job counts.
 - Hardened bulk queue/session bookkeeping so removed or stale exported jobs keep exported counts consistent.
+- Hardened bulk single-job requeue bookkeeping so reprocessing an exported job decrements exported counts.
 - Added a bulk queue retry helper for failed and skipped jobs.
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.
 - Added bulk export entry naming helpers for duplicate-safe future batch downloads.

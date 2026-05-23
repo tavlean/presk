@@ -100,6 +100,7 @@ export function requeueJob(session: BulkSession, jobId: string): BulkSession {
   const job = getJob(session, jobId);
   if (!job) return session;
   const activeJobDelta = isActiveStatus(job.status) ? 1 : 0;
+  const exportedJobDelta = job.status === 'exported' ? 1 : 0;
 
   return {
     ...updateJob(session, jobId, (job) => ({
@@ -109,6 +110,7 @@ export function requeueJob(session: BulkSession, jobId: string): BulkSession {
       error: undefined,
     })),
     activeJobs: Math.max(0, session.activeJobs - activeJobDelta),
+    exportedCount: Math.max(0, session.exportedCount - exportedJobDelta),
   };
 }
 
