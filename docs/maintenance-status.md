@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for bulk import summary helper.
+Working tree at last update: pending commit for settings override path helper.
 
 Latest committed work:
 
@@ -32,8 +32,8 @@ Latest committed work:
 - `d1eb2db` Update local handoff status
 - `5f038f9` Document browser support policy
 - `b17bb09` Add unit test alias
-- Pending: bulk import summary helper
-- Pending: npm test alias
+- `e2b0bc5` Add bulk import summary
+- Pending: settings override path helper
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -94,6 +94,7 @@ Next recommended tasks:
 - Modernized one editor media query listener path.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Tightened bulk override detection so empty nested override objects are not treated as real overrides.
+- Added a settings override path helper for future per-image override highlighting.
 - Hardened bulk queue transitions so missing or repeated jobs do not corrupt active-job counts.
 - Added a bulk queue retry helper for failed and skipped jobs.
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.

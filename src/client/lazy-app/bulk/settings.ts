@@ -73,6 +73,40 @@ function hasDefinedOverride(value: unknown): boolean {
   return Object.values(value).some(hasDefinedOverride);
 }
 
+function collectDefinedOverridePaths(
+  value: unknown,
+  parentPath: string,
+  paths: string[],
+): void {
+  if (value === undefined) return;
+  if (!isRecord(value)) {
+    if (parentPath) paths.push(parentPath);
+    return;
+  }
+
+  for (const [key, childValue] of Object.entries(value)) {
+    collectDefinedOverridePaths(
+      childValue,
+      parentPath ? `${parentPath}.${key}` : key,
+      paths,
+    );
+  }
+}
+
+export function getSettingsOverridePaths(
+  overrides: BulkImageOverrides | undefined,
+): string[] {
+  if (!overrides) return [];
+  const paths: string[] = [];
+  if (overrides.encoderState) paths.push('encoderState');
+  collectDefinedOverridePaths(
+    overrides.processorState,
+    'processorState',
+    paths,
+  );
+  return paths;
+}
+
 export function settingsHash(settings: BulkImageSettings): string {
   return stableStringify(settings);
 }
