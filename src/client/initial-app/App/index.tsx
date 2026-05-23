@@ -26,7 +26,7 @@ interface Props {}
 interface State {
   awaitingShareTarget: boolean;
   file?: File;
-  isEditorOpen: Boolean;
+  isEditorOpen: boolean;
   Compress?: typeof import('client/lazy-app/Compress').default;
 }
 

@@ -375,7 +375,7 @@ export default class Compress extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    this.widthQuery.addListener(this.onMobileWidthChange);
+    this.widthQuery.addEventListener('change', this.onMobileWidthChange);
     this.sourceFile = props.file;
     this.queueUpdateImage({ immediate: true });
 
@@ -436,7 +436,7 @@ export default class Compress extends Component<Props, State> {
 
   componentWillUnmount(): void {
     updateDocumentTitle({ loading: false });
-    this.widthQuery.removeListener(this.onMobileWidthChange);
+    this.widthQuery.removeEventListener('change', this.onMobileWidthChange);
     this.mainAbortController.abort();
     for (const controller of this.sideAbortControllers) {
       controller.abort();
