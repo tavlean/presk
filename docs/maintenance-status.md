@@ -2,6 +2,34 @@
 
 Last updated: 2026-05-23.
 
+## Resume handoff
+
+Current branch: `dev`.
+
+Working tree at last update: clean.
+
+Latest committed maintenance work:
+
+- `f4d1a08` Clarify npm cache status
+- `a930ac9` Update maintenance status
+- `ba6467c` Replace npm-run-all dev runner
+- `8c54731` Clarify generated feature files
+- `15b3662` Link maintenance status doc
+
+Latest verification run:
+
+- `npm run format:check`: passed.
+- `npm run typecheck`: passed.
+- `npm run build && npm run smoke:build`: passed.
+- Playwright CLI production-build smoke: passed, with `Squoosh` title, file input present, and zero console messages.
+
+Next recommended tasks:
+
+1. Add a repeatable browser smoke command or script so the Playwright check is not only manual.
+2. Decide whether to fix the Rollup unused external import warning now or leave it for the larger Rollup/toolchain upgrade.
+3. Start bulk-image feature design in framework-neutral TypeScript modules before touching UI heavily.
+4. Keep remaining `npm audit` work as explicit build-tooling upgrade tasks; do not use `npm audit fix --force` blindly.
+
 ## Completed baseline cleanup
 
 - Added project documentation and a road map.
