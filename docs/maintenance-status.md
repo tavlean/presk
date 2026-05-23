@@ -14,11 +14,13 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for Rollup path import cleanup.
+Working tree at last update: clean after `193e462`.
 
 Latest committed work:
 
 - `246a8f2` Add Sqush domain metadata
+- `193e462` Clean up Rollup path imports
+- `078b0fd` Add bulk helper tests
 - `35572b5` Add bulk session helpers
 - `2dc35f3` Detect stale bulk outputs
 - `3ab2fb6` Spawn TypeScript through Node
