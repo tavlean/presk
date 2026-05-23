@@ -154,7 +154,7 @@ export async function builtinDecode(
  * @param defaultVal Value to return if 'field' doesn't exist.
  */
 export function inputFieldValueAsNumber(
-  field: any,
+  field?: HTMLInputElement | null,
   defaultVal: number = 0,
 ): number {
   if (!field) return defaultVal;
@@ -166,7 +166,7 @@ export function inputFieldValueAsNumber(
  * @param defaultVal Value to return if 'field' doesn't exist.
  */
 export function inputFieldCheckedAsNumber(
-  field: any,
+  field?: HTMLInputElement | null,
   defaultVal: number = 0,
 ): number {
   if (!field) return defaultVal;
@@ -178,20 +178,23 @@ export function inputFieldCheckedAsNumber(
  * @param defaultVal Value to return if 'field' doesn't exist.
  */
 export function inputFieldChecked(
-  field: any,
+  field?: HTMLInputElement | null,
   defaultVal: boolean = false,
 ): boolean {
   if (!field) return defaultVal;
-  return (field as HTMLInputElement).checked;
+  return field.checked;
 }
 
 /**
  * @param field An HTMLInputElement, but the casting is done here to tidy up onChange.
  * @param defaultVal Value to return if 'field' doesn't exist.
  */
-export function inputFieldValue(field: any, defaultVal: string = ''): string {
+export function inputFieldValue(
+  field?: HTMLInputElement | null,
+  defaultVal: string = '',
+): string {
   if (!field) return defaultVal;
-  return (field as HTMLInputElement).value;
+  return field.value;
 }
 
 /**

@@ -67,7 +67,7 @@ export default class App extends Component<Props, State> {
     // really breaks things on Sqush, as you can easily end up zooming the UI when you mean to
     // zoom the image. Once you've done this, it's really difficult to undo. Anyway, this seems to
     // prevent it.
-    document.body.addEventListener('gesturestart', (event: any) => {
+    document.body.addEventListener('gesturestart', (event: Event) => {
       event.preventDefault();
     });
 
