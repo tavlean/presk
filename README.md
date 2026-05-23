@@ -9,8 +9,10 @@ Website: [sqush.app](https://sqush.app)
 - [Project overview](docs/overview.md)
 - [Build and runtime map](docs/build-and-runtime.md)
 - [Bulk image architecture](docs/bulk-image-architecture.md)
+- [Dependency modernization](docs/dependency-modernization.md)
 - [Road map](docs/road-map.md)
 - [Cleanup todo](docs/todo.md)
+- [Upstream PR notes](docs/upstream-pr-notes.md)
 - [Maintenance status](docs/maintenance-status.md)
 
 # Privacy

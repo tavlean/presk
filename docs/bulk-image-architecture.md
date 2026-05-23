@@ -265,6 +265,40 @@ Later implementation:
    - Stale outputs are not exportable.
    - Add ZIP later.
 
+## UI implementation hold
+
+Do not implement the production bulk UI yet. The workflow needs design discussion, iteration, and possibly prototypes first.
+
+When implementation resumes, the safest technical path is:
+
+1. Extract the existing single-image processing pipeline from `Compress/index.tsx` into a shared non-UI module.
+
+   - Keep the current single-image editor importing the same functions back.
+   - Preserve one-file behavior before adding any bulk screen.
+
+2. Add a bulk processor module separate from the current `Compress` component.
+
+   - It should consume `ImageJob`, effective settings, `WorkerBridge`, and `AbortSignal`.
+   - It should produce `ImageOutput`.
+   - It should not call or fork `Compress.updateImage()` because that method is tied to the two-side UI state machine.
+
+3. Keep worker usage bounded.
+
+   - `WorkerBridge` queues work per bridge.
+   - Bulk mode should use a small pool aligned with `defaultBulkConcurrency`.
+
+4. Detect multi-file import at the app boundary later.
+
+   - A one-file import should keep using the current single-image `Compress` path.
+   - A multi-file import can route to a separate lazy bulk component after the design is agreed.
+
+5. Treat the existing `Options`, `Output`, and `Results` components as reference material, not as a direct bulk UI.
+
+   - They are built around two comparison sides.
+   - Bulk settings need global defaults, selected-image overrides, and clear override indicators.
+
+Important open design decision: resize behavior for mixed-size batches. The current single-image editor resets resize defaults from the decoded source dimensions. Bulk mode needs a clear global rule before implementation.
+
 ## Test plan
 
 Start with pure unit tests:

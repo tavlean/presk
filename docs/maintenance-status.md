@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for docs reflecting the bulk UI design hold.
+Working tree at last update: pending commit for agent research docs.
 
 Latest committed work:
 
@@ -46,7 +46,8 @@ Next recommended tasks:
 
 1. Continue bulk-image feature design in framework-neutral TypeScript modules before touching UI heavily.
 2. Do not implement bulk UI until the workflow design has been discussed and iterated.
-3. Keep remaining `npm audit` work as explicit build-tooling upgrade tasks; do not use `npm audit fix --force` blindly.
+3. Use `docs/dependency-modernization.md` for dependency cleanup order; do not use `npm audit fix --force` blindly.
+4. Use `docs/upstream-pr-notes.md` as reference material for useful abandoned upstream PRs.
 
 ## Completed baseline cleanup
 
