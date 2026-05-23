@@ -8,10 +8,17 @@ Current branch: `main`.
 
 Standalone GitHub repo: `tavlean/sqush`.
 
-Working tree at last update: clean after `26d8880`; a follow-up domain metadata commit may be present if the latest log contains `Add Sqush domain metadata`.
+Default branch: `main`.
+
+Project homepage metadata: `https://sqush.app`.
+
+Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
+
+Working tree at last update: clean after `246a8f2`.
 
 Latest committed work:
 
+- `246a8f2` Add Sqush domain metadata
 - `26d8880` Rename project to Sqush
 - `20d4299` Add bulk session types
 - `0060b8e` Add bulk settings helpers
