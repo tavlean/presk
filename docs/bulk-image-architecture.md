@@ -171,6 +171,7 @@ Rules:
 - Store source `File` objects.
 - Store object URLs for thumbnails/previews only when needed.
 - Revoke object URLs when replacing or removing them.
+- Shared cleanup helpers live in `src/client/lazy-app/bulk/urls.ts`.
 - Do not keep decoded `ImageData` for every image forever.
 - Cache the selected image more aggressively than background images.
 - Consider an LRU cache for decoded image data later.
