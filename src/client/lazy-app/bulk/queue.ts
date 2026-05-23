@@ -135,3 +135,17 @@ export function requeueStaleJobs(session: BulkSession): BulkSession {
     }),
   };
 }
+
+export function requeueIncompleteJobs(session: BulkSession): BulkSession {
+  return {
+    ...session,
+    jobs: session.jobs.map((job) => {
+      if (job.status !== 'failed' && job.status !== 'skipped') return job;
+      return {
+        ...job,
+        status: 'queued',
+        error: undefined,
+      };
+    }),
+  };
+}
