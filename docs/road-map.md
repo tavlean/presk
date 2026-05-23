@@ -45,9 +45,9 @@ Do this before large feature work.
    - Upgrade carefully, one area at a time.
    - Do not do a full framework migration in this phase.
 
-5. Remove or gate inherited analytics.
-   - The app still contains the old upstream Google Analytics setup.
-   - Decide whether this fork should have no analytics, local-only analytics, or configurable analytics.
+5. Completed: remove inherited analytics.
+   - The old upstream Google Analytics setup has been removed.
+   - Do not add analytics back without a separate privacy and consent decision.
 
 ## Phase 2: design the bulk-processing core
 

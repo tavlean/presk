@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after `0e4118d`.
+Working tree at last update: pending commit for stale roadmap cleanup.
 
 Latest committed work:
 
@@ -30,6 +30,7 @@ Latest committed work:
 - `7eef5e4` Use primitive resize boolean prop
 - `352c6dc` Version saved side settings
 - `6032bee` Document audit command
+- Pending: stale roadmap cleanup
 
 Latest verification run:
 
