@@ -9,6 +9,12 @@ const workerTimeout = 10_000;
 
 interface WorkerBridge extends BridgeMethods {}
 
+type BridgeMethod = (
+  this: WorkerBridge,
+  signal: AbortSignal,
+  ...args: unknown[]
+) => Promise<unknown>;
+
 class WorkerBridge {
   protected _queue = Promise.resolve() as Promise<unknown>;
   /** Worker instance associated with this processor. */
@@ -32,10 +38,10 @@ class WorkerBridge {
 }
 
 for (const methodName of methodNames) {
-  WorkerBridge.prototype[methodName] = function (
+  const bridgeMethod: BridgeMethod = function (
     this: WorkerBridge,
     signal: AbortSignal,
-    ...args: any
+    ...args: unknown[]
   ) {
     this._queue = this._queue
       // Ignore any errors in the queue
@@ -65,7 +71,10 @@ for (const methodName of methodNames) {
       });
 
     return this._queue;
-  } as any;
+  };
+  (WorkerBridge.prototype as Record<typeof methodName, BridgeMethod>)[
+    methodName
+  ] = bridgeMethod;
 }
 
 export default WorkerBridge;
