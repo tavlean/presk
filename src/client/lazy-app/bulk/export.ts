@@ -41,6 +41,7 @@ function sanitizeFileNamePart(value: string): string {
     .replace(/[\\/:*?"<>|\x00-\x1f]+/g, '-')
     .replace(/\s+/g, ' ')
     .replace(/-+/g, '-')
+    .replace(/\s*-\s*/g, '-')
     .replace(/^[\s.-]+|[\s.-]+$/g, '')
     .trim();
 }
@@ -103,7 +104,8 @@ export function getBulkExportSummary(session: BulkSession): BulkExportSummary {
 }
 
 export function getBulkExportName(session: BulkSession): string {
-  return `${session.id || 'sqush-bulk'}-optimized`;
+  const safeSessionName = sanitizeFileNamePart(session.id) || 'sqush-bulk';
+  return `${safeSessionName}-optimized`;
 }
 
 export function getBulkOutputFileName(job: ImageJob): string {
