@@ -113,13 +113,90 @@ export async function compressImage(
   assertSignal(signal);
 
   const encoder = encoderMap[encodeData.type];
-  const compressedData = await encoder.encode(
-    signal,
-    workerBridge,
-    image,
-    // The type of encodeData.options is enforced via the previous line
-    encodeData.options as any,
-  );
+  let compressedData: Blob | ArrayBuffer;
+
+  switch (encodeData.type) {
+    case 'avif':
+      compressedData = await encoderMap.avif.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'browserGIF':
+      compressedData = await encoderMap.browserGIF.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'browserJPEG':
+      compressedData = await encoderMap.browserJPEG.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'browserPNG':
+      compressedData = await encoderMap.browserPNG.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'jxl':
+      compressedData = await encoderMap.jxl.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'mozJPEG':
+      compressedData = await encoderMap.mozJPEG.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'oxiPNG':
+      compressedData = await encoderMap.oxiPNG.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'qoi':
+      compressedData = await encoderMap.qoi.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'webP':
+      compressedData = await encoderMap.webP.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+    case 'wp2':
+      compressedData = await encoderMap.wp2.encode(
+        signal,
+        workerBridge,
+        image,
+        encodeData.options,
+      );
+      break;
+  }
 
   // This type ensures the image mimetype is consistent with our mimetype sniffer
   const type: ImageMimeTypes = encoder.meta.mimeType;

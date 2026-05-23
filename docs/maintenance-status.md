@@ -127,6 +127,7 @@ Quick investigation note:
 - Replaced avoidable public `any` types in the shared immutable update helper with `unknown`/object types.
 - Replaced avoidable public `any` types in the generated worker bridge dispatch with `unknown`/method types.
 - Replaced a handwritten encoder option component constructor type with Preact's component constructor type.
+- Replaced the core image compression pipeline's encoder options cast with typed encoder dispatch.
 - Replaced avoidable `any` casts in the result cache processor-state comparison.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Extracted and tested processor-state equivalence logic from the Preact editor component.
