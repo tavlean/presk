@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for codec provenance documentation.
+Working tree at last update: pending commit for bulk job removal helper.
 
 Latest committed work:
 
@@ -23,7 +23,8 @@ Latest committed work:
 - `7eef5e4` Use primitive resize boolean prop
 - `d5e32ea` Add bulk export entries
 - `e7542ae` Track exported bulk jobs
-- Pending: codec provenance documentation
+- `9002729` Document codec provenance
+- Pending: bulk job removal helper
 
 Latest verification run:
 
@@ -65,6 +66,7 @@ Next recommended tasks:
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.
 - Added bulk export entry naming helpers for duplicate-safe future batch downloads.
 - Added session helpers for global setting changes and per-image override changes.
+- Added a session helper to remove jobs while preserving valid selection and active-job counts.
 - Added a session helper to mark encoded jobs exported without double-counting repeat exports.
 - Added a lightweight Node assertion test for bulk helper behavior.
 - Expanded the lightweight helper test to cover `clean-modify` and `pretty-bytes`.

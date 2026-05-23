@@ -71,6 +71,31 @@ export function addJobs(session: BulkSession, jobs: ImageJob[]): BulkSession {
   };
 }
 
+function isActiveJob(job: ImageJob): boolean {
+  return job.status === 'decoding' || job.status === 'processing';
+}
+
+export function removeJobs(
+  session: BulkSession,
+  jobIds: Iterable<string>,
+): BulkSession {
+  const removedJobIds = new Set(jobIds);
+  const nextJobs = session.jobs.filter((job) => !removedJobIds.has(job.id));
+  const removedActiveCount = session.jobs.filter(
+    (job) => removedJobIds.has(job.id) && isActiveJob(job),
+  ).length;
+  const selectedJobId = nextJobs.some((job) => job.id === session.selectedJobId)
+    ? session.selectedJobId
+    : nextJobs[0]?.id;
+
+  return {
+    ...session,
+    jobs: nextJobs,
+    selectedJobId,
+    activeJobs: Math.max(0, session.activeJobs - removedActiveCount),
+  };
+}
+
 export function selectJob(
   session: BulkSession,
   selectedJobId: string,
