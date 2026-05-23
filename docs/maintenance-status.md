@@ -117,6 +117,7 @@ Quick investigation note:
 - Hardened saved side settings against invalid `localStorage` data.
 - Added versioned saved side settings serialization while preserving legacy saved settings.
 - Hardened saved settings parsing to reject array-shaped payloads.
+- Hardened saved settings parsing to reject missing or array-shaped encoder options.
 - Modernized one editor media query listener path.
 - Replaced avoidable `any` types in shared DOM input helpers and gesture prevention.
 - Replaced avoidable `any` casts in the result cache processor-state comparison.

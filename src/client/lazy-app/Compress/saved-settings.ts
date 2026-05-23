@@ -26,7 +26,10 @@ function isEncoderState(value: unknown): value is EncoderState | undefined {
   if (value === undefined) return true;
   if (!isRecord(value)) return false;
   if (typeof value.type !== 'string') return false;
-  return Object.prototype.hasOwnProperty.call(encoderMap, value.type);
+  return (
+    isRecord(value.options) &&
+    Object.prototype.hasOwnProperty.call(encoderMap, value.type)
+  );
 }
 
 function isProcessorState(value: unknown): value is ProcessorState {
