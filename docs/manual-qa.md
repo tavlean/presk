@@ -52,6 +52,27 @@ Use this checklist before releases and after changes touching build tooling, wor
 - Confirm the drop target still works.
 - Confirm the service worker does not serve stale broken assets.
 
+## Playwright CLI smoke
+
+Use the system `playwright-cli` setup documented at `/Users/tav/Development/docs/playwright-cli-system-setup.md`. Do not add Playwright packages to this repo just to run this local smoke flow.
+
+1. Run `npm run build`.
+2. Run `PREVIEW_PORT=5001 npm run preview`.
+3. In another terminal, run:
+
+```sh
+playwright-cli -s=sqush-smoke open http://127.0.0.1:5001
+playwright-cli -s=sqush-smoke snapshot
+playwright-cli -s=sqush-smoke click e11
+playwright-cli -s=sqush-smoke upload /Users/tav/Development/Tavlean/SquooshPlus/src/static-build/assets/icon-large.png
+playwright-cli -s=sqush-smoke console error
+playwright-cli -s=sqush-smoke close
+```
+
+The `click` ref is the empty icon button that opens the file chooser in the preceding snapshot; refresh the snapshot and use the current ref if it changes.
+
+Expected result: the upload navigates to `/editor`, the title becomes `icon-large.png - Sqush`, and `console error` reports zero errors.
+
 ## Bulk foundation checks
 
 Bulk UI is not implemented yet. For now, verify the backend helpers through:

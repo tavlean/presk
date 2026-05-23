@@ -8,7 +8,8 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
 
    - Verify the app loads from a production build.
    - Verify a file can open the editor.
-   - Verify output generation for at least WebP.
+   - Started: production-build shell and local-image editor import are now covered by the Playwright CLI smoke flow in [Manual QA checklist](manual-qa.md).
+   - Verify output generation for at least WebP in a later browser test.
    - Started: `npm run smoke:build` now checks that production runtime scripts, runtime links, and manifest media stay local so the offline/local-processing promise does not silently regress.
 
 2. Expand pure helper tests.
@@ -21,7 +22,7 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
 3. Decide the first supported browser set.
 
    - Started: documented first public targets in [Browser support policy](browser-support.md).
-   - Add automated browser smoke coverage before treating the policy as release-proven.
+   - Started: local Chromium smoke coverage exists through the system Playwright CLI; add Safari/Firefox coverage before treating the policy as release-proven.
 
 4. Decide codec visibility before deleting codec code.
    - Start by hiding non-focus formats only after UI design discussion.

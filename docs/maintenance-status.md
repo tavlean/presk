@@ -106,6 +106,7 @@ Quick investigation note:
 - Expanded `npm run smoke:build` to verify generated feature metadata and worker entry files exist.
 - Expanded `npm run smoke:build` to guard against accidental external runtime scripts, runtime links, and manifest media.
 - Added `npm run preview` to serve the production `build/` directory.
+- Documented and verified a Playwright CLI smoke flow for the production app shell and local-image editor import path.
 - Updated CI to use current checkout/setup-node actions and run the baseline checks.
 - Expanded CI to cover Ubuntu, Windows, and macOS.
 - CI matrix fail-fast is disabled so one platform failure does not hide the other platform results.
