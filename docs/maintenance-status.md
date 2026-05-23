@@ -14,10 +14,11 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after bulk object URL cleanup. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: clean after bulk runner abort hardening. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
 Latest local-only committed work at last update:
 
+- `2666f83` Guard bulk runner aborts before processing
 - `df147a6` Deduplicate bulk object URL cleanup
 - `0c06bbe` Type encoder options rendering
 - `7971432` Type core encoder dispatch
@@ -45,10 +46,11 @@ Latest verification run:
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
-- Latest observed GitHub Actions state before local-only commits: commits through `c40b73f` passed. `0fd84c0` failed, but later commits containing that code passed.
+- Latest observed GitHub Actions state: pushed commits through `81f911c` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
+- Playwright CLI production-build image import smoke: passed on `2026-05-23`; built app loaded, `icon-large.png` imported into `/editor`, processing completed with title `icon-large.png - Sqush`, WebP options were present, and console errors were 0.
 
 Next recommended tasks when work resumes:
 
