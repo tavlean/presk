@@ -123,7 +123,7 @@ Recommended approach:
 |      1114 | Imagepool filename override            | other            | Low       | Note only                                           | libsquoosh API                   |
 |      1096 | size change indicators                 | UX               | Low       | Note only                                           | Prototype                        |
 |      1075 | mozjpeg decode errors                  | codec/bugfix     | Medium    | Investigate later                                   | Changes requested, WASM          |
-|      1072 | charset meta tag                       | bugfix           | Low       | Investigate manually                                | Tiny                             |
+|      1072 | charset meta tag                       | bugfix           | Low       | Done in Sqush                                       | Tiny                             |
 |      1004 | MozJPEG progressive steps              | codec            | Low       | Ignore                                              | Draft/experimental               |
 |       945 | hide paste if unsupported              | UX/bugfix        | Medium    | Investigate manually                                | Clipboard UI changed             |
 |       944 | paste data URI                         | UX               | Medium    | Investigate later                                   | Input handling/security          |
