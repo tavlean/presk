@@ -4,6 +4,7 @@ import type {
   ImageJobStatus,
   ImageOutput,
 } from './session';
+import { getEffectiveSettings, settingsHash } from './settings';
 
 export const defaultBulkConcurrency = 2;
 
@@ -83,4 +84,28 @@ export function requeueJob(session: BulkSession, jobId: string): BulkSession {
     output: undefined,
     error: undefined,
   }));
+}
+
+export function isJobOutputStale(session: BulkSession, job: ImageJob): boolean {
+  if (!job.output) return true;
+  const effectiveSettings = getEffectiveSettings(
+    session.globalSettings,
+    job.overrides,
+  );
+  return job.output.settingsHash !== settingsHash(effectiveSettings);
+}
+
+export function requeueStaleJobs(session: BulkSession): BulkSession {
+  return {
+    ...session,
+    jobs: session.jobs.map((job) => {
+      if (!job.output || !isJobOutputStale(session, job)) return job;
+      return {
+        ...job,
+        status: 'queued',
+        output: undefined,
+        error: undefined,
+      };
+    }),
+  };
 }

@@ -242,6 +242,7 @@ Later implementation:
    - Process WebP output for every imported image.
    - Store output size and percent change.
    - Initial queue helper module: `src/client/lazy-app/bulk/queue.ts`
+   - Queue helper can detect stale outputs from effective settings hashes.
 
 5. Add image strip.
 
