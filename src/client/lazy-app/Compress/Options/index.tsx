@@ -135,6 +135,66 @@ export default class Options extends Component<Props, State> {
     this.props.onEncoderOptionsChange(this.props.index, newOptions);
   };
 
+  private renderEncoderOptions(encoderState: EncoderState | undefined) {
+    if (!encoderState) return null;
+
+    switch (encoderState.type) {
+      case 'avif':
+        return (
+          <encoderMap.avif.Options
+            options={encoderState.options}
+            onChange={this.onEncoderOptionsChange}
+          />
+        );
+      case 'browserJPEG':
+        return (
+          <encoderMap.browserJPEG.Options
+            options={encoderState.options}
+            onChange={this.onEncoderOptionsChange}
+          />
+        );
+      case 'jxl':
+        return (
+          <encoderMap.jxl.Options
+            options={encoderState.options}
+            onChange={this.onEncoderOptionsChange}
+          />
+        );
+      case 'mozJPEG':
+        return (
+          <encoderMap.mozJPEG.Options
+            options={encoderState.options}
+            onChange={this.onEncoderOptionsChange}
+          />
+        );
+      case 'oxiPNG':
+        return (
+          <encoderMap.oxiPNG.Options
+            options={encoderState.options}
+            onChange={this.onEncoderOptionsChange}
+          />
+        );
+      case 'webP':
+        return (
+          <encoderMap.webP.Options
+            options={encoderState.options}
+            onChange={this.onEncoderOptionsChange}
+          />
+        );
+      case 'wp2':
+        return (
+          <encoderMap.wp2.Options
+            options={encoderState.options}
+            onChange={this.onEncoderOptionsChange}
+          />
+        );
+      case 'browserGIF':
+      case 'browserPNG':
+      case 'qoi':
+        return null;
+    }
+  }
+
   private onCopyToOtherSideClick = () => {
     this.props.onCopyToOtherSideClick(this.props.index);
   };
@@ -151,10 +211,6 @@ export default class Options extends Component<Props, State> {
     { source, encoderState, processorState }: Props,
     { supportedEncoderMap }: State,
   ) {
-    const encoder = encoderState && encoderMap[encoderState.type];
-    const EncoderOptionComponent =
-      encoder && 'Options' in encoder ? encoder.Options : undefined;
-
     return (
       <div
         class={
@@ -271,18 +327,7 @@ export default class Options extends Component<Props, State> {
           )}
         </section>
 
-        <Expander>
-          {EncoderOptionComponent && (
-            <EncoderOptionComponent
-              options={
-                // Casting options, as encoderOptionsComponentMap[encodeData.type] ensures
-                // the correct type, but typescript isn't smart enough.
-                encoderState!.options as any
-              }
-              onChange={this.onEncoderOptionsChange}
-            />
-          )}
-        </Expander>
+        <Expander>{this.renderEncoderOptions(encoderState)}</Expander>
       </div>
     );
   }
