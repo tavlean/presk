@@ -22,7 +22,7 @@ Latest verification run:
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run check`: passed after `4017cac`.
-- Playwright CLI production-build smoke: passed, with `Squoosh` title, file input present, and zero console messages.
+- Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 
 Next recommended tasks:
 

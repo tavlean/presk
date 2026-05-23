@@ -5,7 +5,7 @@ labels:
 ---
 
 **Before you start**
-Please take a look at the [FAQ](https://github.com/GoogleChromeLabs/squoosh/wiki/FAQ) as well as the already opened issues! If nothing fits your problem, go ahead and fill out the following template:
+Please take a look at the existing issues before filing a new bug. If nothing fits your problem, go ahead and fill out the following template:
 
 **Describe the bug**
 A clear and concise description of what the bug is.
@@ -32,7 +32,7 @@ A clear and concise description of what you expected to happen.
 Please attach original and output images (you can drag & drop to attach).
 
 - Original image
-- Output image from Squoosh
+- Output image from Sqush
 
 **Additional context, screenshots, screencasts**
 Add any other context about the problem here.

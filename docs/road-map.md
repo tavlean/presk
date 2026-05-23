@@ -1,6 +1,6 @@
 # Road map
 
-This road map is written for the SquooshPlus fork, with bulk image optimization as the main reason for the project.
+This road map is written for the Sqush fork, with bulk image optimization as the main reason for the project.
 
 ## Guiding direction
 

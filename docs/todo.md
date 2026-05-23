@@ -59,7 +59,7 @@ This list is ordered by priority. Do the high-priority items before building new
 
 9. Update the root README for this fork.
 
-   - Rename or explain SquooshPlus.
+   - Rename or explain Sqush.
    - Add Node version, install, build, dev, and troubleshooting notes.
    - Link to these docs.
    - Mention that `build/` and `.tmp/` are generated.

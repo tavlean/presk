@@ -1,6 +1,6 @@
-# SquooshPlus
+# Sqush
 
-SquooshPlus is a fork of [Squoosh], an image compression web app that reduces image sizes through numerous formats. This fork is focused on making the app easier to maintain and adding practical bulk image optimization workflows.
+Sqush is a practical image optimization web app derived from [Squoosh]. It is focused on maintainability, bulk image optimization workflows, and a smaller set of modern web image formats.
 
 ## Project docs
 
@@ -13,9 +13,9 @@ SquooshPlus is a fork of [Squoosh], an image compression web app that reduces im
 
 # Privacy
 
-SquooshPlus does not send your image to a server. Image compression runs locally in your browser.
+Sqush does not send your image to a server. Image compression runs locally in your browser.
 
-This fork does not include the inherited Google Analytics integration from upstream Squoosh.
+Sqush does not include the inherited Google Analytics integration from upstream Squoosh.
 
 # Developing
 
@@ -44,8 +44,12 @@ npm run format:check
 
 Run `npm run build` before `npm run typecheck` on a fresh checkout so generated feature files exist.
 
+# Attribution
+
+Sqush is derived from GoogleChromeLabs' Squoosh project and continues under the Apache 2.0 license.
+
 # Contributing
 
-Squoosh is an open-source project that appreciates all community involvement. To contribute to the project, follow the [contribute guide](/CONTRIBUTING.md).
+Contributions should follow the [contribute guide](/CONTRIBUTING.md) until this fork has its own project-specific guide.
 
-[squoosh]: https://squoosh.app
+[squoosh]: https://github.com/GoogleChromeLabs/squoosh

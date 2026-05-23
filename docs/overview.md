@@ -1,6 +1,6 @@
-# SquooshPlus project overview
+# Sqush project overview
 
-SquooshPlus is a fork of Squoosh, a browser app for compressing images locally. Users drop or pick an image, the app decodes it in the browser, lets the user compare two output settings side by side, and writes the compressed output without uploading the image to a server.
+Sqush is derived from Squoosh, a browser app for compressing images locally. Users drop or pick an image, the app decodes it in the browser, lets the user compare two output settings side by side, and writes the compressed output without uploading the image to a server.
 
 The app is a static web app. There is no backend application in this repository.
 

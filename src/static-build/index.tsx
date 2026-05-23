@@ -55,8 +55,8 @@ interface Output {
 const toOutput: Output = {
   'index.html': renderPage(<IndexPage />),
   'manifest.json': JSON.stringify({
-    name: 'Squoosh',
-    short_name: 'Squoosh',
+    name: 'Sqush',
+    short_name: 'Sqush',
     start_url: '/?utm_medium=PWA&utm_source=launcher',
     display: 'standalone',
     orientation: 'any',
@@ -76,7 +76,7 @@ const toOutput: Output = {
       },
     ],
     description:
-      'Compress and compare images with different codecs, right in your browser.',
+      'Compress, compare, and prepare images for the web in your browser.',
     lang: 'en',
     categories: ['photo', 'productivity', 'utilities'],
     screenshots,

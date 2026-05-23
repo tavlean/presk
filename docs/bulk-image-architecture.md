@@ -1,6 +1,6 @@
 # Bulk image architecture
 
-This document defines the first bulk image optimization design for SquooshPlus. The goal is to keep the processing model independent from Preact or a future Svelte UI.
+This document defines the first bulk image optimization design for Sqush. The goal is to keep the processing model independent from Preact or a future Svelte UI.
 
 ## Product goal
 
