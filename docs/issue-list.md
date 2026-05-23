@@ -23,6 +23,7 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
    - Started: bulk queue/session tests now cover exported-count consistency when an exported job is completed or failed again.
    - Started: bulk queue/session tests now cover clearing stale output when a job fails.
    - Started: bulk queue/session tests now cover exported-count consistency when one exported job is manually requeued.
+   - Started: bulk retry tests now cover clearing stale outputs from failed or skipped jobs.
    - Started: bulk session tests now cover active/exported counters when constructing a session from existing jobs.
    - Started: bulk object URL cleanup now covers duplicate URL revocation.
    - Started: bulk runner tests now cover pre-aborted batch cancellation before processors are called.

@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: bulk queue concurrency normalization changed and docs updated. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: bulk retry stale-output cleanup changed and docs updated. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
 Latest local-only committed work at last update:
 
@@ -137,6 +137,7 @@ Quick investigation note:
 - Hardened bulk queue/session bookkeeping so removed or stale exported jobs keep exported counts consistent.
 - Hardened bulk queue completion/failure transitions so exported-count bookkeeping recovers if an exported job is overwritten.
 - Hardened bulk queue failure transitions so failed jobs do not retain stale output download data.
+- Hardened bulk retry transitions so failed or skipped jobs do not retain stale output download data.
 - Hardened bulk single-job requeue bookkeeping so reprocessing an exported job decrements exported counts.
 - Added a bulk queue retry helper for failed and skipped jobs.
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.

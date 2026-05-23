@@ -166,6 +166,7 @@ export function requeueIncompleteJobs(session: BulkSession): BulkSession {
       return {
         ...job,
         status: 'queued',
+        output: undefined,
         error: undefined,
       };
     }),
