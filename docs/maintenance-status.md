@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for bulk settings merge cleanup, ahead of `origin/main` by 6 local commits.
+Working tree at last update: clean after bulk settings merge cleanup, ahead of `origin/main` by 7 local commits.
 
 Latest committed work:
 
@@ -45,7 +45,7 @@ Latest committed work:
 - `a7d7969` Reject array saved settings
 - `263763d` Tighten DOM helper types
 - `ec2b652` Tighten result cache typing
-- Pending: bulk settings merge cleanup
+- `24d9010` Preserve falsy bulk overrides
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
