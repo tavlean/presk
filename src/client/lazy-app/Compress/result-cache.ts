@@ -36,13 +36,10 @@ export default class ResultCache {
       if (entry.encoderState.type !== encoderState.type) return false;
 
       // Check that each set of options in the preprocessor are the same
-      for (const prop in processorState) {
-        if (
-          !shallowEqual(
-            (processorState as any)[prop],
-            (entry.processorState as any)[prop],
-          )
-        ) {
+      for (const prop of Object.keys(processorState) as Array<
+        keyof ProcessorState
+      >) {
+        if (!shallowEqual(processorState[prop], entry.processorState[prop])) {
           return false;
         }
       }

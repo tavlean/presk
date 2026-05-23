@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for DOM input type cleanup.
+Working tree at last update: pending commit for result cache type cleanup.
 
 Latest committed work:
 
@@ -43,7 +43,8 @@ Latest committed work:
 - `c786510` Correct resume handoff status
 - `9b1496f` Note current cleanup state
 - `a7d7969` Reject array saved settings
-- Pending: DOM input type cleanup
+- `263763d` Tighten DOM helper types
+- Pending: result cache type cleanup
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -111,6 +112,7 @@ Quick investigation note:
 - Hardened saved settings parsing to reject array-shaped payloads.
 - Modernized one editor media query listener path.
 - Replaced avoidable `any` types in shared DOM input helpers and gesture prevention.
+- Replaced avoidable `any` casts in the result cache processor-state comparison.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Extracted and tested processor-state equivalence logic from the Preact editor component.
 - Tightened bulk override detection so empty nested override objects are not treated as real overrides.
