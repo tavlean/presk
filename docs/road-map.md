@@ -90,6 +90,8 @@ Build the feature as framework-neutral TypeScript first. The UI can stay in Prea
    - Export selected outputs.
    - Decide whether multi-file export uses individual downloads first or ZIP later.
 
+See [Bulk image architecture](bulk-image-architecture.md) for the current first-pass model.
+
 ## Phase 3: minimum useful bulk feature
 
 This is the first product milestone.

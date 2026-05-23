@@ -6,6 +6,7 @@ SquooshPlus is a fork of [Squoosh], an image compression web app that reduces im
 
 - [Project overview](docs/overview.md)
 - [Build and runtime map](docs/build-and-runtime.md)
+- [Bulk image architecture](docs/bulk-image-architecture.md)
 - [Road map](docs/road-map.md)
 - [Cleanup todo](docs/todo.md)
 - [Maintenance status](docs/maintenance-status.md)
