@@ -82,6 +82,41 @@ export function selectJob(
   };
 }
 
+export function updateGlobalSettings(
+  session: BulkSession,
+  globalSettings: BulkImageSettings,
+): BulkSession {
+  return {
+    ...session,
+    globalSettings,
+  };
+}
+
+export function updateJobOverrides(
+  session: BulkSession,
+  jobId: string,
+  overrides: BulkImageOverrides,
+): BulkSession {
+  return {
+    ...session,
+    jobs: session.jobs.map((job) =>
+      job.id === jobId ? { ...job, overrides } : job,
+    ),
+  };
+}
+
+export function clearJobOverrides(
+  session: BulkSession,
+  jobId: string,
+): BulkSession {
+  return {
+    ...session,
+    jobs: session.jobs.map((job) =>
+      job.id === jobId ? { ...job, overrides: undefined } : job,
+    ),
+  };
+}
+
 export function getSelectedJob(session: BulkSession): ImageJob | undefined {
   if (!session.selectedJobId) return;
   return session.jobs.find((job) => job.id === session.selectedJobId);

@@ -1,4 +1,5 @@
 import type { BulkSession, ImageJob } from './session';
+import { isJobOutputStale } from './queue';
 
 export interface BulkExportSummary {
   ready: number;
@@ -11,7 +12,10 @@ export interface BulkExportSummary {
 }
 
 export function getExportableJobs(session: BulkSession): ImageJob[] {
-  return session.jobs.filter((job) => job.output && job.status === 'encoded');
+  return session.jobs.filter(
+    (job) =>
+      job.output && job.status === 'encoded' && !isJobOutputStale(session, job),
+  );
 }
 
 export function getBulkExportSummary(session: BulkSession): BulkExportSummary {
@@ -25,7 +29,11 @@ export function getBulkExportSummary(session: BulkSession): BulkExportSummary {
   for (const job of session.jobs) {
     if (job.status === 'failed') failed += 1;
     else if (job.status === 'skipped') skipped += 1;
-    else if (job.output && job.status === 'encoded') {
+    else if (
+      job.output &&
+      job.status === 'encoded' &&
+      !isJobOutputStale(session, job)
+    ) {
       ready += 1;
       totalOriginalSize += job.originalSize;
       totalOutputSize += job.output.size;

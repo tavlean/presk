@@ -262,6 +262,7 @@ Later implementation:
    - Start with individual downloads.
    - Export helper module: `src/client/lazy-app/bulk/export.ts`
    - Export helper can list ready jobs and report ready, failed, skipped, pending, and total size-change counts.
+   - Stale outputs are not exportable.
    - Add ZIP later.
 
 ## Test plan
