@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after bulk settings merge cleanup, ahead of `origin/main` by 7 local commits.
+Working tree at last update: clean after bulk settings merge cleanup. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
 Latest committed work:
 
@@ -46,6 +46,7 @@ Latest committed work:
 - `263763d` Tighten DOM helper types
 - `ec2b652` Tighten result cache typing
 - `24d9010` Preserve falsy bulk overrides
+- `743b91a` Update handoff after bulk settings fix
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
