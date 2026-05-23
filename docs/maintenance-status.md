@@ -104,6 +104,7 @@ Quick investigation note:
 - Hardened saved settings parsing to reject missing or array-shaped encoder options.
 - Hardened saved settings parsing to reject invalid processor enabled values and null option values.
 - Modernized one editor media query listener path.
+- Hardened the shared abort helper so it removes abort listeners when wrapped work settles.
 - Replaced avoidable `any` types in shared DOM input helpers and gesture prevention.
 - Replaced the shared shallow object comparison helper's public `any` types with object types.
 - Replaced avoidable public `any` types in the shared immutable update helper with `unknown`/object types.

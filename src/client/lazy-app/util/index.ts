@@ -292,12 +292,15 @@ export async function abortable<T>(
   promise: Promise<T>,
 ): Promise<T> {
   assertSignal(signal);
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => {
-      signal.addEventListener('abort', () =>
-        reject(new DOMException('AbortError', 'AbortError')),
-      );
-    }),
-  ]);
+  let onAbort: () => void;
+  const abortPromise = new Promise<T>((_, reject) => {
+    onAbort = () => reject(new DOMException('AbortError', 'AbortError'));
+    signal.addEventListener('abort', onAbort);
+  });
+
+  try {
+    return await Promise.race([promise, abortPromise]);
+  } finally {
+    signal.removeEventListener('abort', onAbort!);
+  }
 }
