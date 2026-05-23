@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for expanded helper tests.
+Working tree at last update: pending commit for shared image pipeline extraction.
 
 Latest committed work:
 
@@ -46,7 +46,7 @@ Latest verification run:
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after the terser plugin upgrade.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
-- Browser production-preview smoke: passed after terser plugin upgrade; app shell, Sqush logo, and drop target rendered.
+- Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 
 Next recommended tasks:
@@ -77,6 +77,7 @@ Next recommended tasks:
 - Added session helpers for global setting changes and per-image override changes.
 - Added a lightweight Node assertion test for bulk helper behavior.
 - Expanded the lightweight helper test to cover `clean-modify` and `pretty-bytes`.
+- Extracted single-image decode/process/encode/SVG pipeline helpers into `src/client/lazy-app/image-pipeline.ts`.
 - Removed the noisy Rollup unused external import warning by narrowing `path` imports in build plugins.
 - Refreshed low-risk dependencies while keeping Preact pinned because the newer Preact 10 typings require a separate migration.
 - Refreshed compatible Rollup 2 plugins and set `@rollup/plugin-replace` `preventAssignment` explicitly.
