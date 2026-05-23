@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after `c40b73f`.
+Working tree at last update: pending commit for npm test alias.
 
 Latest committed work:
 
@@ -26,6 +26,7 @@ Latest committed work:
 - `57eb2a4` Guard zero-size bulk outputs
 - `9a9f50b` Strengthen build smoke checks
 - `c40b73f` Keep CI matrix jobs independent
+- Pending: npm test alias
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -62,6 +63,7 @@ Next recommended tasks:
 
 - Added project documentation and a road map.
 - Added `npm run typecheck`.
+- Added `npm test` as an alias for the full baseline check.
 - Added Node and npm engine metadata matching `.nvmrc`.
 - Added `npm run format` and `npm run format:check`.
 - Added `npm run smoke:build` to verify generated build output.

@@ -18,6 +18,7 @@
     "format:check": "prettier --check \"**/*.{js,css,json,md,ts,tsx}\"",
     "preview": "node lib/preview-server.js",
     "smoke:build": "node lib/smoke-build.js",
+    "test": "npm run check",
     "test:bulk": "npm run test:helpers",
     "test:helpers": "node lib/test-helpers.js",
     "watch": "rollup -cw",

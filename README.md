@@ -44,6 +44,7 @@ Useful maintenance commands:
 
 ```sh
 npm run check
+npm test
 npm run audit
 npm run typecheck
 npm run format:check

@@ -16,6 +16,7 @@ This list is ordered by priority. Do the high-priority items before building new
    - Add `npm run typecheck`.
    - Add `npm run format` or `npm run lint`.
    - Add a minimal smoke test script for build output.
+   - Add conventional `npm test` alias for the full baseline check.
    - Keep `npm run build` as the final release check.
 
 3. Completed: add a manual QA checklist.
