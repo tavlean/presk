@@ -31,9 +31,11 @@ The app is a static web app. There is no backend application in this repository.
 - `npm install`: installs Node dependencies and installs Husky Git hooks.
 - `npm run build`: builds the static app into `build/`.
 - `npm run dev`: runs Rollup in watch mode and serves `build`-like output from `.tmp/build/static`.
-- `npm audit`: reports dependency vulnerabilities.
+- `npm run check`: runs formatting, build, build smoke, helper tests, and TypeScript checks.
+- `npm run audit`: reports dependency vulnerabilities and fails on any vulnerability.
+- `npm run preview`: serves the production `build/` output after a build.
 
-There are currently no dedicated `test`, `lint`, or `typecheck` scripts. TypeScript is checked as part of the Rollup build through the custom `simple-ts` plugin.
+Run `npm run build` before `npm run typecheck` on a fresh checkout so generated feature files exist. `npm run check` already runs commands in the safe order.
 
 ## How an image flows through the app
 

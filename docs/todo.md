@@ -102,10 +102,11 @@ This list is ordered by priority. Do the high-priority items before building new
     - If Mac development is expected, add or document macOS checks.
     - Upgrade old GitHub Actions versions.
 
-17. Track codec provenance.
-    - Document where each `.wasm` file came from.
-    - Record how to rebuild each codec.
-    - Decide which prebuilt codec outputs should be committed.
+17. Partially completed: track codec provenance.
+
+    - Initial inventory lives in [Codec provenance](codec-provenance.md).
+    - Exact upstream commits/tags are still missing for many inherited `.wasm` files.
+    - Before changing a codec, record the upstream project, commit/tag, build command, and generated outputs.
 
 ## Priority 4: later modernization
 

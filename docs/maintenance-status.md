@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for bulk exported-status helper.
+Working tree at last update: pending commit for codec provenance documentation.
 
 Latest committed work:
 
@@ -22,7 +22,8 @@ Latest committed work:
 - `352c6dc` Version saved side settings
 - `7eef5e4` Use primitive resize boolean prop
 - `d5e32ea` Add bulk export entries
-- Pending: bulk exported-status helper
+- `e7542ae` Track exported bulk jobs
+- Pending: codec provenance documentation
 
 Latest verification run:
 
@@ -76,6 +77,7 @@ Next recommended tasks:
 - Documented the full current upstream open PR audit in `docs/upstream-pr-notes.md`.
 - Removed duplicate buffer collection in `lib/url-plugin.js` based on upstream PR `#1457`.
 - Added UTF-8 charset metadata based on upstream PR `#1072`.
+- Added codec provenance inventory and rebuild cautions.
 - Added `docs/manual-qa.md`.
 - Added `npm run audit` and CI audit enforcement.
 - Removed the noisy Rollup unused external import warning by narrowing `path` imports in build plugins.
