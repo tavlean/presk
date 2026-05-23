@@ -94,6 +94,7 @@ export function failJob(
       ...job,
       status: 'failed',
       error,
+      output: undefined,
     })),
     activeJobs: Math.max(0, session.activeJobs - activeJobDelta),
     exportedCount: Math.max(0, session.exportedCount - exportedJobDelta),
