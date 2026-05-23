@@ -93,6 +93,7 @@ This list is ordered by priority. Do the high-priority items before building new
 15. Add small unit tests for pure utilities.
 
     - Bulk helper tests now cover settings merge/hash behavior, session changes, queue stale detection, and export summaries.
+    - `npm run test:unit` runs the current pure-helper test suite.
     - `clean-modify`
     - `pretty-bytes`
     - MIME sniffing behavior if it can be isolated

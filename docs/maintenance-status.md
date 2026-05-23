@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for browser support policy.
+Working tree at last update: pending commit for unit test alias.
 
 Latest committed work:
 
@@ -30,7 +30,8 @@ Latest committed work:
 - `c34598c` Verify generated feature files
 - `ed740b0` Add maintenance issue list
 - `d1eb2db` Update local handoff status
-- Pending: browser support policy
+- `5f038f9` Document browser support policy
+- Pending: unit test alias
 - Pending: npm test alias
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
@@ -71,6 +72,7 @@ Next recommended tasks:
 - Added an initial browser support policy note.
 - Added `npm run typecheck`.
 - Added `npm test` as an alias for the full baseline check.
+- Added `npm run test:unit` as an alias for pure-helper tests.
 - Added Node and npm engine metadata matching `.nvmrc`.
 - Added `npm run format` and `npm run format:check`.
 - Added `npm run smoke:build` to verify generated build output.

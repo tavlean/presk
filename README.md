@@ -48,6 +48,7 @@ Useful maintenance commands:
 npm run check
 npm test
 npm run audit
+npm run test:unit
 npm run typecheck
 npm run format:check
 ```

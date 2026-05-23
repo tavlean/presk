@@ -21,6 +21,7 @@
     "test": "npm run check",
     "test:bulk": "npm run test:helpers",
     "test:helpers": "node lib/test-helpers.js",
+    "test:unit": "npm run test:helpers",
     "watch": "rollup -cw",
     "serve": "node lib/dev-static-server.js",
     "typecheck": "tsc -b",
