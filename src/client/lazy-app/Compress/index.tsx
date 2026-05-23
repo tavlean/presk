@@ -88,6 +88,81 @@ interface LoadingFileInfo {
   filename?: string;
 }
 
+type SavedSideSettings = Pick<Side, 'encodedSettings' | 'latestSettings'>;
+
+const savedSettingsKeys = ['leftSideSettings', 'rightSideSettings'] as const;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isEncoderState(value: unknown): value is EncoderState | undefined {
+  if (value === undefined) return true;
+  if (!isRecord(value)) return false;
+  if (typeof value.type !== 'string') return false;
+  return Object.prototype.hasOwnProperty.call(encoderMap, value.type);
+}
+
+function isProcessorState(value: unknown): value is ProcessorState {
+  if (!isRecord(value)) return false;
+  if (!isRecord(value.resize) || !isRecord(value.quantize)) return false;
+  return (
+    typeof value.resize.enabled === 'boolean' &&
+    typeof value.quantize.enabled === 'boolean'
+  );
+}
+
+function isSideSettings(value: unknown): value is SavedSideSettings {
+  if (!isRecord(value) || !isRecord(value.latestSettings)) return false;
+  const encodedSettings = value.encodedSettings;
+  return (
+    isProcessorState(value.latestSettings.processorState) &&
+    isEncoderState(value.latestSettings.encoderState) &&
+    (encodedSettings === undefined ||
+      (isRecord(encodedSettings) &&
+        isEncoderState(encodedSettings.encoderState)))
+  );
+}
+
+function readSideSettings(
+  key: typeof savedSettingsKeys[number],
+): SavedSideSettings | undefined {
+  const serializedSettings = localStorage.getItem(key);
+  if (!serializedSettings) return;
+
+  try {
+    const settings = JSON.parse(serializedSettings);
+    return isSideSettings(settings) ? settings : undefined;
+  } catch (err) {
+    return;
+  }
+}
+
+function defaultSide(index: 0 | 1): Side {
+  return {
+    latestSettings: {
+      processorState: defaultProcessorState,
+      encoderState:
+        index === 0
+          ? undefined
+          : {
+              type: 'mozJPEG',
+              options: encoderMap.mozJPEG.meta.defaultOptions,
+            },
+    },
+    loading: false,
+  };
+}
+
+function initialSide(index: 0 | 1): Side {
+  const savedSettings = readSideSettings(savedSettingsKeys[index]);
+  return {
+    ...defaultSide(index),
+    ...savedSettings,
+    loading: false,
+  };
+}
+
 async function decodeImage(
   signal: AbortSignal,
   blob: Blob,
@@ -284,36 +359,7 @@ export default class Compress extends Component<Props, State> {
     source: undefined,
     loading: false,
     preprocessorState: defaultPreprocessorState,
-    // Tasking catched side settings if available otherwise taking default settings
-    sides: [
-      localStorage.getItem('leftSideSettings')
-        ? {
-            ...JSON.parse(localStorage.getItem('leftSideSettings') as string),
-            loading: false,
-          }
-        : {
-            latestSettings: {
-              processorState: defaultProcessorState,
-              encoderState: undefined,
-            },
-            loading: false,
-          },
-      localStorage.getItem('rightSideSettings')
-        ? {
-            ...JSON.parse(localStorage.getItem('rightSideSettings') as string),
-            loading: false,
-          }
-        : {
-            latestSettings: {
-              processorState: defaultProcessorState,
-              encoderState: {
-                type: 'mozJPEG',
-                options: encoderMap.mozJPEG.meta.defaultOptions,
-              },
-            },
-            loading: false,
-          },
-    ],
+    sides: [initialSide(0), initialSide(1)],
     mobileView: this.widthQuery.matches,
   };
 
@@ -443,8 +489,7 @@ export default class Compress extends Component<Props, State> {
     });
   };
   /**
-   * This function saves encodedSettings and latestSettings of
-   * particular side in browser local storage
+   * This function saves encodedSettings and latestSettings of a particular side in browser local storage.
    * @param index : (0|1)
    * @returns
    */
@@ -455,7 +500,7 @@ export default class Compress extends Component<Props, State> {
         latestSettings: this.state.sides[index].latestSettings,
       });
       localStorage.setItem('leftSideSettings', leftSideSettings);
-      // Firing an event when we save side settings in localstorage
+      // Fire an event when we save side settings in local storage.
       window.dispatchEvent(new CustomEvent('leftSideSettings'));
       await this.props.showSnack('Left side settings saved', {
         timeout: 1500,
@@ -470,7 +515,7 @@ export default class Compress extends Component<Props, State> {
         latestSettings: this.state.sides[index].latestSettings,
       });
       localStorage.setItem('rightSideSettings', rightSideSettings);
-      // Firing an event when we save side settings in localstorage
+      // Fire an event when we save side settings in local storage.
       window.dispatchEvent(new CustomEvent('rightSideSettings'));
       await this.props.showSnack('Right side settings saved', {
         timeout: 1500,
@@ -481,8 +526,7 @@ export default class Compress extends Component<Props, State> {
   };
 
   /**
-   * This function sets the side state with catched localstorage
-   * value as per side index provided
+   * This function sets the side state with cached local storage values for the provided side index.
    * @param index : (0|1)
    * @returns
    */
@@ -491,10 +535,18 @@ export default class Compress extends Component<Props, State> {
     const rightSideSettingsString = localStorage.getItem('rightSideSettings');
 
     if (index === 0 && leftSideSettingsString) {
+      const savedSettings = readSideSettings('leftSideSettings');
+      if (!savedSettings) {
+        await this.props.showSnack('Saved left side settings are invalid', {
+          timeout: 3000,
+          actions: ['dismiss'],
+        });
+        return;
+      }
       const oldLeftSideSettings = this.state.sides[index];
       const newLeftSideSettings = {
         ...this.state.sides[index],
-        ...JSON.parse(leftSideSettingsString),
+        ...savedSettings,
       };
       this.setState({
         sides: cleanSet(this.state.sides, index, newLeftSideSettings),
@@ -512,10 +564,18 @@ export default class Compress extends Component<Props, State> {
     }
 
     if (index === 1 && rightSideSettingsString) {
+      const savedSettings = readSideSettings('rightSideSettings');
+      if (!savedSettings) {
+        await this.props.showSnack('Saved right side settings are invalid', {
+          timeout: 3000,
+          actions: ['dismiss'],
+        });
+        return;
+      }
       const oldRightSideSettings = this.state.sides[index];
       const newRightSideSettings = {
         ...this.state.sides[index],
-        ...JSON.parse(rightSideSettingsString),
+        ...savedSettings,
       };
       this.setState({
         sides: cleanSet(this.state.sides, index, newRightSideSettings),
