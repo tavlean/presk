@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for safe dependency refresh.
+Working tree at last update: pending commit for Rollup 2 plugin patch refresh.
 
 Latest committed work:
 
@@ -44,7 +44,7 @@ Latest verification run:
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:bulk`: passed.
-- `npm run check`: passed after the first safe dependency refresh.
+- `npm run check`: passed after the Rollup 2 plugin patch refresh.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 
 Next recommended tasks:
@@ -76,6 +76,7 @@ Next recommended tasks:
 - Added a lightweight Node assertion test for bulk helper behavior.
 - Removed the noisy Rollup unused external import warning by narrowing `path` imports in build plugins.
 - Refreshed low-risk dependencies while keeping Preact pinned because the newer Preact 10 typings require a separate migration.
+- Refreshed compatible Rollup 2 plugins and set `@rollup/plugin-replace` `preventAssignment` explicitly.
 
 ## Current verification commands
 

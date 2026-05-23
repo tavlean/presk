@@ -78,6 +78,8 @@ Watch for:
 - terser/serialization output changes;
 - worker and service-worker bundle differences.
 
+Status: compatible Rollup 2 plugin patches were applied for commonjs, node-resolve, replace, and import-meta-assets. `preventAssignment` is now set explicitly for replace. The terser plugin still needs a separate audit because the safe compatible range does not fix the remaining `serialize-javascript` advisory.
+
 ### 4. High-risk major migrations
 
 Do these later and separately:
