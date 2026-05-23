@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for non-force audit lockfile fix.
+Working tree at last update: pending commit for CSS stack migration.
 
 Latest committed work:
 
@@ -44,7 +44,8 @@ Latest verification run:
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:bulk`: passed.
-- `npm run check`: passed after the Rollup 2 plugin patch refresh.
+- `npm run check`: passed after the CSS stack migration.
+- Browser production-preview smoke: passed after CSS stack migration; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 
 Next recommended tasks:
@@ -78,6 +79,7 @@ Next recommended tasks:
 - Refreshed low-risk dependencies while keeping Preact pinned because the newer Preact 10 typings require a separate migration.
 - Refreshed compatible Rollup 2 plugins and set `@rollup/plugin-replace` `preventAssignment` explicitly.
 - Applied the non-force `npm audit fix` lockfile update for `brace-expansion`.
+- Migrated the CSS build stack to PostCSS 8-era packages.
 
 ## Current verification commands
 
@@ -98,13 +100,11 @@ On a fresh checkout, run `npm run build` before `npm run typecheck` because the 
 
 ## Remaining audit state
 
-`npm audit` is reduced to 47 findings but still not clean. The remaining findings are mainly in old build tooling:
+`npm audit` is reduced to 2 findings but still not clean. The remaining findings are in terser serialization tooling:
 
-- PostCSS/cssnano ecosystem packages.
-- Rollup/terser-related packages.
-- Older glob/minimatch chains used by build utilities.
+- `serialize-javascript` via `@rollup/plugin-terser`.
 
-Do not run `npm audit fix --force` blindly. The remaining fixes require breaking upgrades and should be handled as explicit toolchain migration tasks with browser verification.
+Do not run `npm audit fix --force` blindly. The remaining fix requires changing terser tooling and should be handled as an explicit build-tool migration with browser verification.
 
 ## Local npm cache issue
 

@@ -6,12 +6,12 @@ The cleanup goal is to reduce audit risk without destabilizing workers, WASM, CS
 
 ## Current audit shape
 
-Recent `npm audit` state after safe dependency refreshes and non-force audit fix:
+Recent `npm audit` state after the CSS stack migration:
 
-- 47 total issues.
+- 2 total issues.
 - 0 critical.
-- 5 high.
-- 42 moderate.
+- 1 high.
+- 1 moderate.
 - 0 low.
 
 Most findings are development/build-chain transitive dependencies, mainly from:
@@ -61,6 +61,8 @@ Verify:
 - asset URL rewriting still works;
 - production build CSS still loads;
 - app shell renders after a hard refresh.
+
+Status: completed with PostCSS 8, cssnano 6, postcss-modules 6, postcss-nested 7, postcss-simple-vars 7, and postcss-url 10. `npm run check` passed, and a production preview browser smoke showed the app shell rendering correctly.
 
 ### 3. Rollup 2 plugin maintenance
 
