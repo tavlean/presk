@@ -115,6 +115,9 @@ export function removeJobs(
   const removedActiveCount = session.jobs.filter(
     (job) => removedJobIds.has(job.id) && isActiveJob(job),
   ).length;
+  const removedExportedCount = session.jobs.filter(
+    (job) => removedJobIds.has(job.id) && job.status === 'exported',
+  ).length;
   const selectedJobId = nextJobs.some((job) => job.id === session.selectedJobId)
     ? session.selectedJobId
     : nextJobs[0]?.id;
@@ -124,6 +127,7 @@ export function removeJobs(
     jobs: nextJobs,
     selectedJobId,
     activeJobs: Math.max(0, session.activeJobs - removedActiveCount),
+    exportedCount: Math.max(0, session.exportedCount - removedExportedCount),
   };
 }
 

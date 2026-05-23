@@ -122,10 +122,15 @@ export function isJobOutputStale(session: BulkSession, job: ImageJob): boolean {
 }
 
 export function requeueStaleJobs(session: BulkSession): BulkSession {
+  let requeuedActiveCount = 0;
+  let requeuedExportedCount = 0;
+
   return {
     ...session,
     jobs: session.jobs.map((job) => {
       if (!job.output || !isJobOutputStale(session, job)) return job;
+      if (isActiveStatus(job.status)) requeuedActiveCount += 1;
+      if (job.status === 'exported') requeuedExportedCount += 1;
       return {
         ...job,
         status: 'queued',
@@ -133,6 +138,8 @@ export function requeueStaleJobs(session: BulkSession): BulkSession {
         error: undefined,
       };
     }),
+    activeJobs: Math.max(0, session.activeJobs - requeuedActiveCount),
+    exportedCount: Math.max(0, session.exportedCount - requeuedExportedCount),
   };
 }
 
