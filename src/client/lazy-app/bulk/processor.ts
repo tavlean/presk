@@ -85,7 +85,9 @@ export async function processBulkImageJob({
     file,
     size: file.size,
     downloadUrl: createDownloadUrl(file),
-    percentChange: (file.size / job.originalSize - 1) * 100,
+    percentChange: job.originalSize
+      ? (file.size / job.originalSize - 1) * 100
+      : 0,
     settingsHash: settingsHash(effectiveSettings),
   };
 }

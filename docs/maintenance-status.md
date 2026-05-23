@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for detailed bulk progress helper.
+Working tree at last update: pending commit for zero-size bulk output guard.
 
 Latest committed work:
 
@@ -22,7 +22,8 @@ Latest committed work:
 - `3dd200d` Update roadmap analytics status
 - `bb8eb5a` Accept image imports by extension
 - `0fd84c0` Add bulk retry helper
-- Pending: detailed bulk progress helper
+- `faef40e` Add detailed bulk progress
+- Pending: zero-size bulk output guard
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -91,6 +92,7 @@ Next recommended tasks:
 - Expanded the lightweight helper test to cover `clean-modify` and `pretty-bytes`.
 - Extracted single-image decode/process/encode/SVG pipeline helpers into `src/client/lazy-app/image-pipeline.ts`.
 - Added `src/client/lazy-app/bulk/processor.ts` to process one bulk image job through the shared image pipeline without UI coupling.
+- Guarded bulk processor percent-change calculation for zero-byte inputs.
 - Added `src/client/lazy-app/bulk/runner.ts` to process queued bulk jobs up to the concurrency limit.
 - Added `src/client/lazy-app/bulk/urls.ts` to collect and revoke bulk preview, thumbnail, and download object URLs.
 - Fixed SVG `viewBox` size parsing for comma-separated values using a tested helper.
