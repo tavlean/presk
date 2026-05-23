@@ -97,11 +97,10 @@ This list is ordered by priority. Do the high-priority items before building new
     - MIME sniffing behavior if it can be isolated
     - saved-settings parse/validate logic
 
-16. Add CI for the real supported platform matrix.
+16. Completed: add CI for the real supported platform matrix.
 
-    - Existing CI targets Ubuntu and Windows.
-    - If Mac development is expected, add or document macOS checks.
-    - Upgrade old GitHub Actions versions.
+    - CI targets Ubuntu, Windows, and macOS.
+    - GitHub Actions checkout/setup-node actions are on current major versions.
 
 17. Partially completed: track codec provenance.
 

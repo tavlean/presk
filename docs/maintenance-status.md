@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for package engine metadata.
+Working tree at last update: pending commit for macOS CI coverage.
 
 Latest committed work:
 
@@ -27,7 +27,8 @@ Latest committed work:
 - `383705e` Add bulk job removal helper
 - `3eff941` Guard bulk queue transitions
 - `559b118` Tighten bulk override detection
-- Pending: package engine metadata
+- `45f3050` Declare supported Node engine
+- Pending: macOS CI coverage
 
 Latest verification run:
 
@@ -57,6 +58,7 @@ Next recommended tasks:
 - Added `npm run smoke:build` to verify generated build output.
 - Added `npm run preview` to serve the production `build/` directory.
 - Updated CI to use current checkout/setup-node actions and run the baseline checks.
+- Expanded CI to cover Ubuntu, Windows, and macOS.
 - Removed the inherited upstream Google Analytics integration.
 - Refreshed Browserslist data.
 - Removed the Node 20 `DEP0190` warning from the TypeScript build spawn.
