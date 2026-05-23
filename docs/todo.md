@@ -17,14 +17,9 @@ This list is ordered by priority. Do the high-priority items before building new
    - Add a minimal smoke test script for build output.
    - Keep `npm run build` as the final release check.
 
-3. Add a manual QA checklist.
-   - Open the app.
-   - Load JPEG, PNG, WebP, AVIF if available.
-   - Test both comparison sides.
-   - Test resize, quantize, and at least one WASM encoder.
-   - Test download.
-   - Test saved left/right settings.
-   - Test a hard refresh after a production build to catch service-worker issues.
+3. Completed: add a manual QA checklist.
+
+   - Checklist lives in [Manual QA checklist](manual-qa.md).
 
 ## Priority 1: dependency and security cleanup
 

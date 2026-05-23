@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for charset meta tag.
+Working tree at last update: pending commit for manual QA checklist.
 
 Latest committed work:
 
@@ -87,6 +87,7 @@ Next recommended tasks:
 - Documented the full current upstream open PR audit in `docs/upstream-pr-notes.md`.
 - Removed duplicate buffer collection in `lib/url-plugin.js` based on upstream PR `#1457`.
 - Added UTF-8 charset metadata based on upstream PR `#1072`.
+- Added `docs/manual-qa.md`.
 - Removed the noisy Rollup unused external import warning by narrowing `path` imports in build plugins.
 - Refreshed low-risk dependencies while keeping Preact pinned because the newer Preact 10 typings require a separate migration.
 - Refreshed compatible Rollup 2 plugins and set `@rollup/plugin-replace` `preventAssignment` explicitly.
