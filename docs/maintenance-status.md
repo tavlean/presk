@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for npm test alias.
+Working tree at last update: pending commit for generated feature smoke checks.
 
 Latest committed work:
 
@@ -26,6 +26,8 @@ Latest committed work:
 - `57eb2a4` Guard zero-size bulk outputs
 - `9a9f50b` Strengthen build smoke checks
 - `c40b73f` Keep CI matrix jobs independent
+- `fb33d27` Add npm test alias
+- Pending: generated feature smoke checks
 - Pending: npm test alias
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
@@ -68,6 +70,7 @@ Next recommended tasks:
 - Added `npm run format` and `npm run format:check`.
 - Added `npm run smoke:build` to verify generated build output.
 - Expanded `npm run smoke:build` to check generated Sqush metadata and absence of analytics code.
+- Expanded `npm run smoke:build` to verify generated feature metadata and worker entry files exist.
 - Added `npm run preview` to serve the production `build/` directory.
 - Updated CI to use current checkout/setup-node actions and run the baseline checks.
 - Expanded CI to cover Ubuntu, Windows, and macOS.

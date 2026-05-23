@@ -55,13 +55,13 @@ This list is ordered by priority. Do the high-priority items before building new
 
    - The README now explains Sqush, links the docs, and documents the baseline commands.
 
-10. Keep generated feature files untracked and verify generation remains reliable.
+10. Completed: keep generated feature files untracked and verify generation remains reliable.
 
     - `src/client/lazy-app/feature-meta/index.ts`
     - `src/client/lazy-app/worker-bridge/meta.ts`
     - `src/features-worker/index.ts`
     - These files are ignored by Git today.
-    - Make sure the build generates them before TypeScript needs them.
+    - `npm run smoke:build` now verifies the build generated them before TypeScript needs them.
     - If feature generation breaks, fix the build rather than committing generated output.
 
 11. Completed: clean up analytics and privacy.
