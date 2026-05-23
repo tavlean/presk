@@ -38,8 +38,10 @@ function splitFileName(fileName: string): {
 
 function sanitizeFileNamePart(value: string): string {
   return value
-    .replace(/[\\/:*?"<>|]+/g, '-')
+    .replace(/[\\/:*?"<>|\x00-\x1f]+/g, '-')
     .replace(/\s+/g, ' ')
+    .replace(/-+/g, '-')
+    .replace(/^[\s.-]+|[\s.-]+$/g, '')
     .trim();
 }
 
@@ -47,7 +49,7 @@ function createDuplicateSafeName(
   fileName: string,
   knownNames: Map<string, number>,
 ): string {
-  const collisionKey = fileName.toLocaleLowerCase();
+  const collisionKey = fileName.toLowerCase();
   const collisionCount = knownNames.get(collisionKey) ?? 0;
   knownNames.set(collisionKey, collisionCount + 1);
   if (collisionCount === 0) return fileName;
