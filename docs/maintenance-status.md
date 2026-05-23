@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for bulk helper tests.
+Working tree at last update: pending commit for Rollup path import cleanup.
 
 Latest committed work:
 
@@ -37,7 +37,7 @@ Latest verification run:
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:bulk`: passed.
-- `npm run check`: passed after adding bulk helper tests.
+- `npm run check`: passed after removing the Rollup unused external import warning.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 
 Next recommended tasks:
@@ -64,6 +64,7 @@ Next recommended tasks:
 - Modernized one editor media query listener path.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Added a lightweight Node assertion test for bulk helper behavior.
+- Removed the noisy Rollup unused external import warning by narrowing `path` imports in build plugins.
 
 ## Current verification commands
 
@@ -81,14 +82,6 @@ For UI-sensitive changes, also run a browser smoke check against `build/` after 
 Use `npm run preview` for that production-build browser check; `npm run serve` is for dev output in `.tmp/build/static`.
 
 On a fresh checkout, run `npm run build` before `npm run typecheck` because the build creates ignored feature metadata files required by TypeScript. `npm run check` already runs commands in the safe order and includes the bulk helper tests.
-
-## Current known warnings
-
-`npm run build` succeeds, but after compatible dependency updates Rollup reports unused external `path.sep` imports while loading `rollup.config.js`.
-
-This warning appears to come from the old custom Rollup/TypeScript build setup, not from broken app output. The production app was smoke-tested in Chromium through Playwright after the warning appeared.
-
-Treat this as part of the future Rollup/toolchain modernization work rather than as a blocker for bulk-image feature design.
 
 ## Remaining audit state
 

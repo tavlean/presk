@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as path from 'path';
+import { join, parse, relative } from 'path';
 import { promises as fsp } from 'fs';
 import del from 'del';
 import resolve from '@rollup/plugin-node-resolve';
@@ -42,7 +42,7 @@ function resolveFileUrl({ fileName }) {
 function resolveImportMetaUrlInStaticBuild(property, { moduleId }) {
   if (property !== 'url') return;
   throw new Error(dedent`
-    Attempted to use a \`new URL(..., import.meta.url)\` pattern in ${path.relative(
+    Attempted to use a \`new URL(..., import.meta.url)\` pattern in ${relative(
       process.cwd(),
       moduleId,
     )} for URL that needs to end up in static HTML.
@@ -56,7 +56,7 @@ const jsPath = staticPath.replace('[extname]', '.js');
 
 function jsFileName(chunkInfo) {
   if (!chunkInfo.facadeModuleId) return jsPath;
-  const parsedPath = path.parse(chunkInfo.facadeModuleId);
+  const parsedPath = parse(chunkInfo.facadeModuleId);
   if (parsedPath.name !== 'index') return jsPath;
   // Come up with a better name than 'index'
   const name = parsedPath.dir.split(/\\|\//).slice(-1);
@@ -65,7 +65,7 @@ function jsFileName(chunkInfo) {
 
 export default async function ({ watch }) {
   const omtLoaderPromise = fsp.readFile(
-    path.join(__dirname, 'lib', 'omt.ejs'),
+    join(__dirname, 'lib', 'omt.ejs'),
     'utf-8',
   );
 
@@ -145,7 +145,7 @@ export default async function ({ watch }) {
         resolveFileUrl,
       ),
       ...commonPlugins(),
-      emitFiles({ include: '**/*', root: path.join(__dirname, 'src', 'copy') }),
+      emitFiles({ include: '**/*', root: join(__dirname, 'src', 'copy') }),
       nodeExternalPlugin(),
       featurePlugin(),
       replace({ __PRERENDER__: true, __PRODUCTION__: isProduction }),
