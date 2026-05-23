@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for terser audit cleanup.
+Working tree at last update: pending commit for expanded helper tests.
 
 Latest committed work:
 
@@ -43,7 +43,7 @@ Latest verification run:
 - `npm run format:check`: passed.
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
-- `npm run test:bulk`: passed.
+- `npm run test:helpers`: passed.
 - `npm run check`: passed after the terser plugin upgrade.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
 - Browser production-preview smoke: passed after terser plugin upgrade; app shell, Sqush logo, and drop target rendered.
@@ -76,6 +76,7 @@ Next recommended tasks:
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.
 - Added session helpers for global setting changes and per-image override changes.
 - Added a lightweight Node assertion test for bulk helper behavior.
+- Expanded the lightweight helper test to cover `clean-modify` and `pretty-bytes`.
 - Removed the noisy Rollup unused external import warning by narrowing `path` imports in build plugins.
 - Refreshed low-risk dependencies while keeping Preact pinned because the newer Preact 10 typings require a separate migration.
 - Refreshed compatible Rollup 2 plugins and set `@rollup/plugin-replace` `preventAssignment` explicitly.
@@ -91,14 +92,14 @@ Run these before committing substantial changes:
 npm run format:check
 npm run build
 npm run smoke:build
-npm run test:bulk
+npm run test:helpers
 npm run typecheck
 ```
 
 For UI-sensitive changes, also run a browser smoke check against `build/` after `npm run build`.
 Use `npm run preview` for that production-build browser check; `npm run serve` is for dev output in `.tmp/build/static`.
 
-On a fresh checkout, run `npm run build` before `npm run typecheck` because the build creates ignored feature metadata files required by TypeScript. `npm run check` already runs commands in the safe order and includes the bulk helper tests.
+On a fresh checkout, run `npm run build` before `npm run typecheck` because the build creates ignored feature metadata files required by TypeScript. `npm run check` already runs commands in the safe order and includes the helper tests.
 
 ## Remaining audit state
 

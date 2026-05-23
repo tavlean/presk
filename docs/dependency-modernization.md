@@ -131,7 +131,7 @@ npm outdated
 npm ls --depth=0
 npm run build
 npm run smoke:build
-npm run test:bulk
+npm run test:helpers
 npm run typecheck
 ```
 
