@@ -1,7 +1,10 @@
-function cleanSetOrMerge<A extends any[] | object>(
+type CleanSource = unknown[] | object;
+type MutableIndexable = Record<string | number, unknown>;
+
+function cleanSetOrMerge<A extends CleanSource>(
   source: A,
   keys: string | number | string[],
-  toSetOrMerge: any[] | object,
+  toSetOrMerge: unknown,
   merge: boolean,
 ): A {
   const splitKeys = Array.isArray(keys) ? keys : ('' + keys).split('.');
@@ -9,7 +12,7 @@ function cleanSetOrMerge<A extends any[] | object>(
   // Going off road in terms of types, otherwise TypeScript doesn't like the access-by-index.
   // The assumptions in this code break if the object contains things which aren't arrays or
   // plain objects.
-  let last = copy(source) as any;
+  let last = copy(source) as MutableIndexable;
   const newObject = last;
 
   const lastIndex = splitKeys.length - 1;
@@ -17,22 +20,25 @@ function cleanSetOrMerge<A extends any[] | object>(
   for (const [i, key] of splitKeys.entries()) {
     if (i !== lastIndex) {
       // Copy everything along the path.
-      last = last[key] = copy(last[key]);
+      last = (last[key] = copy(last[key] as CleanSource)) as MutableIndexable;
     } else {
       // Merge or set.
       last[key] = merge
-        ? Object.assign(copy(last[key]), toSetOrMerge)
+        ? Object.assign(
+            copy(last[key] as CleanSource),
+            toSetOrMerge as CleanSource,
+          )
         : toSetOrMerge;
     }
   }
 
-  return newObject;
+  return newObject as A;
 }
 
-function copy<A extends any[] | object>(source: A): A {
+function copy<A extends CleanSource>(source: A): A {
   // Some type cheating here, as TypeScript can't infer between generic types.
-  if (Array.isArray(source)) return [...source] as any;
-  return { ...(source as any) };
+  if (Array.isArray(source)) return [...source] as A;
+  return { ...source } as A;
 }
 
 /**
@@ -40,10 +46,10 @@ function copy<A extends any[] | object>(source: A): A {
  * @param keys Path to modify, eg "foo.bar.baz".
  * @param toMerge A value to merge into the value at the path.
  */
-export function cleanMerge<A extends any[] | object>(
+export function cleanMerge<A extends CleanSource>(
   source: A,
   keys: string | number | string[],
-  toMerge: any[] | object,
+  toMerge: CleanSource,
 ): A {
   return cleanSetOrMerge(source, keys, toMerge, true);
 }
@@ -53,10 +59,10 @@ export function cleanMerge<A extends any[] | object>(
  * @param keys Path to modify, eg "foo.bar.baz".
  * @param newValue A value to set at the path.
  */
-export function cleanSet<A extends any[] | object>(
+export function cleanSet<A extends CleanSource>(
   source: A,
   keys: string | number | string[],
-  newValue: any,
+  newValue: unknown,
 ): A {
   return cleanSetOrMerge(source, keys, newValue, false);
 }

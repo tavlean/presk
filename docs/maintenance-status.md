@@ -124,6 +124,7 @@ Quick investigation note:
 - Modernized one editor media query listener path.
 - Replaced avoidable `any` types in shared DOM input helpers and gesture prevention.
 - Replaced the shared shallow object comparison helper's public `any` types with object types.
+- Replaced avoidable public `any` types in the shared immutable update helper with `unknown`/object types.
 - Replaced avoidable `any` casts in the result cache processor-state comparison.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Extracted and tested processor-state equivalence logic from the Preact editor component.
