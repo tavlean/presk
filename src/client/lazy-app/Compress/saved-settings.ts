@@ -37,7 +37,9 @@ function isProcessorState(value: unknown): value is ProcessorState {
   if (!isRecord(value.resize) || !isRecord(value.quantize)) return false;
   return (
     typeof value.resize.enabled === 'boolean' &&
-    typeof value.quantize.enabled === 'boolean'
+    typeof value.quantize.enabled === 'boolean' &&
+    Object.values(value.resize).every((option) => option != null) &&
+    Object.values(value.quantize).every((option) => option != null)
   );
 }
 

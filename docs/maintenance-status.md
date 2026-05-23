@@ -118,6 +118,7 @@ Quick investigation note:
 - Added versioned saved side settings serialization while preserving legacy saved settings.
 - Hardened saved settings parsing to reject array-shaped payloads.
 - Hardened saved settings parsing to reject missing or array-shaped encoder options.
+- Hardened saved settings parsing to reject invalid processor enabled values and null option values.
 - Modernized one editor media query listener path.
 - Replaced avoidable `any` types in shared DOM input helpers and gesture prevention.
 - Replaced avoidable `any` casts in the result cache processor-state comparison.

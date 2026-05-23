@@ -15,7 +15,7 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
 
    - Started: bulk import now covers extension-only AVIF, JFIF, TIFF, and BMP inputs plus trailing-dot rejection.
    - Started: bulk export now covers duplicate names, invalid path characters, punctuation-only base names, and hidden-style names.
-   - Started: saved-settings parsing now rejects missing or array-shaped encoder options.
+   - Started: saved-settings parsing now rejects missing or array-shaped encoder options and invalid processor enabled/null values.
    - Add more saved-settings migration cases when the schema changes again.
 
 3. Decide the first supported browser set.
