@@ -39,7 +39,18 @@ export function setJobStatus(
   return updateJob(session, jobId, (job) => ({ ...job, status }));
 }
 
+function getJob(session: BulkSession, jobId: string): ImageJob | undefined {
+  return session.jobs.find((job) => job.id === jobId);
+}
+
+function isActiveStatus(status: ImageJobStatus): boolean {
+  return status === 'decoding' || status === 'processing';
+}
+
 export function startJob(session: BulkSession, jobId: string): BulkSession {
+  const job = getJob(session, jobId);
+  if (!job || job.status !== 'queued') return session;
+
   return {
     ...setJobStatus(session, jobId, 'processing'),
     activeJobs: session.activeJobs + 1,
@@ -51,6 +62,10 @@ export function completeJob(
   jobId: string,
   output: ImageOutput,
 ): BulkSession {
+  const job = getJob(session, jobId);
+  if (!job) return session;
+  const activeJobDelta = isActiveStatus(job.status) ? 1 : 0;
+
   return {
     ...updateJob(session, jobId, (job) => ({
       ...job,
@@ -58,7 +73,7 @@ export function completeJob(
       output,
       error: undefined,
     })),
-    activeJobs: Math.max(0, session.activeJobs - 1),
+    activeJobs: Math.max(0, session.activeJobs - activeJobDelta),
   };
 }
 
@@ -67,23 +82,34 @@ export function failJob(
   jobId: string,
   error: string,
 ): BulkSession {
+  const job = getJob(session, jobId);
+  if (!job) return session;
+  const activeJobDelta = isActiveStatus(job.status) ? 1 : 0;
+
   return {
     ...updateJob(session, jobId, (job) => ({
       ...job,
       status: 'failed',
       error,
     })),
-    activeJobs: Math.max(0, session.activeJobs - 1),
+    activeJobs: Math.max(0, session.activeJobs - activeJobDelta),
   };
 }
 
 export function requeueJob(session: BulkSession, jobId: string): BulkSession {
-  return updateJob(session, jobId, (job) => ({
-    ...job,
-    status: 'queued',
-    output: undefined,
-    error: undefined,
-  }));
+  const job = getJob(session, jobId);
+  if (!job) return session;
+  const activeJobDelta = isActiveStatus(job.status) ? 1 : 0;
+
+  return {
+    ...updateJob(session, jobId, (job) => ({
+      ...job,
+      status: 'queued',
+      output: undefined,
+      error: undefined,
+    })),
+    activeJobs: Math.max(0, session.activeJobs - activeJobDelta),
+  };
 }
 
 export function isJobOutputStale(session: BulkSession, job: ImageJob): boolean {

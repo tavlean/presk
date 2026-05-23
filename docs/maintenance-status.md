@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for bulk job removal helper.
+Working tree at last update: pending commit for guarded bulk queue transitions.
 
 Latest committed work:
 
@@ -24,7 +24,8 @@ Latest committed work:
 - `d5e32ea` Add bulk export entries
 - `e7542ae` Track exported bulk jobs
 - `9002729` Document codec provenance
-- Pending: bulk job removal helper
+- `383705e` Add bulk job removal helper
+- Pending: guarded bulk queue transitions
 
 Latest verification run:
 
@@ -63,6 +64,7 @@ Next recommended tasks:
 - Added versioned saved side settings serialization while preserving legacy saved settings.
 - Modernized one editor media query listener path.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
+- Hardened bulk queue transitions so missing or repeated jobs do not corrupt active-job counts.
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.
 - Added bulk export entry naming helpers for duplicate-safe future batch downloads.
 - Added session helpers for global setting changes and per-image override changes.
