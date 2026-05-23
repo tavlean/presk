@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after result cache type cleanup, ahead of `origin/main` by 5 local commits.
+Working tree at last update: pending commit for bulk settings merge cleanup, ahead of `origin/main` by 6 local commits.
 
 Latest committed work:
 
@@ -45,6 +45,7 @@ Latest committed work:
 - `a7d7969` Reject array saved settings
 - `263763d` Tighten DOM helper types
 - `ec2b652` Tighten result cache typing
+- Pending: bulk settings merge cleanup
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -61,6 +62,7 @@ Latest verification run:
 
 - `npm run format:check`: passed.
 - `npm run typecheck`: passed.
+- `npm run test:unit`: passed.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -116,6 +118,7 @@ Quick investigation note:
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Extracted and tested processor-state equivalence logic from the Preact editor component.
 - Tightened bulk override detection so empty nested override objects are not treated as real overrides.
+- Tightened bulk settings merging so falsy overrides such as `false` and `0` remain valid per-image overrides.
 - Added a settings override path helper for future per-image override highlighting.
 - Hardened bulk queue transitions so missing or repeated jobs do not corrupt active-job counts.
 - Added a bulk queue retry helper for failed and skipped jobs.

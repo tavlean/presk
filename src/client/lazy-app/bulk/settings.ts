@@ -21,15 +21,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function mergeDeep<T>(base: T, override: DeepPartial<T> | undefined): T {
-  if (!override) return base;
+function mergeDeep<T>(base: T, override: DeepPartial<T> | undefined | null): T {
+  if (override === undefined || override === null) return base;
   if (!isRecord(base) || !isRecord(override)) return override as T;
 
   const result: Record<string, unknown> = { ...base };
 
   for (const [key, value] of Object.entries(override)) {
     if (value === undefined) continue;
-    result[key] = mergeDeep(result[key], value as any);
+    result[key] = mergeDeep(result[key], value);
   }
 
   return result as T;
