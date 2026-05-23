@@ -20,8 +20,8 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
 
 3. Decide the first supported browser set.
 
-   - Document minimum Chrome, Safari, Firefox, and Edge targets.
-   - Include WebAssembly, workers, service worker, AVIF, and WebP expectations.
+   - Started: documented first public targets in [Browser support policy](browser-support.md).
+   - Add automated browser smoke coverage before treating the policy as release-proven.
 
 4. Decide codec visibility before deleting codec code.
    - Start by hiding non-focus formats only after UI design discussion.

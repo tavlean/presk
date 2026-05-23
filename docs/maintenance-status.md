@@ -95,6 +95,7 @@ Quick investigation note:
 - Added a progress dashboard to keep cleanup, simplification, bulk, and Svelte migration readiness aligned.
 - Added an agent guide to keep future work aligned with the product and maintenance mission.
 - Added an initial browser support policy note.
+- Documented first public browser support targets and release gates for local/offline optimization reliability.
 - Added `npm run typecheck`.
 - Added `npm test` as an alias for the full baseline check.
 - Added `npm run test:unit` as an alias for pure-helper tests.

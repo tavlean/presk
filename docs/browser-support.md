@@ -1,37 +1,64 @@
 # Browser support policy
 
-The exact production browser matrix is not final yet.
+Last reviewed: 2026-05-23.
 
-Until it is finalized, treat Sqush as a modern-browser app and test against current stable desktop browsers:
+Sqush should target modern browsers that can run the optimizer locally. The product promise is not just that the page renders; the browser must be able to decode inputs, run WebAssembly codecs in workers, preview results, download outputs, and support the service-worker path for offline use.
 
-- Chrome or Chromium-based browsers
-- Edge
-- Firefox
-- Safari
+## Supported baseline
+
+Use this as the first public support target:
+
+| Browser           | Minimum target | Reason                                                                                                      |
+| ----------------- | -------------: | ----------------------------------------------------------------------------------------------------------- |
+| Chrome / Chromium |            121 | Modern Chromium baseline with WebAssembly, workers, service workers, WebP, and AVIF.                        |
+| Edge              |            121 | Aligns with Chromium and MDN's AVIF support note for Edge 121.                                              |
+| Firefox           |        115 ESR | Long-lived Firefox baseline with WebAssembly, workers, service workers, WebP, and AVIF still-image support. |
+| Safari            |             17 | Avoid Safari 16 because this codebase has a known WebAssembly-thread/nested-worker compatibility concern.   |
+
+These are support targets, not artificial blockers. The app can still run in newer compatible browsers outside this list, and many older versions may work. The project should only promise support for versions that we test.
 
 ## Required browser capabilities
 
-Sqush depends on browser features that older browsers may not support well:
+Sqush depends on these capabilities:
 
-- WebAssembly
-- Web Workers
-- dynamic module loading
-- Canvas and ImageData
-- local file input and drag/drop
-- service worker and PWA APIs
-- optional WebAssembly SIMD or threads for faster codec paths
+- WebAssembly for codecs and processors;
+- Web Workers for keeping heavy optimization work off the UI thread;
+- service workers and Cache Storage for offline/PWA behavior;
+- Canvas and ImageData for preview, resize, and browser encoders;
+- Blob, File, object URLs, local file input, paste, drag/drop, and downloads;
+- dynamic module loading for the current Rollup output;
+- optional WebAssembly SIMD and threads for faster codec paths.
+
+WebAssembly SIMD and threads are optimization paths, not the minimum product contract. The app should fall back to non-SIMD or single-threaded codec builds when possible.
 
 ## Codec support notes
 
-Browser UI support and codec WASM support are separate concerns. A browser may run the app but still lack native support for previewing or decoding some formats.
+Browser image support and bundled WASM codec support are separate concerns. A browser may run Sqush but still lack native preview or decode support for some formats.
 
-Before making a format a default output, verify:
+Product priority:
 
-- the encoder works in the browser;
-- the output file downloads correctly;
-- the output can be previewed or clearly explained if browser preview is not supported;
-- the manual QA checklist covers that format.
+- WebP is the safest first-class output.
+- AVIF is first-class, but should be tested carefully because encoding can be slower and browser history is shorter.
+- JPEG XL should stay advanced or experimental until support and preview behavior are clear.
+- WebP 2 should not be treated as a normal production output.
 
-## Decision needed
+MDN currently lists WebP and AVIF support across Chrome, Edge, Firefox, Opera, and Safari, and notes AVIF support starting at Chrome 85, Edge 121, Firefox 93, and Safari 16.1. MDN also lists BMP as broadly browser-supported and TIFF as Safari-only, which is why extension acceptance and actual decode success must remain separate.
 
-Before a public release, choose exact minimum versions for Chrome, Edge, Firefox, and Safari. Do this with current compatibility data and a browser smoke test, not memory.
+## Release gates
+
+Before claiming support for a browser version:
+
+- run `npm run check`;
+- run a production preview smoke test;
+- import and optimize at least one JPEG or PNG;
+- export WebP successfully;
+- test AVIF if it is visible as a first-class option;
+- verify reload/offline behavior after the service worker installs;
+- confirm no unexpected browser-console errors.
+
+## Sources
+
+- MDN image file type guide: https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Image_types
+- MDN ServiceWorker API: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
+- MDN Web Workers API: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
+- MDN WebAssembly: https://developer.mozilla.org/en-US/docs/WebAssembly
