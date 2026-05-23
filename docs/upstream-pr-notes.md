@@ -73,7 +73,7 @@ Recommended approach:
 |      1464 | serialize-js/terser bump               | build/dependency | Medium    | Already superseded by fresh audit work              | Node/toolchain risk              |
 |      1462 | on-headers/serve bump                  | build/dependency | Medium    | Already superseded by fresh audit work              | Lockfile churn                   |
 |      1461 | edit test                              | obsolete/ignore  | Low       | Ignore                                              | Broad unreviewable modernization |
-|      1457 | remove duplicate url-plugin code       | bugfix           | Medium    | Investigate manually                                | Low                              |
+|      1457 | remove duplicate url-plugin code       | bugfix           | Medium    | Done in Sqush                                       | Low                              |
 |      1455 | js-yaml bump                           | build/dependency | Medium    | Already superseded by fresh audit work              | Lockfile only                    |
 |      1454 | rollup bump                            | build/dependency | Medium    | Investigate later                                   | Bundler behavior                 |
 |      1453 | js-yaml/cssnano bump                   | build/dependency | Medium    | Already superseded by fresh audit work              | CSS minification changes         |
