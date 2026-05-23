@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean, local `main` is ahead of `origin/main` by 1 commit.
+Working tree at last update: pending commit for saved-settings array rejection.
 
 Latest committed work:
 
@@ -41,6 +41,8 @@ Latest committed work:
 - `4fa0db9` Add agent guide
 - `67a6ed5` Update handoff after agent guide
 - `c786510` Correct resume handoff status
+- `9b1496f` Note current cleanup state
+- Pending: saved-settings array rejection
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -105,6 +107,7 @@ Quick investigation note:
 - Replaced `npm-run-all` with a local dev runner script.
 - Hardened saved side settings against invalid `localStorage` data.
 - Added versioned saved side settings serialization while preserving legacy saved settings.
+- Hardened saved settings parsing to reject array-shaped payloads.
 - Modernized one editor media query listener path.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Extracted and tested processor-state equivalence logic from the Preact editor component.
