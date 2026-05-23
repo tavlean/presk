@@ -38,6 +38,16 @@ export interface BulkSession {
   exportedCount: number;
 }
 
+export interface BatchProgress {
+  total: number;
+  queued: number;
+  active: number;
+  completed: number;
+  failed: number;
+  skipped: number;
+  exported: number;
+}
+
 export function createBulkSession(
   id: string,
   globalSettings: BulkImageSettings,
@@ -194,17 +204,41 @@ export function getBatchProgress(session: BulkSession): {
   completed: number;
   failed: number;
 } {
+  const progress = getDetailedBatchProgress(session);
+  return {
+    total: progress.total,
+    completed: progress.completed,
+    failed: progress.failed,
+  };
+}
+
+export function getDetailedBatchProgress(session: BulkSession): BatchProgress {
+  let queued = 0;
+  let active = 0;
   let completed = 0;
   let failed = 0;
+  let skipped = 0;
+  let exported = 0;
 
   for (const job of session.jobs) {
-    if (job.status === 'encoded' || job.status === 'exported') completed += 1;
-    if (job.status === 'failed') failed += 1;
+    if (job.status === 'queued') queued += 1;
+    else if (job.status === 'decoding' || job.status === 'processing') {
+      active += 1;
+    } else if (job.status === 'encoded') completed += 1;
+    else if (job.status === 'exported') {
+      completed += 1;
+      exported += 1;
+    } else if (job.status === 'failed') failed += 1;
+    else if (job.status === 'skipped') skipped += 1;
   }
 
   return {
     total: session.jobs.length,
+    queued,
+    active,
     completed,
     failed,
+    skipped,
+    exported,
   };
 }

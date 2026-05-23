@@ -14,14 +14,15 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for bulk retry helper.
+Working tree at last update: pending commit for detailed bulk progress helper.
 
 Latest committed work:
 
 - `0e4118d` Ensure unique bulk job IDs
 - `3dd200d` Update roadmap analytics status
 - `bb8eb5a` Accept image imports by extension
-- Pending: bulk retry helper
+- `0fd84c0` Add bulk retry helper
+- Pending: detailed bulk progress helper
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -81,6 +82,7 @@ Next recommended tasks:
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.
 - Added bulk export entry naming helpers for duplicate-safe future batch downloads.
 - Added session helpers for global setting changes and per-image override changes.
+- Added detailed bulk progress counters for future batch status displays.
 - Hardened bulk session imports so repeated files receive unique job IDs.
 - Added a bulk import extension fallback for image files with missing MIME types.
 - Added a session helper to remove jobs while preserving valid selection and active-job counts.
