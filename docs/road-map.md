@@ -4,7 +4,11 @@ This road map is written for the Sqush fork, with bulk image optimization as the
 
 ## Guiding direction
 
-The project should become a focused, practical image optimizer for modern web formats. The first priority is not to support every possible codec. The first priority is to make a reliable bulk workflow:
+The project should become a focused, practical image optimizer for modern web formats. The most important promise is that image optimization works reliably on the user's machine: no upload requirement, no server dependency, and no internet dependency for the actual optimization work after the app is available.
+
+Bulk image optimization exists because the single-image optimizer is useful enough that people want to use it repeatedly. Bulk must be built on top of that reliability, not at the cost of it.
+
+The first new product milestone is to make a reliable bulk workflow:
 
 - import many images;
 - apply global optimization settings;
@@ -12,7 +16,7 @@ The project should become a focused, practical image optimizer for modern web fo
 - allow per-image overrides;
 - export all optimized images safely.
 
-Everything else should support that goal.
+Everything else should support that goal while protecting the proven single-image workflow.
 
 ## Phase 1: stabilize the baseline
 
@@ -33,6 +37,7 @@ Do this before large feature work.
 
    - App loads.
    - Single-image compression works.
+   - Optimization still runs locally without server processing.
    - WebP export works.
    - AVIF export works if enabled.
    - Download works.

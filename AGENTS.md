@@ -1,11 +1,14 @@
 # Agent guide
 
-This repo is not being cleaned up for its own sake. The work should move Sqush toward a lean, maintainable image optimizer with bulk image optimization as the first major product milestone and eventual Svelte/SvelteKit migration as a long-term maintainability goal.
+This repo is not being cleaned up for its own sake. The work should move Sqush toward a lean, maintainable image optimizer whose core single-image optimization remains dependable, offline, and serverless. Bulk image optimization is the first major product milestone, and eventual Svelte/SvelteKit migration is a long-term maintainability goal.
+
+The heart of the app is still image optimization that works reliably. Users return to Squoosh/Sqush because it can be trusted: no server dependency, no internet requirement after load, and predictable local processing. Bulk workflows, UI changes, cleanup, and migration work must protect that reliability first.
 
 ## Mission
 
 Make the project:
 
+- preserve reliable local image optimization as the core product value;
 - easier to understand;
 - safer from dependency and build-chain risk;
 - simpler to maintain;
@@ -16,6 +19,8 @@ Make the project:
 ## Current product priority
 
 Phase one is bulk image optimization.
+
+That does not mean bulk is more important than the optimizer core. Bulk is a multiplier on the existing value: it should reuse and strengthen the same reliable decode, process, encode, preview, and export pipeline that already makes the single-image app useful.
 
 Allowed before UI design is finalized:
 
@@ -43,6 +48,7 @@ Use [Progress dashboard](docs/progress-dashboard.md) as the current reference.
 
 - Prefer small, behavior-preserving changes.
 - Keep the current app working.
+- Treat regressions in single-image optimization, offline behavior, or export reliability as release blockers.
 - Run focused tests for small pure-helper changes.
 - Run `npm run check` for build/tooling/editor changes.
 - Do not push local commits unless CI validation is needed or the maintainer asks.
