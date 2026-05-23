@@ -7,6 +7,7 @@
   "scripts": {
     "build": "rollup -c && node lib/move-output.js",
     "check": "npm run format:check && npm run build && npm run smoke:build && npm run test:helpers && npm run typecheck",
+    "audit": "npm audit --audit-level=low",
     "debug": "node --inspect-brk node_modules/.bin/rollup -c",
     "dev": "node lib/dev-server.js",
     "format": "prettier --write \"**/*.{js,css,json,md,ts,tsx}\"",
