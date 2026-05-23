@@ -117,6 +117,27 @@ export function clearJobOverrides(
   };
 }
 
+export function markJobsExported(
+  session: BulkSession,
+  jobIds: Iterable<string>,
+): BulkSession {
+  const exportedJobIds = new Set(jobIds);
+  let newlyExportedCount = 0;
+
+  return {
+    ...session,
+    jobs: session.jobs.map((job) => {
+      if (!exportedJobIds.has(job.id) || job.status !== 'encoded') return job;
+      newlyExportedCount += 1;
+      return {
+        ...job,
+        status: 'exported',
+      };
+    }),
+    exportedCount: session.exportedCount + newlyExportedCount,
+  };
+}
+
 export function getSelectedJob(session: BulkSession): ImageJob | undefined {
   if (!session.selectedJobId) return;
   return session.jobs.find((job) => job.id === session.selectedJobId);
