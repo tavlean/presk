@@ -56,7 +56,6 @@ const blobAnimImport =
   !__PRERENDER__ && matchMedia('(prefers-reduced-motion: reduce)').matches
     ? undefined
     : import('./blob-anim');
-const installButtonSource = 'introInstallButton-Purple';
 const supportsClipboardAPI =
   !__PRERENDER__ && navigator.clipboard && navigator.clipboard.read;
 
@@ -85,7 +84,6 @@ export default class Intro extends Component<Props, State> {
   };
   private fileInput?: HTMLInputElement;
   private blobCanvas?: HTMLCanvasElement;
-  private installingViaButton = false;
 
   componentDidMount() {
     // Listen for beforeinstallprompt events, indicating Squoosh is installable.
@@ -148,14 +146,6 @@ export default class Intro extends Component<Props, State> {
 
     // Save the beforeinstallprompt event so it can be called later.
     this.setState({ beforeInstallEvent: event });
-
-    // Log the event.
-    const gaEventInfo = {
-      eventCategory: 'pwa-install',
-      eventAction: 'promo-shown',
-      nonInteraction: true,
-    };
-    ga('send', 'event', gaEventInfo);
   };
 
   private onInstallClick = async (event: Event) => {
@@ -164,41 +154,21 @@ export default class Intro extends Component<Props, State> {
     // If there's no deferred prompt, bail.
     if (!beforeInstallEvent) return;
 
-    this.installingViaButton = true;
-
     // Show the browser install prompt
     beforeInstallEvent.prompt();
 
     // Wait for the user to accept or dismiss the install prompt
     const { outcome } = await beforeInstallEvent.userChoice;
-    // Send the analytics data
-    const gaEventInfo = {
-      eventCategory: 'pwa-install',
-      eventAction: 'promo-clicked',
-      eventLabel: installButtonSource,
-      eventValue: outcome === 'accepted' ? 1 : 0,
-    };
-    ga('send', 'event', gaEventInfo);
 
     // If the prompt was dismissed, we aren't going to install via the button.
     if (outcome === 'dismissed') {
-      this.installingViaButton = false;
+      this.setState({ beforeInstallEvent: undefined });
     }
   };
 
   private onAppInstalled = () => {
     // We don't need the install button, if it's shown
     this.setState({ beforeInstallEvent: undefined });
-
-    // Don't log analytics if page is not visible
-    if (document.hidden) return;
-
-    // Try to get the install, if it's not set, use 'browser'
-    const source = this.installingViaButton ? installButtonSource : 'browser';
-    ga('send', 'event', 'pwa-install', 'installed', source);
-
-    // Clear the install method property
-    this.installingViaButton = false;
   };
 
   private onPasteClick = async () => {
