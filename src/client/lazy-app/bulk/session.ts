@@ -38,12 +38,47 @@ export interface BulkSession {
   exportedCount: number;
 }
 
+export function createBulkSession(
+  id: string,
+  globalSettings: BulkImageSettings,
+  jobs: ImageJob[] = [],
+): BulkSession {
+  return {
+    id,
+    globalSettings,
+    jobs,
+    selectedJobId: jobs[0]?.id,
+    activeJobs: 0,
+    exportedCount: 0,
+  };
+}
+
 export function createImageJob(id: string, sourceFile: File): ImageJob {
   return {
     id,
     sourceFile,
     status: 'queued',
     originalSize: sourceFile.size,
+  };
+}
+
+export function addJobs(session: BulkSession, jobs: ImageJob[]): BulkSession {
+  const nextJobs = [...session.jobs, ...jobs];
+  return {
+    ...session,
+    jobs: nextJobs,
+    selectedJobId: session.selectedJobId ?? nextJobs[0]?.id,
+  };
+}
+
+export function selectJob(
+  session: BulkSession,
+  selectedJobId: string,
+): BulkSession {
+  if (!session.jobs.some((job) => job.id === selectedJobId)) return session;
+  return {
+    ...session,
+    selectedJobId,
   };
 }
 

@@ -230,6 +230,7 @@ Later implementation:
    - Keep them framework-neutral.
    - Do not bind them to Preact lifecycle.
    - Initial module: `src/client/lazy-app/bulk/session.ts`
+   - Session helper can create a batch, append imported jobs, select an image, and report progress.
 
 3. Add multi-file import.
 
