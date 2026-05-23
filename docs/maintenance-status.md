@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean, `main` matches `origin/main`.
+Working tree at last update: clean, local `main` is ahead of `origin/main` by 1 commit.
 
 Latest committed work:
 
@@ -40,6 +40,7 @@ Latest committed work:
 - `23e005e` Extract processor state comparison
 - `4fa0db9` Add agent guide
 - `67a6ed5` Update handoff after agent guide
+- `c786510` Correct resume handoff status
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -72,6 +73,10 @@ Next recommended tasks when work resumes:
 3. Add browser smoke tests before significant UI or codec-surface changes.
 4. Do not implement bulk UI until the workflow design has been discussed and iterated.
 5. Use `docs/dependency-modernization.md` for dependency cleanup order; do not use `npm audit fix --force` blindly.
+
+Quick investigation note:
+
+- `src/client/lazy-app/image-pipeline.ts` still has an `as any` around encoder options. This is caused by generated `encoderMap` union typing. Do not rush this under time pressure; fix it with generated type improvements or a well-typed dispatch helper.
 
 ## Completed baseline cleanup
 
