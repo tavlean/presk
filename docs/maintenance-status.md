@@ -14,23 +14,14 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for versioned saved settings.
+Working tree at last update: pending commit for bulk export entry helpers.
 
 Latest committed work:
 
 - `6032bee` Document audit command
-- `e149ffc` Add CI audit check
-- `02bb7ce` Add manual QA checklist
-- `7cdb941` Add charset metadata
-- `ea6bf2` Remove duplicate URL plugin hash input
-- `5143e20` Document full upstream PR audit
-- `09b20a7` Make dev serving scripts cross-platform
-- `7cf234d` Fix SVG viewBox parsing
-- `5700c9e` Add bulk object URL cleanup helpers
-- `19c408d` Add bulk runner orchestration
-- `bd4ed70` Add bulk processor orchestration
-- `db22fc0` Extract shared image pipeline
-- Pending: versioned saved settings with tested legacy import support
+- `352c6dc` Version saved side settings
+- `7eef5e4` Use primitive resize boolean prop
+- Pending: bulk export entry helpers with duplicate-safe names
 
 Latest verification run:
 
@@ -70,6 +61,7 @@ Next recommended tasks:
 - Modernized one editor media query listener path.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.
+- Added bulk export entry naming helpers for duplicate-safe future batch downloads.
 - Added session helpers for global setting changes and per-image override changes.
 - Added a lightweight Node assertion test for bulk helper behavior.
 - Expanded the lightweight helper test to cover `clean-modify` and `pretty-bytes`.
