@@ -14,11 +14,17 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after `246a8f2`.
+Working tree at last update: pending commit for bulk helper tests.
 
 Latest committed work:
 
 - `246a8f2` Add Sqush domain metadata
+- `35572b5` Add bulk session helpers
+- `2dc35f3` Detect stale bulk outputs
+- `3ab2fb6` Spawn TypeScript through Node
+- `bd55d5a` Add bulk queue helpers
+- `fc746a9` Enforce LF line endings for CI
+- `34592f0` Add bulk import helpers
 - `26d8880` Rename project to Sqush
 - `20d4299` Add bulk session types
 - `0060b8e` Add bulk settings helpers
@@ -30,7 +36,8 @@ Latest verification run:
 - `npm run format:check`: passed.
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
-- `npm run check`: passed after `4017cac`.
+- `npm run test:bulk`: passed.
+- `npm run check`: passed after adding bulk helper tests.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 
 Next recommended tasks:
@@ -55,6 +62,8 @@ Next recommended tasks:
 - Replaced `npm-run-all` with a local dev runner script.
 - Hardened saved side settings against invalid `localStorage` data.
 - Modernized one editor media query listener path.
+- Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
+- Added a lightweight Node assertion test for bulk helper behavior.
 
 ## Current verification commands
 
@@ -64,13 +73,14 @@ Run these before committing substantial changes:
 npm run format:check
 npm run build
 npm run smoke:build
+npm run test:bulk
 npm run typecheck
 ```
 
 For UI-sensitive changes, also run a browser smoke check against `build/` after `npm run build`.
 Use `npm run preview` for that production-build browser check; `npm run serve` is for dev output in `.tmp/build/static`.
 
-On a fresh checkout, run `npm run build` before `npm run typecheck` because the build creates ignored feature metadata files required by TypeScript. `npm run check` already runs commands in the safe order.
+On a fresh checkout, run `npm run build` before `npm run typecheck` because the build creates ignored feature metadata files required by TypeScript. `npm run check` already runs commands in the safe order and includes the bulk helper tests.
 
 ## Current known warnings
 
