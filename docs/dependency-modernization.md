@@ -107,11 +107,10 @@ These can require ESM/API changes and broader browser verification.
 
 The CI matrix includes Ubuntu and Windows, which should remain mandatory.
 
-Known script caveat:
+Script portability status:
 
-- `npm run dev` and `npm run serve` use POSIX-style environment syntax.
-- CI does not run those commands today.
-- Do not add them to Windows CI unless they are rewritten through Node or another cross-platform approach.
+- `npm run dev` and `npm run serve` now use Node wrappers instead of POSIX-style environment syntax.
+- CI does not run those commands today, but they are no longer blocked on Unix-only shell syntax.
 
 ## Verification
 

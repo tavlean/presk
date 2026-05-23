@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for SVG viewBox parsing fix.
+Working tree at last update: pending commit for cross-platform serve scripts.
 
 Latest committed work:
 
@@ -46,6 +46,7 @@ Latest verification run:
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after the terser plugin upgrade.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
+- `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 
@@ -82,6 +83,7 @@ Next recommended tasks:
 - Added `src/client/lazy-app/bulk/runner.ts` to process queued bulk jobs up to the concurrency limit.
 - Added `src/client/lazy-app/bulk/urls.ts` to collect and revoke bulk preview, thumbnail, and download object URLs.
 - Fixed SVG `viewBox` size parsing for comma-separated values using a tested helper.
+- Replaced POSIX-only `dev` and `serve` script syntax with Node wrappers for better Windows compatibility.
 - Removed the noisy Rollup unused external import warning by narrowing `path` imports in build plugins.
 - Refreshed low-risk dependencies while keeping Preact pinned because the newer Preact 10 typings require a separate migration.
 - Refreshed compatible Rollup 2 plugins and set `@rollup/plugin-replace` `preventAssignment` explicitly.
