@@ -8,6 +8,7 @@ Website: [sqush.app](https://sqush.app)
 
 - [Project overview](docs/overview.md)
 - [Build and runtime map](docs/build-and-runtime.md)
+- [Browser support policy](docs/browser-support.md)
 - [Bulk image architecture](docs/bulk-image-architecture.md)
 - [Codec provenance](docs/codec-provenance.md)
 - [Dependency modernization](docs/dependency-modernization.md)

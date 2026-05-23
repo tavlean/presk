@@ -116,10 +116,10 @@ This list is ordered by priority. Do the high-priority items before building new
     - Vite or another modern bundler may reduce custom code.
     - This is a larger migration because of Web Workers, WASM, generated feature metadata, static prerendering, and service-worker output.
 
-19. Review browser support.
+19. Partially completed: review browser support.
 
-    - The app uses modern browser APIs, PWA APIs, WebAssembly, workers, and optional threaded codecs.
-    - Decide which browsers matter for this fork before spending time on compatibility fixes.
+    - Initial policy note lives in [Browser support policy](browser-support.md).
+    - Exact minimum browser versions still need current compatibility research before public release.
 
 20. Completed: create an issue list from this todo.
 
