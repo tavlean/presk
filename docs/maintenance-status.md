@@ -14,10 +14,11 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after static render dependency refresh. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: clean after generated bulk export name reservation. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
 Latest local-only committed work at last update:
 
+- `82eb7b6` Reserve generated bulk export names
 - `1fc97c3` Refresh static render dependency
 - `eed9cb2` Sanitize bulk export archive names
 - `2666f83` Guard bulk runner aborts before processing
@@ -48,7 +49,7 @@ Latest verification run:
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
-- Latest observed GitHub Actions state: pushed commits through `eed9cb2` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state: pushed commits through `79545d2` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
