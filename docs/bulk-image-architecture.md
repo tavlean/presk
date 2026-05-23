@@ -235,6 +235,7 @@ Later implementation:
 
    - Accept multiple files from file input and drag/drop.
    - Keep single-image behavior working.
+   - Initial helper module: `src/client/lazy-app/bulk/import.ts`
 
 4. Add basic queue processing.
 
