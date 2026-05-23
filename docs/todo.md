@@ -64,13 +64,14 @@ This list is ordered by priority. Do the high-priority items before building new
    - Link to these docs.
    - Mention that `build/` and `.tmp/` are generated.
 
-10. Decide whether generated files should stay committed.
+10. Keep generated feature files untracked and verify generation remains reliable.
 
     - `src/client/lazy-app/feature-meta/index.ts`
     - `src/client/lazy-app/worker-bridge/meta.ts`
     - `src/features-worker/index.ts`
-    - If committed, document that developers must rebuild after feature changes.
-    - If not committed, update the build so they are generated before TypeScript needs them.
+    - These files are ignored by Git today.
+    - Make sure the build generates them before TypeScript needs them.
+    - If feature generation breaks, fix the build rather than committing generated output.
 
 11. Clean up analytics and privacy.
 

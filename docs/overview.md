@@ -61,7 +61,7 @@ The file `lib/feature-plugin.js` scans `src/features/` during the build and gene
 - `src/client/lazy-app/worker-bridge/meta.ts`
 - `src/features-worker/index.ts`
 
-These generated files are committed in the repo. If you add, remove, or rename a feature, run the build and check these generated files.
+These generated files are ignored by Git and recreated by the build. If you add, remove, or rename a feature, run the build before typechecking or testing the app.
 
 ## Fork-specific changes noticed
 
