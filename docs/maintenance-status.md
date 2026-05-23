@@ -130,6 +130,7 @@ Quick investigation note:
 - Added `src/client/lazy-app/bulk/processor.ts` to process one bulk image job through the shared image pipeline without UI coupling.
 - Guarded bulk processor percent-change calculation for zero-byte inputs.
 - Added `src/client/lazy-app/bulk/runner.ts` to process queued bulk jobs up to the concurrency limit.
+- Hardened the bulk runner so already-aborted batches do not start jobs or call processors.
 - Added `src/client/lazy-app/bulk/urls.ts` to collect and revoke bulk preview, thumbnail, and download object URLs.
 - Hardened bulk object URL cleanup so duplicate preview, thumbnail, and download URLs are only revoked once.
 - Fixed SVG `viewBox` size parsing for comma-separated values using a tested helper.

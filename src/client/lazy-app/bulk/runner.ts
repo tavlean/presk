@@ -13,6 +13,19 @@ export interface BulkRunnerOptions {
   ) => Promise<ImageOutput>;
 }
 
+function createAbortError(signal: AbortSignal): Error {
+  const reason = (signal as AbortSignal & { reason?: unknown }).reason;
+  if (reason instanceof Error) return reason;
+
+  const error = Error('Bulk processing aborted');
+  error.name = 'AbortError';
+  return error;
+}
+
+function throwIfAborted(signal: AbortSignal): void {
+  if (signal.aborted) throw createAbortError(signal);
+}
+
 export async function processRunnableBulkJobs(
   session: BulkSession,
   {
@@ -28,6 +41,8 @@ export async function processRunnableBulkJobs(
       }),
   }: BulkRunnerOptions,
 ): Promise<BulkSession> {
+  throwIfAborted(signal);
+
   if (workerBridges.length === 0) {
     throw Error('Bulk runner requires at least one worker bridge');
   }
@@ -43,7 +58,9 @@ export async function processRunnableBulkJobs(
     runnableJobs.map(async (job, index) => {
       const workerBridge = workerBridges[index % workerBridges.length];
       try {
+        throwIfAborted(signal);
         const output = await processJob(job, workerBridge);
+        throwIfAborted(signal);
         nextSession = completeJob(nextSession, job.id, output);
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') throw err;

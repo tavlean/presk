@@ -19,6 +19,7 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
    - Started: bulk queue/session tests now cover exported-count consistency when exported jobs are removed or requeued as stale.
    - Started: bulk queue/session tests now cover exported-count consistency when one exported job is manually requeued.
    - Started: bulk object URL cleanup now covers duplicate URL revocation.
+   - Started: bulk runner tests now cover pre-aborted batch cancellation before processors are called.
    - Started: saved-settings parsing now rejects missing or array-shaped encoder options and invalid processor enabled/null values.
    - Add more saved-settings migration cases when the schema changes again.
 
