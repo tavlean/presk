@@ -2,6 +2,8 @@
 
 Sqush is a practical image optimization web app derived from [Squoosh]. It is focused on maintainability, bulk image optimization workflows, and a smaller set of modern web image formats.
 
+Website: [sqush.app](https://sqush.app)
+
 ## Project docs
 
 - [Project overview](docs/overview.md)

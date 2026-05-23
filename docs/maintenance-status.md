@@ -4,17 +4,19 @@ Last updated: 2026-05-23.
 
 ## Resume handoff
 
-Current branch: `dev`.
+Current branch: `main`.
 
-Working tree at last update: clean after `0060b8e`; a follow-up bulk session types commit may be present if the latest log contains `Add bulk session types`.
+Standalone GitHub repo: `tavlean/sqush`.
+
+Working tree at last update: clean after `26d8880`; a follow-up domain metadata commit may be present if the latest log contains `Add Sqush domain metadata`.
 
 Latest committed work:
 
+- `26d8880` Rename project to Sqush
+- `20d4299` Add bulk session types
 - `0060b8e` Add bulk settings helpers
 - `4017cac` Run CI checks in generated-safe order
 - `f5ad1e4` Document bulk image architecture
-- `81693cf` Add production preview script
-- `6f8b4f8` Add maintenance resume handoff
 
 Latest verification run:
 
@@ -26,10 +28,9 @@ Latest verification run:
 
 Next recommended tasks:
 
-1. Separate the GitHub repo from the abandoned upstream fork relationship while preserving history.
-2. Continue bulk-image feature design in framework-neutral TypeScript modules before touching UI heavily.
-3. Decide whether to fix the Rollup unused external import warning now or leave it for the larger Rollup/toolchain upgrade.
-4. Keep remaining `npm audit` work as explicit build-tooling upgrade tasks; do not use `npm audit fix --force` blindly.
+1. Continue bulk-image feature design in framework-neutral TypeScript modules before touching UI heavily.
+2. Decide whether to fix the Rollup unused external import warning now or leave it for the larger Rollup/toolchain upgrade.
+3. Keep remaining `npm audit` work as explicit build-tooling upgrade tasks; do not use `npm audit fix --force` blindly.
 
 ## Completed baseline cleanup
 

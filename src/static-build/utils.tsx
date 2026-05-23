@@ -64,6 +64,8 @@ export const siteOrigin = (() => {
   if (process.env.DEV_PORT) return `http://localhost:${process.env.DEV_PORT}`;
   if (process.env.DEPLOY_PRIME_URL) return process.env.DEPLOY_PRIME_URL;
   if (process.env.URL) return process.env.URL;
-  console.warn('Unable to determine site origin, using relative URLs');
-  return '';
+  console.warn(
+    'Unable to determine site origin, defaulting to https://sqush.app',
+  );
+  return 'https://sqush.app';
 })();
