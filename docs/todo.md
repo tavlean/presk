@@ -23,22 +23,22 @@ This list is ordered by priority. Do the high-priority items before building new
 
 ## Priority 1: dependency and security cleanup
 
-4. Triage `npm audit`.
+4. Completed: triage `npm audit`.
 
-   - Current audit output reports many vulnerabilities, including critical findings.
-   - Most are development/build-chain dependencies, but this still matters because the build runs arbitrary package code.
-   - Do not blindly run `npm audit fix --force` without checking the generated app after each upgrade.
+   - `npm audit --audit-level=low` now reports 0 vulnerabilities.
+   - CI runs `npm run audit` before the build checks.
+   - Keep this check active when dependencies are changed.
 
 5. Completed: upgrade or replace the stale local server.
 
    - `serve` has been upgraded from the stale inherited version.
    - Keep watching this dependency during audit cleanup.
 
-6. Upgrade Rollup and custom build plugins carefully.
+6. Partially completed: upgrade Rollup and custom build plugins carefully.
 
    - The project uses Rollup 2 and custom plugins under `lib/`.
-   - Several audit findings are attached to Rollup/plugin transitive dependencies.
-   - This is likely the hardest cleanup because the build is highly customized.
+   - Compatible Rollup 2 plugins have been refreshed.
+   - A larger Rollup or bundler migration should wait until the baseline remains stable.
 
 7. Completed: replace deprecated build patterns.
 
@@ -67,12 +67,13 @@ This list is ordered by priority. Do the high-priority items before building new
     - The inherited upstream Google Analytics integration has been removed.
     - Do not add analytics back without a privacy and consent decision.
 
-12. Partially completed: harden saved settings.
+12. Completed: harden saved settings.
 
-    - `JSON.parse(localStorage...)` is now wrapped in safe parsing.
-    - Saved side settings are validated before applying them.
-    - Add a version number to saved settings.
-    - Handle missing encoders/options after future upgrades.
+- `JSON.parse(localStorage...)` is now wrapped in safe parsing.
+- Saved side settings are validated before applying them.
+- New saved side settings use a versioned wrapper.
+- Legacy unversioned saved settings still import.
+- Missing/unknown encoders are rejected before applying the settings.
 
 13. Fix small code quality issues while touching nearby code.
     - `Boolean` should be `boolean` in Preact state types.
@@ -93,7 +94,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - `clean-modify`
     - `pretty-bytes`
     - MIME sniffing behavior if it can be isolated
-    - saved-settings parse/validate logic after it is extracted
+    - saved-settings parse/validate logic
 
 16. Add CI for the real supported platform matrix.
 

@@ -14,29 +14,23 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for README audit command note.
+Working tree at last update: pending commit for versioned saved settings.
 
 Latest committed work:
 
-- `c68336a` Document maintenance research findings
-- `53a76f3` Update cleanup docs for design hold
-- `26b1d2a` Add bulk settings mutation helpers
-- `6fb9c0c` Add bulk export helpers
-- `16080fa` Update maintenance handoff
-- `246a8f2` Add Sqush domain metadata
-- `193e462` Clean up Rollup path imports
-- `078b0fd` Add bulk helper tests
-- `35572b5` Add bulk session helpers
-- `2dc35f3` Detect stale bulk outputs
-- `3ab2fb6` Spawn TypeScript through Node
-- `bd55d5a` Add bulk queue helpers
-- `fc746a9` Enforce LF line endings for CI
-- `34592f0` Add bulk import helpers
-- `26d8880` Rename project to Sqush
-- `20d4299` Add bulk session types
-- `0060b8e` Add bulk settings helpers
-- `4017cac` Run CI checks in generated-safe order
-- `f5ad1e4` Document bulk image architecture
+- `6032bee` Document audit command
+- `e149ffc` Add CI audit check
+- `02bb7ce` Add manual QA checklist
+- `7cdb941` Add charset metadata
+- `ea6bf2` Remove duplicate URL plugin hash input
+- `5143e20` Document full upstream PR audit
+- `09b20a7` Make dev serving scripts cross-platform
+- `7cf234d` Fix SVG viewBox parsing
+- `5700c9e` Add bulk object URL cleanup helpers
+- `19c408d` Add bulk runner orchestration
+- `bd4ed70` Add bulk processor orchestration
+- `db22fc0` Extract shared image pipeline
+- Pending: versioned saved settings with tested legacy import support
 
 Latest verification run:
 
@@ -44,7 +38,7 @@ Latest verification run:
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
-- `npm run check`: passed after the terser plugin upgrade.
+- `npm run check`: passed after extracting versioned saved settings.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
@@ -72,6 +66,7 @@ Next recommended tasks:
 - Applied compatible `npm audit fix` updates.
 - Replaced `npm-run-all` with a local dev runner script.
 - Hardened saved side settings against invalid `localStorage` data.
+- Added versioned saved side settings serialization while preserving legacy saved settings.
 - Modernized one editor media query listener path.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Added framework-neutral bulk export helpers for exportable jobs and batch size summaries.

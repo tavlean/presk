@@ -30,14 +30,15 @@ import {
   processImage,
   processSvg,
 } from '../image-pipeline';
+import {
+  SavedSideSettings,
+  SideSettings,
+  parseSavedSideSettings,
+  serializeSavedSideSettings,
+} from './saved-settings';
 
 export type OutputType = EncoderType | 'identity';
 export type { SourceImage } from '../image-pipeline';
-
-interface SideSettings {
-  processorState: ProcessorState;
-  encoderState?: EncoderState;
-}
 
 interface Side {
   processed?: ImageData;
@@ -80,41 +81,7 @@ interface LoadingFileInfo {
   filename?: string;
 }
 
-type SavedSideSettings = Pick<Side, 'encodedSettings' | 'latestSettings'>;
-
 const savedSettingsKeys = ['leftSideSettings', 'rightSideSettings'] as const;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function isEncoderState(value: unknown): value is EncoderState | undefined {
-  if (value === undefined) return true;
-  if (!isRecord(value)) return false;
-  if (typeof value.type !== 'string') return false;
-  return Object.prototype.hasOwnProperty.call(encoderMap, value.type);
-}
-
-function isProcessorState(value: unknown): value is ProcessorState {
-  if (!isRecord(value)) return false;
-  if (!isRecord(value.resize) || !isRecord(value.quantize)) return false;
-  return (
-    typeof value.resize.enabled === 'boolean' &&
-    typeof value.quantize.enabled === 'boolean'
-  );
-}
-
-function isSideSettings(value: unknown): value is SavedSideSettings {
-  if (!isRecord(value) || !isRecord(value.latestSettings)) return false;
-  const encodedSettings = value.encodedSettings;
-  return (
-    isProcessorState(value.latestSettings.processorState) &&
-    isEncoderState(value.latestSettings.encoderState) &&
-    (encodedSettings === undefined ||
-      (isRecord(encodedSettings) &&
-        isEncoderState(encodedSettings.encoderState)))
-  );
-}
 
 function readSideSettings(
   key: (typeof savedSettingsKeys)[number],
@@ -122,12 +89,7 @@ function readSideSettings(
   const serializedSettings = localStorage.getItem(key);
   if (!serializedSettings) return;
 
-  try {
-    const settings = JSON.parse(serializedSettings);
-    return isSideSettings(settings) ? settings : undefined;
-  } catch (err) {
-    return;
-  }
+  return parseSavedSideSettings(serializedSettings);
 }
 
 function defaultSide(index: 0 | 1): Side {
@@ -349,7 +311,7 @@ export default class Compress extends Component<Props, State> {
    */
   private onSaveSideSettingsClick = async (index: 0 | 1) => {
     if (index === 0) {
-      const leftSideSettings = JSON.stringify({
+      const leftSideSettings = serializeSavedSideSettings({
         encodedSettings: this.state.sides[index].encodedSettings,
         latestSettings: this.state.sides[index].latestSettings,
       });
@@ -364,7 +326,7 @@ export default class Compress extends Component<Props, State> {
     }
 
     if (index === 1) {
-      const rightSideSettings = JSON.stringify({
+      const rightSideSettings = serializeSavedSideSettings({
         encodedSettings: this.state.sides[index].encodedSettings,
         latestSettings: this.state.sides[index].latestSettings,
       });
