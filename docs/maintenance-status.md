@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for zero-size bulk output guard.
+Working tree at last update: pending commit for stronger build smoke checks.
 
 Latest committed work:
 
@@ -23,7 +23,8 @@ Latest committed work:
 - `bb8eb5a` Accept image imports by extension
 - `0fd84c0` Add bulk retry helper
 - `faef40e` Add detailed bulk progress
-- Pending: zero-size bulk output guard
+- `57eb2a4` Guard zero-size bulk outputs
+- Pending: stronger build smoke checks
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -64,6 +65,7 @@ Next recommended tasks:
 - Added Node and npm engine metadata matching `.nvmrc`.
 - Added `npm run format` and `npm run format:check`.
 - Added `npm run smoke:build` to verify generated build output.
+- Expanded `npm run smoke:build` to check generated Sqush metadata and absence of analytics code.
 - Added `npm run preview` to serve the production `build/` directory.
 - Updated CI to use current checkout/setup-node actions and run the baseline checks.
 - Expanded CI to cover Ubuntu, Windows, and macOS.
