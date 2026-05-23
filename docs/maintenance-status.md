@@ -84,6 +84,7 @@ Quick investigation note:
 - Expanded `npm run smoke:build` to check generated Sqush metadata and absence of analytics code.
 - Expanded `npm run smoke:build` to verify generated feature metadata and worker entry files exist.
 - Expanded `npm run smoke:build` to guard against accidental external runtime scripts, runtime links, and manifest media.
+- Expanded `npm run smoke:build` to verify service-worker precache assets exist in the production build.
 - Added `npm run preview` to serve the production `build/` directory.
 - Documented and verified a Playwright CLI smoke flow for the production app shell and local-image editor import path.
 - Updated CI to use current checkout/setup-node actions and run the baseline checks.
