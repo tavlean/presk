@@ -1,0 +1,91 @@
+import {
+  compressImage,
+  decodeImage,
+  preprocessImage,
+  processImage,
+  SourceImage,
+} from '../image-pipeline';
+import { defaultPreprocessorState } from '../feature-meta';
+import type { PreprocessorState } from '../feature-meta';
+import type WorkerBridge from '../worker-bridge';
+import { getEffectiveSettings, settingsHash } from './settings';
+import type { BulkImageSettings } from './settings';
+import type { ImageJob, ImageOutput } from './session';
+
+export interface BulkProcessorPipeline {
+  decodeImage: typeof decodeImage;
+  preprocessImage: typeof preprocessImage;
+  processImage: typeof processImage;
+  compressImage: typeof compressImage;
+}
+
+export interface BulkProcessJobOptions {
+  job: ImageJob;
+  globalSettings: BulkImageSettings;
+  workerBridge: WorkerBridge;
+  signal: AbortSignal;
+  preprocessorState?: PreprocessorState;
+  pipeline?: BulkProcessorPipeline;
+  createDownloadUrl?: (file: File) => string;
+}
+
+const defaultPipeline: BulkProcessorPipeline = {
+  decodeImage,
+  preprocessImage,
+  processImage,
+  compressImage,
+};
+
+export async function processBulkImageJob({
+  job,
+  globalSettings,
+  workerBridge,
+  signal,
+  preprocessorState = defaultPreprocessorState,
+  pipeline = defaultPipeline,
+  createDownloadUrl = (file) => URL.createObjectURL(file),
+}: BulkProcessJobOptions): Promise<ImageOutput> {
+  const effectiveSettings = getEffectiveSettings(globalSettings, job.overrides);
+
+  if (!effectiveSettings.encoderState) {
+    throw Error('Bulk job requires an encoder');
+  }
+
+  const decoded = await pipeline.decodeImage(
+    signal,
+    job.sourceFile,
+    workerBridge,
+  );
+  const preprocessed = await pipeline.preprocessImage(
+    signal,
+    decoded,
+    preprocessorState,
+    workerBridge,
+  );
+  const source: SourceImage = {
+    file: job.sourceFile,
+    decoded,
+    preprocessed,
+  };
+  const processed = await pipeline.processImage(
+    signal,
+    source,
+    effectiveSettings.processorState,
+    workerBridge,
+  );
+  const file = await pipeline.compressImage(
+    signal,
+    processed,
+    effectiveSettings.encoderState,
+    job.sourceFile.name,
+    workerBridge,
+  );
+
+  return {
+    file,
+    size: file.size,
+    downloadUrl: createDownloadUrl(file),
+    percentChange: (file.size / job.originalSize - 1) * 100,
+    settingsHash: settingsHash(effectiveSettings),
+  };
+}
