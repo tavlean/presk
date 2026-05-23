@@ -14,6 +14,7 @@ Last updated: 2026-05-23.
 - Removed the Node 20 `DEP0190` warning from the TypeScript build spawn.
 - Upgraded the local static server from `serve@11` to `serve@14`.
 - Applied compatible `npm audit fix` updates.
+- Replaced `npm-run-all` with a local dev runner script.
 - Hardened saved side settings against invalid `localStorage` data.
 - Modernized one editor media query listener path.
 
@@ -50,17 +51,11 @@ Do not run `npm audit fix --force` blindly. The remaining fixes require breaking
 
 ## Local npm cache issue
 
-The default npm cache at `/Users/tav/.npm` can still fail with `EPERM` in this environment. A sub-agent checked the cache and found the failing file was owned by `tav:staff`, but `npm cache verify` still failed on unlink.
-
-Manual terminal fix to try:
+The default npm cache at `/Users/tav/.npm` previously failed with `EPERM` in this environment. The manual ownership repair was run successfully:
 
 ```sh
 sudo chown -R 501:20 "/Users/tav/.npm"
 npm cache verify
 ```
 
-Until that is fixed, npm commands can use a temporary cache:
-
-```sh
-env npm_config_cache=/private/tmp/squooshplus-npm-cache npm install
-```
+`npm cache verify` now succeeds.
