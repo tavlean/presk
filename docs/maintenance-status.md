@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: pending commit for CI matrix diagnostics.
+Working tree at last update: clean after `c40b73f`.
 
 Latest committed work:
 
@@ -25,7 +25,7 @@ Latest committed work:
 - `faef40e` Add detailed bulk progress
 - `57eb2a4` Guard zero-size bulk outputs
 - `9a9f50b` Strengthen build smoke checks
-- Pending: CI matrix diagnostics
+- `c40b73f` Keep CI matrix jobs independent
 - `b9b7f0f` Add macOS CI coverage
 - `45f3050` Declare supported Node engine
 - `559b118` Tighten bulk override detection
@@ -37,7 +37,6 @@ Latest committed work:
 - `7eef5e4` Use primitive resize boolean prop
 - `352c6dc` Version saved side settings
 - `6032bee` Document audit command
-- Pending: stale roadmap cleanup
 
 Latest verification run:
 
@@ -45,9 +44,9 @@ Latest verification run:
 - `npm run typecheck`: passed.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
-- `npm run check`: passed after duplicate bulk job ID handling.
+- `npm run check`: passed after CI matrix diagnostics.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
-- Latest observed GitHub Actions state: commits through `57eb2a4` passed. `0fd84c0` failed, but later commits containing that code passed; `9a9f50b` was still in progress.
+- Latest observed GitHub Actions state: commits through `9a9f50b` passed. `0fd84c0` failed, but later commits containing that code passed; `c40b73f` was still in progress.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
