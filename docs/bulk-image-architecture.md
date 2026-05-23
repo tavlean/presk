@@ -223,6 +223,7 @@ Later implementation:
    - `getEffectiveSettings`
    - settings hashing
    - override detection
+   - Initial module: `src/client/lazy-app/bulk/settings.ts`
 
 2. Add bulk session state types.
 
