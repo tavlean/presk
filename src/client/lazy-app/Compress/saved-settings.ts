@@ -31,6 +31,30 @@ export interface SavedSideSettingsReadResult {
   settings?: SavedSideSettings;
 }
 
+export interface SavedSideSettingsAction {
+  message: string;
+  timeout: number;
+  actions: string[];
+}
+
+export type SavedSideSettingsSaveAction =
+  | (SavedSideSettingsAction & {
+      kind: 'saved';
+      eventKey: LocalStorageKey;
+    })
+  | (SavedSideSettingsAction & {
+      kind: 'failed';
+    });
+
+export type SavedSideSettingsImportAction =
+  | (SavedSideSettingsAction & {
+      kind: 'imported';
+      settings: SavedSideSettings;
+    })
+  | (SavedSideSettingsAction & {
+      kind: 'invalid';
+    });
+
 export const savedSideSettingsVersion = 1;
 
 export const savedSideSettingsKeys: readonly [
@@ -173,6 +197,48 @@ export function writeSavedSideSettingsForSide(
     key,
     sideLabel: getSideLabel(index),
     saved: writeSettings(key, getSavedSideSettings(side)),
+  };
+}
+
+export function getSavedSideSettingsSaveAction(
+  result: SavedSideSettingsWriteResult,
+): SavedSideSettingsSaveAction {
+  if (!result.saved) {
+    return {
+      kind: 'failed',
+      message: `${result.sideLabel} side settings could not be saved`,
+      timeout: 3000,
+      actions: ['dismiss'],
+    };
+  }
+
+  return {
+    kind: 'saved',
+    message: `${result.sideLabel} side settings saved`,
+    timeout: 1500,
+    actions: ['dismiss'],
+    eventKey: result.key,
+  };
+}
+
+export function getSavedSideSettingsImportAction(
+  result: SavedSideSettingsReadResult,
+): SavedSideSettingsImportAction {
+  if (!result.settings) {
+    return {
+      kind: 'invalid',
+      message: `Saved ${result.sideLabel.toLowerCase()} side settings are invalid`,
+      timeout: 3000,
+      actions: ['dismiss'],
+    };
+  }
+
+  return {
+    kind: 'imported',
+    message: `${result.sideLabel} side settings imported`,
+    timeout: 3000,
+    actions: ['undo', 'dismiss'],
+    settings: result.settings,
   };
 }
 

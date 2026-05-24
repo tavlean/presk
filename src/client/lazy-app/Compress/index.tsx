@@ -32,6 +32,8 @@ import {
 } from '../image-pipeline';
 import {
   SideSettings,
+  getSavedSideSettingsImportAction,
+  getSavedSideSettingsSaveAction,
   readInitialSavedSideSettings,
   readSavedSideSettingsForSide,
   writeSavedSideSettingsForSide,
@@ -221,26 +223,22 @@ export default class Compress extends Component<Props, State> {
    * @returns
    */
   private onSaveSideSettingsClick = async (index: 0 | 1) => {
-    const saveResult = writeSavedSideSettingsForSide(
-      index,
-      this.state.sides[index],
+    const saveAction = getSavedSideSettingsSaveAction(
+      writeSavedSideSettingsForSide(index, this.state.sides[index]),
     );
-    if (!saveResult.saved) {
-      await this.props.showSnack(
-        `${saveResult.sideLabel} side settings could not be saved`,
-        {
-          timeout: 3000,
-          actions: ['dismiss'],
-        },
-      );
+    if (saveAction.kind !== 'saved') {
+      await this.props.showSnack(saveAction.message, {
+        timeout: saveAction.timeout,
+        actions: saveAction.actions,
+      });
       return;
     }
 
     // Fire an event when we save side settings in local storage.
-    window.dispatchEvent(new CustomEvent(saveResult.key));
-    await this.props.showSnack(`${saveResult.sideLabel} side settings saved`, {
-      timeout: 1500,
-      actions: ['dismiss'],
+    window.dispatchEvent(new CustomEvent(saveAction.eventKey));
+    await this.props.showSnack(saveAction.message, {
+      timeout: saveAction.timeout,
+      actions: saveAction.actions,
     });
   };
 
@@ -250,33 +248,29 @@ export default class Compress extends Component<Props, State> {
    * @returns
    */
   private onImportSideSettingsClick = async (index: 0 | 1) => {
-    const importResult = readSavedSideSettingsForSide(index);
-    if (!importResult.settings) {
-      await this.props.showSnack(
-        `Saved ${importResult.sideLabel.toLowerCase()} side settings are invalid`,
-        {
-          timeout: 3000,
-          actions: ['dismiss'],
-        },
-      );
+    const importAction = getSavedSideSettingsImportAction(
+      readSavedSideSettingsForSide(index),
+    );
+    if (importAction.kind !== 'imported') {
+      await this.props.showSnack(importAction.message, {
+        timeout: importAction.timeout,
+        actions: importAction.actions,
+      });
       return;
     }
 
     const update = applySavedSideSettings(
       this.state.sides,
       index,
-      importResult.settings,
+      importAction.settings,
     );
     this.setState({
       sides: update.sides,
     });
-    const result = await this.props.showSnack(
-      `${importResult.sideLabel} side settings imported`,
-      {
-        timeout: 3000,
-        actions: ['undo', 'dismiss'],
-      },
-    );
+    const result = await this.props.showSnack(importAction.message, {
+      timeout: importAction.timeout,
+      actions: importAction.actions,
+    });
     if (result === 'undo') {
       this.setState({
         sides: restoreSide(this.state.sides, index, update.oldSide),

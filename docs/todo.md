@@ -93,6 +93,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side undo restoration now uses a side-state helper instead of raw immutable path updates in the Preact component.
     - Single-image saved settings key/label lookup and saved payload creation now live with saved-settings parsing/storage helpers instead of the Preact component.
     - Single-image saved-settings read/write action helpers now keep side labels, storage keys, and savable payload construction out of the Preact component.
+    - Single-image saved-settings save/import feedback actions now come from pure helpers instead of inline Preact component branches.
     - Processor enabled toggles and option merges now go through pure helpers instead of direct option-panel path updates.
     - Orientation-change resize updates for both sides now go through a pure helper instead of inline Preact component mapping.
     - Single-image preprocessor-change state updates now go through a pure helper instead of inline Preact component logic.
@@ -104,7 +105,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image editor update effects for new files, title refreshes, and work scheduling now go through a tested helper instead of inline Preact lifecycle logic.
     - Single-image supported encoder filtering now lives in a tested helper instead of inline Preact options module setup.
     - Single-image saved-settings import availability now lives in a tested helper instead of inline Preact option-render logic.
-    - Single-image saved-settings action tests now cover initial reads, per-side reads, write success, write failure, labels, keys, and saved payload construction.
+    - Single-image saved-settings action tests now cover initial reads, per-side reads, write success, write failure, labels, keys, saved payload construction, save feedback, and import feedback.
     - Single-image initial side-state setup now lives in a tested helper instead of inline Preact state initialization.
     - Bulk normal import and MIME-sniffed import now share accepted/rejected result recording so future import surfaces do not duplicate job ID or rejection bookkeeping.
     - Bulk active status checks now come from the session model and are reused by queue and snapshot logic.
