@@ -24,6 +24,7 @@ import {
   getImageUpdateSchedule,
   type ImageUpdateScheduleOptions,
 } from './update-scheduler';
+import { getViewportState, mobileWidthMediaQuery } from './viewport-state';
 import {
   copySideToOther,
   getCopySideAction,
@@ -122,14 +123,14 @@ function updateDocumentTitle(loadingFileInfo: LoadingFileInfo): void {
 }
 
 export default class Compress extends Component<Props, State> {
-  widthQuery = window.matchMedia('(max-width: 599px)');
+  widthQuery = window.matchMedia(mobileWidthMediaQuery);
 
   state: State = {
     source: undefined,
     loading: false,
     preprocessorState: defaultPreprocessorState,
     sides: getInitialSideStates(readInitialSavedSideSettings()),
-    mobileView: this.widthQuery.matches,
+    ...getViewportState(this.widthQuery.matches),
   };
 
   private readonly encodeCache = new ResultCache();
@@ -152,7 +153,7 @@ export default class Compress extends Component<Props, State> {
   }
 
   private onMobileWidthChange = () => {
-    this.setState({ mobileView: this.widthQuery.matches });
+    this.setState(getViewportState(this.widthQuery.matches));
   };
 
   private onEncoderTypeChange = (index: 0 | 1, newType: OutputType): void => {
