@@ -200,24 +200,32 @@ export function removeJobs(
   session: BulkSession,
   jobIds: Iterable<string>,
 ): BulkSession {
+  const normalizedSession = normalizeBulkSessionCounters(session);
   const removedJobIds = new Set(jobIds);
-  const nextJobs = session.jobs.filter((job) => !removedJobIds.has(job.id));
-  const removedActiveCount = session.jobs.filter(
+  const nextJobs = normalizedSession.jobs.filter(
+    (job) => !removedJobIds.has(job.id),
+  );
+  const removedActiveCount = normalizedSession.jobs.filter(
     (job) => removedJobIds.has(job.id) && isActiveJob(job),
   ).length;
-  const removedExportedCount = session.jobs.filter(
+  const removedExportedCount = normalizedSession.jobs.filter(
     (job) => removedJobIds.has(job.id) && job.status === 'exported',
   ).length;
-  const selectedJobId = nextJobs.some((job) => job.id === session.selectedJobId)
-    ? session.selectedJobId
+  const selectedJobId = nextJobs.some(
+    (job) => job.id === normalizedSession.selectedJobId,
+  )
+    ? normalizedSession.selectedJobId
     : nextJobs[0]?.id;
 
   return {
-    ...session,
+    ...normalizedSession,
     jobs: nextJobs,
     selectedJobId,
-    activeJobs: Math.max(0, session.activeJobs - removedActiveCount),
-    exportedCount: Math.max(0, session.exportedCount - removedExportedCount),
+    activeJobs: Math.max(0, normalizedSession.activeJobs - removedActiveCount),
+    exportedCount: Math.max(
+      0,
+      normalizedSession.exportedCount - removedExportedCount,
+    ),
   };
 }
 
@@ -296,12 +304,13 @@ export function markJobsExported(
   session: BulkSession,
   jobIds: Iterable<string>,
 ): BulkSession {
+  const normalizedSession = normalizeBulkSessionCounters(session);
   const exportedJobIds = new Set(jobIds);
   let newlyExportedCount = 0;
 
   return {
-    ...session,
-    jobs: session.jobs.map((job) => {
+    ...normalizedSession,
+    jobs: normalizedSession.jobs.map((job) => {
       if (
         !exportedJobIds.has(job.id) ||
         job.status !== 'encoded' ||
@@ -310,7 +319,7 @@ export function markJobsExported(
         return job;
       }
       const effectiveSettings = getEffectiveSettings(
-        session.globalSettings,
+        normalizedSession.globalSettings,
         job.overrides,
       );
       if (job.output.settingsHash !== settingsHash(effectiveSettings)) {
@@ -322,7 +331,7 @@ export function markJobsExported(
         status: 'exported',
       };
     }),
-    exportedCount: session.exportedCount + newlyExportedCount,
+    exportedCount: normalizedSession.exportedCount + newlyExportedCount,
   };
 }
 
