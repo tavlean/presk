@@ -97,6 +97,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image current/latest job-state derivation and work-plan assembly now go through a pure helper instead of inline Preact component logic.
     - Single-image work-start scheduling now goes through a pure helper instead of inline Preact component logic.
     - Single-image side encode decisions for original passthrough, cache hits, and new encodes now go through a pure helper instead of inline Preact component logic.
+    - Single-image, image-pipeline, and bulk runner abort-error checks now use a shared utility helper instead of open-coded name checks.
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
     - Removed obsolete TS suppressions from option controls and icon props by using element-specific Preact JSX attribute types.
     - Removed the remaining maintained app/lib `@ts-ignore` by making worker-bridge dispatch explicit.
@@ -167,6 +168,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - MIME sniffing tests now cover PNG, JPEG, WebP, TIFF, AVIF, JPEG XL, unknown data, a TIFF false-positive guard, and a non-AVIF `ftyp` guard.
     - Utility tests now cover `clean-modify`, `pretty-bytes`, saved-settings parsing/validation, and MIME sniffing behavior.
     - Service-worker bridge tests now cover service-worker controller detection.
+    - Utility tests now cover shared abort-error detection.
     - Saved-settings tests now cover latest-only settings, version mismatches, and invalid versioned payloads.
     - `npm run test:unit` runs the current pure-helper test suite.
 

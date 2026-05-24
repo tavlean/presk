@@ -2,7 +2,7 @@ import { h, Component } from 'preact';
 
 import * as style from './style.css';
 import 'add-css:./style.css';
-import { assertSignal } from '../util';
+import { assertSignal, isAbortError } from '../util';
 import {
   PreprocessorState,
   ProcessorState,
@@ -392,7 +392,7 @@ export default class Compress extends Component<Props, State> {
           };
         });
       } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') return;
+        if (isAbortError(err)) return;
         this.props.showSnack(`Source decoding error: ${err}`);
         throw err;
       }
@@ -436,7 +436,7 @@ export default class Compress extends Component<Props, State> {
           );
         });
       } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') return;
+        if (isAbortError(err)) return;
         this.setState({ loading: false });
         this.props.showSnack(`Preprocessing error: ${err}`);
         throw err;
@@ -548,7 +548,7 @@ export default class Compress extends Component<Props, State> {
 
         this.activeSideJobs[sideIndex] = undefined;
       } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') return;
+        if (isAbortError(err)) return;
         this.setState((currentState) => {
           return {
             sides: setSideLoading(currentState.sides, sideIndex, false),

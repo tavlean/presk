@@ -1,4 +1,5 @@
 import type WorkerBridge from '../worker-bridge';
+import { isAbortError } from '../util';
 import type { BulkSession, ImageJob, ImageOutput } from './session';
 import { completeJob, failJob, getRunnableJobs, startJob } from './queue';
 import { processBulkImageJob } from './processor';
@@ -65,7 +66,7 @@ export async function processRunnableBulkJobs(
         throwIfAborted(signal);
         nextSession = completeJob(nextSession, job.id, output);
       } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') throw err;
+        if (isAbortError(err)) throw err;
         nextSession = failJob(
           nextSession,
           job.id,

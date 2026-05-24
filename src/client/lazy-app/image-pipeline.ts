@@ -6,6 +6,7 @@ import {
   canDecodeImageType,
   abortable,
   assertSignal,
+  isAbortError,
   ImageMimeTypes,
 } from './util';
 import { parseSvgViewBoxSize } from './util/svg';
@@ -63,7 +64,7 @@ export async function decodeImage(
     // Otherwise fall through and try built-in decoding for a laugh.
     return await builtinDecode(signal, blob);
   } catch (err) {
-    if (err instanceof Error && err.name === 'AbortError') throw err;
+    if (isAbortError(err)) throw err;
     const error = Error("Couldn't decode image");
     if (err instanceof Error) {
       try {

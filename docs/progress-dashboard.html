@@ -365,7 +365,7 @@
         <aside class="meta" aria-label="Dashboard metadata">
           <div class="meta-row">
             <span>Last updated</span>
-            <strong>2026-05-24 23:25 IST</strong>
+            <strong>2026-05-24 23:29 IST</strong>
           </div>
           <div class="meta-row">
             <span>Branch</span>
@@ -377,7 +377,7 @@
           </div>
           <div class="meta-row">
             <span>Current work</span>
-            <strong>side encode plan</strong>
+            <strong>abort guards</strong>
           </div>
           <div class="meta-row">
             <span>Auto refresh</span>
@@ -400,11 +400,11 @@
           <span>Bulk backend foundation</span>
         </div>
         <div class="metric">
-          <strong>50% <span class="delta">+1</span></strong>
+          <strong>51% <span class="delta">+1</span></strong>
           <span>Repo simplification</span>
         </div>
         <div class="metric">
-          <strong>36% <span class="delta">+1</span></strong>
+          <strong>36%</strong>
           <span>Svelte readiness</span>
         </div>
       </section>
@@ -530,9 +530,9 @@
               <summary>
                 <div class="progress-top">
                   <span>Repo simplification</span>
-                  <span>50%</span>
+                  <span>51%</span>
                 </div>
-                <div class="bar"><span style="width: 50%"></span></div>
+                <div class="bar"><span style="width: 51%"></span></div>
                 <p class="progress-note">
                   Single-image behavior is being extracted from Preact into
                   tested helpers while preserving the current optimizer.
@@ -544,8 +544,9 @@
                   <ul>
                     <li>
                       Work planning, work-start scheduling, side encode
-                      planning, job-state derivation, source resize, display,
-                      saved-settings, and side-state helpers extracted.
+                      planning, abort guards, job-state derivation, source
+                      resize, display, saved-settings, and side-state helpers
+                      extracted.
                     </li>
                     <li>
                       Preprocessor-change state now lives in a tested source
@@ -637,13 +638,13 @@
               </div>
               <div class="item">
                 <strong>
-                  Side encode planning
+                  Shared abort guards
                   <span class="status done">done</span>
                 </strong>
                 <p>
-                  Original passthrough, cache hits, and new side encodes now
-                  route through a tested work-plan helper instead of inline
-                  Preact branching.
+                  Single-image, image-pipeline, and bulk runner abort handling
+                  now share the same tested helper instead of open-coded error
+                  checks.
                 </p>
               </div>
               <div class="item">
