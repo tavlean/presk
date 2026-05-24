@@ -22,6 +22,13 @@ export interface ResettableTwoSideState<Side extends ResettableSideState> {
   sides: [Side, Side];
 }
 
+export interface PreprocessedSourceState<Side extends ResettableSideState>
+  extends ResettableTwoSideState<Side> {
+  loading: boolean;
+  source?: unknown;
+  encodedPreprocessorState?: unknown;
+}
+
 export interface SavedSettingsSide {
   latestSettings: unknown;
   encodedSettings?: unknown;
@@ -107,6 +114,32 @@ export function resetSidesForNewSourceData<
   }
 
   return nextState;
+}
+
+export function setPreprocessedSourceState<
+  Side extends ResettableSideState,
+  State extends PreprocessedSourceState<Side>,
+>(
+  state: State,
+  source: unknown,
+  preprocessorState: unknown,
+  preprocessedData: unknown,
+  revokeObjectUrl: (url: string) => void = URL.revokeObjectURL,
+): State {
+  const nextState = {
+    ...state,
+    loading: false,
+    source,
+    encodedPreprocessorState: preprocessorState,
+    sides: state.sides.map((side) => ({
+      ...side,
+      data: preprocessedData,
+      processed: undefined,
+      encodedSettings: undefined,
+    })) as [Side, Side],
+  };
+
+  return resetSidesForNewSourceData(nextState, revokeObjectUrl);
 }
 
 export function applySavedSideSettings<Side extends SavedSettingsSide>(

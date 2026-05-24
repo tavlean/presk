@@ -168,13 +168,41 @@
 
       .progress-list {
         display: grid;
-        gap: 15px;
+        gap: 10px;
+      }
+
+      details.progress-item {
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfb;
+      }
+
+      details.progress-item summary {
+        cursor: pointer;
+        list-style: none;
+      }
+
+      details.progress-item summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details.progress-item summary::after {
+        float: right;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        content: "Open";
+      }
+
+      details.progress-item[open] summary::after {
+        content: "Close";
       }
 
       .progress-top {
         display: flex;
         justify-content: space-between;
-        gap: 14px;
+        gap: 64px;
         margin-bottom: 7px;
         font-size: 14px;
         font-weight: 650;
@@ -200,8 +228,7 @@
       }
 
       .progress-note,
-      .item p,
-      .note {
+      .item p {
         color: var(--muted);
         font-size: 13px;
         line-height: 1.45;
@@ -209,6 +236,44 @@
 
       .progress-note {
         margin-top: 7px;
+      }
+
+      .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 13px;
+        padding-top: 13px;
+        border-top: 1px solid var(--line);
+      }
+
+      .detail-box h3 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .detail-box ul {
+        display: grid;
+        gap: 6px;
+        margin: 0;
+        padding: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+        list-style: none;
+      }
+
+      .detail-box li {
+        position: relative;
+        padding-left: 14px;
+      }
+
+      .detail-box li::before {
+        position: absolute;
+        left: 0;
+        color: var(--green);
+        content: "•";
       }
 
       .list {
@@ -254,13 +319,6 @@
         color: var(--amber);
       }
 
-      .note {
-        padding: 13px 14px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: #fbfcfb;
-      }
-
       footer {
         margin-top: 18px;
         color: var(--muted);
@@ -271,7 +329,8 @@
       @media (max-width: 880px) {
         header,
         .metrics,
-        .layout {
+        .layout,
+        .detail-grid {
           grid-template-columns: 1fr;
         }
 
@@ -311,7 +370,11 @@
           </div>
           <div class="meta-row">
             <span>Current work</span>
-            <strong>shared source decode</strong>
+            <strong>preprocess state helper</strong>
+          </div>
+          <div class="meta-row">
+            <span>Auto refresh</span>
+            <strong>on change</strong>
           </div>
         </aside>
       </header>
@@ -339,68 +402,171 @@
         <section class="panel">
           <div class="panel-head">
             <h2>Progress</h2>
-            <span class="badge">aligned</span>
+            <span class="badge">click for details</span>
           </div>
           <div class="progress-list">
-            <div>
-              <div class="progress-top">
-                <span>Stability, CI, and security</span>
-                <span>97%</span>
+            <details class="progress-item" id="stability">
+              <summary>
+                <div class="progress-top">
+                  <span>Stability, CI, and security</span>
+                  <span>97%</span>
+                </div>
+                <div class="bar"><span style="width: 97%"></span></div>
+                <p class="progress-note">
+                  Audit clean, CI active, and local smoke coverage protects the
+                  core optimizer path.
+                </p>
+              </summary>
+              <div class="detail-grid">
+                <div class="detail-box">
+                  <h3>Done</h3>
+                  <ul>
+                    <li>Audit cleanup completed.</li>
+                    <li>CI runs on Ubuntu, Windows, and macOS.</li>
+                    <li>Browser smoke verifies WebP export and resize.</li>
+                    <li>Offline shell and disabled service worker paths covered.</li>
+                  </ul>
+                </div>
+                <div class="detail-box">
+                  <h3>Left</h3>
+                  <ul>
+                    <li>Keep sampling CI after runtime changes.</li>
+                    <li>Add targeted smoke coverage when bulk UI begins.</li>
+                    <li>Keep dependency modernization incremental.</li>
+                  </ul>
+                </div>
               </div>
-              <div class="bar"><span style="width: 97%"></span></div>
-              <p class="progress-note">
-                Audit clean, CI active, local browser smoke covers WebP export,
-                resize, saved settings, extensionless input, and offline shell.
-              </p>
-            </div>
+            </details>
 
-            <div>
-              <div class="progress-top">
-                <span>Documentation and handoff</span>
-                <span>87%</span>
+            <details class="progress-item" id="documentation">
+              <summary>
+                <div class="progress-top">
+                  <span>Documentation and handoff</span>
+                  <span>87%</span>
+                </div>
+                <div class="bar"><span style="width: 87%"></span></div>
+                <p class="progress-note">
+                  Roadmap, maintenance status, migration context, todo list, and
+                  this dashboard are in place.
+                </p>
+              </summary>
+              <div class="detail-grid">
+                <div class="detail-box">
+                  <h3>Done</h3>
+                  <ul>
+                    <li>Overview, roadmap, todo, and maintenance docs exist.</li>
+                    <li>Svelte migration context is documented.</li>
+                    <li>Project identity and codec provenance are documented.</li>
+                    <li>Direct-open HTML dashboard is available.</li>
+                  </ul>
+                </div>
+                <div class="detail-box">
+                  <h3>Left</h3>
+                  <ul>
+                    <li>Keep dashboard updated after meaningful chunks.</li>
+                    <li>Refresh docs after codec scope decisions.</li>
+                    <li>Keep handoff notes short and current.</li>
+                  </ul>
+                </div>
               </div>
-              <div class="bar"><span style="width: 87%"></span></div>
-              <p class="progress-note">
-                Roadmap, maintenance status, migration context, todo list, and
-                this dashboard are in place.
-              </p>
-            </div>
+            </details>
 
-            <div>
-              <div class="progress-top">
-                <span>Bulk backend foundation</span>
-                <span>93%</span>
+            <details class="progress-item" id="bulk">
+              <summary>
+                <div class="progress-top">
+                  <span>Bulk backend foundation</span>
+                  <span>93%</span>
+                </div>
+                <div class="bar"><span style="width: 93%"></span></div>
+                <p class="progress-note">
+                  Import, queue, processing, summaries, export planning, snapshots,
+                  and selected-job view models are framework-neutral.
+                </p>
+              </summary>
+              <div class="detail-grid">
+                <div class="detail-box">
+                  <h3>Done</h3>
+                  <ul>
+                    <li>Bulk job/session model is in place.</li>
+                    <li>Import rejection, queue, runner, and export helpers exist.</li>
+                    <li>Per-image overrides and summaries have pure selectors.</li>
+                    <li>Bulk processing uses the shared image pipeline.</li>
+                  </ul>
+                </div>
+                <div class="detail-box">
+                  <h3>Left</h3>
+                  <ul>
+                    <li>Bulk UI is intentionally paused for design.</li>
+                    <li>Add browser smoke once the workflow exists.</li>
+                    <li>Decide ZIP versus individual export behavior later.</li>
+                  </ul>
+                </div>
               </div>
-              <div class="bar"><span style="width: 93%"></span></div>
-              <p class="progress-note">
-                Import, queue, processing, summaries, export planning, snapshots,
-                and selected-job view models are framework-neutral.
-              </p>
-            </div>
+            </details>
 
-            <div>
-              <div class="progress-top">
-                <span>Repo simplification</span>
-                <span>43%</span>
+            <details class="progress-item" id="simplification" open>
+              <summary>
+                <div class="progress-top">
+                  <span>Repo simplification</span>
+                  <span>43%</span>
+                </div>
+                <div class="bar"><span style="width: 43%"></span></div>
+                <p class="progress-note">
+                  Single-image behavior is being extracted from Preact into tested
+                  helpers while preserving the current optimizer.
+                </p>
+              </summary>
+              <div class="detail-grid">
+                <div class="detail-box">
+                  <h3>Done</h3>
+                  <ul>
+                    <li>Work planning, source resize, display, and side-state helpers extracted.</li>
+                    <li>Side result and object URL lifecycle helpers are tested.</li>
+                    <li>SVG-aware source decode moved into the shared pipeline.</li>
+                  </ul>
+                </div>
+                <div class="detail-box">
+                  <h3>Left</h3>
+                  <ul>
+                    <li>Finish preprocessing completion state helper.</li>
+                    <li>Continue reducing `Compress/index.tsx` responsibility.</li>
+                    <li>Review codec and Rollup complexity after behavior is covered.</li>
+                  </ul>
+                </div>
               </div>
-              <div class="bar"><span style="width: 43%"></span></div>
-              <p class="progress-note">
-                Single-image behavior is being extracted from Preact into tested
-                helpers while preserving the current optimizer.
-              </p>
-            </div>
+            </details>
 
-            <div>
-              <div class="progress-top">
-                <span>Svelte/SvelteKit migration readiness</span>
-                <span>31%</span>
+            <details class="progress-item" id="svelte">
+              <summary>
+                <div class="progress-top">
+                  <span>Svelte/SvelteKit migration readiness</span>
+                  <span>31%</span>
+                </div>
+                <div class="bar"><span style="width: 31%"></span></div>
+                <p class="progress-note">
+                  Migration has not started. Current work is preparing reusable
+                  logic so a later migration is smaller and safer.
+                </p>
+              </summary>
+              <div class="detail-grid">
+                <div class="detail-box">
+                  <h3>Done</h3>
+                  <ul>
+                    <li>Svelte 5/SvelteKit guidance captured.</li>
+                    <li>Bulk logic is framework-neutral.</li>
+                    <li>Single-image logic extraction is underway.</li>
+                  </ul>
+                </div>
+                <div class="detail-box">
+                  <h3>Left</h3>
+                  <ul>
+                    <li>Do not start UI migration yet.</li>
+                    <li>Prototype only after core behavior is cleaner.</li>
+                    <li>Keep current optimizer tests as migration guardrails.</li>
+                  </ul>
+                </div>
               </div>
-              <div class="bar"><span style="width: 31%"></span></div>
-              <p class="progress-note">
-                Migration has not started. Current work is preparing reusable
-                logic so a later migration is smaller and safer.
-              </p>
-            </div>
+            </details>
           </div>
         </section>
 
@@ -423,12 +589,12 @@
               </div>
               <div class="item">
                 <strong>
-                  Share source decode behavior
+                  Extract preprocessing completion state
                   <span class="status active">active</span>
                 </strong>
                 <p>
-                  SVG-aware source decoding is moving into the shared image
-                  pipeline so future bulk work uses the same proven path.
+                  Moving another source/side state transition out of the Preact
+                  component into a helper with tests.
                 </p>
               </div>
               <div class="item">
@@ -452,10 +618,10 @@
             <div class="list">
               <div class="item">
                 <strong>
-                  Finish shared source decode cleanup
+                  Finish preprocessing state helper
                   <span class="status active">next</span>
                 </strong>
-                <p>Update tests/docs, run checks, and commit the pipeline change.</p>
+                <p>Update tests/docs, run checks, and commit the helper change.</p>
               </div>
               <div class="item">
                 <strong>
@@ -474,17 +640,6 @@
             </div>
           </section>
 
-          <section class="panel">
-            <div class="panel-head">
-              <h2>Rule</h2>
-              <span class="badge">core</span>
-            </div>
-            <p class="note">
-              The product promise is reliable local image optimization. Bulk
-              features and Svelte migration should improve that promise, not
-              distract from it.
-            </p>
-          </section>
         </div>
       </div>
 
@@ -493,5 +648,44 @@
         `docs/maintenance-status.md`, and `docs/todo.md`.
       </footer>
     </main>
+    <script>
+      const dashboardDetails = [...document.querySelectorAll("details[id]")];
+      const openStorageKey = "sqush-dashboard-open-sections";
+
+      function saveOpenSections() {
+        localStorage.setItem(
+          openStorageKey,
+          JSON.stringify(
+            dashboardDetails
+              .filter((details) => details.open)
+              .map((details) => details.id),
+          ),
+        );
+      }
+
+      try {
+        const savedOpenSections = JSON.parse(
+          localStorage.getItem(openStorageKey) || "null",
+        );
+        if (Array.isArray(savedOpenSections)) {
+          for (const details of dashboardDetails) {
+            details.open = savedOpenSections.includes(details.id);
+          }
+        }
+      } catch {
+        localStorage.removeItem(openStorageKey);
+      }
+
+      for (const details of dashboardDetails) {
+        details.addEventListener("toggle", saveOpenSections);
+      }
+
+      if (location.protocol !== "file:" && "EventSource" in window) {
+        const events = new EventSource("/events");
+        events.addEventListener("dashboard-updated", () => {
+          location.reload();
+        });
+      }
+    </script>
   </body>
 </html>

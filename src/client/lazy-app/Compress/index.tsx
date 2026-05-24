@@ -45,6 +45,7 @@ import {
   applySavedSideSettings,
   getInitialSideState,
   resetSidesForNewSourceData,
+  setPreprocessedSourceState,
   setSideEncoderOptions,
   setSideEncoderType,
   setSideEncodedResult,
@@ -459,24 +460,12 @@ export default class Compress extends Component<Props, State> {
         // Update state for process completion, including intermediate render
         this.setState((currentState) => {
           if (mainSignal.aborted) return {};
-          let newState: State = {
-            ...currentState,
-            loading: false,
+          return setPreprocessedSourceState(
+            currentState,
             source,
-            encodedPreprocessorState: mainJobState.preprocessorState,
-            sides: currentState.sides.map((side) => {
-              const newSide: Side = {
-                ...side,
-                // Intermediate render
-                data: preprocessed,
-                processed: undefined,
-                encodedSettings: undefined,
-              };
-              return newSide;
-            }) as [Side, Side],
-          };
-          newState = resetSidesForNewSourceData(newState);
-          return newState;
+            mainJobState.preprocessorState,
+            preprocessed,
+          );
         });
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') return;

@@ -150,9 +150,11 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side-state tests now cover saved-settings import while preserving live output fields for undo.
     - Single-image side-state tests now cover default side setup and saved initial side overrides.
     - Single-image side-state tests now cover loading transitions, intermediate processed output, final encoded output, and old blob URL revocation.
+    - Single-image side-state tests now cover preprocessing completion state updates and old side output cleanup.
     - Output filename tests now cover extensionless sources, trailing dots, hidden names, path-like source names, punctuation-only names, and Windows reserved names.
     - Single-image and bulk export filenames now share the same basename sanitization helper.
-    - Added `docs/progress-dashboard.html` as a clean direct-open visual progress dashboard for ongoing project status.
+    - Added `docs/progress-dashboard.html` as a clean direct-open visual progress dashboard for ongoing project status, with expandable detail sections.
+    - Added `npm run dashboard` for event-based dashboard reloads when the HTML file changes.
     - Single-image side reset tests now cover clearing both side outputs and revoking both side download URLs when a new source image is loaded.
     - MIME sniffing tests now cover PNG, JPEG, WebP, TIFF, AVIF, JPEG XL, unknown data, a TIFF false-positive guard, and a non-AVIF `ftyp` guard.
     - Utility tests now cover `clean-modify`, `pretty-bytes`, saved-settings parsing/validation, and MIME sniffing behavior.
