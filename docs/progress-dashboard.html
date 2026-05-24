@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>expander transition cleanup</strong>
+            <strong>custom element observer cleanup</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -971,6 +971,10 @@
                     <li>
                       Option expander transition completion now uses a tested
                       state helper and skips post-unmount updates.
+                    </li>
+                    <li>
+                      Preview and options custom elements now disconnect child
+                      observers when they leave the DOM.
                     </li>
                     <li>
                       Stateless checkbox, toggle, select, and revealer option

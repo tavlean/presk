@@ -75,21 +75,25 @@ export default class MultiPanel extends HTMLElement {
     return [openOneOnlyAttr];
   }
 
+  private readonly _childrenObserver = new MutationObserver(() =>
+    this._childrenChange(),
+  );
+
   constructor() {
     super();
 
     // add EventListeners
     this.addEventListener('click', this._onClick);
     this.addEventListener('keydown', this._onKeyDown);
-
-    // Watch for children changes.
-    new MutationObserver(() => this._childrenChange()).observe(this, {
-      childList: true,
-    });
   }
 
   connectedCallback() {
+    this._childrenObserver.observe(this, { childList: true });
     this._childrenChange();
+  }
+
+  disconnectedCallback() {
+    this._childrenObserver.disconnect();
   }
 
   attributeChangedCallback(

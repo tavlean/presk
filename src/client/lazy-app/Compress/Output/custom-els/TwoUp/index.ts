@@ -34,18 +34,14 @@ export default class TwoUp extends HTMLElement {
    */
   private _everConnected = false;
 
+  private readonly _childrenObserver = new MutationObserver(() =>
+    this._childrenChange(),
+  );
   private _resizeObserver?: ResizeObserver;
 
   constructor() {
     super();
     this._handle.className = styles.twoUpHandle;
-
-    // Watch for children changes.
-    // Note this won't fire for initial contents,
-    // so _childrenChange is also called in connectedCallback.
-    new MutationObserver(() => this._childrenChange()).observe(this, {
-      childList: true,
-    });
 
     // Watch for pointers on the handle.
     const pointerTracker: PointerTracker = new PointerTracker(this._handle, {
@@ -66,6 +62,9 @@ export default class TwoUp extends HTMLElement {
   }
 
   connectedCallback() {
+    // Watch for children changes. This won't fire for initial contents,
+    // so _childrenChange is also called below.
+    this._childrenObserver.observe(this, { childList: true });
     this._childrenChange();
 
     // prettier-ignore
@@ -90,6 +89,7 @@ export default class TwoUp extends HTMLElement {
   }
 
   disconnectedCallback() {
+    this._childrenObserver.disconnect();
     window.removeEventListener('keydown', this._onKeyDown);
     if (this._resizeObserver) this._resizeObserver.disconnect();
   }

@@ -91,16 +91,12 @@ export default class PinchZoom extends HTMLElement {
   private _positioningEl?: Element;
   // Current transform.
   private _transform: SVGMatrix = createMatrix();
+  private readonly _childrenObserver = new MutationObserver(() =>
+    this._stageElChange(),
+  );
 
   constructor() {
     super();
-
-    // Watch for children changes.
-    // Note this won't fire for initial contents,
-    // so _stageElChange is also called in connectedCallback.
-    new MutationObserver(() => this._stageElChange()).observe(this, {
-      childList: true,
-    });
 
     // Watch for pointers
     const pointerTracker: PointerTracker = new PointerTracker(this, {
@@ -129,7 +125,14 @@ export default class PinchZoom extends HTMLElement {
   }
 
   connectedCallback() {
+    // Watch for children changes. This won't fire for initial contents,
+    // so _stageElChange is also called below.
+    this._childrenObserver.observe(this, { childList: true });
     this._stageElChange();
+  }
+
+  disconnectedCallback() {
+    this._childrenObserver.disconnect();
   }
 
   get x() {
