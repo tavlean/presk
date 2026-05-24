@@ -11,6 +11,10 @@ export interface SourceDecodeStartState {
   loading: true;
 }
 
+export interface SourceDecodeSuccessState<Side extends ResizeSettingsSide> {
+  sides: [Side, Side];
+}
+
 export interface SourcePreprocessStartState {
   loading: true;
 }
@@ -91,6 +95,19 @@ export function getSourceDecodeStartState(): SourceDecodeStartState {
   return {
     source: undefined,
     loading: true,
+  };
+}
+
+export function getSourceDecodeSuccessState<
+  Side extends ResizeSettingsSide,
+  State extends SourceDecodeSuccessState<Side>,
+>(
+  state: State,
+  decoded: SourceDimensions,
+  hasVectorSource: boolean,
+): Pick<State, 'sides'> {
+  return {
+    sides: getDefaultResizeSides(state.sides, decoded, hasVectorSource),
   };
 }
 

@@ -65,7 +65,7 @@ import {
   type SideIndex,
 } from './side-state';
 import {
-  getDefaultResizeSides,
+  getSourceDecodeSuccessState,
   getPreprocessorChangeState,
   getSourceDecodeStartState,
   getSourcePreprocessErrorState,
@@ -397,13 +397,11 @@ export default class Compress extends Component<Props, State> {
         // Set default resize values
         this.setState((currentState) => {
           if (mainSignal.aborted) return {};
-          return {
-            sides: getDefaultResizeSides(
-              currentState.sides,
-              decoded,
-              Boolean(vectorImage),
-            ),
-          };
+          return getSourceDecodeSuccessState(
+            currentState,
+            decoded,
+            Boolean(vectorImage),
+          );
         });
       } catch (err) {
         if (isAbortError(err)) return;

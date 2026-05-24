@@ -88,6 +88,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image display settings, result labels, image-contain decisions, and output/result render selectors now live in pure helpers instead of inline Preact render logic.
     - Single-image composed render state now lives in a pure helper instead of being assembled inline by the Preact component.
     - Single-image preprocessing completion now leaves side download URL revocation to the shared side-reset helper instead of revoking twice.
+    - Single-image decode success now applies default resize state through a tested source-state helper instead of inline Preact component logic.
     - Single-image side encoder/processor setting mutations now live in pure helpers instead of inline Preact component logic.
     - Single-image side loading, intermediate processed result, and final encoded result updates now live in pure helpers instead of inline Preact component logic.
     - Single-image side undo restoration now uses a side-state helper instead of raw immutable path updates in the Preact component.
