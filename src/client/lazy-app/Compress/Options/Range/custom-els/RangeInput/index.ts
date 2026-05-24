@@ -1,5 +1,6 @@
 import * as style from './style.css';
 import 'add-css:./style.css';
+import { getRangeDisplayValue } from '../../state';
 
 const RETARGETED_EVENTS = ['focus', 'blur'];
 const UPDATE_EVENTS = ['input', 'change'];
@@ -19,11 +20,6 @@ const REFLECTED_ATTRIBUTES = [
   'value',
   'disabled',
 ];
-
-function getPrecision(value: string): number {
-  const afterDecimal = value.split('.')[1];
-  return afterDecimal ? afterDecimal.length : 0;
-}
 
 class RangeInputElement extends HTMLElement {
   private _input: HTMLInputElement;
@@ -124,13 +120,7 @@ class RangeInputElement extends HTMLElement {
   }
 
   private _getDisplayValue(value: number): string {
-    if (value >= 10000) return (value / 1000).toFixed(1) + 'k';
-
-    const labelPrecision =
-      Number(this.labelPrecision) || getPrecision(this.step) || 0;
-    return labelPrecision
-      ? value.toFixed(labelPrecision)
-      : Math.round(value).toString();
+    return getRangeDisplayValue(value, this.labelPrecision, this.step);
   }
 
   private _update = () => {
