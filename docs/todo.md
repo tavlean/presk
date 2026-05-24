@@ -85,7 +85,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Completed: replace the remaining `Boolean` prop type with primitive `boolean`.
     - Static build file writing now returns a promise from the utility and keeps process-exit handling in the build entry point.
     - Single-image image-work job-state derivation now lives in pure helpers instead of inline Preact component logic.
-    - Single-image display settings and image-contain decisions now live in pure helpers instead of inline Preact render logic.
+    - Single-image display settings, result labels, and image-contain decisions now live in pure helpers instead of inline Preact render logic.
     - Single-image preprocessing completion now leaves side download URL revocation to the shared side-reset helper instead of revoking twice.
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
     - Removed obsolete TS suppressions from option controls and icon props by using element-specific Preact JSX attribute types.

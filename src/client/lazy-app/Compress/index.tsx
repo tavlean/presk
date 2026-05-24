@@ -62,7 +62,7 @@ import {
   type MainJobState,
   type SideJobState,
 } from './work-plan';
-import { shouldContainImage } from './display-state';
+import { getSideTypeLabel, shouldContainImage } from './display-state';
 import type { LocalStorageKey } from '../storage';
 
 export type OutputType = EncoderType | 'identity';
@@ -678,11 +678,10 @@ export default class Compress extends Component<Props, State> {
         source={source}
         loading={loading || side.loading}
         flipSide={mobileView || index === 1}
-        typeLabel={
-          side.latestSettings.encoderState
-            ? encoderMap[side.latestSettings.encoderState.type].meta.label
-            : `${side.file ? `${side.file.name}` : 'Original Image'}`
-        }
+        typeLabel={getSideTypeLabel(
+          side,
+          (encoderState) => encoderMap[encoderState.type].meta.label,
+        )}
       />
     ));
 
