@@ -43,11 +43,13 @@ export async function processRunnableBulkJobs(
 ): Promise<BulkSession> {
   throwIfAborted(signal);
 
+  const runnableJobs = getRunnableJobs(session, concurrency);
+  if (runnableJobs.length === 0) return session;
+
   if (workerBridges.length === 0) {
     throw Error('Bulk runner requires at least one worker bridge');
   }
 
-  const runnableJobs = getRunnableJobs(session, concurrency);
   let nextSession = session;
 
   for (const job of runnableJobs) {
