@@ -23,11 +23,7 @@ import {
   type LoadingFileInfo,
 } from './document-title';
 import { cleanMerge, cleanSet } from '../util/clean-modify';
-import {
-  copySideToOther,
-  getOtherSideIndex,
-  type SideIndex,
-} from './side-copy';
+import { copySideToOther, getOtherSideIndex } from './side-copy';
 import './custom-els/MultiPanel';
 import Results from './Results';
 import WorkerBridge from '../worker-bridge';
@@ -49,7 +45,9 @@ import {
 } from './saved-settings';
 import {
   applySavedSideSettings,
+  getInitialSideState,
   resetSidesForNewSourceData,
+  type SideIndex,
 } from './side-state';
 import {
   didOrientationChange,
@@ -97,31 +95,6 @@ const savedSettingsKeys: readonly [LocalStorageKey, LocalStorageKey] = [
   'rightSideSettings',
 ];
 
-function defaultSide(index: 0 | 1): Side {
-  return {
-    latestSettings: {
-      processorState: defaultProcessorState,
-      encoderState:
-        index === 0
-          ? undefined
-          : {
-              type: 'mozJPEG',
-              options: encoderMap.mozJPEG.meta.defaultOptions,
-            },
-    },
-    loading: false,
-  };
-}
-
-function initialSide(index: 0 | 1): Side {
-  const savedSettings = readSavedSideSettings(savedSettingsKeys[index]);
-  return {
-    ...defaultSide(index),
-    ...savedSettings,
-    loading: false,
-  };
-}
-
 const originalDocumentTitle = document.title;
 
 function updateDocumentTitle(loadingFileInfo: LoadingFileInfo): void {
@@ -135,7 +108,10 @@ export default class Compress extends Component<Props, State> {
     source: undefined,
     loading: false,
     preprocessorState: defaultPreprocessorState,
-    sides: [initialSide(0), initialSide(1)],
+    sides: [
+      getInitialSideState(0, readSavedSideSettings(savedSettingsKeys[0])),
+      getInitialSideState(1, readSavedSideSettings(savedSettingsKeys[1])),
+    ],
     mobileView: this.widthQuery.matches,
   };
 
