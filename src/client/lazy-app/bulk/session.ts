@@ -63,8 +63,12 @@ export interface OverrideSummary {
 
 export interface BulkActionState {
   hasActiveJobs: boolean;
+  hasQueuedJobs: boolean;
   hasRetryableJobs: boolean;
   hasIncompleteJobs: boolean;
+  canProcess: boolean;
+  canRetry: boolean;
+  canCancel: boolean;
 }
 
 export interface SelectedJobContext {
@@ -314,20 +318,26 @@ export function getOverrideSummary(session: BulkSession): OverrideSummary {
 
 export function getBulkActionState(session: BulkSession): BulkActionState {
   let hasActiveJobs = false;
+  let hasQueuedJobs = false;
   let hasRetryableJobs = false;
   let hasIncompleteJobs = false;
 
   for (const job of session.jobs) {
     const group = getJobStatusGroup(job.status);
     if (group === 'active') hasActiveJobs = true;
+    if (group === 'pending') hasQueuedJobs = true;
     if (group === 'failed' || group === 'skipped') hasRetryableJobs = true;
     if (group !== 'complete') hasIncompleteJobs = true;
   }
 
   return {
     hasActiveJobs,
+    hasQueuedJobs,
     hasRetryableJobs,
     hasIncompleteJobs,
+    canProcess: hasQueuedJobs && !hasActiveJobs,
+    canRetry: hasRetryableJobs && !hasActiveJobs,
+    canCancel: hasActiveJobs,
   };
 }
 
