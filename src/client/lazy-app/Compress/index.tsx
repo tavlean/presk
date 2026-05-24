@@ -37,7 +37,11 @@ import {
   writeSavedSideSettings,
 } from './saved-settings';
 import { resetSidesForNewSourceData } from './side-state';
-import { getDefaultResizeState } from './source-state';
+import {
+  didOrientationChange,
+  getDefaultResizeState,
+  getOrientationAdjustedResizeState,
+} from './source-state';
 import {
   getImageWorkPlan,
   type MainJobState,
@@ -339,7 +343,7 @@ export default class Compress extends Component<Props, State> {
 
     const oldRotate = this.state.preprocessorState.rotate.rotate;
     const newRotate = preprocessorState.rotate.rotate;
-    const orientationChanged = oldRotate % 180 !== newRotate % 180;
+    const orientationChanged = didOrientationChange(oldRotate, newRotate);
 
     this.setState((state) => ({
       loading: true,
@@ -350,14 +354,10 @@ export default class Compress extends Component<Props, State> {
         : (state.sides.map((side) => {
             const currentResizeSettings =
               side.latestSettings.processorState.resize;
-            const resizeSettings: Partial<ProcessorState['resize']> = {
-              width: currentResizeSettings.height,
-              height: currentResizeSettings.width,
-            };
             return cleanMerge(
               side,
               'latestSettings.processorState.resize',
-              resizeSettings,
+              getOrientationAdjustedResizeState(currentResizeSettings),
             );
           }) as [Side, Side]),
     }));

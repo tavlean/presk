@@ -120,6 +120,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Result-cache tests now cover cache hits, mismatched image data, mismatched encoder options, and mismatched processor options.
     - Single-image work-plan tests now cover no-op decisions, first decode/preprocess work, original-to-encoded transitions, and encoder-only updates.
     - Single-image source-state tests now cover default raster and vector resize settings for newly decoded source images.
+    - Single-image source-state tests now cover orientation-change detection and resize width/height swapping after rotation.
     - Output filename tests now cover extensionless sources, trailing dots, hidden names, and path-like source names.
     - Single-image side reset tests now cover clearing both side outputs and revoking both side download URLs when a new source image is loaded.
     - MIME sniffing tests now cover PNG, JPEG, WebP, TIFF, AVIF, JPEG XL, unknown data, a TIFF false-positive guard, and a non-AVIF `ftyp` guard.
