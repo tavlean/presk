@@ -56,7 +56,14 @@ export default class App extends Component<Props, State> {
     swBridgePromise.then(async ({ offliner, getSharedImage }) => {
       offliner(this.showSnack);
       if (!this.state.awaitingShareTarget) return;
-      const file = await getSharedImage();
+      let file: File;
+      try {
+        file = await getSharedImage();
+      } catch {
+        this.showSnack('Failed to load shared image');
+        this.setState({ awaitingShareTarget: false });
+        return;
+      }
       // Remove the ?share-target from the URL
       history.replaceState('', '', '/');
       this.openEditor();

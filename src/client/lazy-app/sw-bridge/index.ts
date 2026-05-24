@@ -4,8 +4,13 @@ import { get, set } from 'idb-keyval';
 
 import swUrl from 'service-worker:sw';
 
+function supportsServiceWorker(): boolean {
+  return 'serviceWorker' in navigator;
+}
+
 /** Tell the service worker to skip waiting */
 async function skipWaiting() {
+  if (!supportsServiceWorker()) return;
   const reg = await navigator.serviceWorker.getRegistration();
   if (!reg || !reg.waiting) return;
   reg.waiting.postMessage('skip-waiting');
@@ -13,6 +18,7 @@ async function skipWaiting() {
 
 /** Find the service worker that's 'active' or closest to 'active' */
 async function getMostActiveServiceWorker() {
+  if (!supportsServiceWorker()) return null;
   const reg = await navigator.serviceWorker.getRegistration();
   if (!reg) return null;
   return reg.active || reg.waiting || reg.installing;
@@ -43,6 +49,10 @@ async function updateReady(reg: ServiceWorkerRegistration): Promise<void> {
 
 /** Wait for a shared image */
 export function getSharedImage(): Promise<File> {
+  if (!supportsServiceWorker()) {
+    return Promise.reject(Error('Service workers are not available'));
+  }
+
   return new Promise((resolve) => {
     const onmessage = (event: MessageEvent) => {
       if (event.data.action !== 'load-image') return;
@@ -60,6 +70,7 @@ export function getSharedImage(): Promise<File> {
 
 /** Set up the service worker and monitor changes */
 export async function offliner(showSnack: SnackBarElement['showSnackbar']) {
+  if (!supportsServiceWorker()) return;
   if (__PRODUCTION__) navigator.serviceWorker.register(swUrl);
 
   const hasController = !!navigator.serviceWorker.controller;
@@ -101,6 +112,7 @@ export async function offliner(showSnack: SnackBarElement['showSnackbar']) {
  * heard about this, cache the heavier assets like codecs.
  */
 export async function mainAppLoaded() {
+  if (!supportsServiceWorker()) return;
   // If the user has already interacted, no need to tell the service worker anything.
   const userInteracted = await get<boolean | undefined>('user-interacted');
   if (userInteracted) return;
