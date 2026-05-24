@@ -109,6 +109,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Bulk import tests now cover injected MIME sniffing for extensionless, misnamed, rejected, and unreadable image files.
     - Bulk import tests now cover structured rejection reasons and summary counts for unsupported and unreadable files.
     - Bulk import tests now cover creating a bulk session from accepted import jobs while ignoring rejected files.
+    - Bulk import tests now cover appending accepted import jobs to an existing session with duplicate-safe IDs.
     - Bulk runner tests now cover no-op runs when no jobs are runnable or concurrency is zero.
     - Bulk runner tests now cover draining the full queue across multiple concurrency-limited batches.
     - Bulk processor tests now cover pure process-plan creation before decode starts.
