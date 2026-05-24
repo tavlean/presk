@@ -484,7 +484,7 @@
               </svg>
               Last updated
             </span>
-            <strong>2026-05-24 23:44 IST</strong>
+            <strong>2026-05-24 23:48 IST</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>editor update effects</strong>
+            <strong>encoder support helper</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -656,11 +656,11 @@
               </svg>
             </span>
             <div>
-              <strong>53% <span class="delta">+1</span></strong>
+              <strong>54% <span class="delta">+1</span></strong>
               <span>Repo simplification</span>
             </div>
           </div>
-          <div class="bar"><span style="width: 53%"></span></div>
+          <div class="bar"><span style="width: 54%"></span></div>
         </div>
         <div class="metric">
           <div class="metric-body">
@@ -677,11 +677,11 @@
               </svg>
             </span>
             <div>
-              <strong>38% <span class="delta">+1</span></strong>
+              <strong>39% <span class="delta">+1</span></strong>
               <span>Svelte readiness</span>
             </div>
           </div>
-          <div class="bar"><span style="width: 38%"></span></div>
+          <div class="bar"><span style="width: 39%"></span></div>
         </div>
       </section>
 
@@ -898,9 +898,9 @@
                     </span>
                     Repo simplification
                   </span>
-                  <span>53%</span>
+                  <span>54%</span>
                 </div>
-                <div class="bar"><span style="width: 53%"></span></div>
+                <div class="bar"><span style="width: 54%"></span></div>
                 <p class="progress-note">
                   Single-image behavior is being extracted from Preact into
                   tested helpers and legacy component APIs are being retired
@@ -935,6 +935,10 @@
                     <li>
                       Editor update effects for title refreshes and work
                       scheduling now live in a tested helper.
+                    </li>
+                    <li>
+                      Supported encoder filtering now lives outside the Preact
+                      options component with direct helper coverage.
                     </li>
                     <li>
                       SVG-aware source decode moved into the shared pipeline.
@@ -974,9 +978,9 @@
                     </span>
                     Svelte/SvelteKit migration readiness
                   </span>
-                  <span>38%</span>
+                  <span>39%</span>
                 </div>
-                <div class="bar"><span style="width: 38%"></span></div>
+                <div class="bar"><span style="width: 39%"></span></div>
                 <p class="progress-note">
                   Migration has not started. Current work is preparing reusable
                   logic, reducing legacy Preact assumptions, and documenting the
@@ -1001,6 +1005,10 @@
                     <li>
                       Prop/state update effects are represented as plain data
                       for future non-Preact consumption.
+                    </li>
+                    <li>
+                      Encoder support discovery is now a framework-neutral
+                      helper future Svelte controls can reuse.
                     </li>
                   </ul>
                 </div>

@@ -18,6 +18,10 @@ import { Options as ResizeOptionsComponent } from 'features/processors/resize/cl
 import { ImportIcon, SaveIcon, SwapIcon } from 'client/lazy-app/icons';
 import { hasSavedSideSettings } from '../saved-settings';
 import { mergeProcessorOptions, setProcessorEnabled } from '../processor-state';
+import {
+  getSupportedEncoderMap,
+  type SupportedEncoderMap,
+} from './encoder-support';
 
 interface Props {
   index: 0 | 1;
@@ -34,32 +38,12 @@ interface Props {
 }
 
 interface State {
-  supportedEncoderMap?: PartialButNotUndefined<typeof encoderMap>;
+  supportedEncoderMap?: SupportedEncoderMap;
   hasLeftSideSettings: boolean;
   hasRightSideSettings: boolean;
 }
 
-type PartialButNotUndefined<T> = {
-  [P in keyof T]: T[P];
-};
-
-const supportedEncoderMapP: Promise<PartialButNotUndefined<typeof encoderMap>> =
-  (async () => {
-    const supportedEncoderMap: PartialButNotUndefined<typeof encoderMap> = {
-      ...encoderMap,
-    };
-
-    // Filter out entries where the feature test fails
-    await Promise.all(
-      Object.entries(encoderMap).map(async ([encoderName, details]) => {
-        if ('featureTest' in details && !(await details.featureTest())) {
-          delete supportedEncoderMap[encoderName as keyof typeof encoderMap];
-        }
-      }),
-    );
-
-    return supportedEncoderMap;
-  })();
+const supportedEncoderMapP = getSupportedEncoderMap();
 
 export default class Options extends Component<Props, State> {
   state: State = {
