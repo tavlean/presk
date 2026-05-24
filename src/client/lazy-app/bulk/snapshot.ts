@@ -6,6 +6,7 @@ import type {
 } from './session';
 import {
   getBulkSessionCounters,
+  imageJobStatuses,
   isActiveImageJobStatus,
   normalizeBulkSessionCounters,
 } from './session';
@@ -44,16 +45,6 @@ export interface BulkSessionSnapshot {
   activeJobs: number;
   exportedCount: number;
 }
-
-const imageJobStatuses: readonly ImageJobStatus[] = [
-  'queued',
-  'decoding',
-  'processing',
-  'encoded',
-  'failed',
-  'skipped',
-  'exported',
-];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

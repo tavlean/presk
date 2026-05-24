@@ -107,6 +107,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image initial side-state setup now lives in a tested helper instead of inline Preact state initialization.
     - Bulk normal import and MIME-sniffed import now share accepted/rejected result recording so future import surfaces do not duplicate job ID or rejection bookkeeping.
     - Bulk active status checks now come from the session model and are reused by queue and snapshot logic.
+    - Bulk snapshot status validation now reuses the canonical status list from the session model.
     - Bulk current-output and export-readiness checks now come from the session model and are reused by queue/export flows.
     - Bulk queued reset behavior now goes through one helper for retry, stale-output requeue, incomplete-job requeue, and active-job cancellation.
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
@@ -156,6 +157,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Bulk snapshot tests now cover metadata-only session snapshots that exclude live blob download URLs and validate serialized snapshot parsing.
     - Bulk snapshot tests now cover restoring metadata-only snapshots as regeneration-ready sessions without stale blob URLs or false exported counts.
     - Bulk snapshot tests now cover restoring directly from a serialized snapshot string.
+    - Bulk helper tests now cover the canonical status list used by snapshot parsing.
     - Bulk strip item tests now cover selected state, output size state, percent change, status grouping, and per-image override paths.
     - Bulk session summary tests now cover progress, selected-job context, action state, queue state, override totals, output totals, and export readiness from one pure selector.
     - Bulk selected-job detail tests now cover effective settings, output state, override paths, and missing selections.

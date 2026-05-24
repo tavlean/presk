@@ -14,6 +14,16 @@ export type ImageJobStatus =
   | 'skipped'
   | 'exported';
 
+export const imageJobStatuses: readonly ImageJobStatus[] = [
+  'queued',
+  'decoding',
+  'processing',
+  'encoded',
+  'failed',
+  'skipped',
+  'exported',
+];
+
 export type ImageJobStatusGroup =
   | 'pending'
   | 'active'

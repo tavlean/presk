@@ -10,6 +10,8 @@ Queue UI should consume the queue-state selector rather than calculating active 
 
 Active bulk statuses are defined by the session model. Queue transitions and snapshot restore/counter logic should use that helper instead of duplicating `decoding`/`processing` checks.
 
+The canonical bulk status list is also exported from the session model. Snapshot validation should use that list so new statuses cannot be added to runtime state without updating restore validation.
+
 Queue status transitions should use the shared job counter delta helper when removing a job from an active or exported state. That keeps direct completion/failure/requeue and batch stale/incomplete/cancel transitions aligned if persisted session counters drift from the job list.
 
 Queue retry, stale-output requeue, incomplete-job requeue, and active-job cancellation should use the shared queued reset helper so output/error cleanup stays consistent.
