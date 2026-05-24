@@ -153,7 +153,11 @@ export function getBulkJobSizeSummary(
   };
 }
 
-export function getBulkExportSummary(session: BulkSession): BulkExportSummary {
+export function getBulkExportSummary(
+  session: BulkSession,
+  jobIds?: Iterable<string>,
+): BulkExportSummary {
+  const requestedJobIds = getRequestedJobIds(jobIds);
   let ready = 0;
   let exported = 0;
   let failed = 0;
@@ -163,6 +167,8 @@ export function getBulkExportSummary(session: BulkSession): BulkExportSummary {
   let totalOutputSize = 0;
 
   for (const job of session.jobs) {
+    if (requestedJobIds && !requestedJobIds.has(job.id)) continue;
+
     if (job.status === 'failed') failed += 1;
     else if (job.status === 'skipped') skipped += 1;
     else if (
@@ -254,27 +260,10 @@ export function createBulkExportPlan(
   jobIds?: Iterable<string>,
 ): BulkExportPlan {
   const entries = getBulkExportEntries(session, jobIds);
-  const totalOriginalSize = entries.reduce(
-    (total, entry) => total + entry.job.originalSize,
-    0,
-  );
-  const totalOutputSize = entries.reduce(
-    (total, entry) => total + entry.size,
-    0,
-  );
 
   return {
     archiveName: getBulkExportName(session),
     entries,
-    summary: {
-      ready: entries.length,
-      exported: 0,
-      failed: 0,
-      pending: 0,
-      skipped: 0,
-      totalOriginalSize,
-      totalOutputSize,
-      percentChange: getPercentChange(totalOriginalSize, totalOutputSize),
-    },
+    summary: getBulkExportSummary(session, jobIds),
   };
 }
