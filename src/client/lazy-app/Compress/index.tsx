@@ -43,16 +43,12 @@ import {
   preprocessImage,
   processImage,
 } from '../image-pipeline';
+import { SideSettings, readInitialSavedSideSettings } from './saved-settings';
 import {
-  SideSettings,
-  getSavedSideSettingsImportAction,
-  getSavedSideSettingsSaveAction,
-  readInitialSavedSideSettings,
-  readSavedSideSettingsForSide,
-  writeSavedSideSettingsForSide,
-} from './saved-settings';
+  runImportSideSettings,
+  runSaveSideSettings,
+} from './saved-settings-workflow';
 import {
-  getApplySavedSideSettingsState,
   getSideEncoderOptionsChangeState,
   getSideEncoderTypeChangeState,
   getSideEncodedResultState,
@@ -243,66 +239,32 @@ export default class Compress extends Component<Props, State> {
       ),
     });
   };
-  /**
-   * This function saves encodedSettings and latestSettings of a particular side in browser local storage.
-   * @param index : (0|1)
-   * @returns
-   */
   private onSaveSideSettingsClick = async (index: 0 | 1) => {
-    const saveAction = getSavedSideSettingsSaveAction(
-      writeSavedSideSettingsForSide(index, this.state.sides[index]),
-    );
-    if (saveAction.kind !== 'saved') {
-      await this.props.showSnack(saveAction.message, {
-        timeout: saveAction.timeout,
-        actions: saveAction.actions,
-      });
-      return;
-    }
-
-    // Fire an event when we save side settings in local storage.
-    window.dispatchEvent(new CustomEvent(saveAction.eventKey));
-    await this.props.showSnack(saveAction.message, {
-      timeout: saveAction.timeout,
-      actions: saveAction.actions,
+    await runSaveSideSettings({
+      index,
+      side: this.state.sides[index],
+      showSnack: this.props.showSnack,
+      dispatchSavedSettingsEvent: (eventKey) => {
+        window.dispatchEvent(new CustomEvent(eventKey));
+      },
     });
   };
 
-  /**
-   * This function sets the side state with cached local storage values for the provided side index.
-   * @param index : (0|1)
-   * @returns
-   */
   private onImportSideSettingsClick = async (index: 0 | 1) => {
-    const importAction = getSavedSideSettingsImportAction(
-      readSavedSideSettingsForSide(index),
-    );
-    if (importAction.kind !== 'imported') {
-      await this.props.showSnack(importAction.message, {
-        timeout: importAction.timeout,
-        actions: importAction.actions,
-      });
-      return;
-    }
-
-    const update = getApplySavedSideSettingsState(
-      this.state,
+    await runImportSideSettings({
       index,
-      importAction.settings,
-    );
-    this.setState({
-      sides: update.sides,
+      state: this.state,
+      showSnack: this.props.showSnack,
+      isUnmounted: () => this.isUnmounted,
+      onApply: (sides) => {
+        this.setState({ sides });
+      },
+      onRestore: (oldSide) => {
+        this.setState({
+          ...getRestoreSideState(this.state, index, oldSide),
+        });
+      },
     });
-    const result = await this.props.showSnack(importAction.message, {
-      timeout: importAction.timeout,
-      actions: importAction.actions,
-    });
-    if (this.isUnmounted) return;
-    if (result === 'undo') {
-      this.setState({
-        ...getRestoreSideState(this.state, index, update.oldSide),
-      });
-    }
   };
 
   private showSnackIfMounted = (message: string): Promise<string> => {
