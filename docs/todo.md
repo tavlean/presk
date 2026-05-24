@@ -83,6 +83,7 @@ This list is ordered by priority. Do the high-priority items before building new
 13. Fix small code quality issues while touching nearby code.
 
     - Completed: replace the remaining `Boolean` prop type with primitive `boolean`.
+    - Static build file writing now returns a promise from the utility and keeps process-exit handling in the build entry point.
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
     - Removed obsolete TS suppressions from option controls and icon props by using element-specific Preact JSX attribute types.
     - Removed the remaining maintained app/lib `@ts-ignore` by making worker-bridge dispatch explicit.

@@ -109,4 +109,7 @@ const toOutput: Output = {
   `,
 };
 
-writeFiles(toOutput);
+writeFiles(toOutput).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

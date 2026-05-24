@@ -24,8 +24,8 @@ interface OutputMap {
   [path: string]: string;
 }
 
-export function writeFiles(toOutput: OutputMap) {
-  Promise.all(
+export async function writeFiles(toOutput: OutputMap): Promise<void> {
+  await Promise.all(
     Object.entries(toOutput).map(async ([path, content]) => {
       const pathParts = ['.tmp', 'build', 'static', ...path.split('/')];
       await fsp.mkdir(joinPath(...pathParts.slice(0, -1)), { recursive: true });
@@ -39,10 +39,7 @@ export function writeFiles(toOutput: OutputMap) {
         throw err;
       }
     }),
-  ).catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+  );
 }
 
 /**
