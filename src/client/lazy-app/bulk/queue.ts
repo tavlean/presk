@@ -4,6 +4,7 @@ import type {
   ImageJobStatus,
   ImageOutput,
 } from './session';
+import { getBulkSessionCounters } from './session';
 import { getEffectiveSettings, settingsHash } from './settings';
 
 export const defaultBulkConcurrency = 2;
@@ -17,9 +18,10 @@ export function getRunnableJobs(
   session: BulkSession,
   concurrency = defaultBulkConcurrency,
 ): ImageJob[] {
+  const { activeJobs } = getBulkSessionCounters(session.jobs);
   const openSlots = Math.max(
     0,
-    normalizeBulkConcurrency(concurrency) - session.activeJobs,
+    normalizeBulkConcurrency(concurrency) - activeJobs,
   );
   if (openSlots === 0) return [];
 

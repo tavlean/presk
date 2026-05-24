@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: bulk session counters now have a canonical derivation and normalization helper, with local checks passing. Run `git status --short --branch` for the exact state.
+Working tree at last update: bulk queue scheduling now derives active-job counts from jobs instead of trusting a stale cached counter, with local checks passing. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -168,6 +168,7 @@ Latest verification run:
 - GitHub Actions passed on Ubuntu, Windows, and macOS for `1f213d8` (`Requeue active bulk jobs`).
 - `npm run test:helpers`: passed after adding canonical bulk session counter derivation and normalization.
 - `npm run check`: passed after adding canonical bulk session counter derivation and normalization.
+- `npm run check`: passed after making bulk queue scheduling drift-tolerant.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
