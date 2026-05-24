@@ -189,6 +189,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image result download tests now cover empty original left output and disabled right-side blob output.
     - Single-image output preview tests now cover desktop/mobile orientation plus canvas sizing and contain state.
     - Single-image panel layout tests now cover desktop column ordering and mobile multi-panel ordering.
+    - Single-image options render-state tests now cover original and encoded option panel decisions.
     - Single-image side-state tests now cover saved-settings import while preserving live output fields for undo.
     - Single-image side-state tests now cover default side setup, paired initial sides, and saved initial side overrides.
     - Single-image side-state tests now cover loading transitions, intermediate processed output, final encoded output, and old blob URL revocation.

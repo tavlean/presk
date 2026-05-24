@@ -21,19 +21,10 @@ import {
   getSupportedEncoderMap,
   type SupportedEncoderMap,
 } from './encoder-support';
-import {
-  getEncoderSelectOptions,
-  getEncoderSelectValue,
-  getOriginalImageOptionLabel,
-} from './encoder-select-state';
-import {
-  canImportSavedSideSettings,
-  getSavedSideSettingsAvailability,
-} from './saved-settings-state';
-import {
-  getProcessorTypeFromControlName,
-  getResizeOptionsState,
-} from './processor-controls-state';
+import { getEncoderSelectOptions } from './encoder-select-state';
+import { getSavedSideSettingsAvailability } from './saved-settings-state';
+import { getProcessorTypeFromControlName } from './processor-controls-state';
+import { getOptionsRenderState } from './render-state';
 
 interface Props {
   index: 0 | 1;
@@ -208,22 +199,24 @@ export default class Options extends Component<Props, State> {
     { source, encoderState, processorState }: Props,
     { supportedEncoderMap }: State,
   ) {
-    const canImportSavedSettings = canImportSavedSideSettings(
-      this.state,
-      this.props.index,
-    );
-    const resizeOptionsState = getResizeOptionsState(source);
+    const renderState = getOptionsRenderState({
+      index: this.props.index,
+      source,
+      encoderState,
+      processorState,
+      savedSideSettingsAvailability: this.state,
+    });
 
     return (
       <div
         class={
           style.optionsScroller +
           ' ' +
-          (encoderState ? '' : style.originalImage)
+          (renderState.isOriginalImage ? style.originalImage : '')
         }
       >
         <Expander>
-          {!encoderState ? null : (
+          {renderState.isOriginalImage ? null : (
             <div>
               <h3 class={style.optionsTitle}>
                 <div class={style.titleAndButtons}>
@@ -245,11 +238,13 @@ export default class Options extends Component<Props, State> {
                   <button
                     class={
                       style.importButton +
-                      (canImportSavedSettings ? '' : ` ${style.buttonOpacity}`)
+                      (renderState.canImportSavedSettings
+                        ? ''
+                        : ` ${style.buttonOpacity}`)
                     }
                     title="Import saved side settings"
                     onClick={this.onImportSideSettingsClick}
-                    disabled={!canImportSavedSettings}
+                    disabled={!renderState.canImportSavedSettings}
                   >
                     <ImportIcon />
                   </button>
@@ -259,16 +254,16 @@ export default class Options extends Component<Props, State> {
                 Resize
                 <Toggle
                   name="resize.enable"
-                  checked={!!processorState.resize.enabled}
+                  checked={renderState.resizeEnabled}
                   onChange={this.onProcessorEnabledChange}
                 />
               </label>
               <Expander>
-                {processorState.resize.enabled ? (
+                {renderState.resizeEnabled ? (
                   <ResizeOptionsComponent
-                    isVector={resizeOptionsState.isVector}
-                    inputWidth={resizeOptionsState.inputWidth}
-                    inputHeight={resizeOptionsState.inputHeight}
+                    isVector={renderState.resizeOptionsState.isVector}
+                    inputWidth={renderState.resizeOptionsState.inputWidth}
+                    inputHeight={renderState.resizeOptionsState.inputHeight}
                     options={processorState.resize}
                     onChange={this.onResizeOptionsChange}
                   />
@@ -279,12 +274,12 @@ export default class Options extends Component<Props, State> {
                 Reduce palette
                 <Toggle
                   name="quantize.enable"
-                  checked={!!processorState.quantize.enabled}
+                  checked={renderState.quantizeEnabled}
                   onChange={this.onProcessorEnabledChange}
                 />
               </label>
               <Expander>
-                {processorState.quantize.enabled ? (
+                {renderState.quantizeEnabled ? (
                   <QuantOptionsComponent
                     options={processorState.quantize}
                     onChange={this.onQuantizerOptionsChange}
@@ -300,12 +295,12 @@ export default class Options extends Component<Props, State> {
         <section class={`${style.optionOneCell} ${style.optionsSection}`}>
           {supportedEncoderMap ? (
             <Select
-              value={getEncoderSelectValue(encoderState)}
+              value={renderState.encoderSelectValue}
               onChange={this.onEncoderTypeChange}
               large
             >
               <option value="identity">
-                {getOriginalImageOptionLabel(source)}
+                {renderState.originalImageOptionLabel}
               </option>
               {getEncoderSelectOptions(supportedEncoderMap).map((option) => (
                 <option value={option.value}>{option.label}</option>
