@@ -8,4 +8,5 @@ export * from './session';
 export * from './settings';
 export * from './size';
 export * from './snapshot';
+export * from './strip';
 export * from './urls';
