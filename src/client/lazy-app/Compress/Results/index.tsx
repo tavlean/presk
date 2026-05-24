@@ -4,6 +4,10 @@ import * as style from './style.css';
 import 'add-css:./style.css';
 import 'shared/custom-els/loading-spinner';
 import { SourceImage } from '../';
+import {
+  getInitialResultLoadingState,
+  getResultLoadingEffect,
+} from './loading-state';
 import { getResultSizeState } from './size-state';
 import { Arrow, DownloadIcon } from 'client/lazy-app/icons';
 
@@ -24,18 +28,23 @@ const loadingReactionDelay = 500;
 
 export default class Results extends Component<Props, State> {
   state: State = {
-    showLoadingState: this.props.loading,
+    showLoadingState: getInitialResultLoadingState(this.props.loading),
   };
 
   /** The timeout ID between entering the loading state, and changing UI */
   private loadingTimeoutId: number = 0;
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    if (prevProps.loading && !this.props.loading) {
+    const loadingEffect = getResultLoadingEffect(
+      prevProps.loading,
+      this.props.loading,
+    );
+
+    if (loadingEffect === 'hide') {
       // Just stopped loading
       clearTimeout(this.loadingTimeoutId);
       this.setState({ showLoadingState: false });
-    } else if (!prevProps.loading && this.props.loading) {
+    } else if (loadingEffect === 'delay-show') {
       // Just started loading
       this.loadingTimeoutId = self.setTimeout(
         () => this.setState({ showLoadingState: true }),
