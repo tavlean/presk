@@ -484,7 +484,7 @@
               </svg>
               Last updated
             </span>
-            <strong>2026-05-24 23:37 IST</strong>
+            <strong>2026-05-24 23:39 IST</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>bulk counter reuse</strong>
+            <strong>editor lifecycle</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -656,11 +656,11 @@
               </svg>
             </span>
             <div>
-              <strong>51%</strong>
+              <strong>52% <span class="delta">+1</span></strong>
               <span>Repo simplification</span>
             </div>
           </div>
-          <div class="bar"><span style="width: 51%"></span></div>
+          <div class="bar"><span style="width: 52%"></span></div>
         </div>
         <div class="metric">
           <div class="metric-body">
@@ -677,11 +677,11 @@
               </svg>
             </span>
             <div>
-              <strong>36%</strong>
+              <strong>37% <span class="delta">+1</span></strong>
               <span>Svelte readiness</span>
             </div>
           </div>
-          <div class="bar"><span style="width: 36%"></span></div>
+          <div class="bar"><span style="width: 37%"></span></div>
         </div>
       </section>
 
@@ -898,12 +898,13 @@
                     </span>
                     Repo simplification
                   </span>
-                  <span>51%</span>
+                  <span>52%</span>
                 </div>
-                <div class="bar"><span style="width: 51%"></span></div>
+                <div class="bar"><span style="width: 52%"></span></div>
                 <p class="progress-note">
                   Single-image behavior is being extracted from Preact into
-                  tested helpers while preserving the current optimizer.
+                  tested helpers and legacy component APIs are being retired
+                  while preserving the current optimizer.
                 </p>
               </summary>
               <div class="detail-grid">
@@ -926,6 +927,10 @@
                     <li>
                       Single-image unmount now clears queued work and revokes
                       side download URLs.
+                    </li>
+                    <li>
+                      New-file handling no longer uses the deprecated
+                      componentWillReceiveProps lifecycle.
                     </li>
                     <li>
                       SVG-aware source decode moved into the shared pipeline.
@@ -965,12 +970,13 @@
                     </span>
                     Svelte/SvelteKit migration readiness
                   </span>
-                  <span>36%</span>
+                  <span>37%</span>
                 </div>
-                <div class="bar"><span style="width: 36%"></span></div>
+                <div class="bar"><span style="width: 37%"></span></div>
                 <p class="progress-note">
                   Migration has not started. Current work is preparing reusable
-                  logic so a later migration is smaller and safer.
+                  logic, reducing legacy Preact assumptions, and documenting the
+                  future path.
                 </p>
               </summary>
               <div class="detail-grid">
@@ -983,6 +989,10 @@
                       Single-image planning, side encode decisions, work-start
                       scheduling, source, preprocessor, side, and display logic
                       extraction is underway.
+                    </li>
+                    <li>
+                      Deprecated prop-change lifecycle usage has been removed
+                      from the main editor component.
                     </li>
                   </ul>
                 </div>

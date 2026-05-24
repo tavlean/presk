@@ -166,13 +166,6 @@ export default class Compress extends Component<Props, State> {
     });
   };
 
-  componentWillReceiveProps(nextProps: Props): void {
-    if (nextProps.file !== this.props.file) {
-      this.sourceFile = nextProps.file;
-      this.queueUpdateImage({ immediate: true });
-    }
-  }
-
   componentWillUnmount(): void {
     updateDocumentTitle({ loading: false });
     this.widthQuery.removeEventListener('change', this.onMobileWidthChange);
@@ -185,6 +178,12 @@ export default class Compress extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State): void {
+    if (prevProps.file !== this.props.file) {
+      this.sourceFile = this.props.file;
+      this.queueUpdateImage({ immediate: true });
+      return;
+    }
+
     if (shouldUpdateDocumentTitle(prevState, this.state)) {
       updateDocumentTitle(getLoadingFileInfo(this.state));
     }
