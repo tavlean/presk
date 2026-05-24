@@ -14,6 +14,8 @@ The canonical bulk status list is also exported from the session model. Snapshot
 
 Queue status transitions should use the shared job counter delta helper when removing a job from an active or exported state. That keeps direct completion/failure/requeue and batch stale/incomplete/cancel transitions aligned if persisted session counters drift from the job list.
 
+Bulk session mutations should normalize existing counters before applying job-list changes. This keeps appended jobs, removed jobs, and exported jobs from carrying forward stale persisted `activeJobs` or `exportedCount` values.
+
 Queue retry, stale-output requeue, incomplete-job requeue, and active-job cancellation should use the shared queued reset helper so output/error cleanup stays consistent.
 
 Import UI should create sessions through the import-to-session helper so rejected files are kept out of the live session consistently and the first accepted image is selected by the same session rules everywhere.

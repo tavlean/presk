@@ -110,6 +110,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Bulk snapshot status validation now reuses the canonical status list from the session model.
     - Bulk current-output and export-readiness checks now come from the session model and are reused by queue/export flows.
     - Bulk queued reset behavior now goes through one helper for retry, stale-output requeue, incomplete-job requeue, and active-job cancellation.
+    - Bulk add-job session mutations now normalize existing counters before appending jobs.
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
     - Removed obsolete TS suppressions from option controls and icon props by using element-specific Preact JSX attribute types.
     - Removed the remaining maintained app/lib `@ts-ignore` by making worker-bridge dispatch explicit.
@@ -134,6 +135,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Bulk helper tests now cover settings merge/hash behavior, session changes, queue stale detection, and export summaries.
     - Bulk action-state tests now cover process, retry, cancel, queued, active, and incomplete command flags.
     - Bulk session mutation tests now cover drift-tolerant remove/export counter normalization.
+    - Bulk session mutation tests now cover drift-tolerant add-job counter normalization.
     - Bulk import tests now cover injected MIME sniffing for extensionless, misnamed, rejected, and unreadable image files.
     - Bulk import tests now cover structured rejection reasons and summary counts for unsupported and unreadable files.
     - Bulk import tests now cover creating a bulk session from accepted import jobs while ignoring rejected files.
