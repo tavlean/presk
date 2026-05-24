@@ -53,6 +53,11 @@ export interface ImageWorkStarts {
   sideJobStates: (SideJobState | undefined)[];
 }
 
+export interface ImageWorkAbortPlan {
+  main: boolean;
+  sides: boolean[];
+}
+
 export interface SideEncodingResult {
   processed?: ImageData;
   data: ImageData;
@@ -184,6 +189,15 @@ export function getImageWorkStarts(
         ? sideJobStates[index]
         : undefined,
     ),
+  };
+}
+
+export function getImageWorkAbortPlan(
+  workStarts: ImageWorkStarts,
+): ImageWorkAbortPlan {
+  return {
+    main: Boolean(workStarts.mainJobState),
+    sides: workStarts.sideJobStates.map(Boolean),
   };
 }
 
