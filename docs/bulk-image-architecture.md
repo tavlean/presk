@@ -327,7 +327,8 @@ When implementation resumes, the safest technical path is:
    - Keep the current single-image editor importing the same functions back.
    - Preserve one-file behavior before adding any bulk screen.
    - Shared module: `src/client/lazy-app/image-pipeline.ts`
-   - Current status: extracted without changing the UI route.
+   - Side-job execution helper: `src/client/lazy-app/Compress/side-job-runner.ts`
+   - Current status: decode/preprocess/process/encode functions and single-side execution are extracted without changing the UI route.
 
 2. Add a bulk processor module separate from the current `Compress` component.
 

@@ -227,6 +227,9 @@ Latest verification run:
 - `npm run check`: passed after extracting single-image side job execution into a framework-neutral runner and updating dashboard/docs.
 - `npm run smoke:browser`: passed after extracting single-image side job execution; production build still imports PNG, exports WebP, resizes WebP to `64px`, imports saved side settings, handles extensionless input naming, reloads the app shell offline, and loads with service worker disabled.
 - `npm run dashboard`: confirmed the dashboard is already running at `http://localhost:4177`; local dashboard HTML shows side job runner helper, five top cards, and only the Svelte `+1` top-card delta.
+- `npm run format:check`: passed after syncing the bulk architecture note with the side-job runner extraction.
+- `npm run dashboard`: confirmed the dashboard is already running at `http://localhost:4177`; local dashboard HTML shows bulk architecture sync, five top cards, and no stale top-card deltas.
+- `gh run list --repo tavlean/sqush --branch main --limit 1`: latest pushed CI run `26375807878` completed successfully for `2229b9e`.
 - `npm run test:helpers`: passed after extracting result initial loading state.
 - `npm run typecheck`: passed after extracting result initial loading state.
 - `npm run check`: passed after extracting result initial loading state and updating dashboard/docs.
