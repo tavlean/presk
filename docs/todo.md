@@ -98,6 +98,7 @@ This list is ordered by priority. Do the high-priority items before building new
 
     - Bulk helper tests now cover settings merge/hash behavior, session changes, queue stale detection, and export summaries.
     - Result-cache tests now cover cache hits, mismatched image data, mismatched encoder options, and mismatched processor options.
+    - MIME sniffing tests now cover PNG, JPEG, WebP, JPEG XL, and unknown data.
     - `npm run test:unit` runs the current pure-helper test suite.
     - `clean-modify`
     - `pretty-bytes`
