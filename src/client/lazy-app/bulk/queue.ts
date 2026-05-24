@@ -111,6 +111,15 @@ function applyBulkJobCounterDelta(
   };
 }
 
+function addBulkJobCounterDelta(
+  total: BulkJobCounterDelta,
+  job: ImageJob,
+): void {
+  const delta = getBulkJobCounterDelta(job);
+  total.activeJobs += delta.activeJobs;
+  total.exportedCount += delta.exportedCount;
+}
+
 export function startJob(session: BulkSession, jobId: string): BulkSession {
   const normalizedSession = normalizeBulkSessionCounters(session);
   const job = getJob(normalizedSession, jobId);
@@ -189,70 +198,81 @@ export function isJobOutputStale(session: BulkSession, job: ImageJob): boolean {
 
 export function requeueStaleJobs(session: BulkSession): BulkSession {
   const normalizedSession = normalizeBulkSessionCounters(session);
-  let requeuedActiveCount = 0;
-  let requeuedExportedCount = 0;
-
-  return {
-    ...normalizedSession,
-    jobs: normalizedSession.jobs.map((job) => {
-      if (!job.output || !isJobOutputStale(normalizedSession, job)) return job;
-      if (isActiveStatus(job.status)) requeuedActiveCount += 1;
-      if (job.status === 'exported') requeuedExportedCount += 1;
-      return {
-        ...job,
-        status: 'queued',
-        output: undefined,
-        error: undefined,
-      };
-    }),
-    activeJobs: Math.max(0, normalizedSession.activeJobs - requeuedActiveCount),
-    exportedCount: Math.max(
-      0,
-      normalizedSession.exportedCount - requeuedExportedCount,
-    ),
+  const counterDelta: BulkJobCounterDelta = {
+    activeJobs: 0,
+    exportedCount: 0,
   };
+
+  return applyBulkJobCounterDelta(
+    {
+      ...normalizedSession,
+      jobs: normalizedSession.jobs.map((job) => {
+        if (!job.output || !isJobOutputStale(normalizedSession, job)) {
+          return job;
+        }
+        addBulkJobCounterDelta(counterDelta, job);
+        return {
+          ...job,
+          status: 'queued',
+          output: undefined,
+          error: undefined,
+        };
+      }),
+    },
+    counterDelta,
+  );
 }
 
 export function requeueIncompleteJobs(session: BulkSession): BulkSession {
   const normalizedSession = normalizeBulkSessionCounters(session);
-  let requeuedActiveCount = 0;
-
-  return {
-    ...normalizedSession,
-    jobs: normalizedSession.jobs.map((job) => {
-      const shouldRequeue =
-        job.status === 'failed' ||
-        job.status === 'skipped' ||
-        isActiveStatus(job.status);
-      if (!shouldRequeue) return job;
-      if (isActiveStatus(job.status)) requeuedActiveCount += 1;
-      return {
-        ...job,
-        status: 'queued',
-        output: undefined,
-        error: undefined,
-      };
-    }),
-    activeJobs: Math.max(0, normalizedSession.activeJobs - requeuedActiveCount),
+  const counterDelta: BulkJobCounterDelta = {
+    activeJobs: 0,
+    exportedCount: 0,
   };
+
+  return applyBulkJobCounterDelta(
+    {
+      ...normalizedSession,
+      jobs: normalizedSession.jobs.map((job) => {
+        const shouldRequeue =
+          job.status === 'failed' ||
+          job.status === 'skipped' ||
+          isActiveStatus(job.status);
+        if (!shouldRequeue) return job;
+        addBulkJobCounterDelta(counterDelta, job);
+        return {
+          ...job,
+          status: 'queued',
+          output: undefined,
+          error: undefined,
+        };
+      }),
+    },
+    counterDelta,
+  );
 }
 
 export function cancelActiveJobs(session: BulkSession): BulkSession {
   const normalizedSession = normalizeBulkSessionCounters(session);
-  let canceledActiveCount = 0;
-
-  return {
-    ...normalizedSession,
-    jobs: normalizedSession.jobs.map((job) => {
-      if (!isActiveStatus(job.status)) return job;
-      canceledActiveCount += 1;
-      return {
-        ...job,
-        status: 'queued',
-        output: undefined,
-        error: undefined,
-      };
-    }),
-    activeJobs: Math.max(0, normalizedSession.activeJobs - canceledActiveCount),
+  const counterDelta: BulkJobCounterDelta = {
+    activeJobs: 0,
+    exportedCount: 0,
   };
+
+  return applyBulkJobCounterDelta(
+    {
+      ...normalizedSession,
+      jobs: normalizedSession.jobs.map((job) => {
+        if (!isActiveStatus(job.status)) return job;
+        addBulkJobCounterDelta(counterDelta, job);
+        return {
+          ...job,
+          status: 'queued',
+          output: undefined,
+          error: undefined,
+        };
+      }),
+    },
+    counterDelta,
+  );
 }
