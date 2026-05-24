@@ -18,6 +18,8 @@ export interface BulkImportResult {
 export interface BulkImportSummary {
   accepted: number;
   rejected: number;
+  rejectedUnsupported: number;
+  rejectedUnreadable: number;
   totalAcceptedSize: number;
   totalRejectedSize: number;
 }
@@ -118,9 +120,18 @@ export async function createImageJobsWithMimeSniffing(
 export function getBulkImportSummary(
   result: BulkImportResult,
 ): BulkImportSummary {
+  const rejectedUnsupported = result.rejections.filter(
+    (rejection) => rejection.reason === 'unsupported-type',
+  ).length;
+  const rejectedUnreadable = result.rejections.filter(
+    (rejection) => rejection.reason === 'unreadable',
+  ).length;
+
   return {
     accepted: result.accepted.length,
     rejected: result.rejected.length,
+    rejectedUnsupported,
+    rejectedUnreadable,
     totalAcceptedSize: result.accepted.reduce(
       (total, job) => total + job.originalSize,
       0,

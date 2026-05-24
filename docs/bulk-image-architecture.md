@@ -10,7 +10,7 @@ Queue UI should consume the queue-state selector rather than calculating active 
 
 Import UI should create sessions through the import-to-session helper so rejected files are kept out of the live session consistently and the first accepted image is selected by the same session rules everywhere.
 
-Import results keep the legacy rejected file list and also include structured rejection reasons. Future UI should use those reasons to distinguish unsupported files from unreadable files instead of showing a generic failure.
+Import results keep the legacy rejected file list and also include structured rejection reasons. The import summary aggregates those reasons. Future UI should use those reasons to distinguish unsupported files from unreadable files instead of showing a generic failure.
 
 Export UI should create an export plan and then mark that plan exported through the plan helper after downloads are triggered. The helper reuses the stale-output guard, so changed global or per-image settings cannot mark old output as exported.
 
