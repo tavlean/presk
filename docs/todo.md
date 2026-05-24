@@ -128,6 +128,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image active job completion bookkeeping now goes through pure helpers instead of direct Preact component field mutation.
     - Single-image work-start scheduling now goes through a pure helper instead of inline Preact component logic.
     - Single-image side encode decisions for original passthrough, cache hits, and new encodes now go through a pure helper instead of inline Preact component logic.
+    - Single-image runnable side job records now come from a tested pure helper instead of being paired inside the Preact component loop.
     - Single-image, image-pipeline, and bulk runner abort-error checks now use a shared utility helper instead of open-coded name checks.
     - The main editor no longer uses the deprecated `componentWillReceiveProps` lifecycle for new-file handling.
     - The resize processor options no longer use `componentWillReceiveProps`; preset matching now comes from a tested pure helper.
@@ -199,6 +200,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Bulk selected-job detail tests now cover effective settings, output state, override paths, and missing selections.
     - Result-cache tests now cover cache hits, mismatched image data, mismatched encoder options, and mismatched processor options.
     - Single-image work-plan tests now cover no-op decisions, first decode/preprocess work, original-to-encoded transitions, encoder-only updates, planned image work assembly, active-job precedence, work-start scheduling, active job bookkeeping, work abort planning, side job run selection, side job execution planning, side encode planning, and side result/cache assembly.
+    - Single-image work-plan tests now cover runnable side job records.
     - Single-image source-state tests now cover default raster and vector resize settings for newly decoded source images.
     - Single-image source-state tests now cover applying default resize settings to both comparison sides without mutating the old side state.
     - Single-image source-state tests now cover source decode/preprocess loading lifecycle patches.

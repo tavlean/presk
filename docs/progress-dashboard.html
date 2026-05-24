@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>codec provenance metadata</strong>
+            <strong>side job run records</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -677,11 +677,11 @@
               </svg>
             </span>
             <div>
-              <strong>84%</strong>
+              <strong>85%</strong> <span class="delta">+1</span>
               <span>Svelte readiness</span>
             </div>
           </div>
-          <div class="bar"><span style="width: 84%"></span></div>
+          <div class="bar"><span style="width: 85%"></span></div>
         </div>
       </section>
 
@@ -1087,9 +1087,9 @@
                     </span>
                     Svelte/SvelteKit migration readiness
                   </span>
-                  <span>84%</span>
+                  <span>85%</span>
                 </div>
-                <div class="bar"><span style="width: 84%"></span></div>
+                <div class="bar"><span style="width: 85%"></span></div>
                 <p class="progress-note">
                   Migration has not started. Current work is preparing reusable
                   logic, reducing legacy Preact assumptions, and documenting the
@@ -1210,6 +1210,11 @@
                       plain helper data.
                     </li>
                     <li>Side job run selection is now plain helper data.</li>
+                    <li>
+                      Runnable side job records now pair side indexes, work
+                      flags, and job state in one tested helper for future
+                      non-Preact runners.
+                    </li>
                     <li>
                       Side-job cache lookup and encode-plan assembly are now
                       plain helper data.

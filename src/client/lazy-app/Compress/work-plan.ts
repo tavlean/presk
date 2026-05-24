@@ -103,6 +103,12 @@ export interface SideJobExecutionPlanInput {
   sourcePreprocessed: ImageData;
 }
 
+export interface RunnableSideJob {
+  sideIndex: number;
+  sideWorkNeeded: SideWorkNeeded;
+  jobState: SideJobState;
+}
+
 export interface SideJobEncodedResult {
   data: ImageData;
   file: File;
@@ -288,6 +294,17 @@ export function getRunnableSideJobIndexes(
   return sideWorksNeeded.flatMap((sideWorkNeeded, index) =>
     sideWorkNeeded.encoding ? [index] : [],
   );
+}
+
+export function getRunnableSideJobs(
+  sideWorksNeeded: readonly SideWorkNeeded[],
+  sideJobStates: readonly SideJobState[],
+): RunnableSideJob[] {
+  return getRunnableSideJobIndexes(sideWorksNeeded).map((sideIndex) => ({
+    sideIndex,
+    sideWorkNeeded: sideWorksNeeded[sideIndex],
+    jobState: sideJobStates[sideIndex],
+  }));
 }
 
 export function getSideEncodingPlan({

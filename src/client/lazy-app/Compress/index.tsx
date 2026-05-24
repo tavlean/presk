@@ -81,7 +81,7 @@ import {
   getSideJobEncodedResult,
   getSideJobExecutionPlan,
   getPlannedImageWork,
-  getRunnableSideJobIndexes,
+  getRunnableSideJobs,
   type MainJobState,
   type SideJobState,
 } from './work-plan';
@@ -481,111 +481,110 @@ export default class Compress extends Component<Props, State> {
       sideJobs: this.activeSideJobs,
     }).mainJob;
 
-    const runnableSideJobIndexes = new Set(
-      getRunnableSideJobIndexes(workPlan.sideWorksNeeded),
-    );
-
     // Allow side jobs to happen in parallel
-    workPlan.sideWorksNeeded.forEach(async (sideWorkNeeded, index) => {
-      const sideIndex = index as SideIndex;
-      try {
-        if (!runnableSideJobIndexes.has(sideIndex)) return;
-
-        const signal = sideSignals[sideIndex];
-        const jobState = sideJobStates[sideIndex];
-        const workerBridge = this.workerBridges[sideIndex];
-        let file: File;
-        let data: ImageData;
-        let processed: ImageData | undefined = undefined;
-        const sidePlan = getSideJobExecutionPlan({
-          currentProcessed: currentState.sides[sideIndex].processed,
-          getCacheResult: (...args) => this.encodeCache.match(...args),
-          jobState,
-          sideWorkNeeded,
-          sourceFile: source.file,
-          sourcePreprocessed: source.preprocessed,
-        });
-
-        if (sidePlan.kind === 'skip') return;
-
-        if (sidePlan.kind === 'original' || sidePlan.kind === 'cache') {
-          ({ file, processed, data } = sidePlan.result);
-        } else {
-          // Set loading state for this side
-          this.setState((currentState) => {
-            if (signal.aborted) return {};
-            return getSideLoadingState(currentState, sideIndex, true);
+    getRunnableSideJobs(workPlan.sideWorksNeeded, sideJobStates).forEach(
+      async ({ sideIndex: index, sideWorkNeeded, jobState }) => {
+        const sideIndex = index as SideIndex;
+        try {
+          const signal = sideSignals[sideIndex];
+          const workerBridge = this.workerBridges[sideIndex];
+          let file: File;
+          let data: ImageData;
+          let processed: ImageData | undefined = undefined;
+          const sidePlan = getSideJobExecutionPlan({
+            currentProcessed: currentState.sides[sideIndex].processed,
+            getCacheResult: (...args) => this.encodeCache.match(...args),
+            jobState,
+            sideWorkNeeded,
+            sourceFile: source.file,
+            sourcePreprocessed: source.preprocessed,
           });
 
-          if (sidePlan.needsProcessing) {
-            processed = await processImage(
-              signal,
-              source,
-              sidePlan.processorState,
-              workerBridge,
-            );
+          if (sidePlan.kind === 'skip') return;
 
-            // Update state for process completion, including intermediate render
+          if (sidePlan.kind === 'original' || sidePlan.kind === 'cache') {
+            ({ file, processed, data } = sidePlan.result);
+          } else {
+            // Set loading state for this side
             this.setState((currentState) => {
               if (signal.aborted) return {};
-              return getSideProcessedResultState(
-                currentState,
-                sideIndex,
-                processed,
-                sidePlan.processorState,
-              );
+              return getSideLoadingState(currentState, sideIndex, true);
             });
-          } else {
-            processed = sidePlan.processed!;
+
+            if (sidePlan.needsProcessing) {
+              processed = await processImage(
+                signal,
+                source,
+                sidePlan.processorState,
+                workerBridge,
+              );
+
+              // Update state for process completion, including intermediate render
+              this.setState((currentState) => {
+                if (signal.aborted) return {};
+                return getSideProcessedResultState(
+                  currentState,
+                  sideIndex,
+                  processed,
+                  sidePlan.processorState,
+                );
+              });
+            } else {
+              processed = sidePlan.processed!;
+            }
+
+            file = await compressImage(
+              signal,
+              processed,
+              sidePlan.encoderState,
+              source.file.name,
+              workerBridge,
+            );
+            data = await decodeImage(signal, file, workerBridge);
+
+            const cacheEntry = getSideJobCacheEntry(
+              sidePlan,
+              { data, file, processed },
+              source.preprocessed,
+            );
+            if (cacheEntry) this.encodeCache.add(cacheEntry);
           }
 
-          file = await compressImage(
-            signal,
+          const sideResult = getSideJobEncodedResult(jobState, {
+            data,
+            file,
             processed,
-            sidePlan.encoderState,
-            source.file.name,
-            workerBridge,
-          );
-          data = await decodeImage(signal, file, workerBridge);
+          });
 
-          const cacheEntry = getSideJobCacheEntry(
-            sidePlan,
-            { data, file, processed },
-            source.preprocessed,
+          this.setState((currentState) => {
+            if (signal.aborted) return {};
+            return getSideEncodedResultState(
+              currentState,
+              sideIndex,
+              sideResult,
+            );
+          });
+
+          this.activeSideJobs = getActiveImageJobsAfterSideCompletion(
+            {
+              mainJob: this.activeMainJob,
+              sideJobs: this.activeSideJobs,
+            },
+            sideIndex,
+          ).sideJobs;
+        } catch (err) {
+          if (isAbortError(err)) return;
+          if (this.isUnmounted) return;
+          this.setState((currentState) => {
+            return getSideLoadingState(currentState, sideIndex, false);
+          });
+          this.showSnackIfMounted(
+            getImageProcessingErrorMessage('processing', err),
           );
-          if (cacheEntry) this.encodeCache.add(cacheEntry);
+          throw err;
         }
-
-        const sideResult = getSideJobEncodedResult(jobState, {
-          data,
-          file,
-          processed,
-        });
-
-        this.setState((currentState) => {
-          if (signal.aborted) return {};
-          return getSideEncodedResultState(currentState, sideIndex, sideResult);
-        });
-
-        this.activeSideJobs = getActiveImageJobsAfterSideCompletion(
-          {
-            mainJob: this.activeMainJob,
-            sideJobs: this.activeSideJobs,
-          },
-          sideIndex,
-        ).sideJobs;
-      } catch (err) {
-        if (isAbortError(err)) return;
-        if (this.isUnmounted) return;
-        this.setState((currentState) => {
-          return getSideLoadingState(currentState, sideIndex, false);
-        });
-        this.showSnackIfMounted(
-          getImageProcessingErrorMessage('processing', err),
-        );
-        throw err;
-      }
-    });
+      },
+    );
   }
 
   render(
