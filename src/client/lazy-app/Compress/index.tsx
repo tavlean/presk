@@ -72,12 +72,12 @@ import {
   getSourcePreprocessStartState,
 } from './source-state';
 import { getImageProcessingErrorMessage } from './processing-errors';
+import { runSideEncodingPlan } from './side-job-runner';
 import {
   getActiveImageJobsAfterStarts,
   getActiveImageJobsAfterMainCompletion,
   getActiveImageJobsAfterSideCompletion,
   getImageWorkAbortPlan,
-  getSideJobCacheEntry,
   getSideJobEncodedResult,
   getSideJobExecutionPlan,
   getPlannedImageWork,
@@ -488,9 +488,6 @@ export default class Compress extends Component<Props, State> {
         try {
           const signal = sideSignals[sideIndex];
           const workerBridge = this.workerBridges[sideIndex];
-          let file: File;
-          let data: ImageData;
-          let processed: ImageData | undefined = undefined;
           const sidePlan = getSideJobExecutionPlan({
             currentProcessed: currentState.sides[sideIndex].processed,
             getCacheResult: (...args) => this.encodeCache.match(...args),
@@ -500,25 +497,24 @@ export default class Compress extends Component<Props, State> {
             sourcePreprocessed: source.preprocessed,
           });
 
-          if (sidePlan.kind === 'skip') return;
-
-          if (sidePlan.kind === 'original' || sidePlan.kind === 'cache') {
-            ({ file, processed, data } = sidePlan.result);
-          } else {
-            // Set loading state for this side
-            this.setState((currentState) => {
-              if (signal.aborted) return {};
-              return getSideLoadingState(currentState, sideIndex, true);
-            });
-
-            if (sidePlan.needsProcessing) {
-              processed = await processImage(
-                signal,
-                source,
-                sidePlan.processorState,
-                workerBridge,
-              );
-
+          const result = await runSideEncodingPlan({
+            signal,
+            sidePlan,
+            source,
+            sourceFileName: source.file.name,
+            workerBridge,
+            pipeline: {
+              processImage,
+              compressImage,
+              decodeImage,
+            },
+            onProcessingStart: () => {
+              this.setState((currentState) => {
+                if (signal.aborted) return {};
+                return getSideLoadingState(currentState, sideIndex, true);
+              });
+            },
+            onProcessed: (processed, processorState) => {
               // Update state for process completion, including intermediate render
               this.setState((currentState) => {
                 if (signal.aborted) return {};
@@ -526,34 +522,19 @@ export default class Compress extends Component<Props, State> {
                   currentState,
                   sideIndex,
                   processed,
-                  sidePlan.processorState,
+                  processorState,
                 );
               });
-            } else {
-              processed = sidePlan.processed!;
-            }
+            },
+            onCacheEntry: (cacheEntry) => this.encodeCache.add(cacheEntry),
+          });
 
-            file = await compressImage(
-              signal,
-              processed,
-              sidePlan.encoderState,
-              source.file.name,
-              workerBridge,
-            );
-            data = await decodeImage(signal, file, workerBridge);
-
-            const cacheEntry = getSideJobCacheEntry(
-              sidePlan,
-              { data, file, processed },
-              source.preprocessed,
-            );
-            if (cacheEntry) this.encodeCache.add(cacheEntry);
-          }
+          if (!result) return;
 
           const sideResult = getSideJobEncodedResult(jobState, {
-            data,
-            file,
-            processed,
+            data: result.data,
+            file: result.file,
+            processed: result.processed,
           });
 
           this.setState((currentState) => {
