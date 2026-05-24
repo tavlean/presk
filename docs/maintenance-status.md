@@ -218,6 +218,9 @@ Latest verification run:
 - `npm run check`: passed after extracting runnable side job records and updating dashboard/docs.
 - `npm run smoke:browser`: passed after extracting runnable side job records; production build still imports PNG, exports WebP, resizes WebP to `64px`, imports saved side settings, handles extensionless input naming, reloads the app shell offline, and loads with service worker disabled.
 - `npm run dashboard`: confirmed the dashboard is already running at `http://localhost:4177`; local dashboard HTML shows side job run records, five top cards, and only the Svelte `+1` top-card delta.
+- `npm run test:helpers`: passed after hardening runnable side job records for missing job-state entries.
+- `npm run dashboard`: confirmed the dashboard is already running at `http://localhost:4177`; local dashboard HTML shows runnable job hardening, five top cards, and no stale top-card deltas.
+- `gh run list --repo tavlean/sqush --branch main --limit 1`: latest pushed CI run `26375595677` completed successfully for `72ef7ba`.
 - `npm run test:helpers`: passed after extracting result initial loading state.
 - `npm run typecheck`: passed after extracting result initial loading state.
 - `npm run check`: passed after extracting result initial loading state and updating dashboard/docs.

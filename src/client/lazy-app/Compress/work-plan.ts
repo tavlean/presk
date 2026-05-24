@@ -300,11 +300,19 @@ export function getRunnableSideJobs(
   sideWorksNeeded: readonly SideWorkNeeded[],
   sideJobStates: readonly SideJobState[],
 ): RunnableSideJob[] {
-  return getRunnableSideJobIndexes(sideWorksNeeded).map((sideIndex) => ({
-    sideIndex,
-    sideWorkNeeded: sideWorksNeeded[sideIndex],
-    jobState: sideJobStates[sideIndex],
-  }));
+  return getRunnableSideJobIndexes(sideWorksNeeded).flatMap((sideIndex) => {
+    const sideWorkNeeded = sideWorksNeeded[sideIndex];
+    const jobState = sideJobStates[sideIndex];
+    if (!sideWorkNeeded || !jobState) return [];
+
+    return [
+      {
+        sideIndex,
+        sideWorkNeeded,
+        jobState,
+      },
+    ];
+  });
 }
 
 export function getSideEncodingPlan({
