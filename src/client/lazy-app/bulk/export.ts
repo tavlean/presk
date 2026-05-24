@@ -11,6 +11,14 @@ export interface BulkExportSummary {
   percentChange: number;
 }
 
+export interface BulkOutputSummary {
+  optimized: number;
+  stale: number;
+  totalOriginalSize: number;
+  totalOutputSize: number;
+  percentChange: number;
+}
+
 export interface BulkExportEntry {
   job: ImageJob;
   fileName: string;
@@ -99,6 +107,36 @@ export function getBulkExportSummary(session: BulkSession): BulkExportSummary {
     failed,
     pending,
     skipped,
+    totalOriginalSize,
+    totalOutputSize,
+    percentChange: totalOriginalSize
+      ? (totalOutputSize / totalOriginalSize - 1) * 100
+      : 0,
+  };
+}
+
+export function getBulkOutputSummary(session: BulkSession): BulkOutputSummary {
+  let optimized = 0;
+  let stale = 0;
+  let totalOriginalSize = 0;
+  let totalOutputSize = 0;
+
+  for (const job of session.jobs) {
+    if (!job.output) continue;
+
+    if (isJobOutputStale(session, job)) {
+      stale += 1;
+      continue;
+    }
+
+    optimized += 1;
+    totalOriginalSize += job.originalSize;
+    totalOutputSize += job.output.size;
+  }
+
+  return {
+    optimized,
+    stale,
     totalOriginalSize,
     totalOutputSize,
     percentChange: totalOriginalSize
