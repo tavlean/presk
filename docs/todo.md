@@ -180,6 +180,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image source-state tests now cover orientation-change detection and resize width/height swapping after rotation.
     - Single-image document-title tests now cover idle, loading, and loaded file title text.
     - Single-image document-title tests now cover loading-state detection, file info derivation, and update gating.
+    - Single-image image update scheduling tests now cover immediate updates plus default and custom deferred delays.
     - Single-image display-state tests now cover the composed output/result render model consumed by the editor.
     - Single-image side-copy tests now cover side index lookup, feedback action data, and blob URL regeneration when copying one side to the other.
     - Single-image processing error tests now cover source decode, preprocessing, and side processing messages.

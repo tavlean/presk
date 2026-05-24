@@ -18,6 +18,10 @@ import ResultCache from './result-cache';
 import { getDocumentTitle, type LoadingFileInfo } from './document-title';
 import { getEditorUpdateEffects } from './editor-lifecycle';
 import {
+  getImageUpdateSchedule,
+  type ImageUpdateScheduleOptions,
+} from './update-scheduler';
+import {
   copySideToOther,
   getCopySideAction,
   getOtherSideIndex,
@@ -302,16 +306,19 @@ export default class Compress extends Component<Props, State> {
    * Debounce the heavy lifting of updateImage.
    * Otherwise, the thrashing causes jank, and sometimes crashes iOS Safari.
    */
-  private queueUpdateImage({ immediate }: { immediate?: boolean } = {}): void {
+  private queueUpdateImage(options: ImageUpdateScheduleOptions = {}): void {
     // Call updateImage after this delay, unless queueUpdateImage is called
     // again, in which case the timeout is reset.
-    const delay = 100;
+    const schedule = getImageUpdateSchedule(options);
 
     clearTimeout(this.updateImageTimeout);
-    if (immediate) {
+    if (schedule.kind === 'immediate') {
       this.updateImage();
     } else {
-      this.updateImageTimeout = setTimeout(() => this.updateImage(), delay);
+      this.updateImageTimeout = setTimeout(
+        () => this.updateImage(),
+        schedule.delay,
+      );
     }
   }
 
