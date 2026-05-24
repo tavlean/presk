@@ -57,6 +57,26 @@ export interface EncodedSideState extends ProcessingSideState, LoadableSide {
   downloadUrl?: string;
 }
 
+export interface SideLoadingState<Side extends LoadableSide> {
+  sides: [Side, Side];
+}
+
+export interface SideProcessedResultState<Side extends ProcessingSideState> {
+  sides: [Side, Side];
+}
+
+export interface SideEncodedResultState<Side extends EncodedSideState> {
+  sides: [Side, Side];
+}
+
+export interface SideEncodedResult {
+  data: unknown;
+  file: unknown;
+  processed: unknown;
+  processorState: ProcessorState;
+  encoderState: SideSettings['encoderState'];
+}
+
 export interface InitialSideState {
   latestSettings: SideSettings;
   encodedSettings?: SideSettings;
@@ -278,6 +298,15 @@ export function setSideLoading<Side extends LoadableSide>(
   return cleanMerge(sides, index, { loading });
 }
 
+export function getSideLoadingState<
+  Side extends LoadableSide,
+  State extends SideLoadingState<Side>,
+>(state: State, index: SideIndex, loading: boolean): Pick<State, 'sides'> {
+  return {
+    sides: setSideLoading(state.sides, index, loading),
+  };
+}
+
 export function setSideProcessedResult<Side extends ProcessingSideState>(
   sides: [Side, Side],
   index: SideIndex,
@@ -296,16 +325,29 @@ export function setSideProcessedResult<Side extends ProcessingSideState>(
   });
 }
 
+export function getSideProcessedResultState<
+  Side extends ProcessingSideState,
+  State extends SideProcessedResultState<Side>,
+>(
+  state: State,
+  index: SideIndex,
+  processed: unknown,
+  processorState: ProcessorState,
+): Pick<State, 'sides'> {
+  return {
+    sides: setSideProcessedResult(
+      state.sides,
+      index,
+      processed,
+      processorState,
+    ),
+  };
+}
+
 export function setSideEncodedResult<Side extends EncodedSideState>(
   sides: [Side, Side],
   index: SideIndex,
-  result: {
-    data: unknown;
-    file: unknown;
-    processed: unknown;
-    processorState: ProcessorState;
-    encoderState: SideSettings['encoderState'];
-  },
+  result: SideEncodedResult,
   createObjectUrl: (file: unknown) => string = (file) =>
     URL.createObjectURL(file as Blob),
   revokeObjectUrl: (url: string) => void = URL.revokeObjectURL,
@@ -328,4 +370,25 @@ export function setSideEncodedResult<Side extends EncodedSideState>(
       encoderState: result.encoderState,
     },
   });
+}
+
+export function getSideEncodedResultState<
+  Side extends EncodedSideState,
+  State extends SideEncodedResultState<Side>,
+>(
+  state: State,
+  index: SideIndex,
+  result: SideEncodedResult,
+  createObjectUrl?: (file: unknown) => string,
+  revokeObjectUrl?: (url: string) => void,
+): Pick<State, 'sides'> {
+  return {
+    sides: setSideEncodedResult(
+      state.sides,
+      index,
+      result,
+      createObjectUrl,
+      revokeObjectUrl,
+    ),
+  };
 }

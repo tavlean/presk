@@ -54,14 +54,14 @@ import {
   applySavedSideSettings,
   getSideEncoderOptionsChangeState,
   getSideEncoderTypeChangeState,
+  getSideEncodedResultState,
+  getSideLoadingState,
+  getSideProcessedResultState,
   getSideProcessorOptionsChangeState,
   restoreSide,
   resetSidesForNewSourceData,
   revokeSideDownloadUrls,
   setPreprocessedSourceState,
-  setSideEncodedResult,
-  setSideLoading,
-  setSideProcessedResult,
   type SideIndex,
 } from './side-state';
 import {
@@ -497,9 +497,7 @@ export default class Compress extends Component<Props, State> {
           // Set loading state for this side
           this.setState((currentState) => {
             if (signal.aborted) return {};
-            return {
-              sides: setSideLoading(currentState.sides, sideIndex, true),
-            };
+            return getSideLoadingState(currentState, sideIndex, true);
           });
 
           if (sidePlan.needsProcessing) {
@@ -513,14 +511,12 @@ export default class Compress extends Component<Props, State> {
             // Update state for process completion, including intermediate render
             this.setState((currentState) => {
               if (signal.aborted) return {};
-              return {
-                sides: setSideProcessedResult(
-                  currentState.sides,
-                  sideIndex,
-                  processed,
-                  sidePlan.processorState,
-                ),
-              };
+              return getSideProcessedResultState(
+                currentState,
+                sideIndex,
+                processed,
+                sidePlan.processorState,
+              );
             });
           } else {
             processed = sidePlan.processed!;
@@ -551,22 +547,14 @@ export default class Compress extends Component<Props, State> {
 
         this.setState((currentState) => {
           if (signal.aborted) return {};
-          return {
-            sides: setSideEncodedResult(
-              currentState.sides,
-              sideIndex,
-              sideResult,
-            ),
-          };
+          return getSideEncodedResultState(currentState, sideIndex, sideResult);
         });
 
         this.activeSideJobs[sideIndex] = undefined;
       } catch (err) {
         if (isAbortError(err)) return;
         this.setState((currentState) => {
-          return {
-            sides: setSideLoading(currentState.sides, sideIndex, false),
-          };
+          return getSideLoadingState(currentState, sideIndex, false);
         });
         this.props.showSnack(getImageProcessingErrorMessage('processing', err));
         throw err;
