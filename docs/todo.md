@@ -119,11 +119,8 @@ This list is ordered by priority. Do the high-priority items before building new
     - Output filename tests now cover extensionless sources, trailing dots, hidden names, and path-like source names.
     - Single-image side reset tests now cover clearing both side outputs and revoking both side download URLs when a new source image is loaded.
     - MIME sniffing tests now cover PNG, JPEG, WebP, TIFF, AVIF, JPEG XL, unknown data, a TIFF false-positive guard, and a non-AVIF `ftyp` guard.
+    - Utility tests now cover `clean-modify`, `pretty-bytes`, saved-settings parsing/validation, and MIME sniffing behavior.
     - `npm run test:unit` runs the current pure-helper test suite.
-    - `clean-modify`
-    - `pretty-bytes`
-    - MIME sniffing behavior if it can be isolated
-    - saved-settings parse/validate logic
 
 16. Completed: add CI for the real supported platform matrix.
 

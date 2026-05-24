@@ -4,6 +4,8 @@ This document records what the current repository contains. It is not a guarante
 
 The original Squoosh project committed generated JavaScript and WebAssembly outputs under `codecs/`. Sqush still relies on those committed outputs during the Rollup build.
 
+Current inventory note: `codecs/` contains 80 committed JavaScript/WebAssembly codec artifacts, including browser builds, Node-targeted builds, threaded builds, SIMD builds, and worker companions. That means codec cleanup can reduce repository weight, but it also has a high breakage risk.
+
 ## Important rule
 
 Do not delete or rebuild codec files casually. A codec change can affect:
@@ -70,6 +72,14 @@ To reduce risk, first hide unwanted codecs from product UI after design discussi
 2. Browser smoke tests cover at least WebP and AVIF.
 3. A build confirms generated feature metadata and service-worker caching still work.
 4. A branch or tag preserves the pre-deletion codec state.
+
+Before deleting any codec family, also record:
+
+- which `src/features/**` modules import it;
+- whether it is an input decoder, output encoder, processor, or build-only helper;
+- whether service-worker cache generation references its output files;
+- whether browser smoke covers an equivalent replacement path;
+- the exact files removed and the post-removal `npm run check` result.
 
 ## Missing provenance
 
