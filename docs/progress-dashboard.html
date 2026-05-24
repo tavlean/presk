@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>app shell listener cleanup</strong>
+            <strong>app shell async guards</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -946,6 +946,10 @@
                     <li>
                       Initial app global gesture and popstate listeners now have
                       matching unmount cleanup.
+                    </li>
+                    <li>
+                      Initial app lazy-load, share-target, and snackbar async
+                      callbacks now guard against post-unmount updates.
                     </li>
                     <li>
                       Stateless checkbox, toggle, select, and revealer option

@@ -39,29 +39,34 @@ export default class App extends Component<Props, State> {
   state: State = getInitialAppState(location.href);
 
   snackbar?: SnackBarElement;
+  private isUnmounted = false;
 
   constructor() {
     super();
 
     compressPromise
       .then((module) => {
+        if (this.isUnmounted) return;
         this.setState(getCompressLoadedState(module.default));
       })
       .catch(() => {
-        this.showSnack('Failed to load app');
+        this.showSnackIfMounted('Failed to load app');
       });
 
     swBridgePromise.then(async ({ offliner, getSharedImage }) => {
-      offliner(this.showSnack);
+      if (this.isUnmounted) return;
+      offliner(this.showSnackIfMounted);
       if (!this.state.awaitingShareTarget) return;
       let file: File;
       try {
         file = await getSharedImage();
       } catch {
-        this.showSnack('Failed to load shared image');
+        if (this.isUnmounted) return;
+        this.showSnackIfMounted('Failed to load shared image');
         this.setState(getShareTargetErrorState());
         return;
       }
+      if (this.isUnmounted) return;
       // Remove the ?share-target from the URL
       history.replaceState('', '', '/');
       this.openEditor();
@@ -78,6 +83,7 @@ export default class App extends Component<Props, State> {
   }
 
   componentWillUnmount() {
+    this.isUnmounted = true;
     document.body.removeEventListener('gesturestart', this.onGestureStart);
     window.removeEventListener('popstate', this.onPopState);
   }
@@ -104,6 +110,14 @@ export default class App extends Component<Props, State> {
   ): Promise<string> => {
     if (!this.snackbar) throw Error('Snackbar missing');
     return this.snackbar.showSnackbar(message, options);
+  };
+
+  private showSnackIfMounted = (
+    message: string,
+    options: SnackOptions = {},
+  ): Promise<string> => {
+    if (this.isUnmounted) return Promise.resolve('dismiss');
+    return this.showSnack(message, options);
   };
 
   private onPopState = () => {
