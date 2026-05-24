@@ -28,9 +28,14 @@ import {
 import { getOutputPreviewState } from './preview-state';
 import {
   getNextOutputScale,
+  getAliasingToggleState,
+  getBackgroundToggleState,
+  getEditingScaleState,
   getOutputScaleFromPercent,
   getOutputScalePercent,
+  getPinchZoomScaleState,
   getRotatedPreprocessorState,
+  shouldRetargetOutputEvent,
 } from './control-state';
 interface Props {
   source?: SourceImage;
@@ -149,15 +154,11 @@ export default class Output extends Component<Props, State> {
   }
 
   private toggleAliasing = () => {
-    this.setState((state) => ({
-      aliasing: !state.aliasing,
-    }));
+    this.setState(getAliasingToggleState);
   };
 
   private toggleBackground = () => {
-    this.setState({
-      altBackground: !this.state.altBackground,
-    });
+    this.setState(getBackgroundToggleState);
   };
 
   private zoomIn = () => {
@@ -186,7 +187,7 @@ export default class Output extends Component<Props, State> {
   };
 
   private onScaleValueFocus = () => {
-    this.setState({ editingScale: true }, () => {
+    this.setState(getEditingScaleState(true), () => {
       if (this.scaleInput) {
         // Firefox unfocuses the input straight away unless I force a style
         // calculation here. I have no idea why, but it's late and I'm quite
@@ -198,7 +199,7 @@ export default class Output extends Component<Props, State> {
   };
 
   private onScaleInputBlur = () => {
-    this.setState({ editingScale: false });
+    this.setState(getEditingScaleState(false));
   };
 
   private onScaleInputChanged = (event: Event) => {
@@ -214,9 +215,7 @@ export default class Output extends Component<Props, State> {
     if (!this.pinchZoomRight || !this.pinchZoomLeft) {
       throw Error('Missing pinch-zoom element');
     }
-    this.setState({
-      scale: this.pinchZoomLeft.scale,
-    });
+    this.setState(getPinchZoomScaleState(this.pinchZoomLeft.scale));
     this.pinchZoomRight.setTransform({
       scale: this.pinchZoomLeft.scale,
       x: this.pinchZoomLeft.x,
@@ -237,9 +236,15 @@ export default class Output extends Component<Props, State> {
     if (!this.pinchZoomLeft) throw Error('Missing pinch-zoom element');
     // If the event is on the handle of the two-up, let it through,
     // unless it's a wheel event, in which case always let it through.
-    if (event.type !== 'wheel' && targetEl.closest(`.${twoUpHandle}`)) return;
-    // If we've already retargeted this event, let it through.
-    if (this.retargetedEvents.has(event)) return;
+    if (
+      !shouldRetargetOutputEvent({
+        eventType: event.type,
+        isTwoUpHandle: Boolean(targetEl.closest(`.${twoUpHandle}`)),
+        alreadyRetargeted: this.retargetedEvents.has(event),
+      })
+    ) {
+      return;
+    }
     // Stop the event in its tracks.
     event.stopImmediatePropagation();
     event.preventDefault();
