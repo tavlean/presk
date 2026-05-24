@@ -203,3 +203,23 @@ export function requeueIncompleteJobs(session: BulkSession): BulkSession {
     activeJobs: Math.max(0, normalizedSession.activeJobs - requeuedActiveCount),
   };
 }
+
+export function cancelActiveJobs(session: BulkSession): BulkSession {
+  const normalizedSession = normalizeBulkSessionCounters(session);
+  let canceledActiveCount = 0;
+
+  return {
+    ...normalizedSession,
+    jobs: normalizedSession.jobs.map((job) => {
+      if (!isActiveStatus(job.status)) return job;
+      canceledActiveCount += 1;
+      return {
+        ...job,
+        status: 'queued',
+        output: undefined,
+        error: undefined,
+      };
+    }),
+    activeJobs: Math.max(0, normalizedSession.activeJobs - canceledActiveCount),
+  };
+}
