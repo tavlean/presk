@@ -38,6 +38,10 @@ export interface LatestSettingsSide {
   latestSettings: SideSettings;
 }
 
+export interface SideSettingsState<Side extends LatestSettingsSide> {
+  sides: [Side, Side];
+}
+
 export interface LoadableSide {
   loading: boolean;
 }
@@ -225,6 +229,45 @@ export function setSideProcessorState<Side extends LatestSettingsSide>(
     `${index}.latestSettings.processorState`,
     processorState,
   );
+}
+
+export function getSideEncoderTypeChangeState<
+  Side extends LatestSettingsSide,
+  State extends SideSettingsState<Side>,
+>(
+  state: State,
+  index: SideIndex,
+  newType: SideOutputType,
+): Pick<State, 'sides'> {
+  return {
+    sides: setSideEncoderType(state.sides, index, newType),
+  };
+}
+
+export function getSideEncoderOptionsChangeState<
+  Side extends LatestSettingsSide,
+  State extends SideSettingsState<Side>,
+>(
+  state: State,
+  index: SideIndex,
+  options: EncoderOptions,
+): Pick<State, 'sides'> {
+  return {
+    sides: setSideEncoderOptions(state.sides, index, options),
+  };
+}
+
+export function getSideProcessorOptionsChangeState<
+  Side extends LatestSettingsSide,
+  State extends SideSettingsState<Side>,
+>(
+  state: State,
+  index: SideIndex,
+  processorState: ProcessorState,
+): Pick<State, 'sides'> {
+  return {
+    sides: setSideProcessorState(state.sides, index, processorState),
+  };
 }
 
 export function setSideLoading<Side extends LoadableSide>(

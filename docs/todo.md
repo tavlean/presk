@@ -203,6 +203,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side-state tests now cover loading transitions, intermediate processed output, final encoded output, and old blob URL revocation.
     - Single-image side-state tests now cover preprocessing completion state updates and old side output cleanup.
     - Single-image side-state tests now cover restoring a previous side during undo.
+    - Single-image side-state tests now cover encoder and processor settings state patches.
     - Single-image editor-state tests now cover initial default state and saved-settings state composition.
     - Saved-settings tests now cover side storage key and label lookup.
     - Output filename tests now cover extensionless sources, trailing dots, hidden names, path-like source names, punctuation-only names, and Windows reserved names.

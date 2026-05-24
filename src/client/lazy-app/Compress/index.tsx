@@ -52,16 +52,16 @@ import {
 } from './saved-settings';
 import {
   applySavedSideSettings,
+  getSideEncoderOptionsChangeState,
+  getSideEncoderTypeChangeState,
+  getSideProcessorOptionsChangeState,
   restoreSide,
   resetSidesForNewSourceData,
   revokeSideDownloadUrls,
   setPreprocessedSourceState,
-  setSideEncoderOptions,
-  setSideEncoderType,
   setSideEncodedResult,
   setSideLoading,
   setSideProcessedResult,
-  setSideProcessorState,
   type SideIndex,
 } from './side-state';
 import {
@@ -158,27 +158,27 @@ export default class Compress extends Component<Props, State> {
   };
 
   private onEncoderTypeChange = (index: 0 | 1, newType: OutputType): void => {
-    this.setState({
-      sides: setSideEncoderType(this.state.sides, index, newType),
-    });
+    this.setState((state) =>
+      getSideEncoderTypeChangeState(state, index, newType),
+    );
   };
 
   private onProcessorOptionsChange = (
     index: 0 | 1,
     options: ProcessorState,
   ): void => {
-    this.setState({
-      sides: setSideProcessorState(this.state.sides, index, options),
-    });
+    this.setState((state) =>
+      getSideProcessorOptionsChangeState(state, index, options),
+    );
   };
 
   private onEncoderOptionsChange = (
     index: 0 | 1,
     options: EncoderOptions,
   ): void => {
-    this.setState({
-      sides: setSideEncoderOptions(this.state.sides, index, options),
-    });
+    this.setState((state) =>
+      getSideEncoderOptionsChangeState(state, index, options),
+    );
   };
 
   componentWillUnmount(): void {
