@@ -12,8 +12,22 @@ export interface CopySideResult<Side extends CopyableSide> {
   oldSide: Side;
 }
 
+export interface CopySideAction {
+  message: string;
+  timeout: number;
+  actions: string[];
+}
+
 export function getOtherSideIndex(index: SideIndex): SideIndex {
   return index === 0 ? 1 : 0;
+}
+
+export function getCopySideAction(): CopySideAction {
+  return {
+    message: 'Settings copied across',
+    timeout: 5000,
+    actions: ['undo', 'dismiss'],
+  };
 }
 
 export function copySideToOther<Side extends CopyableSide>(

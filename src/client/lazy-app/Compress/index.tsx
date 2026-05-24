@@ -17,7 +17,11 @@ import Options from './Options';
 import ResultCache from './result-cache';
 import { getDocumentTitle, type LoadingFileInfo } from './document-title';
 import { getEditorUpdateEffects } from './editor-lifecycle';
-import { copySideToOther, getOtherSideIndex } from './side-copy';
+import {
+  copySideToOther,
+  getCopySideAction,
+  getOtherSideIndex,
+} from './side-copy';
 import './custom-els/MultiPanel';
 import Results from './Results';
 import WorkerBridge from '../worker-bridge';
@@ -199,13 +203,11 @@ export default class Compress extends Component<Props, State> {
       sides: result.sides,
     });
 
-    const snackbarResult = await this.props.showSnack(
-      'Settings copied across',
-      {
-        timeout: 5000,
-        actions: ['undo', 'dismiss'],
-      },
-    );
+    const copyAction = getCopySideAction();
+    const snackbarResult = await this.props.showSnack(copyAction.message, {
+      timeout: copyAction.timeout,
+      actions: copyAction.actions,
+    });
 
     if (snackbarResult !== 'undo') return;
 
