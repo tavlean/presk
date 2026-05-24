@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: empty per-image override normalization changed and docs updated. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: add-jobs counter derivation changed and docs updated. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
 Latest local-only committed work at last update:
 
@@ -63,6 +63,8 @@ Latest verification run:
 - `npm run test:unit`: passed after bulk output summary helper.
 - `npm run typecheck`: passed after empty per-image override normalization.
 - `npm run test:unit`: passed after empty per-image override normalization.
+- `npm run typecheck`: passed after add-jobs counter derivation.
+- `npm run test:unit`: passed after add-jobs counter derivation.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -136,6 +138,7 @@ Quick investigation note:
 - Replaced avoidable `any` casts in the result cache processor-state comparison.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Hardened bulk session construction so initial active and exported jobs derive matching counters.
+- Hardened bulk session job additions so active and exported counters update when adding restored jobs.
 - Extracted and tested processor-state equivalence logic from the Preact editor component.
 - Tightened bulk override detection so empty nested override objects are not treated as real overrides.
 - Tightened bulk session updates so empty per-image override objects are stored as no override.

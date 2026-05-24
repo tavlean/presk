@@ -96,10 +96,17 @@ export function addJobs(session: BulkSession, jobs: ImageJob[]): BulkSession {
     id: createUniqueJobId(job.id, usedJobIds),
   }));
   const nextJobs = [...session.jobs, ...newJobs];
+  const addedActiveCount = newJobs.filter(isActiveJob).length;
+  const addedExportedCount = newJobs.filter(
+    (job) => job.status === 'exported',
+  ).length;
+
   return {
     ...session,
     jobs: nextJobs,
     selectedJobId: session.selectedJobId ?? nextJobs[0]?.id,
+    activeJobs: session.activeJobs + addedActiveCount,
+    exportedCount: session.exportedCount + addedExportedCount,
   };
 }
 
