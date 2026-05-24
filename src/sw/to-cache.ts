@@ -6,7 +6,7 @@ import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
 // Give TypeScript the correct global.
 declare var self: ServiceWorkerGlobalScope;
 
-function subtractSets<T extends any>(set1: Set<T>, set2: Set<T>): Set<T> {
+function subtractSets<T>(set1: Set<T>, set2: Set<T>): Set<T> {
   const result = new Set(set1);
   for (const item of set2) result.delete(item);
   return result;

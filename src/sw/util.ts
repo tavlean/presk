@@ -65,21 +65,23 @@ export function cleanupCache(
   event: FetchEvent,
   cacheName: string,
   keepAssets: string[],
-) {
+): void {
   event.waitUntil(
     (async function () {
       const cache = await caches.open(cacheName);
 
       // Clean old entries from the dynamic cache.
       const requests = await cache.keys();
-      const promises = requests.map((cachedRequest) => {
-        // Get pathname without leading /
-        const assetPath = new URL(cachedRequest.url).pathname.slice(1);
-        // If it isn't one of our keepAssets, we don't need it anymore.
-        if (!keepAssets.includes(assetPath)) return cache.delete(cachedRequest);
-      });
+      const promises = requests
+        .filter((cachedRequest) => {
+          // Get pathname without leading /
+          const assetPath = new URL(cachedRequest.url).pathname.slice(1);
+          // If it isn't one of our keepAssets, we don't need it anymore.
+          return !keepAssets.includes(assetPath);
+        })
+        .map((cachedRequest) => cache.delete(cachedRequest));
 
-      await Promise.all<any>(promises);
+      await Promise.all(promises);
     })(),
   );
 }

@@ -14,10 +14,11 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: automated browser smoke command prepared and locally verified. Run `git status --short --branch` for the exact state.
+Working tree at last update: service-worker/shared type cleanup prepared and locally verified. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
+- `f890ea1` Automate production browser smoke
 - `7243559` Summarize bulk job sizes
 - `6f007fe` Add bulk job settings lookup
 - `08cb06a` Add bulk selected job context
@@ -101,6 +102,8 @@ Latest verification run:
 - `npm run test:unit`: passed after bulk per-job size summary helper.
 - `npm run smoke:browser`: passed locally after automating the production-build Playwright CLI WebP output smoke.
 - `npm run check`: passed after adding the automated browser smoke command.
+- `npm run check`: passed after service-worker/shared type cleanup.
+- `npm run smoke:browser`: passed after service-worker/shared type cleanup.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -117,6 +120,7 @@ Latest verification run:
 - Latest observed GitHub Actions state after bulk action/selection/effective-settings cleanup: `6f007fe` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after latest handoff update: `677750f` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after bulk per-job size summaries: `7243559` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after automated browser smoke command: `f890ea1` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
@@ -182,6 +186,7 @@ Quick investigation note:
 - Replaced the core image compression pipeline's encoder options cast with typed encoder dispatch.
 - Replaced the editor encoder options render cast with typed encoder option component dispatch.
 - Replaced avoidable `any` casts in the result cache processor-state comparison.
+- Replaced avoidable `any` usage and optional Promise entries in service-worker cache cleanup and shared ref utilities.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Hardened bulk session construction so initial active and exported jobs derive matching counters.
 - Hardened bulk session job additions so active and exported counters update when adding restored jobs.

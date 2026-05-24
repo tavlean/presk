@@ -19,7 +19,7 @@ const expectedCaches = [versionedCache, dynamicCache];
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async function () {
-      const promises = [];
+      const promises: Promise<unknown>[] = [];
       promises.push(cacheBasics(versionedCache));
 
       // If the user has already interacted with the app, update the codecs too.
@@ -38,12 +38,11 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async function () {
       // Remove old caches.
-      const promises = (await caches.keys()).map((cacheName) => {
-        if (!expectedCaches.includes(cacheName))
-          return caches.delete(cacheName);
-      });
+      const promises = (await caches.keys())
+        .filter((cacheName) => !expectedCaches.includes(cacheName))
+        .map((cacheName) => caches.delete(cacheName));
 
-      await Promise.all<any>(promises);
+      await Promise.all(promises);
     })(),
   );
 });

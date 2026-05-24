@@ -3,13 +3,15 @@
  *  // element is stored as `this.foo` when rendered.
  *  <div ref={linkRef(this, 'foo')} />
  */
-export function linkRef<T>(obj: any, name: string) {
+export function linkRef<T>(obj: object, name: string): (value: T) => void {
+  const refs = obj as Record<string, unknown>;
   const refName = `$$ref_${name}`;
-  let ref = obj[refName];
+  let ref = refs[refName] as ((value: T) => void) | undefined;
   if (!ref) {
-    ref = obj[refName] = (c: T) => {
-      obj[name] = c;
+    ref = (value: T) => {
+      refs[name] = value;
     };
+    refs[refName] = ref;
   }
   return ref;
 }
