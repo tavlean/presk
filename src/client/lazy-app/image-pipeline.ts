@@ -57,8 +57,18 @@ export async function decodeImage(
     return await builtinDecode(signal, blob);
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') throw err;
-    console.log(err);
-    throw Error("Couldn't decode image");
+    const error = Error("Couldn't decode image");
+    if (err instanceof Error) {
+      try {
+        Object.defineProperty(error, 'cause', {
+          value: err,
+          configurable: true,
+        });
+      } catch {
+        // Older browsers may not allow adding a cause. The user-facing error is still useful.
+      }
+    }
+    throw error;
   }
 }
 
