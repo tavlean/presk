@@ -4,11 +4,15 @@ import 'add-css:./style.css';
 import RangeInputElement from './custom-els/RangeInput';
 import './custom-els/RangeInput';
 import { linkRef } from 'shared/prerendered-app/util';
+import {
+  getRangeInputValueForCommit,
+  getRangeTextFocusState,
+  getRangeTextValue,
+  type RangeState,
+} from './state';
 
 interface Props extends preact.JSX.HTMLAttributes {}
-interface State {
-  textFocused: boolean;
-}
+type State = RangeState;
 
 export default class Range extends Component<Props, State> {
   rangeWc?: RangeInputElement;
@@ -16,9 +20,9 @@ export default class Range extends Component<Props, State> {
 
   private onTextInput = (event: Event) => {
     const input = event.target as HTMLInputElement;
-    const value = input.value.trim();
+    const value = getRangeInputValueForCommit(input.value);
     if (!value) return;
-    this.rangeWc!.value = input.value;
+    this.rangeWc!.value = value;
     this.rangeWc!.dispatchEvent(
       new InputEvent('input', {
         bubbles: event.bubbles,
@@ -27,18 +31,18 @@ export default class Range extends Component<Props, State> {
   };
 
   private onTextFocus = () => {
-    this.setState({ textFocused: true });
+    this.setState(getRangeTextFocusState(true));
   };
 
   private onTextBlur = () => {
-    this.setState({ textFocused: false });
+    this.setState(getRangeTextFocusState(false));
   };
 
   render(props: Props, state: State) {
     const { children, ...otherProps } = props;
 
     const { value, min, max, step } = props;
-    const textValue = state.textFocused ? this.inputEl!.value : value;
+    const textValue = getRangeTextValue(state, this.inputEl?.value, value);
 
     return (
       <label class={style.range}>
