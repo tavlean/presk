@@ -18,11 +18,18 @@ import {
 import WorkerBridge from './worker-bridge';
 import { resize } from 'features/processors/resize/client';
 import { getOutputFileName } from './output-filename';
+import { drawableToImageData } from './util/canvas';
 
 export interface SourceImage {
   file: File;
   decoded: ImageData;
   preprocessed: ImageData;
+  vectorImage?: HTMLImageElement;
+}
+
+export interface DecodedSourceImage {
+  file: File;
+  decoded: ImageData;
   vectorImage?: HTMLImageElement;
 }
 
@@ -70,6 +77,31 @@ export async function decodeImage(
     }
     throw error;
   }
+}
+
+export async function decodeSourceImage(
+  signal: AbortSignal,
+  file: File,
+  workerBridge: WorkerBridge,
+): Promise<DecodedSourceImage> {
+  assertSignal(signal);
+
+  // Special-case SVG. We need to avoid createImageBitmap because of
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=606319.
+  // Also, we cache the HTMLImageElement so vector resizing can use it later.
+  if (file.type.startsWith('image/svg+xml')) {
+    const vectorImage = await processSvg(signal, file);
+    return {
+      file,
+      vectorImage,
+      decoded: drawableToImageData(vectorImage),
+    };
+  }
+
+  return {
+    file,
+    decoded: await decodeImage(signal, file, workerBridge),
+  };
 }
 
 export async function preprocessImage(

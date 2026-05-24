@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sqush Progress Dashboard</title>
+    <style>
+      :root {
+        --bg: #f7f8f6;
+        --panel: #ffffff;
+        --text: #17201b;
+        --muted: #6b756f;
+        --line: #dfe4df;
+        --green: #178461;
+        --blue: #3266c8;
+        --amber: #a96a12;
+        --track: #e9ede9;
+        --shadow: 0 10px 28px rgb(30 42 35 / 0.07);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1080px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 36px 0 52px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 24px;
+        align-items: end;
+        margin-bottom: 28px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 34px;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 17px;
+        line-height: 1.25;
+      }
+
+      .subtitle {
+        max-width: 720px;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.55;
+      }
+
+      .meta {
+        min-width: 250px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.8;
+      }
+
+      .meta-row strong {
+        color: var(--text);
+        font-weight: 650;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .metric,
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .metric {
+        padding: 16px;
+      }
+
+      .metric strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 28px;
+        line-height: 1;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .panel + .panel {
+        margin-top: 18px;
+      }
+
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: #edf4ef;
+        color: var(--green);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .badge.warn {
+        background: #fff4e3;
+        color: var(--amber);
+      }
+
+      .progress-list {
+        display: grid;
+        gap: 15px;
+      }
+
+      .progress-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 7px;
+        font-size: 14px;
+        font-weight: 650;
+      }
+
+      .progress-top span:last-child {
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .bar {
+        height: 9px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--track);
+      }
+
+      .bar span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--green);
+      }
+
+      .progress-note,
+      .item p,
+      .note {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .progress-note {
+        margin-top: 7px;
+      }
+
+      .list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .item {
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .item:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      .item strong {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 4px;
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .status.active {
+        color: var(--blue);
+      }
+
+      .status.done {
+        color: var(--green);
+      }
+
+      .status.wait {
+        color: var(--amber);
+      }
+
+      .note {
+        padding: 13px 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfb;
+      }
+
+      footer {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 880px) {
+        header,
+        .metrics,
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        main {
+          width: min(100vw - 24px, 720px);
+          padding-top: 24px;
+        }
+
+        h1 {
+          font-size: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Sqush Progress Dashboard</h1>
+          <p class="subtitle">
+            A clean project status view for repo cleanup, optimizer reliability,
+            bulk-readiness, and eventual Svelte/SvelteKit migration.
+          </p>
+        </div>
+        <aside class="meta" aria-label="Dashboard metadata">
+          <div class="meta-row">
+            <span>Last updated</span>
+            <strong>2026-05-24 22:02 IST</strong>
+          </div>
+          <div class="meta-row">
+            <span>Branch</span>
+            <strong>main</strong>
+          </div>
+          <div class="meta-row">
+            <span>Local gate</span>
+            <strong>passing</strong>
+          </div>
+          <div class="meta-row">
+            <span>Current work</span>
+            <strong>shared source decode</strong>
+          </div>
+        </aside>
+      </header>
+
+      <section class="metrics" aria-label="Headline metrics">
+        <div class="metric">
+          <strong>97%</strong>
+          <span>Stability, CI, security</span>
+        </div>
+        <div class="metric">
+          <strong>93%</strong>
+          <span>Bulk backend foundation</span>
+        </div>
+        <div class="metric">
+          <strong>43%</strong>
+          <span>Repo simplification</span>
+        </div>
+        <div class="metric">
+          <strong>31%</strong>
+          <span>Svelte readiness</span>
+        </div>
+      </section>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Progress</h2>
+            <span class="badge">aligned</span>
+          </div>
+          <div class="progress-list">
+            <div>
+              <div class="progress-top">
+                <span>Stability, CI, and security</span>
+                <span>97%</span>
+              </div>
+              <div class="bar"><span style="width: 97%"></span></div>
+              <p class="progress-note">
+                Audit clean, CI active, local browser smoke covers WebP export,
+                resize, saved settings, extensionless input, and offline shell.
+              </p>
+            </div>
+
+            <div>
+              <div class="progress-top">
+                <span>Documentation and handoff</span>
+                <span>87%</span>
+              </div>
+              <div class="bar"><span style="width: 87%"></span></div>
+              <p class="progress-note">
+                Roadmap, maintenance status, migration context, todo list, and
+                this dashboard are in place.
+              </p>
+            </div>
+
+            <div>
+              <div class="progress-top">
+                <span>Bulk backend foundation</span>
+                <span>93%</span>
+              </div>
+              <div class="bar"><span style="width: 93%"></span></div>
+              <p class="progress-note">
+                Import, queue, processing, summaries, export planning, snapshots,
+                and selected-job view models are framework-neutral.
+              </p>
+            </div>
+
+            <div>
+              <div class="progress-top">
+                <span>Repo simplification</span>
+                <span>43%</span>
+              </div>
+              <div class="bar"><span style="width: 43%"></span></div>
+              <p class="progress-note">
+                Single-image behavior is being extracted from Preact into tested
+                helpers while preserving the current optimizer.
+              </p>
+            </div>
+
+            <div>
+              <div class="progress-top">
+                <span>Svelte/SvelteKit migration readiness</span>
+                <span>31%</span>
+              </div>
+              <div class="bar"><span style="width: 31%"></span></div>
+              <p class="progress-note">
+                Migration has not started. Current work is preparing reusable
+                logic so a later migration is smaller and safer.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Now</h2>
+              <span class="badge warn">no bulk UI yet</span>
+            </div>
+            <div class="list">
+              <div class="item">
+                <strong>
+                  Protect single-image optimization
+                  <span class="status active">active</span>
+                </strong>
+                <p>
+                  Import, preview, resize, encode, download, saved settings, and
+                  offline behavior remain the highest priority.
+                </p>
+              </div>
+              <div class="item">
+                <strong>
+                  Share source decode behavior
+                  <span class="status active">active</span>
+                </strong>
+                <p>
+                  SVG-aware source decoding is moving into the shared image
+                  pipeline so future bulk work uses the same proven path.
+                </p>
+              </div>
+              <div class="item">
+                <strong>
+                  Side result helpers
+                  <span class="status done">done</span>
+                </strong>
+                <p>
+                  Loading, processed result, encoded result, and blob URL cleanup
+                  are now helper-driven and tested.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Next</h2>
+              <span class="badge">priority</span>
+            </div>
+            <div class="list">
+              <div class="item">
+                <strong>
+                  Finish shared source decode cleanup
+                  <span class="status active">next</span>
+                </strong>
+                <p>Update tests/docs, run checks, and commit the pipeline change.</p>
+              </div>
+              <div class="item">
+                <strong>
+                  Reduce Preact coupling
+                  <span class="status wait">planned</span>
+                </strong>
+                <p>Keep extracting pure state and work-planning behavior.</p>
+              </div>
+              <div class="item">
+                <strong>
+                  Codec focus decision
+                  <span class="status wait">planned</span>
+                </strong>
+                <p>Decide the WebP, AVIF, JPEG XL, and WebP 2 support strategy.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Rule</h2>
+              <span class="badge">core</span>
+            </div>
+            <p class="note">
+              The product promise is reliable local image optimization. Bulk
+              features and Svelte migration should improve that promise, not
+              distract from it.
+            </p>
+          </section>
+        </div>
+      </div>
+
+      <footer>
+        Keep this file aligned with `docs/progress-dashboard.md`,
+        `docs/maintenance-status.md`, and `docs/todo.md`.
+      </footer>
+    </main>
+  </body>
+</html>

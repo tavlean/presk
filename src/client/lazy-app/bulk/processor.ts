@@ -1,6 +1,6 @@
 import {
   compressImage,
-  decodeImage,
+  decodeSourceImage,
   preprocessImage,
   processImage,
   SourceImage,
@@ -14,7 +14,7 @@ import type { ImageJob, ImageOutput } from './session';
 import { getPercentChange } from './size';
 
 export interface BulkProcessorPipeline {
-  decodeImage: typeof decodeImage;
+  decodeSourceImage: typeof decodeSourceImage;
   preprocessImage: typeof preprocessImage;
   processImage: typeof processImage;
   compressImage: typeof compressImage;
@@ -38,7 +38,7 @@ export interface BulkProcessPlan {
 }
 
 const defaultPipeline: BulkProcessorPipeline = {
-  decodeImage,
+  decodeSourceImage,
   preprocessImage,
   processImage,
   compressImage,
@@ -73,21 +73,22 @@ export async function processBulkImageJob({
 }: BulkProcessJobOptions): Promise<ImageOutput> {
   const plan = createBulkProcessPlan(job, globalSettings);
 
-  const decoded = await pipeline.decodeImage(
+  const decodedSource = await pipeline.decodeSourceImage(
     signal,
     job.sourceFile,
     workerBridge,
   );
   const preprocessed = await pipeline.preprocessImage(
     signal,
-    decoded,
+    decodedSource.decoded,
     preprocessorState,
     workerBridge,
   );
   const source: SourceImage = {
     file: job.sourceFile,
-    decoded,
+    decoded: decodedSource.decoded,
     preprocessed,
+    vectorImage: decodedSource.vectorImage,
   };
   const processed = await pipeline.processImage(
     signal,

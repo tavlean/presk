@@ -122,6 +122,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Bulk runner tests now cover no-op runs when no jobs are runnable or concurrency is zero.
     - Bulk runner tests now cover draining the full queue across multiple concurrency-limited batches.
     - Bulk processor tests now cover pure process-plan creation before decode starts.
+    - Bulk processing now uses the shared source decode helper, including the SVG/vector path used by the single-image editor.
     - Bulk queue tests now cover derived queue state for normalized concurrency, active counts, open slots, queued counts, and runnable job ids.
     - Bulk requeue tests now cover active jobs being reset and active counters being decremented.
     - Bulk cancellation tests now cover resetting only active jobs while preserving failed, skipped, and completed jobs.
@@ -151,6 +152,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side-state tests now cover loading transitions, intermediate processed output, final encoded output, and old blob URL revocation.
     - Output filename tests now cover extensionless sources, trailing dots, hidden names, path-like source names, punctuation-only names, and Windows reserved names.
     - Single-image and bulk export filenames now share the same basename sanitization helper.
+    - Added `docs/progress-dashboard.html` as a clean direct-open visual progress dashboard for ongoing project status.
     - Single-image side reset tests now cover clearing both side outputs and revoking both side download URLs when a new source image is loaded.
     - MIME sniffing tests now cover PNG, JPEG, WebP, TIFF, AVIF, JPEG XL, unknown data, a TIFF false-positive guard, and a non-AVIF `ftyp` guard.
     - Utility tests now cover `clean-modify`, `pretty-bytes`, saved-settings parsing/validation, and MIME sniffing behavior.

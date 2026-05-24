@@ -27,14 +27,13 @@ import './custom-els/MultiPanel';
 import Results from './Results';
 import WorkerBridge from '../worker-bridge';
 import type SnackBarElement from 'shared/custom-els/snack-bar';
-import { drawableToImageData } from '../util/canvas';
 import {
   SourceImage,
   compressImage,
+  decodeSourceImage,
   decodeImage,
   preprocessImage,
   processImage,
-  processSvg,
 } from '../image-pipeline';
 import {
   SavedSideSettings,
@@ -404,20 +403,13 @@ export default class Compress extends Component<Props, State> {
           loading: true,
         });
 
-        // Special-case SVG. We need to avoid createImageBitmap because of
-        // https://bugs.chromium.org/p/chromium/issues/detail?id=606319.
-        // Also, we cache the HTMLImageElement so we can perform vector resizing later.
-        if (mainJobState.file.type.startsWith('image/svg+xml')) {
-          vectorImage = await processSvg(mainSignal, mainJobState.file);
-          decoded = drawableToImageData(vectorImage);
-        } else {
-          decoded = await decodeImage(
-            mainSignal,
-            mainJobState.file,
-            // Either worker is good enough here.
-            this.workerBridges[0],
-          );
-        }
+        const decodedSource = await decodeSourceImage(
+          mainSignal,
+          mainJobState.file,
+          // Either worker is good enough here.
+          this.workerBridges[0],
+        );
+        ({ decoded, vectorImage } = decodedSource);
 
         // Set default resize values
         this.setState((currentState) => {
