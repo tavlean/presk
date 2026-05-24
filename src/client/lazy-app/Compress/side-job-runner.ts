@@ -1,11 +1,17 @@
 import type { EncoderState, ProcessorState } from '../feature-meta';
 import type { SourceImage } from '../image-pipeline';
 import type {
+  RunnableSideJob,
   SideEncodingPlan,
   SideEncodingResult,
   SideJobCacheEntry,
+  SideJobEncodedResult,
 } from './work-plan';
-import { getSideJobCacheEntry } from './work-plan';
+import {
+  getSideJobCacheEntry,
+  getSideJobEncodedResult,
+  getSideJobExecutionPlan,
+} from './work-plan';
 
 export interface SideJobPipeline<WorkerBridgeType> {
   processImage: (
@@ -38,6 +44,35 @@ export interface RunSideEncodingPlanInput<WorkerBridgeType> {
   onProcessingStart?: () => void;
   onProcessed?: (processed: ImageData, processorState: ProcessorState) => void;
   onCacheEntry?: (cacheEntry: SideJobCacheEntry) => void;
+}
+
+export interface RunRunnableSideJobsInput<WorkerBridgeType> {
+  runnableSideJobs: readonly RunnableSideJob[];
+  sideSignals: readonly AbortSignal[];
+  source: SourceImage;
+  getCurrentProcessed: (sideIndex: number) => ImageData | undefined;
+  getCacheResult: (
+    preprocessed: ImageData,
+    processorState: ProcessorState,
+    encoderState: EncoderState,
+  ) => SideEncodingResult | undefined;
+  getWorkerBridge: (sideIndex: number) => WorkerBridgeType;
+  pipeline: SideJobPipeline<WorkerBridgeType>;
+  onProcessingStart?: (sideIndex: number, signal: AbortSignal) => void;
+  onProcessed?: (
+    sideIndex: number,
+    signal: AbortSignal,
+    processed: ImageData,
+    processorState: ProcessorState,
+  ) => void;
+  onCacheEntry?: (cacheEntry: SideJobCacheEntry) => void;
+  onEncodedResult?: (
+    sideIndex: number,
+    signal: AbortSignal,
+    result: SideJobEncodedResult,
+  ) => void;
+  onSideComplete?: (sideIndex: number) => void;
+  onError?: (sideIndex: number, signal: AbortSignal, error: unknown) => void;
 }
 
 export async function runSideEncodingPlan<WorkerBridgeType>({
@@ -91,4 +126,71 @@ export async function runSideEncodingPlan<WorkerBridgeType>({
   if (cacheEntry) onCacheEntry?.(cacheEntry);
 
   return result;
+}
+
+export function runRunnableSideJobs<WorkerBridgeType>({
+  runnableSideJobs,
+  sideSignals,
+  source,
+  getCurrentProcessed,
+  getCacheResult,
+  getWorkerBridge,
+  pipeline,
+  onProcessingStart,
+  onProcessed,
+  onCacheEntry,
+  onEncodedResult,
+  onSideComplete,
+  onError,
+}: RunRunnableSideJobsInput<WorkerBridgeType>): Promise<void>[] {
+  return runnableSideJobs.map(
+    async ({ sideIndex, sideWorkNeeded, jobState }) => {
+      const signal = sideSignals[sideIndex];
+      try {
+        const sidePlan = getSideJobExecutionPlan({
+          currentProcessed: getCurrentProcessed(sideIndex),
+          getCacheResult,
+          jobState,
+          sideWorkNeeded,
+          sourceFile: source.file,
+          sourcePreprocessed: source.preprocessed,
+        });
+
+        const result = await runSideEncodingPlan({
+          signal,
+          sidePlan,
+          source,
+          sourceFileName: source.file.name,
+          workerBridge: getWorkerBridge(sideIndex),
+          pipeline,
+          onProcessingStart: () => {
+            onProcessingStart?.(sideIndex, signal);
+          },
+          onProcessed: (processed, processorState) => {
+            onProcessed?.(sideIndex, signal, processed, processorState);
+          },
+          onCacheEntry,
+        });
+
+        if (!result) return;
+
+        onEncodedResult?.(
+          sideIndex,
+          signal,
+          getSideJobEncodedResult(jobState, {
+            data: result.data,
+            file: result.file,
+            processed: result.processed,
+          }),
+        );
+        onSideComplete?.(sideIndex);
+      } catch (error) {
+        if (onError) {
+          onError(sideIndex, signal, error);
+          return;
+        }
+        throw error;
+      }
+    },
+  );
 }

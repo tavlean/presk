@@ -74,12 +74,10 @@ import {
 } from './source-state';
 import { getImageProcessingErrorMessage } from './processing-errors';
 import { runSourceDecode, runSourcePreprocess } from './source-job-runner';
-import { runSideEncodingPlan } from './side-job-runner';
+import { runRunnableSideJobs } from './side-job-runner';
 import {
   getActiveImageJobsAfterMainCompletion,
   getActiveImageJobsAfterSideCompletion,
-  getSideJobEncodedResult,
-  getSideJobExecutionPlan,
   getPlannedImageWork,
   getRunnableSideJobs,
   type MainJobState,
@@ -471,91 +469,81 @@ export default class Compress extends Component<Props, State> {
       sideJobs: this.activeSideJobs,
     }).mainJob;
 
-    // Allow side jobs to happen in parallel
-    getRunnableSideJobs(workPlan.sideWorksNeeded, sideJobStates).forEach(
-      async ({ sideIndex: index, sideWorkNeeded, jobState }) => {
-        const sideIndex = index as SideIndex;
-        try {
-          const signal = sideSignals[sideIndex];
-          const workerBridge = this.workerBridges[sideIndex];
-          const sidePlan = getSideJobExecutionPlan({
-            currentProcessed: currentState.sides[sideIndex].processed,
-            getCacheResult: (...args) => this.encodeCache.match(...args),
-            jobState,
-            sideWorkNeeded,
-            sourceFile: source.file,
-            sourcePreprocessed: source.preprocessed,
-          });
-
-          const result = await runSideEncodingPlan({
-            signal,
-            sidePlan,
-            source,
-            sourceFileName: source.file.name,
-            workerBridge,
-            pipeline: {
-              processImage,
-              compressImage,
-              decodeImage,
-            },
-            onProcessingStart: () => {
-              this.setState((currentState) => {
-                if (signal.aborted) return {};
-                return getSideLoadingState(currentState, sideIndex, true);
-              });
-            },
-            onProcessed: (processed, processorState) => {
-              // Update state for process completion, including intermediate render
-              this.setState((currentState) => {
-                if (signal.aborted) return {};
-                return getSideProcessedResultState(
-                  currentState,
-                  sideIndex,
-                  processed,
-                  processorState,
-                );
-              });
-            },
-            onCacheEntry: (cacheEntry) => this.encodeCache.add(cacheEntry),
-          });
-
-          if (!result) return;
-
-          const sideResult = getSideJobEncodedResult(jobState, {
-            data: result.data,
-            file: result.file,
-            processed: result.processed,
-          });
-
-          this.setState((currentState) => {
-            if (signal.aborted) return {};
-            return getSideEncodedResultState(
-              currentState,
-              sideIndex,
-              sideResult,
-            );
-          });
-
-          this.activeSideJobs = getActiveImageJobsAfterSideCompletion(
-            {
-              mainJob: this.activeMainJob,
-              sideJobs: this.activeSideJobs,
-            },
-            sideIndex,
-          ).sideJobs;
-        } catch (err) {
-          if (isAbortError(err)) return;
-          if (this.isUnmounted) return;
-          this.setState((currentState) => {
-            return getSideLoadingState(currentState, sideIndex, false);
-          });
-          this.showSnackIfMounted(
-            getImageProcessingErrorMessage('processing', err),
-          );
-          throw err;
-        }
+    // Allow side jobs to happen in parallel.
+    runRunnableSideJobs({
+      runnableSideJobs: getRunnableSideJobs(
+        workPlan.sideWorksNeeded,
+        sideJobStates,
+      ),
+      sideSignals,
+      source,
+      getCurrentProcessed: (sideIndex) =>
+        currentState.sides[sideIndex].processed,
+      getCacheResult: (...args) => this.encodeCache.match(...args),
+      getWorkerBridge: (sideIndex) => this.workerBridges[sideIndex],
+      pipeline: {
+        processImage,
+        compressImage,
+        decodeImage,
       },
-    );
+      onProcessingStart: (sideIndex, signal) => {
+        this.setState((currentState) => {
+          if (signal.aborted) return {};
+          return getSideLoadingState(
+            currentState,
+            sideIndex as SideIndex,
+            true,
+          );
+        });
+      },
+      onProcessed: (sideIndex, signal, processed, processorState) => {
+        // Update state for process completion, including intermediate render.
+        this.setState((currentState) => {
+          if (signal.aborted) return {};
+          return getSideProcessedResultState(
+            currentState,
+            sideIndex as SideIndex,
+            processed,
+            processorState,
+          );
+        });
+      },
+      onCacheEntry: (cacheEntry) => this.encodeCache.add(cacheEntry),
+      onEncodedResult: (sideIndex, signal, sideResult) => {
+        this.setState((currentState) => {
+          if (signal.aborted) return {};
+          return getSideEncodedResultState(
+            currentState,
+            sideIndex as SideIndex,
+            sideResult,
+          );
+        });
+      },
+      onSideComplete: (sideIndex) => {
+        this.activeSideJobs = getActiveImageJobsAfterSideCompletion(
+          {
+            mainJob: this.activeMainJob,
+            sideJobs: this.activeSideJobs,
+          },
+          sideIndex,
+        ).sideJobs;
+      },
+      onError: (sideIndex, signal, err) => {
+        if (isAbortError(err)) return;
+        if (this.isUnmounted) return;
+        this.setState((currentState) => {
+          return getSideLoadingState(
+            currentState,
+            sideIndex as SideIndex,
+            false,
+          );
+        });
+        this.showSnackIfMounted(
+          getImageProcessingErrorMessage('processing', err),
+        );
+        throw err;
+      },
+    });
   }
 
   render(

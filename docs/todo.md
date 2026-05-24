@@ -133,6 +133,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image runnable side job records now come from a tested pure helper instead of being paired inside the Preact component loop.
     - Single-image runnable side job records now ignore missing job-state entries instead of returning incomplete records.
     - Single-image side job execution now runs through a framework-neutral helper with injected image-pipeline functions instead of being fully inline in the Preact component.
+    - Single-image runnable side-job loop orchestration now runs through a framework-neutral helper with injected state and cache callbacks.
     - Single-image, image-pipeline, and bulk runner abort-error checks now use a shared utility helper instead of open-coded name checks.
     - The main editor no longer uses the deprecated `componentWillReceiveProps` lifecycle for new-file handling.
     - The resize processor options no longer use `componentWillReceiveProps`; preset matching now comes from a tested pure helper.
@@ -207,6 +208,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image work-plan tests now cover runnable side job records.
     - Single-image work-plan tests now cover missing job-state entries when building runnable side job records.
     - Single-image side-job runner tests now cover skip, original passthrough, processing, encoding, decoding, processed-state callbacks, and cache-entry callbacks.
+    - Single-image side-job runner tests now cover runnable side-job loop callbacks, encoded result assembly, completion callbacks, and error propagation.
     - Single-image source-job runner tests now cover decode callbacks, preprocessing callbacks, source assembly, and abort-before-start behavior.
     - Single-image work-start runner tests now cover abort/controller replacement and no-op preservation behavior.
     - Single-image source-state tests now cover default raster and vector resize settings for newly decoded source images.
