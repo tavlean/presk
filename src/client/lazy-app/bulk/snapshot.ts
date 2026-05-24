@@ -298,3 +298,11 @@ export function restoreBulkSessionSnapshot(
     exportedCount: 0,
   };
 }
+
+export function restoreSerializedBulkSessionSnapshot(
+  serializedSnapshot: string,
+): BulkSession | undefined {
+  const snapshot = parseBulkSessionSnapshot(serializedSnapshot);
+  if (!snapshot) return;
+  return restoreBulkSessionSnapshot(snapshot);
+}
