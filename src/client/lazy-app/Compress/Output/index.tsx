@@ -17,7 +17,6 @@ import {
 } from '../../icons';
 import { twoUpHandle } from './custom-els/TwoUp/styles.css';
 import type { PreprocessorState } from '../../feature-meta';
-import { cleanSet } from '../../util/clean-modify';
 import type { SourceImage } from '../../Compress';
 import { linkRef } from 'shared/prerendered-app/util';
 import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
@@ -27,6 +26,12 @@ import {
   getOutputPinchZoomUpdate,
 } from './draw-state';
 import { getOutputPreviewState } from './preview-state';
+import {
+  getNextOutputScale,
+  getOutputScaleFromPercent,
+  getOutputScalePercent,
+  getRotatedPreprocessorState,
+} from './control-state';
 interface Props {
   source?: SourceImage;
   preprocessorState?: PreprocessorState;
@@ -157,25 +162,27 @@ export default class Output extends Component<Props, State> {
 
   private zoomIn = () => {
     if (!this.pinchZoomLeft) throw Error('Missing pinch-zoom element');
-    this.pinchZoomLeft.scaleTo(this.state.scale * 1.25, scaleToOpts);
+    this.pinchZoomLeft.scaleTo(
+      getNextOutputScale(this.state.scale, 'in'),
+      scaleToOpts,
+    );
   };
 
   private zoomOut = () => {
     if (!this.pinchZoomLeft) throw Error('Missing pinch-zoom element');
-    this.pinchZoomLeft.scaleTo(this.state.scale / 1.25, scaleToOpts);
+    this.pinchZoomLeft.scaleTo(
+      getNextOutputScale(this.state.scale, 'out'),
+      scaleToOpts,
+    );
   };
 
   private onRotateClick = () => {
     const { preprocessorState: inputProcessorState } = this.props;
     if (!inputProcessorState) return;
 
-    const newState = cleanSet(
-      inputProcessorState,
-      'rotate.rotate',
-      (inputProcessorState.rotate.rotate + 90) % 360,
+    this.props.onPreprocessorChange(
+      getRotatedPreprocessorState(inputProcessorState),
     );
-
-    this.props.onPreprocessorChange(newState);
   };
 
   private onScaleValueFocus = () => {
@@ -196,11 +203,11 @@ export default class Output extends Component<Props, State> {
 
   private onScaleInputChanged = (event: Event) => {
     const target = event.target as HTMLInputElement;
-    const percent = parseFloat(target.value);
-    if (isNaN(percent)) return;
+    const scale = getOutputScaleFromPercent(target.value);
+    if (scale === undefined) return;
     if (!this.pinchZoomLeft) throw Error('Missing pinch-zoom element');
 
-    this.pinchZoomLeft.scaleTo(percent / 100, scaleToOpts);
+    this.pinchZoomLeft.scaleTo(scale, scaleToOpts);
   };
 
   private onPinchZoomLeftChange = (event: Event) => {
@@ -337,7 +344,7 @@ export default class Output extends Component<Props, State> {
                 max="1000000"
                 ref={linkRef(this, 'scaleInput')}
                 class={style.zoom}
-                value={Math.round(scale * 100)}
+                value={getOutputScalePercent(scale)}
                 onInput={this.onScaleInputChanged}
                 onBlur={this.onScaleInputBlur}
               />
@@ -347,7 +354,10 @@ export default class Output extends Component<Props, State> {
                 tabIndex={0}
                 onFocus={this.onScaleValueFocus}
               >
-                <span class={style.zoomValue}>{Math.round(scale * 100)}</span>%
+                <span class={style.zoomValue}>
+                  {getOutputScalePercent(scale)}
+                </span>
+                %
               </span>
             )}
             <button class={style.lastButton} onClick={this.zoomIn}>
