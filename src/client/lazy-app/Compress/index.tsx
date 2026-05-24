@@ -62,6 +62,7 @@ import {
   type MainJobState,
   type SideJobState,
 } from './work-plan';
+import { shouldContainImage } from './display-state';
 import type { LocalStorageKey } from '../storage';
 
 export type OutputType = EncoderType | 'identity';
@@ -687,19 +688,6 @@ export default class Compress extends Component<Props, State> {
       />
     ));
 
-    // For rendering, we ideally want the settings that were used to create the
-    // data, not the latest settings.
-    const leftDisplaySettings =
-      leftSide.encodedSettings || leftSide.latestSettings;
-    const rightDisplaySettings =
-      rightSide.encodedSettings || rightSide.latestSettings;
-    const leftImgContain =
-      leftDisplaySettings.processorState.resize.enabled &&
-      leftDisplaySettings.processorState.resize.fitMethod === 'contain';
-    const rightImgContain =
-      rightDisplaySettings.processorState.resize.enabled &&
-      rightDisplaySettings.processorState.resize.fitMethod === 'contain';
-
     return (
       <div class={style.compress}>
         <Output
@@ -707,8 +695,8 @@ export default class Compress extends Component<Props, State> {
           mobileView={mobileView}
           leftCompressed={leftImageData}
           rightCompressed={rightImageData}
-          leftImgContain={leftImgContain}
-          rightImgContain={rightImgContain}
+          leftImgContain={shouldContainImage(leftSide)}
+          rightImgContain={shouldContainImage(rightSide)}
           preprocessorState={preprocessorState}
           onPreprocessorChange={this.onPreprocessorChange}
         />
