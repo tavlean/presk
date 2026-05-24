@@ -10,6 +10,13 @@ export type ImageJobStatus =
   | 'skipped'
   | 'exported';
 
+export type ImageJobStatusGroup =
+  | 'pending'
+  | 'active'
+  | 'complete'
+  | 'failed'
+  | 'skipped';
+
 export interface ImageOutput {
   file: File;
   size: number;
@@ -54,6 +61,14 @@ export interface OverrideSummary {
   total: number;
 }
 
+export function getJobStatusGroup(status: ImageJobStatus): ImageJobStatusGroup {
+  if (status === 'queued') return 'pending';
+  if (isActiveStatus(status)) return 'active';
+  if (status === 'encoded' || status === 'exported') return 'complete';
+  if (status === 'failed') return 'failed';
+  return 'skipped';
+}
+
 export function createBulkSession(
   id: string,
   globalSettings: BulkImageSettings,
@@ -64,7 +79,8 @@ export function createBulkSession(
     globalSettings,
     jobs,
     selectedJobId: jobs[0]?.id,
-    activeJobs: jobs.filter(isActiveJob).length,
+    activeJobs: jobs.filter((job) => getJobStatusGroup(job.status) === 'active')
+      .length,
     exportedCount: jobs.filter((job) => job.status === 'exported').length,
   };
 }
@@ -115,8 +131,12 @@ export function addJobs(session: BulkSession, jobs: ImageJob[]): BulkSession {
   };
 }
 
+function isActiveStatus(status: ImageJobStatus): boolean {
+  return status === 'decoding' || status === 'processing';
+}
+
 function isActiveJob(job: ImageJob): boolean {
-  return job.status === 'decoding' || job.status === 'processing';
+  return isActiveStatus(job.status);
 }
 
 export function removeJobs(
@@ -274,15 +294,15 @@ export function getDetailedBatchProgress(session: BulkSession): BatchProgress {
   let exported = 0;
 
   for (const job of session.jobs) {
-    if (job.status === 'queued') queued += 1;
-    else if (job.status === 'decoding' || job.status === 'processing') {
+    const group = getJobStatusGroup(job.status);
+    if (group === 'pending') queued += 1;
+    else if (group === 'active') {
       active += 1;
-    } else if (job.status === 'encoded') completed += 1;
-    else if (job.status === 'exported') {
+    } else if (group === 'complete') {
       completed += 1;
-      exported += 1;
-    } else if (job.status === 'failed') failed += 1;
-    else if (job.status === 'skipped') skipped += 1;
+      if (job.status === 'exported') exported += 1;
+    } else if (group === 'failed') failed += 1;
+    else if (group === 'skipped') skipped += 1;
   }
 
   return {
