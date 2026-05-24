@@ -20,6 +20,16 @@ export interface BulkOutputSummary {
   percentChange: number;
 }
 
+export type BulkJobOutputState = 'missing' | 'stale' | 'optimized';
+
+export interface BulkJobSizeSummary {
+  job: ImageJob;
+  outputState: BulkJobOutputState;
+  originalSize: number;
+  outputSize?: number;
+  percentChange?: number;
+}
+
 export interface BulkExportEntry {
   job: ImageJob;
   fileName: string;
@@ -81,6 +91,35 @@ export function getExportableJobs(session: BulkSession): ImageJob[] {
 
 export function canExportBulkSession(session: BulkSession): boolean {
   return getExportableJobs(session).length > 0;
+}
+
+export function getBulkJobSizeSummary(
+  session: BulkSession,
+  job: ImageJob,
+): BulkJobSizeSummary {
+  if (!job.output) {
+    return {
+      job,
+      outputState: 'missing',
+      originalSize: job.originalSize,
+    };
+  }
+
+  if (isJobOutputStale(session, job)) {
+    return {
+      job,
+      outputState: 'stale',
+      originalSize: job.originalSize,
+    };
+  }
+
+  return {
+    job,
+    outputState: 'optimized',
+    originalSize: job.originalSize,
+    outputSize: job.output.size,
+    percentChange: getPercentChange(job.originalSize, job.output.size),
+  };
 }
 
 export function getBulkExportSummary(session: BulkSession): BulkExportSummary {
