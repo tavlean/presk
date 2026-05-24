@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: async bulk import MIME sniffing helper added and locally verified. Run `git status --short --branch` for the exact state.
+Working tree at last update: async bulk import MIME sniffing now rejects unreadable files without failing the batch and is locally verified. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -124,6 +124,7 @@ Latest verification run:
 - `npm run check`: passed after tightening TIFF MIME sniffing and adding little-endian, big-endian, and false-positive coverage.
 - `npm run check`: passed after relaxing AVIF MIME sniffing and adding AVIF/non-AVIF `ftyp` coverage.
 - `npm run check`: passed after adding async bulk import MIME sniffing support.
+- `npm run check`: passed after making async bulk import MIME sniffing reject unreadable files without failing the whole batch.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -227,6 +228,7 @@ Quick investigation note:
 - Tightened TIFF MIME sniffing to require real little-endian or big-endian TIFF headers instead of loose `I`/`MM` prefixes.
 - Relaxed AVIF MIME sniffing to accept normal `ftypavif` headers regardless of box size while still rejecting non-AVIF `ftyp` data.
 - Added an async bulk import helper that can accept extensionless or misnamed image files through injected MIME sniffing.
+- Hardened async bulk import MIME sniffing so one unreadable file is rejected without aborting the whole batch.
 - Replaced avoidable `any` usage and optional Promise entries in service-worker cache cleanup and shared ref utilities.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Hardened bulk session construction so initial active and exported jobs derive matching counters.

@@ -79,7 +79,14 @@ export async function createImageJobsWithMimeSniffing(
       continue;
     }
 
-    const detectedType = await sniffMimeType(file);
+    let detectedType = '';
+    try {
+      detectedType = await sniffMimeType(file);
+    } catch (err) {
+      rejected.push(file);
+      continue;
+    }
+
     if (!detectedType.startsWith('image/')) {
       rejected.push(file);
       continue;
