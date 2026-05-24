@@ -16,6 +16,7 @@ import {
 import Output from './Output';
 import Options from './Options';
 import ResultCache from './result-cache';
+import { getDocumentTitle, type LoadingFileInfo } from './document-title';
 import { cleanMerge, cleanSet } from '../util/clean-modify';
 import './custom-els/MultiPanel';
 import Results from './Results';
@@ -78,11 +79,6 @@ interface State {
   encodedPreprocessorState?: PreprocessorState;
 }
 
-interface LoadingFileInfo {
-  loading: boolean;
-  filename?: string;
-}
-
 const savedSettingsKeys: readonly [LocalStorageKey, LocalStorageKey] = [
   'leftSideSettings',
   'rightSideSettings',
@@ -113,17 +109,10 @@ function initialSide(index: 0 | 1): Side {
   };
 }
 
-const loadingIndicator = '⏳ ';
-
 const originalDocumentTitle = document.title;
 
 function updateDocumentTitle(loadingFileInfo: LoadingFileInfo): void {
-  const { loading, filename } = loadingFileInfo;
-  let title = '';
-  if (loading) title += loadingIndicator;
-  if (filename) title += filename + ' - ';
-  title += originalDocumentTitle;
-  document.title = title;
+  document.title = getDocumentTitle(originalDocumentTitle, loadingFileInfo);
 }
 
 export default class Compress extends Component<Props, State> {
