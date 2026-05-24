@@ -98,7 +98,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Started: `npm run smoke:browser` now verifies the app shell reloads while the browser context is offline after the production app has loaded.
     - Started: `npm run smoke:browser` now verifies saved right-side WebP settings can be imported back into the real editor.
     - Started: service-worker bridge startup now no-ops when `navigator.serviceWorker` is unavailable.
-    - Add automated browser coverage for service-worker-disabled mode if Playwright can reliably simulate it.
+    - Started: `npm run smoke:browser` now simulates service-worker-disabled mode and verifies the app shell still loads.
 
 15. Add small unit tests for pure utilities.
 
