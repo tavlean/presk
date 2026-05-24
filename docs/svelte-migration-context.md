@@ -103,7 +103,7 @@ Single-image editor work planning is now partly extracted into `src/client/lazy-
 
 The bulk backend helpers being created now should be easy for Svelte to consume later:
 
-- prefer the helper barrel at `src/client/lazy-app/bulk/index.ts` when a Svelte prototype needs bulk session, queue, export, snapshot, settings, strip, and summary helpers together;
+- prefer the helper barrel at `src/client/lazy-app/bulk/index.ts` when a Svelte prototype needs bulk session, queue, export, snapshot, settings, selected-detail, strip, and summary helpers together;
 - sessions should be plain data;
 - selectors should be pure functions;
 - reducers/actions should not import Preact;

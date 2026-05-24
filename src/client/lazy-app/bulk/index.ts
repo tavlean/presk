@@ -1,4 +1,5 @@
 export * from './changes';
+export * from './detail';
 export * from './export';
 export * from './import';
 export * from './processor';

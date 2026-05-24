@@ -4,7 +4,7 @@ This document defines the first bulk image optimization design for Sqush. The go
 
 The framework-neutral helper surface is exported from `src/client/lazy-app/bulk/index.ts`. UI code should prefer that entry point over deep imports when it needs several bulk helpers together.
 
-The helper surface now includes pure strip item selectors and a session summary selector. Future UI should consume those selectors instead of recomputing selected state, output state, export readiness, override counts, or progress inside components.
+The helper surface now includes pure strip item selectors, selected-job detail selectors, and a session summary selector. Future UI should consume those selectors instead of recomputing selected state, effective settings, output state, export readiness, override counts, or progress inside components.
 
 ## Product goal
 
