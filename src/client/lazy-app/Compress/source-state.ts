@@ -1,4 +1,4 @@
-import type { ProcessorState } from '../feature-meta';
+import type { PreprocessorState, ProcessorState } from '../feature-meta';
 import { cleanMerge } from '../util/clean-modify';
 
 export interface SourceDimensions {
@@ -12,6 +12,13 @@ export interface ResizeSettingsSide {
       resize: ProcessorState['resize'];
     };
   };
+}
+
+export interface PreprocessorChangeState<Side extends ResizeSettingsSide> {
+  source?: unknown;
+  sides: [Side, Side];
+  loading: boolean;
+  preprocessorState: PreprocessorState;
 }
 
 export function didOrientationChange(
@@ -65,4 +72,27 @@ export function getOrientationAdjustedSides<Side extends ResizeSettingsSide>(
       getOrientationAdjustedResizeState(currentResizeSettings),
     );
   }) as [Side, Side];
+}
+
+export function getPreprocessorChangeState<
+  Side extends ResizeSettingsSide,
+  State extends PreprocessorChangeState<Side>,
+>(
+  state: State,
+  preprocessorState: PreprocessorState,
+): Pick<State, 'loading' | 'preprocessorState' | 'sides'> | undefined {
+  if (!state.source) return undefined;
+
+  const orientationChanged = didOrientationChange(
+    state.preprocessorState.rotate.rotate,
+    preprocessorState.rotate.rotate,
+  );
+
+  return {
+    loading: true,
+    preprocessorState,
+    sides: orientationChanged
+      ? getOrientationAdjustedSides(state.sides)
+      : state.sides,
+  };
 }

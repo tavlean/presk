@@ -58,9 +58,8 @@ import {
   type SideIndex,
 } from './side-state';
 import {
-  didOrientationChange,
   getDefaultResizeSides,
-  getOrientationAdjustedSides,
+  getPreprocessorChangeState,
 } from './source-state';
 import {
   getImageWorkPlan,
@@ -294,21 +293,10 @@ export default class Compress extends Component<Props, State> {
   private onPreprocessorChange = async (
     preprocessorState: PreprocessorState,
   ): Promise<void> => {
-    const source = this.state.source;
-    if (!source) return;
-
-    const oldRotate = this.state.preprocessorState.rotate.rotate;
-    const newRotate = preprocessorState.rotate.rotate;
-    const orientationChanged = didOrientationChange(oldRotate, newRotate);
-
-    this.setState((state) => ({
-      loading: true,
-      preprocessorState,
-      // Flip resize values if orientation has changed
-      sides: !orientationChanged
-        ? state.sides
-        : getOrientationAdjustedSides(state.sides),
-    }));
+    this.setState((state) => {
+      const nextState = getPreprocessorChangeState(state, preprocessorState);
+      return nextState || {};
+    });
   };
 
   /**
