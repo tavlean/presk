@@ -67,6 +67,14 @@ export interface BulkActionState {
   hasIncompleteJobs: boolean;
 }
 
+export interface SelectedJobContext {
+  job?: ImageJob;
+  index: number;
+  total: number;
+  canSelectPrevious: boolean;
+  canSelectNext: boolean;
+}
+
 export function getJobStatusGroup(status: ImageJobStatus): ImageJobStatusGroup {
   if (status === 'queued') return 'pending';
   if (isActiveStatus(status)) return 'active';
@@ -265,6 +273,23 @@ export function markJobsExported(
 export function getSelectedJob(session: BulkSession): ImageJob | undefined {
   if (!session.selectedJobId) return;
   return session.jobs.find((job) => job.id === session.selectedJobId);
+}
+
+export function getSelectedJobContext(
+  session: BulkSession,
+): SelectedJobContext {
+  const index = session.jobs.findIndex(
+    (job) => job.id === session.selectedJobId,
+  );
+  const job = index === -1 ? undefined : session.jobs[index];
+
+  return {
+    job,
+    index,
+    total: session.jobs.length,
+    canSelectPrevious: index > 0,
+    canSelectNext: index !== -1 && index < session.jobs.length - 1,
+  };
 }
 
 export function getOverriddenJobs(session: BulkSession): ImageJob[] {

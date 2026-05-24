@@ -31,6 +31,7 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
    - Started: bulk session tests now cover active/exported counters when constructing a session from existing jobs.
    - Started: bulk session tests now cover active/exported counters when adding restored jobs to a session.
    - Started: bulk session tests now cover framework-neutral next/previous image selection.
+   - Started: bulk session tests now cover selected-job context for future image-strip navigation state.
    - Started: bulk session tests now cover framework-neutral job status grouping.
    - Started: bulk session/export tests now cover framework-neutral action-state selectors for future controls.
    - Started: bulk object URL cleanup now covers duplicate URL revocation.
