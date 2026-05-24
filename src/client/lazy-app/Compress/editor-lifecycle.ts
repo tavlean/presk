@@ -4,6 +4,7 @@ import {
   type LoadingFileInfo,
   type LoadingState,
 } from './document-title';
+import type { ImageUpdateScheduleOptions } from './update-scheduler';
 
 export interface EditorFileProps {
   file: File;
@@ -34,4 +35,10 @@ export function getEditorUpdateEffects(
       : undefined,
     queueUpdate: 'deferred',
   };
+}
+
+export function getEditorUpdateScheduleOptions(
+  updateEffects: Pick<EditorUpdateEffects, 'queueUpdate'>,
+): ImageUpdateScheduleOptions {
+  return updateEffects.queueUpdate === 'immediate' ? { immediate: true } : {};
 }

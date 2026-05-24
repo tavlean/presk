@@ -16,7 +16,10 @@ import Output from './Output';
 import Options from './Options';
 import ResultCache from './result-cache';
 import { getDocumentTitle, type LoadingFileInfo } from './document-title';
-import { getEditorUpdateEffects } from './editor-lifecycle';
+import {
+  getEditorUpdateEffects,
+  getEditorUpdateScheduleOptions,
+} from './editor-lifecycle';
 import {
   getImageUpdateSchedule,
   type ImageUpdateScheduleOptions,
@@ -203,12 +206,7 @@ export default class Compress extends Component<Props, State> {
       updateDocumentTitle(updateEffects.loadingFileInfo);
     }
 
-    if (updateEffects.queueUpdate === 'immediate') {
-      this.queueUpdateImage({ immediate: true });
-      return;
-    }
-
-    this.queueUpdateImage();
+    this.queueUpdateImage(getEditorUpdateScheduleOptions(updateEffects));
   }
 
   private onCopyToOtherClick = async (index: SideIndex) => {

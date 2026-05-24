@@ -110,7 +110,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image, image-pipeline, and bulk runner abort-error checks now use a shared utility helper instead of open-coded name checks.
     - The main editor no longer uses the deprecated `componentWillReceiveProps` lifecycle for new-file handling.
     - The resize processor options no longer use `componentWillReceiveProps`; preset matching now comes from a tested pure helper.
-    - Single-image editor update effects for new files, title refreshes, and work scheduling now go through a tested helper instead of inline Preact lifecycle logic.
+    - Single-image editor update effects for new files, title refreshes, and work scheduling options now go through tested helpers instead of inline Preact lifecycle logic.
     - Single-image supported encoder filtering now lives in a tested helper instead of inline Preact options module setup.
     - Single-image saved-settings import availability now lives in a tested helper instead of inline Preact option-render logic.
     - Single-image saved-settings action tests now cover initial reads, per-side reads, write success, write failure, labels, keys, saved payload construction, save feedback, and import feedback.
