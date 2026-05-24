@@ -37,6 +37,7 @@ import {
   writeSavedSideSettings,
 } from './saved-settings';
 import { resetSidesForNewSourceData } from './side-state';
+import { getDefaultResizeState } from './source-state';
 import {
   getImageWorkPlan,
   type MainJobState,
@@ -483,13 +484,10 @@ export default class Compress extends Component<Props, State> {
         this.setState((currentState) => {
           if (mainSignal.aborted) return {};
           const sides = currentState.sides.map((side) => {
-            const resizeState: Partial<ProcessorState['resize']> = {
-              width: decoded.width,
-              height: decoded.height,
-              method: vectorImage ? 'vector' : 'lanczos3',
-              // Disable resizing, to make it clearer to the user that something changed here
-              enabled: false,
-            };
+            const resizeState = getDefaultResizeState(
+              decoded,
+              Boolean(vectorImage),
+            );
             return cleanMerge(
               side,
               'latestSettings.processorState.resize',
