@@ -88,6 +88,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image display settings, result labels, and image-contain decisions now live in pure helpers instead of inline Preact render logic.
     - Single-image preprocessing completion now leaves side download URL revocation to the shared side-reset helper instead of revoking twice.
     - Single-image side encoder/processor setting mutations now live in pure helpers instead of inline Preact component logic.
+    - Single-image side loading, intermediate processed result, and final encoded result updates now live in pure helpers instead of inline Preact component logic.
     - Processor enabled toggles and option merges now go through pure helpers instead of direct option-panel path updates.
     - Orientation-change resize updates for both sides now go through a pure helper instead of inline Preact component mapping.
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
@@ -147,6 +148,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side-copy tests now cover side index lookup and blob URL regeneration when copying one side to the other.
     - Single-image side-state tests now cover saved-settings import while preserving live output fields for undo.
     - Single-image side-state tests now cover default side setup and saved initial side overrides.
+    - Single-image side-state tests now cover loading transitions, intermediate processed output, final encoded output, and old blob URL revocation.
     - Output filename tests now cover extensionless sources, trailing dots, hidden names, path-like source names, punctuation-only names, and Windows reserved names.
     - Single-image and bulk export filenames now share the same basename sanitization helper.
     - Single-image side reset tests now cover clearing both side outputs and revoking both side download URLs when a new source image is loaded.

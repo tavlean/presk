@@ -21,7 +21,7 @@ import {
   shouldUpdateDocumentTitle,
   type LoadingFileInfo,
 } from './document-title';
-import { cleanMerge, cleanSet } from '../util/clean-modify';
+import { cleanSet } from '../util/clean-modify';
 import { copySideToOther, getOtherSideIndex } from './side-copy';
 import './custom-els/MultiPanel';
 import Results from './Results';
@@ -48,6 +48,9 @@ import {
   resetSidesForNewSourceData,
   setSideEncoderOptions,
   setSideEncoderType,
+  setSideEncodedResult,
+  setSideLoading,
+  setSideProcessedResult,
   setSideProcessorState,
   type SideIndex,
 } from './side-state';
@@ -497,7 +500,8 @@ export default class Compress extends Component<Props, State> {
     this.activeMainJob = undefined;
 
     // Allow side jobs to happen in parallel
-    workPlan.sideWorksNeeded.forEach(async (sideWorkNeeded, sideIndex) => {
+    workPlan.sideWorksNeeded.forEach(async (sideWorkNeeded, index) => {
+      const sideIndex = index as SideIndex;
       try {
         // If processing is true, encoding is always true.
         if (!sideWorkNeeded.encoding) return;
@@ -527,10 +531,9 @@ export default class Compress extends Component<Props, State> {
             // Set loading state for this side
             this.setState((currentState) => {
               if (signal.aborted) return {};
-              const sides = cleanMerge(currentState.sides, sideIndex, {
-                loading: true,
-              });
-              return { sides };
+              return {
+                sides: setSideLoading(currentState.sides, sideIndex, true),
+              };
             });
 
             if (sideWorkNeeded.processing) {
@@ -544,19 +547,14 @@ export default class Compress extends Component<Props, State> {
               // Update state for process completion, including intermediate render
               this.setState((currentState) => {
                 if (signal.aborted) return {};
-                const currentSide = currentState.sides[sideIndex];
-                const side: Side = {
-                  ...currentSide,
-                  processed,
-                  // Intermediate render
-                  data: processed,
-                  encodedSettings: {
-                    ...currentSide.encodedSettings,
-                    processorState: jobState.processorState,
-                  },
+                return {
+                  sides: setSideProcessedResult(
+                    currentState.sides,
+                    sideIndex,
+                    processed,
+                    jobState.processorState,
+                  ),
                 };
-                const sides = cleanSet(currentState.sides, sideIndex, side);
-                return { sides };
               });
             } else {
               processed = currentState.sides[sideIndex].processed!;
@@ -584,36 +582,24 @@ export default class Compress extends Component<Props, State> {
 
         this.setState((currentState) => {
           if (signal.aborted) return {};
-          const currentSide = currentState.sides[sideIndex];
-
-          if (currentSide.downloadUrl) {
-            URL.revokeObjectURL(currentSide.downloadUrl);
-          }
-
-          const side: Side = {
-            ...currentSide,
-            data,
-            file,
-            downloadUrl: URL.createObjectURL(file),
-            loading: false,
-            processed,
-            encodedSettings: {
+          return {
+            sides: setSideEncodedResult(currentState.sides, sideIndex, {
+              data,
+              file,
+              processed,
               processorState: jobState.processorState,
               encoderState: jobState.encoderState,
-            },
+            }),
           };
-          const sides = cleanSet(currentState.sides, sideIndex, side);
-          return { sides };
         });
 
         this.activeSideJobs[sideIndex] = undefined;
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') return;
         this.setState((currentState) => {
-          const sides = cleanMerge(currentState.sides, sideIndex, {
-            loading: false,
-          });
-          return { sides };
+          return {
+            sides: setSideLoading(currentState.sides, sideIndex, false),
+          };
         });
         this.props.showSnack(`Processing error: ${err}`);
         throw err;

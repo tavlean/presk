@@ -31,6 +31,21 @@ export interface LatestSettingsSide {
   latestSettings: SideSettings;
 }
 
+export interface LoadableSide {
+  loading: boolean;
+}
+
+export interface ProcessingSideState extends SavedSettingsSide {
+  encodedSettings?: Partial<SideSettings>;
+  processed?: unknown;
+  data?: unknown;
+}
+
+export interface EncodedSideState extends ProcessingSideState, LoadableSide {
+  file?: unknown;
+  downloadUrl?: string;
+}
+
 export interface InitialSideState {
   latestSettings: SideSettings;
   encodedSettings?: SideSettings;
@@ -148,4 +163,64 @@ export function setSideProcessorState<Side extends LatestSettingsSide>(
     `${index}.latestSettings.processorState`,
     processorState,
   );
+}
+
+export function setSideLoading<Side extends LoadableSide>(
+  sides: [Side, Side],
+  index: SideIndex,
+  loading: boolean,
+): [Side, Side] {
+  return cleanMerge(sides, index, { loading });
+}
+
+export function setSideProcessedResult<Side extends ProcessingSideState>(
+  sides: [Side, Side],
+  index: SideIndex,
+  processed: unknown,
+  processorState: ProcessorState,
+): [Side, Side] {
+  const currentSide = sides[index];
+  return cleanSet(sides, index, {
+    ...currentSide,
+    processed,
+    data: processed,
+    encodedSettings: {
+      ...currentSide.encodedSettings,
+      processorState,
+    },
+  });
+}
+
+export function setSideEncodedResult<Side extends EncodedSideState>(
+  sides: [Side, Side],
+  index: SideIndex,
+  result: {
+    data: unknown;
+    file: unknown;
+    processed: unknown;
+    processorState: ProcessorState;
+    encoderState: SideSettings['encoderState'];
+  },
+  createObjectUrl: (file: unknown) => string = (file) =>
+    URL.createObjectURL(file as Blob),
+  revokeObjectUrl: (url: string) => void = URL.revokeObjectURL,
+): [Side, Side] {
+  const currentSide = sides[index];
+
+  if (currentSide.downloadUrl) {
+    revokeObjectUrl(currentSide.downloadUrl);
+  }
+
+  return cleanSet(sides, index, {
+    ...currentSide,
+    data: result.data,
+    file: result.file,
+    downloadUrl: createObjectUrl(result.file),
+    loading: false,
+    processed: result.processed,
+    encodedSettings: {
+      processorState: result.processorState,
+      encoderState: result.encoderState,
+    },
+  });
 }
