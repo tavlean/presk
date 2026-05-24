@@ -1,4 +1,15 @@
 import type { ProcessorState } from '../feature-meta';
+import { cleanSet } from '../util/clean-modify';
+
+export type ProcessorType = keyof ProcessorState;
+
+export function setProcessorEnabled(
+  processorState: ProcessorState,
+  processor: ProcessorType,
+  enabled: boolean,
+): ProcessorState {
+  return cleanSet(processorState, `${processor}.enabled`, enabled);
+}
 
 export function processorStateEquivalent(
   a: ProcessorState,
