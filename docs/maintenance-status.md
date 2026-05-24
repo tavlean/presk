@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Historical archived fork, not the current project: `tavlean/SquooshPlus`.
 
-Working tree at last update: build/runtime docs now describe the current dev, serve, and preview wrapper scripts. Run `git status --short --branch` for the exact state.
+Working tree at last update: bulk helpers now have a single framework-neutral barrel export for future UI/Svelte consumption. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 

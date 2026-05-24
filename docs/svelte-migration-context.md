@@ -101,6 +101,7 @@ Do not remove these early:
 
 The bulk backend helpers being created now should be easy for Svelte to consume later:
 
+- prefer the helper barrel at `src/client/lazy-app/bulk/index.ts` when a Svelte prototype needs bulk session, queue, export, snapshot, and settings helpers together;
 - sessions should be plain data;
 - selectors should be pure functions;
 - reducers/actions should not import Preact;

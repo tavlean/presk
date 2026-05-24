@@ -2,6 +2,8 @@
 
 This document defines the first bulk image optimization design for Sqush. The goal is to keep the processing model independent from Preact or a future Svelte UI.
 
+The framework-neutral helper surface is exported from `src/client/lazy-app/bulk/index.ts`. UI code should prefer that entry point over deep imports when it needs several bulk helpers together.
+
 ## Product goal
 
 The user should be able to:
