@@ -2,7 +2,7 @@ import { h, Component } from 'preact';
 
 import * as style from './style.css';
 import 'add-css:./style.css';
-import { assertSignal, isAbortError } from '../util';
+import { isAbortError } from '../util';
 import {
   PreprocessorState,
   ProcessorState,
@@ -35,6 +35,7 @@ import Results from './Results';
 import WorkerBridge from '../worker-bridge';
 import type SnackBarElement from 'shared/custom-els/snack-bar';
 import {
+  DecodedSourceImage,
   SourceImage,
   compressImage,
   decodeSourceImage,
@@ -72,6 +73,7 @@ import {
   getSourcePreprocessStartState,
 } from './source-state';
 import { getImageProcessingErrorMessage } from './processing-errors';
+import { runSourceDecode, runSourcePreprocess } from './source-job-runner';
 import { runSideEncodingPlan } from './side-job-runner';
 import {
   getActiveImageJobsAfterStarts,
@@ -391,31 +393,31 @@ export default class Compress extends Component<Props, State> {
     const mainSignal = this.mainAbortController.signal;
     const sideSignals = this.sideAbortControllers.map((ac) => ac.signal);
 
-    let decoded: ImageData;
-    let vectorImage: HTMLImageElement | undefined;
+    let decodedSource: DecodedSourceImage;
 
     // Handle decoding
     if (workPlan.needsDecoding) {
       try {
-        assertSignal(mainSignal);
-        this.setState(getSourceDecodeStartState());
-
-        const decodedSource = await decodeSourceImage(
-          mainSignal,
-          mainJobState.file,
+        decodedSource = await runSourceDecode({
+          signal: mainSignal,
+          file: mainJobState.file,
           // Either worker is good enough here.
-          this.workerBridges[0],
-        );
-        ({ decoded, vectorImage } = decodedSource);
-
-        // Set default resize values
-        this.setState((currentState) => {
-          if (mainSignal.aborted) return {};
-          return getSourceDecodeSuccessState(
-            currentState,
-            decoded,
-            Boolean(vectorImage),
-          );
+          workerBridge: this.workerBridges[0],
+          pipeline: { decodeSourceImage },
+          onDecodeStart: () => {
+            this.setState(getSourceDecodeStartState());
+          },
+          onDecoded: ({ decoded, vectorImage }) => {
+            // Set default resize values
+            this.setState((currentState) => {
+              if (mainSignal.aborted) return {};
+              return getSourceDecodeSuccessState(
+                currentState,
+                decoded,
+                Boolean(vectorImage),
+              );
+            });
+          },
         });
       } catch (err) {
         if (isAbortError(err)) return;
@@ -426,7 +428,7 @@ export default class Compress extends Component<Props, State> {
         throw err;
       }
     } else {
-      ({ decoded, vectorImage } = currentState.source!);
+      decodedSource = currentState.source!;
     }
 
     let source: SourceImage;
@@ -434,33 +436,28 @@ export default class Compress extends Component<Props, State> {
     // Handle preprocessing
     if (workPlan.needsPreprocessing) {
       try {
-        assertSignal(mainSignal);
-        this.setState(getSourcePreprocessStartState());
-
-        const preprocessed = await preprocessImage(
-          mainSignal,
-          decoded,
-          mainJobState.preprocessorState,
+        source = await runSourcePreprocess({
+          signal: mainSignal,
+          decodedSource,
+          preprocessorState: mainJobState.preprocessorState,
           // Either worker is good enough here.
-          this.workerBridges[0],
-        );
-
-        source = {
-          decoded,
-          vectorImage,
-          preprocessed,
-          file: mainJobState.file,
-        };
-
-        // Update state for process completion, including intermediate render
-        this.setState((currentState) => {
-          if (mainSignal.aborted) return {};
-          return setPreprocessedSourceState(
-            currentState,
-            source,
-            mainJobState.preprocessorState,
-            preprocessed,
-          );
+          workerBridge: this.workerBridges[0],
+          pipeline: { preprocessImage },
+          onPreprocessStart: () => {
+            this.setState(getSourcePreprocessStartState());
+          },
+          onPreprocessed: (preprocessedSource) => {
+            // Update state for process completion, including intermediate render
+            this.setState((currentState) => {
+              if (mainSignal.aborted) return {};
+              return setPreprocessedSourceState(
+                currentState,
+                preprocessedSource,
+                mainJobState.preprocessorState,
+                preprocessedSource.preprocessed,
+              );
+            });
+          },
         });
       } catch (err) {
         if (isAbortError(err)) return;
