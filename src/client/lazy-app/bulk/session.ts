@@ -1,4 +1,8 @@
-import { getEffectiveSettings, hasSettingsOverrides } from './settings';
+import {
+  getEffectiveSettings,
+  hasSettingsOverrides,
+  settingsHash,
+} from './settings';
 import type { BulkImageOverrides, BulkImageSettings } from './settings';
 
 export type ImageJobStatus =
@@ -263,7 +267,20 @@ export function markJobsExported(
   return {
     ...session,
     jobs: session.jobs.map((job) => {
-      if (!exportedJobIds.has(job.id) || job.status !== 'encoded') return job;
+      if (
+        !exportedJobIds.has(job.id) ||
+        job.status !== 'encoded' ||
+        !job.output
+      ) {
+        return job;
+      }
+      const effectiveSettings = getEffectiveSettings(
+        session.globalSettings,
+        job.overrides,
+      );
+      if (job.output.settingsHash !== settingsHash(effectiveSettings)) {
+        return job;
+      }
       newlyExportedCount += 1;
       return {
         ...job,
