@@ -134,6 +134,7 @@ Snapshot rules:
 - Do not store snapshots in `localStorage` as a complete restore mechanism. A snapshot alone cannot restore the user-selected source files after a page reload.
 - If full bulk restore is added later, use a deliberate browser storage design such as IndexedDB for file/blob data and keep object URLs as runtime-only values.
 - Normalize derived counters before creating a snapshot so persisted/debug metadata does not preserve stale active/exported counts.
+- Parse serialized snapshots through the snapshot validator instead of using raw `JSON.parse` results. The parser accepts only the current snapshot version, rejects malformed file metadata, and recalculates derived counters from job statuses.
 
 ## Processing behavior
 
