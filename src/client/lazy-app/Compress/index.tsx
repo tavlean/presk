@@ -18,6 +18,11 @@ import Options from './Options';
 import ResultCache from './result-cache';
 import { getDocumentTitle, type LoadingFileInfo } from './document-title';
 import { cleanMerge, cleanSet } from '../util/clean-modify';
+import {
+  copySideToOther,
+  getOtherSideIndex,
+  type SideIndex,
+} from './side-copy';
 import './custom-els/MultiPanel';
 import Results from './Results';
 import WorkerBridge from '../worker-bridge';
@@ -225,30 +230,28 @@ export default class Compress extends Component<Props, State> {
     this.queueUpdateImage();
   }
 
-  private onCopyToOtherClick = async (index: 0 | 1) => {
-    const otherIndex = index ? 0 : 1;
-    const oldSettings = this.state.sides[otherIndex];
-    const newSettings = { ...this.state.sides[index] };
-
-    // Create a new object URL for the new settings. This avoids both sides sharing a URL, which
-    // means it can be safely revoked without impacting the other side.
-    if (newSettings.file) {
-      newSettings.downloadUrl = URL.createObjectURL(newSettings.file);
-    }
-
+  private onCopyToOtherClick = async (index: SideIndex) => {
+    const result = copySideToOther(this.state.sides, index);
     this.setState({
-      sides: cleanSet(this.state.sides, otherIndex, newSettings),
+      sides: result.sides,
     });
 
-    const result = await this.props.showSnack('Settings copied across', {
-      timeout: 5000,
-      actions: ['undo', 'dismiss'],
-    });
+    const snackbarResult = await this.props.showSnack(
+      'Settings copied across',
+      {
+        timeout: 5000,
+        actions: ['undo', 'dismiss'],
+      },
+    );
 
-    if (result !== 'undo') return;
+    if (snackbarResult !== 'undo') return;
 
     this.setState({
-      sides: cleanSet(this.state.sides, otherIndex, oldSettings),
+      sides: cleanSet(
+        this.state.sides,
+        getOtherSideIndex(index),
+        result.oldSide,
+      ),
     });
   };
   /**
