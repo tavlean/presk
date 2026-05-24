@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>file-drop handler type</strong>
+            <strong>worker bridge dispose cleanup</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -962,6 +962,11 @@
                     <li>
                       The initial app file-drop custom element handler now uses
                       a `void` return type instead of `any`.
+                    </li>
+                    <li>
+                      Worker bridges now expose explicit disposal, and the
+                      editor disposes them on unmount after aborting active
+                      work.
                     </li>
                     <li>
                       Stateless checkbox, toggle, select, and revealer option

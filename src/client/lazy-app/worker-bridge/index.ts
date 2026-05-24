@@ -35,6 +35,12 @@ class WorkerBridge {
     this._worker = new Worker(workerURL);
     this._workerApi = wrap<ProcessorWorkerApi>(this._worker);
   }
+
+  dispose(): void {
+    clearTimeout(this._workerTimeout);
+    this._workerTimeout = undefined;
+    this._terminateWorker();
+  }
 }
 
 for (const methodName of methodNames) {

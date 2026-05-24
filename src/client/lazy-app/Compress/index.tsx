@@ -193,6 +193,9 @@ export default class Compress extends Component<Props, State> {
     for (const controller of this.sideAbortControllers) {
       controller.abort();
     }
+    for (const workerBridge of this.workerBridges) {
+      workerBridge.dispose();
+    }
     revokeSideDownloadUrls(this.state.sides);
   }
 
