@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Historical archived fork, not the current project: `tavlean/SquooshPlus`.
 
-Working tree at last update: bulk export summaries now treat stale exported outputs as pending work, with the full local check passing. Run `git status --short --branch` for the exact state.
+Working tree at last update: browser smoke now covers extensionless PNG input exporting as `icon-large.webp`, with the local browser smoke passing. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -173,6 +173,7 @@ Latest verification run:
 - `npm run test:helpers`: passed after adding metadata-only bulk session snapshots.
 - `npm run test:helpers`: passed after adding serialized bulk snapshot validation coverage.
 - `npm run check`: passed after making stale exported outputs pending in bulk export summaries.
+- `npm run smoke:browser`: passed after expanding the production browser smoke to cover extensionless PNG input and WebP output naming.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -220,6 +221,7 @@ Latest verification run:
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
 - Playwright CLI production-build image import smoke: passed on `2026-05-23`; built app loaded, `icon-large.png` imported into `/editor`, processing completed with title `icon-large.png - Sqush`, WebP options were present, and console errors were 0.
 - Playwright CLI production-build WebP output smoke: passed on `2026-05-24`; built app loaded, `icon-large.png` imported into `/editor`, output side switched to `WebP`, `icon-large.webp` blob download was present, output was `24.1 kB` with a 9% reduction, and console errors were 0.
+- Playwright CLI production-build extensionless input smoke: passed on `2026-05-24`; built app loaded an extensionless PNG copy named `icon-large`, output side switched to `WebP`, and `icon-large.webp` blob download was present.
 
 Next recommended tasks when work resumes:
 
