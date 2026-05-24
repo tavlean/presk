@@ -32,6 +32,7 @@ import {
   getOutputScalePercent,
   getPinchZoomScaleState,
   getRotatedPreprocessorState,
+  shouldBlurActiveElementAfterOutputRetarget,
   shouldRetargetOutputEvent,
 } from './control-state';
 interface Props {
@@ -237,11 +238,12 @@ export default class Output extends Component<Props, State> {
     // where the software keyboard is hidden, but the input remains focused, then after interaction
     // with this element the keyboard reappears for NO GOOD REASON. Thanks Android.
     if (
-      event.type === 'touchend' &&
-      document.activeElement &&
-      document.activeElement instanceof HTMLElement
+      shouldBlurActiveElementAfterOutputRetarget(
+        event.type,
+        document.activeElement instanceof HTMLElement,
+      )
     ) {
-      document.activeElement.blur();
+      (document.activeElement as HTMLElement).blur();
     }
   };
 

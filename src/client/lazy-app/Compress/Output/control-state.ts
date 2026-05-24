@@ -79,6 +79,13 @@ export function shouldRetargetOutputEvent({
   return !alreadyRetargeted;
 }
 
+export function shouldBlurActiveElementAfterOutputRetarget(
+  eventType: string,
+  hasActiveHTMLElement: boolean,
+): boolean {
+  return eventType === 'touchend' && hasActiveHTMLElement;
+}
+
 export function getRotatedPreprocessorState(
   preprocessorState: PreprocessorState,
 ): PreprocessorState {
