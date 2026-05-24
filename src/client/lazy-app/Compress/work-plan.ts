@@ -3,7 +3,9 @@ import type {
   PreprocessorState,
   ProcessorState,
 } from '../feature-meta';
+import { defaultProcessorState } from '../feature-meta';
 import { processorStateEquivalent } from './processor-state';
+import type { SideSettings } from './saved-settings';
 
 export interface MainJobState {
   file: File;
@@ -25,6 +27,57 @@ export interface ImageWorkPlan {
   needsPreprocessing: boolean;
   sideWorksNeeded: SideWorkNeeded[];
   jobNeeded: boolean;
+}
+
+export interface WorkPlanSideInput {
+  latestSettings: SideSettings;
+  encodedSettings?: SideSettings;
+}
+
+export function getLatestMainJobState(
+  activeMainJob: MainJobState | undefined,
+  sourceFile: File | undefined,
+  encodedPreprocessorState: PreprocessorState | undefined,
+): Partial<MainJobState> {
+  return (
+    activeMainJob || {
+      file: sourceFile,
+      preprocessorState: encodedPreprocessorState,
+    }
+  );
+}
+
+export function getLatestSideJobStates(
+  activeSideJobs: readonly (SideJobState | undefined)[],
+  sides: readonly WorkPlanSideInput[],
+): Partial<SideJobState>[] {
+  return sides.map(
+    (side, index) =>
+      activeSideJobs[index] || {
+        processorState:
+          side.encodedSettings && side.encodedSettings.processorState,
+        encoderState: side.encodedSettings && side.encodedSettings.encoderState,
+      },
+  );
+}
+
+export function getMainJobState(
+  file: File,
+  preprocessorState: PreprocessorState,
+): MainJobState {
+  return { file, preprocessorState };
+}
+
+export function getSideJobStates(
+  sides: readonly WorkPlanSideInput[],
+): SideJobState[] {
+  return sides.map((side) => ({
+    // If there isn't an encoder selected, processing is intentionally skipped.
+    processorState: side.latestSettings.encoderState
+      ? side.latestSettings.processorState
+      : defaultProcessorState,
+    encoderState: side.latestSettings.encoderState,
+  }));
 }
 
 export function getImageWorkPlan(

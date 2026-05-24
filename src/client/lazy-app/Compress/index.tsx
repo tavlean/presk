@@ -9,7 +9,6 @@ import {
   EncoderState,
   encoderMap,
   defaultPreprocessorState,
-  defaultProcessorState,
   EncoderType,
   EncoderOptions,
 } from '../feature-meta';
@@ -56,6 +55,10 @@ import {
 } from './source-state';
 import {
   getImageWorkPlan,
+  getLatestMainJobState,
+  getLatestSideJobStates,
+  getMainJobState,
+  getSideJobStates,
   type MainJobState,
   type SideJobState,
 } from './work-plan';
@@ -364,32 +367,22 @@ export default class Compress extends Component<Props, State> {
     const currentState = this.state;
 
     // State of the last completed job, or ongoing job
-    const latestMainJobState: Partial<MainJobState> = this.activeMainJob || {
-      file: currentState.source && currentState.source.file,
-      preprocessorState: currentState.encodedPreprocessorState,
-    };
-    const latestSideJobStates: Partial<SideJobState>[] = currentState.sides.map(
-      (side, index) =>
-        this.activeSideJobs[index] || {
-          processorState:
-            side.encodedSettings && side.encodedSettings.processorState,
-          encoderState:
-            side.encodedSettings && side.encodedSettings.encoderState,
-        },
+    const latestMainJobState = getLatestMainJobState(
+      this.activeMainJob,
+      currentState.source && currentState.source.file,
+      currentState.encodedPreprocessorState,
+    );
+    const latestSideJobStates = getLatestSideJobStates(
+      this.activeSideJobs,
+      currentState.sides,
     );
 
     // State for this job
-    const mainJobState: MainJobState = {
-      file: this.sourceFile,
-      preprocessorState: currentState.preprocessorState,
-    };
-    const sideJobStates: SideJobState[] = currentState.sides.map((side) => ({
-      // If there isn't an encoder selected, we don't process either
-      processorState: side.latestSettings.encoderState
-        ? side.latestSettings.processorState
-        : defaultProcessorState,
-      encoderState: side.latestSettings.encoderState,
-    }));
+    const mainJobState = getMainJobState(
+      this.sourceFile,
+      currentState.preprocessorState,
+    );
+    const sideJobStates = getSideJobStates(currentState.sides);
 
     const workPlan = getImageWorkPlan(
       latestMainJobState,
