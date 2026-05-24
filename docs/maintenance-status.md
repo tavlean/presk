@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: saved-settings storage now tolerates blocked browser storage and is locally verified. Run `git status --short --branch` for the exact state.
+Working tree at last update: result-cache helper coverage added and locally verified. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -117,6 +117,8 @@ Latest verification run:
 - `npm run check`: passed after requiring saved-settings availability checks to parse successfully.
 - `npm run check`: passed after hardening saved-settings storage against throwing `localStorage` reads and writes.
 - `npm run smoke:browser`: passed after hardening saved-settings storage against throwing `localStorage` reads and writes.
+- `npm run test:helpers`: passed after adding result-cache hit/miss coverage.
+- `npm run check`: passed after adding result-cache hit/miss coverage.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -141,6 +143,7 @@ Latest verification run:
 - Latest observed GitHub Actions state after saved-settings browser smoke: `bc78e14` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after Node type alignment: `b66bda1` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after saved-settings availability cleanup: `1644efa` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after blocked saved-settings storage handling: `019de22` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
@@ -212,6 +215,7 @@ Quick investigation note:
 - Replaced the core image compression pipeline's encoder options cast with typed encoder dispatch.
 - Replaced the editor encoder options render cast with typed encoder option component dispatch.
 - Replaced avoidable `any` casts in the result cache processor-state comparison.
+- Added result-cache helper coverage for matching, mismatched image data, mismatched encoder options, and mismatched processor options.
 - Replaced avoidable `any` usage and optional Promise entries in service-worker cache cleanup and shared ref utilities.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Hardened bulk session construction so initial active and exported jobs derive matching counters.
