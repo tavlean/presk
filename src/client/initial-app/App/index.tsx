@@ -11,8 +11,17 @@ import 'file-drop-element';
 import 'shared/custom-els/snack-bar';
 import Intro from 'shared/prerendered-app/Intro';
 import 'shared/custom-els/loading-spinner';
-
-const ROUTE_EDITOR = '/editor';
+import {
+  getCompressLoadedState,
+  getEditorUrl,
+  getFileEntryState,
+  getInitialAppRenderState,
+  getInitialAppState,
+  getPopStateRouteState,
+  getShareTargetErrorState,
+  getShareTargetImageState,
+  type InitialAppState,
+} from './state';
 
 const compressPromise = import('client/lazy-app/Compress');
 const swBridgePromise = import('client/lazy-app/sw-bridge');
@@ -23,22 +32,10 @@ function back() {
 
 interface Props {}
 
-interface State {
-  awaitingShareTarget: boolean;
-  file?: File;
-  isEditorOpen: boolean;
-  Compress?: typeof import('client/lazy-app/Compress').default;
-}
+type State = InitialAppState<typeof import('client/lazy-app/Compress').default>;
 
 export default class App extends Component<Props, State> {
-  state: State = {
-    awaitingShareTarget: new URL(location.href).searchParams.has(
-      'share-target',
-    ),
-    isEditorOpen: false,
-    file: undefined,
-    Compress: undefined,
-  };
+  state: State = getInitialAppState(location.href);
 
   snackbar?: SnackBarElement;
 
@@ -47,7 +44,7 @@ export default class App extends Component<Props, State> {
 
     compressPromise
       .then((module) => {
-        this.setState({ Compress: module.default });
+        this.setState(getCompressLoadedState(module.default));
       })
       .catch(() => {
         this.showSnack('Failed to load app');
@@ -61,13 +58,13 @@ export default class App extends Component<Props, State> {
         file = await getSharedImage();
       } catch {
         this.showSnack('Failed to load shared image');
-        this.setState({ awaitingShareTarget: false });
+        this.setState(getShareTargetErrorState());
         return;
       }
       // Remove the ?share-target from the URL
       history.replaceState('', '', '/');
       this.openEditor();
-      this.setState({ file, awaitingShareTarget: false });
+      this.setState(getShareTargetImageState(file));
     });
 
     // Since iOS 10, Apple tries to prevent disabling pinch-zoom. This is great in theory, but
@@ -85,12 +82,12 @@ export default class App extends Component<Props, State> {
     if (!files || files.length === 0) return;
     const file = files[0];
     this.openEditor();
-    this.setState({ file });
+    this.setState(getFileEntryState(file));
   };
 
   private onIntroPickFile = (file: File) => {
     this.openEditor();
-    this.setState({ file });
+    this.setState(getFileEntryState(file));
   };
 
   private showSnack = (
@@ -102,15 +99,13 @@ export default class App extends Component<Props, State> {
   };
 
   private onPopState = () => {
-    this.setState({ isEditorOpen: location.pathname === ROUTE_EDITOR });
+    this.setState(getPopStateRouteState(location.pathname));
   };
 
   private openEditor = () => {
     if (this.state.isEditorOpen) return;
     // Change path, but preserve query string.
-    const editorURL = new URL(location.href);
-    editorURL.pathname = ROUTE_EDITOR;
-    history.pushState(null, '', editorURL.href);
+    history.pushState(null, '', getEditorUrl(location.href));
     this.setState({ isEditorOpen: true });
   };
 
@@ -118,14 +113,18 @@ export default class App extends Component<Props, State> {
     {}: Props,
     { file, isEditorOpen, Compress, awaitingShareTarget }: State,
   ) {
-    const showSpinner = awaitingShareTarget || (isEditorOpen && !Compress);
+    const renderState = getInitialAppRenderState({
+      awaitingShareTarget,
+      isEditorOpen,
+      Compress,
+    });
 
     return (
       <div class={style.app}>
         <file-drop onfiledrop={this.onFileDrop} class={style.drop}>
-          {showSpinner ? (
+          {renderState.showSpinner ? (
             <loading-spinner class={style.appLoader} />
-          ) : isEditorOpen ? (
+          ) : renderState.showEditor ? (
             Compress && (
               <Compress file={file!} showSnack={this.showSnack} onBack={back} />
             )

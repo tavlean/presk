@@ -199,6 +199,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image result download tests now cover empty original left output and disabled right-side blob output.
     - Single-image output preview tests now cover desktop/mobile orientation plus canvas sizing and contain state.
     - Single-image output control tests now cover zoom scale math, scale-percent parsing, and rotation state wrapping.
+    - Initial app entry-state tests now cover share-target detection, editor route URLs, file-entry state, and spinner/editor/intro render modes.
     - Single-image panel layout tests now cover desktop column ordering and mobile multi-panel ordering.
     - Single-image viewport-state tests now cover the mobile media query and mobile-view state derivation.
     - Single-image options render-state tests now cover original and encoded option panel decisions.
