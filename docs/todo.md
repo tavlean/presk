@@ -115,6 +115,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Initial app global gesture and popstate listeners now have matching unmount cleanup.
     - Initial app lazy-load, share-target, and snackbar async callbacks now guard against post-unmount updates.
     - Editor copy/import undo snackbar callbacks now guard against post-unmount state updates.
+    - Editor processing error callbacks now guard against post-unmount snackbar and state updates.
     - Single-image active job completion bookkeeping now goes through pure helpers instead of direct Preact component field mutation.
     - Single-image work-start scheduling now goes through a pure helper instead of inline Preact component logic.
     - Single-image side encode decisions for original passthrough, cache hits, and new encodes now go through a pure helper instead of inline Preact component logic.

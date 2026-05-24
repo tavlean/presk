@@ -300,6 +300,11 @@ export default class Compress extends Component<Props, State> {
     }
   };
 
+  private showSnackIfMounted = (message: string): Promise<string> => {
+    if (this.isUnmounted) return Promise.resolve('dismiss');
+    return this.props.showSnack(message);
+  };
+
   private onPreprocessorChange = async (
     preprocessorState: PreprocessorState,
   ): Promise<void> => {
@@ -411,7 +416,8 @@ export default class Compress extends Component<Props, State> {
         });
       } catch (err) {
         if (isAbortError(err)) return;
-        this.props.showSnack(
+        if (this.isUnmounted) return;
+        this.showSnackIfMounted(
           getImageProcessingErrorMessage('source-decoding', err),
         );
         throw err;
@@ -455,8 +461,9 @@ export default class Compress extends Component<Props, State> {
         });
       } catch (err) {
         if (isAbortError(err)) return;
+        if (this.isUnmounted) return;
         this.setState(getSourcePreprocessErrorState());
-        this.props.showSnack(
+        this.showSnackIfMounted(
           getImageProcessingErrorMessage('preprocessing', err),
         );
         throw err;
@@ -566,10 +573,13 @@ export default class Compress extends Component<Props, State> {
         ).sideJobs;
       } catch (err) {
         if (isAbortError(err)) return;
+        if (this.isUnmounted) return;
         this.setState((currentState) => {
           return getSideLoadingState(currentState, sideIndex, false);
         });
-        this.props.showSnack(getImageProcessingErrorMessage('processing', err));
+        this.showSnackIfMounted(
+          getImageProcessingErrorMessage('processing', err),
+        );
         throw err;
       }
     });

@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>editor async undo guards</strong>
+            <strong>editor error async guards</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -954,6 +954,10 @@
                     <li>
                       Editor copy/import undo snackbar callbacks now guard
                       against post-unmount state updates.
+                    </li>
+                    <li>
+                      Editor processing error callbacks now guard against
+                      post-unmount snackbar and state updates.
                     </li>
                     <li>
                       Stateless checkbox, toggle, select, and revealer option
