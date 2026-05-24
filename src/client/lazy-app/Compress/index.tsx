@@ -37,6 +37,7 @@ import {
 import {
   SavedSideSettings,
   SideSettings,
+  getSavedSideSettings,
   getSavedSideSettingsKey,
   getSideLabel,
   readSavedSideSettings,
@@ -225,10 +226,10 @@ export default class Compress extends Component<Props, State> {
   private onSaveSideSettingsClick = async (index: 0 | 1) => {
     const key = getSavedSideSettingsKey(index);
     const sideLabel = getSideLabel(index);
-    const settingsSaved = writeSavedSideSettings(key, {
-      encodedSettings: this.state.sides[index].encodedSettings,
-      latestSettings: this.state.sides[index].latestSettings,
-    });
+    const settingsSaved = writeSavedSideSettings(
+      key,
+      getSavedSideSettings(this.state.sides[index]),
+    );
     if (!settingsSaved) {
       await this.props.showSnack(
         `${sideLabel} side settings could not be saved`,

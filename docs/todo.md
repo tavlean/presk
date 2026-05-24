@@ -90,7 +90,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side encoder/processor setting mutations now live in pure helpers instead of inline Preact component logic.
     - Single-image side loading, intermediate processed result, and final encoded result updates now live in pure helpers instead of inline Preact component logic.
     - Single-image side undo restoration now uses a side-state helper instead of raw immutable path updates in the Preact component.
-    - Single-image saved settings key/label lookup now lives with saved-settings parsing/storage helpers instead of the Preact component.
+    - Single-image saved settings key/label lookup and saved payload creation now live with saved-settings parsing/storage helpers instead of the Preact component.
     - Processor enabled toggles and option merges now go through pure helpers instead of direct option-panel path updates.
     - Orientation-change resize updates for both sides now go through a pure helper instead of inline Preact component mapping.
     - Single-image preprocessor-change state updates now go through a pure helper instead of inline Preact component logic.

@@ -14,6 +14,11 @@ export interface SavedSideSettings {
   latestSettings: SideSettings;
 }
 
+export interface SavableSideSettings {
+  encodedSettings?: SideSettings;
+  latestSettings: SideSettings;
+}
+
 export const savedSideSettingsVersion = 1;
 
 export const savedSideSettingsKeys: readonly [
@@ -113,6 +118,16 @@ export function writeSavedSideSettings(
   settings: SavedSideSettings,
 ): boolean {
   return writeLocalStorage(key, serializeSavedSideSettings(settings));
+}
+
+export function getSavedSideSettings(
+  side: SavableSideSettings,
+): SavedSideSettings {
+  const settings: SavedSideSettings = {
+    latestSettings: side.latestSettings,
+  };
+  if (side.encodedSettings) settings.encodedSettings = side.encodedSettings;
+  return settings;
 }
 
 export function serializeSavedSideSettings(

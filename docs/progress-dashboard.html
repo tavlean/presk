@@ -365,7 +365,7 @@
         <aside class="meta" aria-label="Dashboard metadata">
           <div class="meta-row">
             <span>Last updated</span>
-            <strong>2026-05-24 23:02 IST</strong>
+            <strong>2026-05-24 23:10 IST</strong>
           </div>
           <div class="meta-row">
             <span>Branch</span>
@@ -377,7 +377,7 @@
           </div>
           <div class="meta-row">
             <span>Current work</span>
-            <strong>render selectors</strong>
+            <strong>saved settings</strong>
           </div>
           <div class="meta-row">
             <span>Auto refresh</span>
@@ -400,11 +400,11 @@
           <span>Bulk backend foundation</span>
         </div>
         <div class="metric">
-          <strong>46% <span class="delta">+1</span></strong>
+          <strong>47% <span class="delta">+1</span></strong>
           <span>Repo simplification</span>
         </div>
         <div class="metric">
-          <strong>33% <span class="delta">+1</span></strong>
+          <strong>33%</strong>
           <span>Svelte readiness</span>
         </div>
       </section>
@@ -530,9 +530,9 @@
               <summary>
                 <div class="progress-top">
                   <span>Repo simplification</span>
-                  <span>46%</span>
+                  <span>47%</span>
                 </div>
-                <div class="bar"><span style="width: 46%"></span></div>
+                <div class="bar"><span style="width: 47%"></span></div>
                 <p class="progress-note">
                   Single-image behavior is being extracted from Preact into
                   tested helpers while preserving the current optimizer.
@@ -543,8 +543,8 @@
                   <h3>Done</h3>
                   <ul>
                     <li>
-                      Work planning, source resize, display, and side-state
-                      helpers extracted.
+                      Work planning, source resize, display, saved-settings,
+                      and side-state helpers extracted.
                     </li>
                     <li>
                       Preprocessor-change state now lives in a tested source
@@ -639,8 +639,9 @@
                   <span class="status done">done</span>
                 </strong>
                 <p>
-                  Storage key and side label lookup now live with saved-settings
-                  helpers instead of the Preact component.
+                  Storage key, side label, and saved payload construction now
+                  live with saved-settings helpers instead of the Preact
+                  component.
                 </p>
               </div>
               <div class="item">
