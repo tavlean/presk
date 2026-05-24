@@ -96,6 +96,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Use Playwright or another browser runner.
     - Start with: app loads, file can be selected, editor opens, an output is generated.
     - Started: `npm run smoke:browser` automates the local production-build Chromium/WebP smoke through the system `playwright-cli`.
+    - Started: `npm run smoke:browser` now verifies resize processing by checking a generated WebP blob is `64x64`.
     - Started: `npm run smoke:browser` now verifies extensionless PNG input exports as `icon-large.webp`.
     - Started: `npm run smoke:browser` now verifies the app shell reloads while the browser context is offline after the production app has loaded.
     - Started: `npm run smoke:browser` now verifies saved right-side WebP settings can be imported back into the real editor.
