@@ -1,5 +1,5 @@
 import type { ProcessorState } from '../feature-meta';
-import { cleanSet } from '../util/clean-modify';
+import { cleanMerge, cleanSet } from '../util/clean-modify';
 
 export type ProcessorType = keyof ProcessorState;
 
@@ -9,6 +9,14 @@ export function setProcessorEnabled(
   enabled: boolean,
 ): ProcessorState {
   return cleanSet(processorState, `${processor}.enabled`, enabled);
+}
+
+export function mergeProcessorOptions<Processor extends ProcessorType>(
+  processorState: ProcessorState,
+  processor: Processor,
+  options: Partial<ProcessorState[Processor]>,
+): ProcessorState {
+  return cleanMerge(processorState, processor, options);
 }
 
 export function processorStateEquivalent(

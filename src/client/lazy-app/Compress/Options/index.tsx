@@ -2,8 +2,6 @@ import { h, Component } from 'preact';
 
 import * as style from './style.css';
 import 'add-css:./style.css';
-import { cleanMerge } from '../../util/clean-modify';
-
 import type { SourceImage, OutputType } from '..';
 import {
   EncoderOptions,
@@ -19,7 +17,7 @@ import { Options as QuantOptionsComponent } from 'features/processors/quantize/c
 import { Options as ResizeOptionsComponent } from 'features/processors/resize/client';
 import { ImportIcon, SaveIcon, SwapIcon } from 'client/lazy-app/icons';
 import { hasSavedSideSettings } from '../saved-settings';
-import { setProcessorEnabled } from '../processor-state';
+import { mergeProcessorOptions, setProcessorEnabled } from '../processor-state';
 
 interface Props {
   index: 0 | 1;
@@ -122,14 +120,14 @@ export default class Options extends Component<Props, State> {
   private onQuantizerOptionsChange = (opts: ProcessorOptions['quantize']) => {
     this.props.onProcessorOptionsChange(
       this.props.index,
-      cleanMerge(this.props.processorState, 'quantize', opts),
+      mergeProcessorOptions(this.props.processorState, 'quantize', opts),
     );
   };
 
   private onResizeOptionsChange = (opts: ProcessorOptions['resize']) => {
     this.props.onProcessorOptionsChange(
       this.props.index,
-      cleanMerge(this.props.processorState, 'resize', opts),
+      mergeProcessorOptions(this.props.processorState, 'resize', opts),
     );
   };
 
