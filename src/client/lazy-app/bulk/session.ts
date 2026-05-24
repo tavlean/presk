@@ -60,6 +60,11 @@ export interface BatchProgress {
   exported: number;
 }
 
+export interface BulkSessionCounters {
+  activeJobs: number;
+  exportedCount: number;
+}
+
 export interface OverrideSummary {
   overridden: number;
   total: number;
@@ -96,14 +101,13 @@ export function createBulkSession(
   globalSettings: BulkImageSettings,
   jobs: ImageJob[] = [],
 ): BulkSession {
+  const counters = getBulkSessionCounters(jobs);
   return {
     id,
     globalSettings,
     jobs,
     selectedJobId: jobs[0]?.id,
-    activeJobs: jobs.filter((job) => getJobStatusGroup(job.status) === 'active')
-      .length,
-    exportedCount: jobs.filter((job) => job.status === 'exported').length,
+    ...counters,
   };
 }
 
@@ -159,6 +163,37 @@ function isActiveStatus(status: ImageJobStatus): boolean {
 
 function isActiveJob(job: ImageJob): boolean {
   return isActiveStatus(job.status);
+}
+
+export function getBulkSessionCounters(
+  jobs: readonly ImageJob[],
+): BulkSessionCounters {
+  let activeJobs = 0;
+  let exportedCount = 0;
+
+  for (const job of jobs) {
+    if (isActiveJob(job)) activeJobs += 1;
+    if (job.status === 'exported') exportedCount += 1;
+  }
+
+  return { activeJobs, exportedCount };
+}
+
+export function normalizeBulkSessionCounters(
+  session: BulkSession,
+): BulkSession {
+  const counters = getBulkSessionCounters(session.jobs);
+  if (
+    counters.activeJobs === session.activeJobs &&
+    counters.exportedCount === session.exportedCount
+  ) {
+    return session;
+  }
+
+  return {
+    ...session,
+    ...counters,
+  };
 }
 
 export function removeJobs(
