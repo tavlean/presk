@@ -109,6 +109,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side encode decisions for original passthrough, cache hits, and new encodes now go through a pure helper instead of inline Preact component logic.
     - Single-image, image-pipeline, and bulk runner abort-error checks now use a shared utility helper instead of open-coded name checks.
     - The main editor no longer uses the deprecated `componentWillReceiveProps` lifecycle for new-file handling.
+    - The resize processor options no longer use `componentWillReceiveProps`; preset matching now comes from a tested pure helper.
     - Single-image editor update effects for new files, title refreshes, and work scheduling now go through a tested helper instead of inline Preact lifecycle logic.
     - Single-image supported encoder filtering now lives in a tested helper instead of inline Preact options module setup.
     - Single-image saved-settings import availability now lives in a tested helper instead of inline Preact option-render logic.
@@ -184,6 +185,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image processing error tests now cover source decode, preprocessing, and side processing messages.
     - Single-image encoder select tests now cover identity/WebP values, original-image filename labels, and supported encoder option mapping.
     - Single-image processor control tests now cover resize/quantize control parsing, default resize option inputs, and vector resize option inputs.
+    - Resize preset tests now cover preset size rounding and custom preset detection.
     - Single-image result size tests now cover empty, original, smaller, and larger output display states.
     - Single-image result loading tests now cover initial loading state plus hide, delayed-show, and no-op transitions.
     - Single-image result download tests now cover empty original left output and disabled right-side blob output.

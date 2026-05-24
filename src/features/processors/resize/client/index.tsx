@@ -26,6 +26,11 @@ import { linkRef } from 'shared/prerendered-app/util';
 import Select from 'client/lazy-app/Compress/Options/Select';
 import Expander from 'client/lazy-app/Compress/Options/Expander';
 import Checkbox from 'client/lazy-app/Compress/Options/Checkbox';
+import {
+  getMatchingResizePreset,
+  getResizePresetSize,
+  sizePresets,
+} from './preset-state';
 
 /**
  * Return whether a set of options are worker resize options.
@@ -109,21 +114,12 @@ interface State {
   maintainAspect: boolean;
 }
 
-const sizePresets = [0.25, 0.3333, 0.5, 1, 2, 3, 4];
-
 export class Options extends Component<Props, State> {
   state: State = {
     maintainAspect: true,
   };
 
   private form?: HTMLFormElement;
-  private presetWidths: { [idx: number]: number } = {};
-  private presetHeights: { [idx: number]: number } = {};
-
-  constructor(props: Props) {
-    super(props);
-    this.generatePresetValues(props.inputWidth, props.inputHeight);
-  }
 
   private reportOptions() {
     const form = this.form!;
@@ -165,15 +161,6 @@ export class Options extends Component<Props, State> {
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (
-      this.props.inputWidth !== nextProps.inputWidth ||
-      this.props.inputHeight !== nextProps.inputHeight
-    ) {
-      this.generatePresetValues(nextProps.inputWidth, nextProps.inputHeight);
-    }
-  }
-
   private onWidthInput = () => {
     if (this.state.maintainAspect) {
       const width = inputFieldValueAsNumber(this.form!.width);
@@ -192,35 +179,26 @@ export class Options extends Component<Props, State> {
     this.reportOptions();
   };
 
-  private generatePresetValues(width: number, height: number) {
-    for (const preset of sizePresets) {
-      this.presetWidths[preset] = Math.round(width * preset);
-      this.presetHeights[preset] = Math.round(height * preset);
-    }
-  }
-
   private getPreset(): number | string {
     const { width, height } = this.props.options;
-
-    for (const preset of sizePresets) {
-      if (
-        width === this.presetWidths[preset] &&
-        height === this.presetHeights[preset]
-      )
-        return preset;
-    }
-
-    return 'custom';
+    return getMatchingResizePreset(
+      { width, height },
+      this.props.inputWidth,
+      this.props.inputHeight,
+    );
   }
 
   private onPresetChange = (event: Event) => {
     const select = event.target as HTMLSelectElement;
     if (select.value === 'custom') return;
     const multiplier = Number(select.value);
-    (this.form!.width as HTMLInputElement).value =
-      Math.round(this.props.inputWidth * multiplier) + '';
-    (this.form!.height as HTMLInputElement).value =
-      Math.round(this.props.inputHeight * multiplier) + '';
+    const presetSize = getResizePresetSize(
+      this.props.inputWidth,
+      this.props.inputHeight,
+      multiplier,
+    );
+    (this.form!.width as HTMLInputElement).value = String(presetSize.width);
+    (this.form!.height as HTMLInputElement).value = String(presetSize.height);
     this.reportOptions();
   };
 
