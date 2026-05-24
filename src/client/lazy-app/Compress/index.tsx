@@ -64,6 +64,8 @@ import {
 import { getImageProcessingErrorMessage } from './processing-errors';
 import {
   getImageWorkAbortPlan,
+  getSideJobCacheEntry,
+  getSideJobEncodedResult,
   getSideJobExecutionPlan,
   getPlannedImageWork,
   type MainJobState,
@@ -519,26 +521,28 @@ export default class Compress extends Component<Props, State> {
           );
           data = await decodeImage(signal, file, workerBridge);
 
-          this.encodeCache.add({
-            data,
-            processed,
-            file,
-            preprocessed: source.preprocessed,
-            encoderState: sidePlan.encoderState,
-            processorState: sidePlan.processorState,
-          });
+          const cacheEntry = getSideJobCacheEntry(
+            sidePlan,
+            { data, file, processed },
+            source.preprocessed,
+          );
+          if (cacheEntry) this.encodeCache.add(cacheEntry);
         }
+
+        const sideResult = getSideJobEncodedResult(jobState, {
+          data,
+          file,
+          processed,
+        });
 
         this.setState((currentState) => {
           if (signal.aborted) return {};
           return {
-            sides: setSideEncodedResult(currentState.sides, sideIndex, {
-              data,
-              file,
-              processed,
-              processorState: jobState.processorState,
-              encoderState: jobState.encoderState,
-            }),
+            sides: setSideEncodedResult(
+              currentState.sides,
+              sideIndex,
+              sideResult,
+            ),
           };
         });
 
