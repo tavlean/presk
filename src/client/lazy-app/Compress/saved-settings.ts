@@ -19,6 +19,18 @@ export interface SavableSideSettings {
   latestSettings: SideSettings;
 }
 
+export interface SavedSideSettingsWriteResult {
+  key: LocalStorageKey;
+  sideLabel: 'Left' | 'Right';
+  saved: boolean;
+}
+
+export interface SavedSideSettingsReadResult {
+  key: LocalStorageKey;
+  sideLabel: 'Left' | 'Right';
+  settings?: SavedSideSettings;
+}
+
 export const savedSideSettingsVersion = 1;
 
 export const savedSideSettingsKeys: readonly [
@@ -120,6 +132,27 @@ export function writeSavedSideSettings(
   return writeLocalStorage(key, serializeSavedSideSettings(settings));
 }
 
+export function readSavedSideSettingsForSide(
+  index: SideIndex,
+  readSettings: typeof readSavedSideSettings = readSavedSideSettings,
+): SavedSideSettingsReadResult {
+  const key = getSavedSideSettingsKey(index);
+  return {
+    key,
+    sideLabel: getSideLabel(index),
+    settings: readSettings(key),
+  };
+}
+
+export function readInitialSavedSideSettings(
+  readSettings: typeof readSavedSideSettings = readSavedSideSettings,
+): [SavedSideSettings | undefined, SavedSideSettings | undefined] {
+  return [
+    readSettings(getSavedSideSettingsKey(0)),
+    readSettings(getSavedSideSettingsKey(1)),
+  ];
+}
+
 export function getSavedSideSettings(
   side: SavableSideSettings,
 ): SavedSideSettings {
@@ -128,6 +161,19 @@ export function getSavedSideSettings(
   };
   if (side.encodedSettings) settings.encodedSettings = side.encodedSettings;
   return settings;
+}
+
+export function writeSavedSideSettingsForSide(
+  index: SideIndex,
+  side: SavableSideSettings,
+  writeSettings: typeof writeSavedSideSettings = writeSavedSideSettings,
+): SavedSideSettingsWriteResult {
+  const key = getSavedSideSettingsKey(index);
+  return {
+    key,
+    sideLabel: getSideLabel(index),
+    saved: writeSettings(key, getSavedSideSettings(side)),
+  };
 }
 
 export function serializeSavedSideSettings(

@@ -31,13 +31,10 @@ import {
   processImage,
 } from '../image-pipeline';
 import {
-  SavedSideSettings,
   SideSettings,
-  getSavedSideSettings,
-  getSavedSideSettingsKey,
-  getSideLabel,
-  readSavedSideSettings,
-  writeSavedSideSettings,
+  readInitialSavedSideSettings,
+  readSavedSideSettingsForSide,
+  writeSavedSideSettingsForSide,
 } from './saved-settings';
 import {
   applySavedSideSettings,
@@ -108,10 +105,7 @@ export default class Compress extends Component<Props, State> {
     source: undefined,
     loading: false,
     preprocessorState: defaultPreprocessorState,
-    sides: getInitialSideStates([
-      readSavedSideSettings(getSavedSideSettingsKey(0)),
-      readSavedSideSettings(getSavedSideSettingsKey(1)),
-    ]),
+    sides: getInitialSideStates(readInitialSavedSideSettings()),
     mobileView: this.widthQuery.matches,
   };
 
@@ -227,15 +221,13 @@ export default class Compress extends Component<Props, State> {
    * @returns
    */
   private onSaveSideSettingsClick = async (index: 0 | 1) => {
-    const key = getSavedSideSettingsKey(index);
-    const sideLabel = getSideLabel(index);
-    const settingsSaved = writeSavedSideSettings(
-      key,
-      getSavedSideSettings(this.state.sides[index]),
+    const saveResult = writeSavedSideSettingsForSide(
+      index,
+      this.state.sides[index],
     );
-    if (!settingsSaved) {
+    if (!saveResult.saved) {
       await this.props.showSnack(
-        `${sideLabel} side settings could not be saved`,
+        `${saveResult.sideLabel} side settings could not be saved`,
         {
           timeout: 3000,
           actions: ['dismiss'],
@@ -245,8 +237,8 @@ export default class Compress extends Component<Props, State> {
     }
 
     // Fire an event when we save side settings in local storage.
-    window.dispatchEvent(new CustomEvent(key));
-    await this.props.showSnack(`${sideLabel} side settings saved`, {
+    window.dispatchEvent(new CustomEvent(saveResult.key));
+    await this.props.showSnack(`${saveResult.sideLabel} side settings saved`, {
       timeout: 1500,
       actions: ['dismiss'],
     });
@@ -258,12 +250,10 @@ export default class Compress extends Component<Props, State> {
    * @returns
    */
   private onImportSideSettingsClick = async (index: 0 | 1) => {
-    const key = getSavedSideSettingsKey(index);
-    const sideLabel = getSideLabel(index);
-    const savedSettings = readSavedSideSettings(key);
-    if (!savedSettings) {
+    const importResult = readSavedSideSettingsForSide(index);
+    if (!importResult.settings) {
       await this.props.showSnack(
-        `Saved ${sideLabel.toLowerCase()} side settings are invalid`,
+        `Saved ${importResult.sideLabel.toLowerCase()} side settings are invalid`,
         {
           timeout: 3000,
           actions: ['dismiss'],
@@ -275,13 +265,13 @@ export default class Compress extends Component<Props, State> {
     const update = applySavedSideSettings(
       this.state.sides,
       index,
-      savedSettings,
+      importResult.settings,
     );
     this.setState({
       sides: update.sides,
     });
     const result = await this.props.showSnack(
-      `${sideLabel} side settings imported`,
+      `${importResult.sideLabel} side settings imported`,
       {
         timeout: 3000,
         actions: ['undo', 'dismiss'],
