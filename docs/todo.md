@@ -112,6 +112,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image preprocessor-change state updates now go through a pure helper instead of inline Preact component logic.
     - Single-image current/latest job-state derivation and work-plan assembly now go through a pure helper instead of inline Preact component logic.
     - Single-image source decode and preprocessing orchestration now runs through a framework-neutral helper with injected image-pipeline functions.
+    - Single-image work-start abort/controller cycling now runs through a framework-neutral helper instead of inline Preact component logic.
     - Initial app editor-open state now comes from a pure helper instead of inline app-shell state construction.
     - Initial app global gesture and popstate listeners now have matching unmount cleanup.
     - Initial app lazy-load, share-target, and snackbar async callbacks now guard against post-unmount updates.
@@ -207,6 +208,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image work-plan tests now cover missing job-state entries when building runnable side job records.
     - Single-image side-job runner tests now cover skip, original passthrough, processing, encoding, decoding, processed-state callbacks, and cache-entry callbacks.
     - Single-image source-job runner tests now cover decode callbacks, preprocessing callbacks, source assembly, and abort-before-start behavior.
+    - Single-image work-start runner tests now cover abort/controller replacement and no-op preservation behavior.
     - Single-image source-state tests now cover default raster and vector resize settings for newly decoded source images.
     - Single-image source-state tests now cover applying default resize settings to both comparison sides without mutating the old side state.
     - Single-image source-state tests now cover source decode/preprocess loading lifecycle patches.

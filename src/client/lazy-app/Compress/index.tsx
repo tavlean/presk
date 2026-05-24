@@ -76,10 +76,8 @@ import { getImageProcessingErrorMessage } from './processing-errors';
 import { runSourceDecode, runSourcePreprocess } from './source-job-runner';
 import { runSideEncodingPlan } from './side-job-runner';
 import {
-  getActiveImageJobsAfterStarts,
   getActiveImageJobsAfterMainCompletion,
   getActiveImageJobsAfterSideCompletion,
-  getImageWorkAbortPlan,
   getSideJobEncodedResult,
   getSideJobExecutionPlan,
   getPlannedImageWork,
@@ -87,6 +85,7 @@ import {
   type MainJobState,
   type SideJobState,
 } from './work-plan';
+import { startImageWork } from './work-start-runner';
 import { getCompressionDisplayState } from './display-state';
 import {
   getCompressionPanelLayout,
@@ -144,7 +143,10 @@ export default class Compress extends Component<Props, State> {
   /** Abort controller for actions that impact both sites, like source image decoding and preprocessing */
   private mainAbortController = new AbortController();
   // And again one for each side
-  private sideAbortControllers = [new AbortController(), new AbortController()];
+  private sideAbortControllers: [AbortController, AbortController] = [
+    new AbortController(),
+    new AbortController(),
+  ];
   /** For debouncing calls to updateImage for each side. */
   private updateImageTimeout?: number;
   private isUnmounted = false;
@@ -366,32 +368,23 @@ export default class Compress extends Component<Props, State> {
         currentState,
       );
 
-    // Abort running tasks & cycle the controllers
-    const abortPlan = getImageWorkAbortPlan(workStarts);
-    const activeJobs = getActiveImageJobsAfterStarts(
+    const workRuntime = startImageWork(
       {
         mainJob: this.activeMainJob,
         sideJobs: this.activeSideJobs,
+        mainAbortController: this.mainAbortController,
+        sideAbortControllers: this.sideAbortControllers,
       },
       workStarts,
     );
-    if (abortPlan.main) {
-      this.mainAbortController.abort();
-      this.mainAbortController = new AbortController();
-    }
-    this.activeMainJob = activeJobs.mainJob;
-    for (const [i, shouldAbort] of abortPlan.sides.entries()) {
-      if (shouldAbort) {
-        this.sideAbortControllers[i].abort();
-        this.sideAbortControllers[i] = new AbortController();
-        this.activeSideJobs[i] = activeJobs.sideJobs[i];
-      }
-    }
+    this.mainAbortController = workRuntime.mainAbortController;
+    this.sideAbortControllers = workRuntime.sideAbortControllers;
+    this.activeMainJob = workRuntime.mainJob;
+    this.activeSideJobs = workRuntime.sideJobs;
 
     if (!workPlan.jobNeeded) return;
 
-    const mainSignal = this.mainAbortController.signal;
-    const sideSignals = this.sideAbortControllers.map((ac) => ac.signal);
+    const { mainSignal, sideSignals } = workRuntime;
 
     let decodedSource: DecodedSourceImage;
 
