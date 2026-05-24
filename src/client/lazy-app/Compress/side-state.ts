@@ -34,6 +34,10 @@ export interface SavedSettingsSide {
   encodedSettings?: unknown;
 }
 
+export interface SavedSideSettingsState<Side extends SavedSettingsSide> {
+  sides: [Side, Side];
+}
+
 export interface LatestSettingsSide {
   latestSettings: SideSettings;
 }
@@ -86,6 +90,10 @@ export interface InitialSideState {
 export interface SavedSideSettingsUpdate<Side extends SavedSettingsSide> {
   sides: [Side, Side];
   oldSide: Side;
+}
+
+export interface RestoreSideState<Side> {
+  sides: [Side, Side];
 }
 
 export function getDefaultSideState(index: SideIndex): InitialSideState {
@@ -202,12 +210,30 @@ export function applySavedSideSettings<Side extends SavedSettingsSide>(
   };
 }
 
+export function getApplySavedSideSettingsState<Side extends SavedSettingsSide>(
+  state: SavedSideSettingsState<Side>,
+  index: SideIndex,
+  savedSettings: SavedSettingsSide,
+): SavedSideSettingsUpdate<Side> {
+  return applySavedSideSettings(state.sides, index, savedSettings);
+}
+
 export function restoreSide<Side>(
   sides: [Side, Side],
   index: SideIndex,
   side: Side,
 ): [Side, Side] {
   return cleanSet(sides, index, side);
+}
+
+export function getRestoreSideState<Side>(
+  state: RestoreSideState<Side>,
+  index: SideIndex,
+  side: Side,
+): Pick<RestoreSideState<Side>, 'sides'> {
+  return {
+    sides: restoreSide(state.sides, index, side),
+  };
 }
 
 export function setSideEncoderType<Side extends LatestSettingsSide>(

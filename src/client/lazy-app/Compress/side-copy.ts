@@ -12,6 +12,10 @@ export interface CopySideResult<Side extends CopyableSide> {
   oldSide: Side;
 }
 
+export interface CopySideState<Side extends CopyableSide> {
+  sides: [Side, Side];
+}
+
 export interface CopySideAction {
   message: string;
   timeout: number;
@@ -49,4 +53,12 @@ export function copySideToOther<Side extends CopyableSide>(
     sides: cleanSet(sides, otherIndex, newSide),
     oldSide,
   };
+}
+
+export function getCopySideChangeState<Side extends CopyableSide>(
+  state: CopySideState<Side>,
+  index: SideIndex,
+  createObjectUrl?: (file: Blob) => string,
+): CopySideResult<Side> {
+  return copySideToOther(state.sides, index, createObjectUrl);
 }

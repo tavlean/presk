@@ -26,7 +26,7 @@ import {
 } from './update-scheduler';
 import { getViewportState, mobileWidthMediaQuery } from './viewport-state';
 import {
-  copySideToOther,
+  getCopySideChangeState,
   getCopySideAction,
   getOtherSideIndex,
 } from './side-copy';
@@ -51,14 +51,14 @@ import {
   writeSavedSideSettingsForSide,
 } from './saved-settings';
 import {
-  applySavedSideSettings,
+  getApplySavedSideSettingsState,
   getSideEncoderOptionsChangeState,
   getSideEncoderTypeChangeState,
   getSideEncodedResultState,
   getSideLoadingState,
   getSideProcessedResultState,
   getSideProcessorOptionsChangeState,
-  restoreSide,
+  getRestoreSideState,
   resetSidesForNewSourceData,
   revokeSideDownloadUrls,
   setPreprocessedSourceState,
@@ -212,7 +212,7 @@ export default class Compress extends Component<Props, State> {
   }
 
   private onCopyToOtherClick = async (index: SideIndex) => {
-    const result = copySideToOther(this.state.sides, index);
+    const result = getCopySideChangeState(this.state, index);
     this.setState({
       sides: result.sides,
     });
@@ -226,8 +226,8 @@ export default class Compress extends Component<Props, State> {
     if (snackbarResult !== 'undo') return;
 
     this.setState({
-      sides: restoreSide(
-        this.state.sides,
+      ...getRestoreSideState(
+        this.state,
         getOtherSideIndex(index),
         result.oldSide,
       ),
@@ -275,8 +275,8 @@ export default class Compress extends Component<Props, State> {
       return;
     }
 
-    const update = applySavedSideSettings(
-      this.state.sides,
+    const update = getApplySavedSideSettingsState(
+      this.state,
       index,
       importAction.settings,
     );
@@ -289,7 +289,7 @@ export default class Compress extends Component<Props, State> {
     });
     if (result === 'undo') {
       this.setState({
-        sides: restoreSide(this.state.sides, index, update.oldSide),
+        ...getRestoreSideState(this.state, index, update.oldSide),
       });
     }
   };
