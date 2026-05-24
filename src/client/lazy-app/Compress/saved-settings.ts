@@ -97,8 +97,8 @@ export function hasSavedSideSettings(key: LocalStorageKey): boolean {
 export function writeSavedSideSettings(
   key: LocalStorageKey,
   settings: SavedSideSettings,
-): void {
-  writeLocalStorage(key, serializeSavedSideSettings(settings));
+): boolean {
+  return writeLocalStorage(key, serializeSavedSideSettings(settings));
 }
 
 export function serializeSavedSideSettings(

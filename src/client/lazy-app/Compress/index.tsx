@@ -290,10 +290,21 @@ export default class Compress extends Component<Props, State> {
   private onSaveSideSettingsClick = async (index: 0 | 1) => {
     const key = savedSettingsKeys[index];
     const sideLabel = index === 0 ? 'Left' : 'Right';
-    writeSavedSideSettings(key, {
+    const settingsSaved = writeSavedSideSettings(key, {
       encodedSettings: this.state.sides[index].encodedSettings,
       latestSettings: this.state.sides[index].latestSettings,
     });
+    if (!settingsSaved) {
+      await this.props.showSnack(
+        `${sideLabel} side settings could not be saved`,
+        {
+          timeout: 3000,
+          actions: ['dismiss'],
+        },
+      );
+      return;
+    }
+
     // Fire an event when we save side settings in local storage.
     window.dispatchEvent(new CustomEvent(key));
     await this.props.showSnack(`${sideLabel} side settings saved`, {

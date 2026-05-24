@@ -78,6 +78,7 @@ This list is ordered by priority. Do the high-priority items before building new
 - Legacy unversioned saved settings still import.
 - Missing/unknown encoders are rejected before applying the settings.
 - Invalid stored settings are not treated as available for import.
+- Browser storage access failures do not break editor startup or falsely report a successful save.
 
 13. Fix small code quality issues while touching nearby code.
 

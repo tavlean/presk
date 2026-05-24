@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: saved-settings availability now ignores invalid stored data and is locally verified. Run `git status --short --branch` for the exact state.
+Working tree at last update: saved-settings storage now tolerates blocked browser storage and is locally verified. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -115,6 +115,8 @@ Latest verification run:
 - `npm run check`: passed after adding real-editor saved side settings verification.
 - `npm run check`: passed after updating `@types/node` from Node 16 types to Node 20 types.
 - `npm run check`: passed after requiring saved-settings availability checks to parse successfully.
+- `npm run check`: passed after hardening saved-settings storage against throwing `localStorage` reads and writes.
+- `npm run smoke:browser`: passed after hardening saved-settings storage against throwing `localStorage` reads and writes.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -138,6 +140,7 @@ Latest verification run:
 - Latest observed GitHub Actions state after latest handoff update: `ae72c6c` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after saved-settings browser smoke: `bc78e14` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after Node type alignment: `b66bda1` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after saved-settings availability cleanup: `1644efa` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
@@ -197,6 +200,7 @@ Quick investigation note:
 - Hardened saved settings parsing to reject null encoder option values.
 - Hardened saved settings parsing to reject invalid processor enabled values and null option values.
 - Hardened saved settings availability checks so corrupt `localStorage` data is not treated as importable settings.
+- Hardened saved settings storage so blocked browser storage does not break editor startup or falsely report a successful save.
 - Centralized saved-settings storage reads/writes and fixed the right-side settings event listener cleanup path.
 - Modernized one editor media query listener path.
 - Hardened the shared abort helper so it removes abort listeners when wrapped work settles.
