@@ -259,6 +259,7 @@ This list is ordered by priority. Do the high-priority items before building new
 17. Partially completed: track codec provenance.
 
     - Initial inventory lives in [Codec provenance](codec-provenance.md).
+    - Local codec package names and build entry points are documented so future cleanup can distinguish folder paths from inherited package metadata.
     - Exact upstream commits/tags are still missing for many inherited `.wasm` files.
     - Before changing a codec, record the upstream project, commit/tag, build command, and generated outputs.
 

@@ -29,6 +29,28 @@ npm run build
 
 Most C/C++ codecs use Docker-based Makefiles. Rust codecs use `wasm-pack`-style package outputs. Some codec packages have their own `package-lock.json` or `Cargo.lock`; leave those alone unless actively rebuilding that codec.
 
+## Local build metadata
+
+The top-level codec package files currently advertise these build entry points:
+
+| Codec folder        | Package name | Build command                                                                                                                |
+| ------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `codecs/avif`       | `avif`       | `../build-cpp.sh`                                                                                                            |
+| `codecs/webp`       | `webp`       | `../build-cpp.sh`                                                                                                            |
+| `codecs/jxl`        | `jxl`        | `../build-cpp.sh`                                                                                                            |
+| `codecs/wp2`        | `wp2`        | `../build-cpp.sh`                                                                                                            |
+| `codecs/qoi`        | `qoi`        | `../build-cpp.sh`                                                                                                            |
+| `codecs/mozjpeg`    | not declared | `../build-cpp.sh`                                                                                                            |
+| `codecs/oxipng`     | `oxipng`     | `RUST_IMG=rustlang/rust@sha256:5fd16a5576c22c8fdd5d659247755999e426c04de8dcf18a41ea446c5f253309 ../build-rust.sh ./build.sh` |
+| `codecs/imagequant` | `imagequant` | `../build-cpp.sh`                                                                                                            |
+| `codecs/resize`     | `resize`     | `../build-rust.sh`                                                                                                           |
+| `codecs/hqx`        | `hqx`        | `../build-rust.sh`                                                                                                           |
+| `codecs/rotate`     | `rotate`     | `../build-rust.sh ./build.sh`                                                                                                |
+| `codecs/png`        | `oxipng`     | `../build-rust.sh`                                                                                                           |
+| `codecs/visdif`     | `avif`       | `../build-cpp.sh`                                                                                                            |
+
+Some package names are inherited and do not uniquely identify their folder, such as `codecs/png` declaring `oxipng` and `codecs/visdif` declaring `avif`. Use folder paths, feature imports, and generated asset references as the source of truth when planning codec cleanup.
+
 ## App codec inventory
 
 | Area                | Feature path                        | Codec assets                                                    | Current status                                                             |
