@@ -15,12 +15,8 @@ import {
 import Output from './Output';
 import Options from './Options';
 import ResultCache from './result-cache';
-import {
-  getDocumentTitle,
-  getLoadingFileInfo,
-  shouldUpdateDocumentTitle,
-  type LoadingFileInfo,
-} from './document-title';
+import { getDocumentTitle, type LoadingFileInfo } from './document-title';
+import { getEditorUpdateEffects } from './editor-lifecycle';
 import { copySideToOther, getOtherSideIndex } from './side-copy';
 import './custom-els/MultiPanel';
 import Results from './Results';
@@ -178,15 +174,26 @@ export default class Compress extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State): void {
-    if (prevProps.file !== this.props.file) {
-      this.sourceFile = this.props.file;
+    const updateEffects = getEditorUpdateEffects(
+      prevProps,
+      this.props,
+      prevState,
+      this.state,
+    );
+
+    if (updateEffects.sourceFile) {
+      this.sourceFile = updateEffects.sourceFile;
+    }
+
+    if (updateEffects.loadingFileInfo) {
+      updateDocumentTitle(updateEffects.loadingFileInfo);
+    }
+
+    if (updateEffects.queueUpdate === 'immediate') {
       this.queueUpdateImage({ immediate: true });
       return;
     }
 
-    if (shouldUpdateDocumentTitle(prevState, this.state)) {
-      updateDocumentTitle(getLoadingFileInfo(this.state));
-    }
     this.queueUpdateImage();
   }
 
