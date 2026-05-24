@@ -94,6 +94,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side loading, intermediate processed result, and final encoded result updates now live in pure helpers instead of inline Preact component logic.
     - Single-image side undo restoration now uses a side-state helper instead of raw immutable path updates in the Preact component.
     - Single-image output control state and event-retarget decisions now live in pure helpers instead of inline Preact output component branches.
+    - Single-image output initial zoom/editing/background/aliasing state now lives in a tested helper.
     - Single-image saved settings key/label lookup and saved payload creation now live with saved-settings parsing/storage helpers instead of the Preact component.
     - Single-image saved-settings read/write action helpers now keep side labels, storage keys, and savable payload construction out of the Preact component.
     - Single-image saved-settings save/import feedback actions now come from pure helpers instead of inline Preact component branches.
@@ -203,6 +204,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image result download tests now cover empty original left output and disabled right-side blob output.
     - Single-image output preview tests now cover desktop/mobile orientation plus canvas sizing and contain state.
     - Single-image output control tests now cover zoom scale math, scale-percent parsing, and rotation state wrapping.
+    - Single-image output control tests now cover initial control state.
     - Range input tests now cover text focus state, focused/unfocused display values, and blank-input commit suppression.
     - Options state tests now cover initial saved-settings availability composition and supported encoder map load state.
     - Option expander tests now cover closing, replacing children, and no-op derived state.

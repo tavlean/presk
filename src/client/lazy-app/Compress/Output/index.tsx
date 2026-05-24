@@ -28,6 +28,7 @@ import {
 import { getOutputPreviewState } from './preview-state';
 import {
   getNextOutputScale,
+  getInitialOutputViewControlState,
   getAliasingToggleState,
   getBackgroundToggleState,
   getEditingScaleState,
@@ -63,12 +64,7 @@ const scaleToOpts: ScaleToOpts = {
 };
 
 export default class Output extends Component<Props, State> {
-  state: State = {
-    scale: 1,
-    editingScale: false,
-    altBackground: false,
-    aliasing: false,
-  };
+  state: State = getInitialOutputViewControlState();
   canvasLeft?: HTMLCanvasElement;
   canvasRight?: HTMLCanvasElement;
   pinchZoomLeft?: PinchZoom;

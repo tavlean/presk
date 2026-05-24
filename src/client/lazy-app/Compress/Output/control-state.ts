@@ -27,6 +27,15 @@ export interface OutputViewControlState {
   scale: number;
 }
 
+export function getInitialOutputViewControlState(): OutputViewControlState {
+  return {
+    scale: 1,
+    editingScale: false,
+    altBackground: false,
+    aliasing: false,
+  };
+}
+
 export function getAliasingToggleState(
   state: Pick<OutputViewControlState, 'aliasing'>,
 ): Pick<OutputViewControlState, 'aliasing'> {
