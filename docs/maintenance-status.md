@@ -16,7 +16,7 @@ Historical archived fork, not the current project: `tavlean/SquooshPlus`.
 
 Project identity note: see [Project identity](project-identity.md). The current app/repo/package name is Sqush. The local workspace folder may still be named `SquooshPlus` until the active Codex workspace is closed and reopened from a renamed folder.
 
-Working tree at last update: bulk helpers include a framework-neutral barrel export and strip item selectors for future UI/Svelte consumption. Project identity is documented so the old local folder/archive name is not confused with current Sqush branding. Run `git status --short --branch` for the exact state.
+Working tree at last update: bulk helpers include a framework-neutral barrel export, strip item selectors, and session summary selectors for future UI/Svelte consumption. Project identity is documented so the old local folder/archive name is not confused with current Sqush branding. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -187,6 +187,7 @@ Latest verification run:
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
 - `npm run check`: passed after adding bulk strip item selectors and project identity docs.
+- `npm run check`: passed after adding bulk session summary selectors.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
 - Latest observed GitHub Actions state: pushed commits through `63adddf` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after the WebP smoke documentation push: `995c9b2` passed on Ubuntu, Windows, and macOS.

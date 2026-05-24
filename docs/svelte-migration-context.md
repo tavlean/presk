@@ -101,13 +101,13 @@ Do not remove these early:
 
 The bulk backend helpers being created now should be easy for Svelte to consume later:
 
-- prefer the helper barrel at `src/client/lazy-app/bulk/index.ts` when a Svelte prototype needs bulk session, queue, export, snapshot, and settings helpers together;
+- prefer the helper barrel at `src/client/lazy-app/bulk/index.ts` when a Svelte prototype needs bulk session, queue, export, snapshot, settings, strip, and summary helpers together;
 - sessions should be plain data;
 - selectors should be pure functions;
 - reducers/actions should not import Preact;
 - job lists should expose stable IDs;
 - per-image override detection should be derived, not effect-driven;
-- export summaries should be pure and testable;
+- export/session summaries should be pure and testable;
 - browser resource cleanup should be explicit.
 
 This lets a future Svelte UI show a strip of images, global settings, per-image overrides, and export readiness without duplicating business logic.

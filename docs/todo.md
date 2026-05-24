@@ -116,6 +116,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Bulk export state tests now prevent stale encoded outputs from being marked exported.
     - Bulk snapshot tests now cover metadata-only session snapshots that exclude live blob download URLs and validate serialized snapshot parsing.
     - Bulk strip item tests now cover selected state, output size state, percent change, status grouping, and per-image override paths.
+    - Bulk session summary tests now cover progress, selected-job context, action state, override totals, output totals, and export readiness from one pure selector.
     - Result-cache tests now cover cache hits, mismatched image data, mismatched encoder options, and mismatched processor options.
     - Output filename tests now cover extensionless sources, trailing dots, hidden names, and path-like source names.
     - Single-image side reset tests now cover clearing both side outputs and revoking both side download URLs when a new source image is loaded.
