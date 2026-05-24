@@ -14,10 +14,11 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after bulk job status grouping and CI verification. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: bulk action-state selector work prepared and locally verified. Run `git status --short --branch` for the exact state.
 
-Latest local-only committed work at last update:
+Latest recent committed work at last update:
 
+- `281521b` Update handoff after status grouping
 - `662808c` Group bulk job statuses
 - `0f9b001` Update handoff after selection navigation
 - `04488dd` Add bulk selection navigation
@@ -84,6 +85,8 @@ Latest verification run:
 - `npm run test:unit`: passed after bulk selection navigation helpers.
 - `npm run typecheck`: passed after bulk job status grouping helper.
 - `npm run test:unit`: passed after bulk job status grouping helper.
+- `npm run typecheck`: passed after bulk action-state selectors.
+- `npm run test:unit`: passed after bulk action-state selectors.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -96,6 +99,7 @@ Latest verification run:
 - Latest observed GitHub Actions state after bulk override summary cleanup: `1fdf5eb` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after bulk selection navigation cleanup: `04488dd` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after bulk status grouping cleanup: `662808c` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after latest handoff update: `281521b` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
@@ -169,6 +173,7 @@ Quick investigation note:
 - Added framework-neutral bulk override summary helpers for future image-strip indicators.
 - Added framework-neutral bulk next/previous selection helpers for future image-strip navigation.
 - Added framework-neutral bulk job status grouping for future status labels and controls.
+- Added framework-neutral bulk action-state selectors for future export/retry/activity controls.
 - Tightened bulk settings merging so falsy overrides such as `false` and `0` remain valid per-image overrides.
 - Added a settings override path helper for future per-image override highlighting.
 - Hardened bulk queue transitions so missing or repeated jobs do not corrupt active-job counts.

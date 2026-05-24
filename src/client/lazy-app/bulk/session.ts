@@ -61,6 +61,12 @@ export interface OverrideSummary {
   total: number;
 }
 
+export interface BulkActionState {
+  hasActiveJobs: boolean;
+  hasRetryableJobs: boolean;
+  hasIncompleteJobs: boolean;
+}
+
 export function getJobStatusGroup(status: ImageJobStatus): ImageJobStatusGroup {
   if (status === 'queued') return 'pending';
   if (isActiveStatus(status)) return 'active';
@@ -269,6 +275,25 @@ export function getOverrideSummary(session: BulkSession): OverrideSummary {
   return {
     overridden: getOverriddenJobs(session).length,
     total: session.jobs.length,
+  };
+}
+
+export function getBulkActionState(session: BulkSession): BulkActionState {
+  let hasActiveJobs = false;
+  let hasRetryableJobs = false;
+  let hasIncompleteJobs = false;
+
+  for (const job of session.jobs) {
+    const group = getJobStatusGroup(job.status);
+    if (group === 'active') hasActiveJobs = true;
+    if (group === 'failed' || group === 'skipped') hasRetryableJobs = true;
+    if (group !== 'complete') hasIncompleteJobs = true;
+  }
+
+  return {
+    hasActiveJobs,
+    hasRetryableJobs,
+    hasIncompleteJobs,
   };
 }
 

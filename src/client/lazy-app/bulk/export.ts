@@ -79,6 +79,10 @@ export function getExportableJobs(session: BulkSession): ImageJob[] {
   );
 }
 
+export function canExportBulkSession(session: BulkSession): boolean {
+  return getExportableJobs(session).length > 0;
+}
+
 export function getBulkExportSummary(session: BulkSession): BulkExportSummary {
   let ready = 0;
   let failed = 0;
