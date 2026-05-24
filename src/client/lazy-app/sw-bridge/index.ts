@@ -3,6 +3,7 @@ import type SnackBarElement from 'shared/custom-els/snack-bar';
 import { get, set } from 'idb-keyval';
 
 import swUrl from 'service-worker:sw';
+import { hasServiceWorkerController } from './support';
 
 function supportsServiceWorker(): boolean {
   return 'serviceWorker' in navigator;
@@ -52,6 +53,10 @@ export function getSharedImage(): Promise<File> {
   if (!supportsServiceWorker()) {
     return Promise.reject(Error('Service workers are not available'));
   }
+  if (!hasServiceWorkerController(navigator.serviceWorker)) {
+    return Promise.reject(Error('Service worker controller is not available'));
+  }
+  const { controller } = navigator.serviceWorker;
 
   return new Promise((resolve) => {
     const onmessage = (event: MessageEvent) => {
@@ -64,7 +69,7 @@ export function getSharedImage(): Promise<File> {
 
     // This message is picked up by the service worker - it's how it knows we're ready to receive
     // the file.
-    navigator.serviceWorker.controller!.postMessage('share-ready');
+    controller.postMessage('share-ready');
   });
 }
 

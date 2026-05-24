@@ -99,6 +99,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Started: `npm run smoke:browser` now verifies saved right-side WebP settings can be imported back into the real editor.
     - Started: service-worker bridge startup now no-ops when `navigator.serviceWorker` is unavailable.
     - Started: `npm run smoke:browser` now simulates service-worker-disabled mode and verifies the app shell still loads.
+    - Started: shared-image service-worker handling now rejects cleanly if no controller is available.
 
 15. Add small unit tests for pure utilities.
 
@@ -140,6 +141,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side reset tests now cover clearing both side outputs and revoking both side download URLs when a new source image is loaded.
     - MIME sniffing tests now cover PNG, JPEG, WebP, TIFF, AVIF, JPEG XL, unknown data, a TIFF false-positive guard, and a non-AVIF `ftyp` guard.
     - Utility tests now cover `clean-modify`, `pretty-bytes`, saved-settings parsing/validation, and MIME sniffing behavior.
+    - Service-worker bridge tests now cover service-worker controller detection.
     - Saved-settings tests now cover latest-only settings, version mismatches, and invalid versioned payloads.
     - `npm run test:unit` runs the current pure-helper test suite.
 
