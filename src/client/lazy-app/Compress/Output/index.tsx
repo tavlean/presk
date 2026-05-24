@@ -21,6 +21,11 @@ import { cleanSet } from '../../util/clean-modify';
 import type { SourceImage } from '../../Compress';
 import { linkRef } from 'shared/prerendered-app/util';
 import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
+import {
+  didOutputSourceFileChange,
+  getOutputDrawableState,
+  getOutputPinchZoomUpdate,
+} from './draw-state';
 import { getOutputPreviewState } from './preview-state';
 interface Props {
   source?: SourceImage;
@@ -83,23 +88,14 @@ export default class Output extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    const prevLeftDraw = this.leftDrawable(prevProps);
-    const prevRightDraw = this.rightDrawable(prevProps);
-    const leftDraw = this.leftDrawable();
-    const rightDraw = this.rightDrawable();
-    const sourceFileChanged =
-      // Has the value become (un)defined?
-      !!this.props.source !== !!prevProps.source ||
-      // Or has the file changed?
-      (this.props.source &&
-        prevProps.source &&
-        this.props.source.file !== prevProps.source.file);
+    const previousDrawState = getOutputDrawableState(prevProps);
+    const drawState = getOutputDrawableState(this.props);
 
     const oldSourceData = prevProps.source && prevProps.source.preprocessed;
     const newSourceData = this.props.source && this.props.source.preprocessed;
     const pinchZoom = this.pinchZoomLeft!;
 
-    if (sourceFileChanged) {
+    if (didOutputSourceFileChange(prevProps, this.props)) {
       // New image? Reset the pinch-zoom.
       pinchZoom.setTransform({
         allowChangeEvent: true,
@@ -107,30 +103,28 @@ export default class Output extends Component<Props, State> {
         y: 0,
         scale: 1,
       });
-    } else if (
-      oldSourceData &&
-      newSourceData &&
-      oldSourceData !== newSourceData
+    } else {
+      const pinchZoomUpdate = getOutputPinchZoomUpdate(
+        oldSourceData,
+        newSourceData,
+        pinchZoom,
+      );
+      if (pinchZoomUpdate) pinchZoom.setTransform(pinchZoomUpdate);
+    }
+
+    if (
+      drawState.leftDraw &&
+      drawState.leftDraw !== previousDrawState.leftDraw &&
+      this.canvasLeft
     ) {
-      // Since the pinch zoom transform origin is the top-left of the content, we need to flip
-      // things around a bit when the content size changes, so the new content appears as if it were
-      // central to the previous content.
-      const scaleChange = 1 - pinchZoom.scale;
-      const oldXScaleOffset = (oldSourceData.width / 2) * scaleChange;
-      const oldYScaleOffset = (oldSourceData.height / 2) * scaleChange;
-
-      pinchZoom.setTransform({
-        allowChangeEvent: true,
-        x: pinchZoom.x - oldXScaleOffset + oldYScaleOffset,
-        y: pinchZoom.y - oldYScaleOffset + oldXScaleOffset,
-      });
+      drawDataToCanvas(this.canvasLeft, drawState.leftDraw);
     }
-
-    if (leftDraw && leftDraw !== prevLeftDraw && this.canvasLeft) {
-      drawDataToCanvas(this.canvasLeft, leftDraw);
-    }
-    if (rightDraw && rightDraw !== prevRightDraw && this.canvasRight) {
-      drawDataToCanvas(this.canvasRight, rightDraw);
+    if (
+      drawState.rightDraw &&
+      drawState.rightDraw !== previousDrawState.rightDraw &&
+      this.canvasRight
+    ) {
+      drawDataToCanvas(this.canvasRight, drawState.rightDraw);
     }
   }
 
@@ -142,11 +136,11 @@ export default class Output extends Component<Props, State> {
   }
 
   private leftDrawable(props: Props = this.props): ImageData | undefined {
-    return props.leftCompressed || (props.source && props.source.preprocessed);
+    return getOutputDrawableState(props).leftDraw;
   }
 
   private rightDrawable(props: Props = this.props): ImageData | undefined {
-    return props.rightCompressed || (props.source && props.source.preprocessed);
+    return getOutputDrawableState(props).rightDraw;
   }
 
   private toggleAliasing = () => {
