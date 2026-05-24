@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>app shell async guards</strong>
+            <strong>editor async undo guards</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -950,6 +950,10 @@
                     <li>
                       Initial app lazy-load, share-target, and snackbar async
                       callbacks now guard against post-unmount updates.
+                    </li>
+                    <li>
+                      Editor copy/import undo snackbar callbacks now guard
+                      against post-unmount state updates.
                     </li>
                     <li>
                       Stateless checkbox, toggle, select, and revealer option

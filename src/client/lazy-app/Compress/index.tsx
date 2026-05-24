@@ -145,6 +145,7 @@ export default class Compress extends Component<Props, State> {
   private sideAbortControllers = [new AbortController(), new AbortController()];
   /** For debouncing calls to updateImage for each side. */
   private updateImageTimeout?: number;
+  private isUnmounted = false;
 
   constructor(props: Props) {
     super(props);
@@ -184,6 +185,7 @@ export default class Compress extends Component<Props, State> {
   };
 
   componentWillUnmount(): void {
+    this.isUnmounted = true;
     updateDocumentTitle({ loading: false });
     this.widthQuery.removeEventListener('change', this.onMobileWidthChange);
     clearTimeout(this.updateImageTimeout);
@@ -225,6 +227,7 @@ export default class Compress extends Component<Props, State> {
       actions: copyAction.actions,
     });
 
+    if (this.isUnmounted) return;
     if (snackbarResult !== 'undo') return;
 
     this.setState({
@@ -289,6 +292,7 @@ export default class Compress extends Component<Props, State> {
       timeout: importAction.timeout,
       actions: importAction.actions,
     });
+    if (this.isUnmounted) return;
     if (result === 'undo') {
       this.setState({
         ...getRestoreSideState(this.state, index, update.oldSide),
