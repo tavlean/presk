@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Historical archived fork, not the current project: `tavlean/SquooshPlus`.
 
-Working tree at last update: browser smoke now covers extensionless PNG input exporting as `icon-large.webp`, with the local browser smoke passing. Run `git status --short --branch` for the exact state.
+Working tree at last update: browser smoke now verifies the production app shell reloads while the browser context is offline, with local browser smoke passing. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -174,6 +174,7 @@ Latest verification run:
 - `npm run test:helpers`: passed after adding serialized bulk snapshot validation coverage.
 - `npm run check`: passed after making stale exported outputs pending in bulk export summaries.
 - `npm run smoke:browser`: passed after expanding the production browser smoke to cover extensionless PNG input and WebP output naming.
+- `npm run smoke:browser`: passed after expanding the production browser smoke to reload the app shell while offline.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -222,6 +223,7 @@ Latest verification run:
 - Playwright CLI production-build image import smoke: passed on `2026-05-23`; built app loaded, `icon-large.png` imported into `/editor`, processing completed with title `icon-large.png - Sqush`, WebP options were present, and console errors were 0.
 - Playwright CLI production-build WebP output smoke: passed on `2026-05-24`; built app loaded, `icon-large.png` imported into `/editor`, output side switched to `WebP`, `icon-large.webp` blob download was present, output was `24.1 kB` with a 9% reduction, and console errors were 0.
 - Playwright CLI production-build extensionless input smoke: passed on `2026-05-24`; built app loaded an extensionless PNG copy named `icon-large`, output side switched to `WebP`, and `icon-large.webp` blob download was present.
+- Playwright CLI production-build offline shell smoke: passed on `2026-05-24`; after the production app loaded, the browser context was set offline, the app reloaded, and the file input was available from the cached app shell.
 
 Next recommended tasks when work resumes:
 

@@ -93,7 +93,8 @@ This list is ordered by priority. Do the high-priority items before building new
     - Start with: app loads, file can be selected, editor opens, an output is generated.
     - Started: `npm run smoke:browser` automates the local production-build Chromium/WebP smoke through the system `playwright-cli`.
     - Started: `npm run smoke:browser` now verifies extensionless PNG input exports as `icon-large.webp`.
-    - Add checks for service-worker-disabled and production-like modes.
+    - Started: `npm run smoke:browser` now verifies the app shell reloads while the browser context is offline after the production app has loaded.
+    - Add checks for service-worker-disabled mode.
 
 15. Add small unit tests for pure utilities.
 
