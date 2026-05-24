@@ -14,10 +14,13 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: bulk retry stale-output cleanup changed and docs updated. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: clean after bulk retry stale-output cleanup and CI rerun. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
 Latest local-only committed work at last update:
 
+- `48746ca` Clear stale output on bulk retry
+- `aa59341` Normalize bulk queue concurrency
+- `995c9b2` Document WebP smoke coverage
 - `63adddf` Update handoff after failure cleanup
 - `09d0f7b` Clear stale output on bulk failure
 - `ffc9138` Update handoff after queue hardening
@@ -54,14 +57,15 @@ Latest local-only committed work at last update:
 Latest verification run:
 
 - `npm run format:check`: passed.
-- `npm run typecheck`: passed, including after bulk queue concurrency normalization.
-- `npm run test:unit`: passed, including after bulk queue concurrency normalization.
+- `npm run typecheck`: passed, including after bulk queue concurrency normalization and retry stale-output cleanup.
+- `npm run test:unit`: passed, including after bulk queue concurrency normalization and retry stale-output cleanup.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
 - Latest observed GitHub Actions state: pushed commits through `63adddf` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after the WebP smoke documentation push: `995c9b2` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after the bulk queue/retry cleanup: `48746ca` passed on Ubuntu, Windows, and macOS after rerunning a transient macOS DNS failure during `npm audit`.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
