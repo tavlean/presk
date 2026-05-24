@@ -300,6 +300,33 @@ export function clearJobOverrides(
   };
 }
 
+export function isJobOutputStale(session: BulkSession, job: ImageJob): boolean {
+  if (!job.output) return true;
+  const effectiveSettings = getEffectiveSettings(
+    session.globalSettings,
+    job.overrides,
+  );
+  return job.output.settingsHash !== settingsHash(effectiveSettings);
+}
+
+export function isJobReadyForExport(
+  session: BulkSession,
+  job: ImageJob,
+): boolean {
+  return Boolean(
+    job.output && job.status === 'encoded' && !isJobOutputStale(session, job),
+  );
+}
+
+export function isJobCurrentExport(
+  session: BulkSession,
+  job: ImageJob,
+): boolean {
+  return Boolean(
+    job.output && job.status === 'exported' && !isJobOutputStale(session, job),
+  );
+}
+
 export function markJobsExported(
   session: BulkSession,
   jobIds: Iterable<string>,
@@ -313,16 +340,8 @@ export function markJobsExported(
     jobs: normalizedSession.jobs.map((job) => {
       if (
         !exportedJobIds.has(job.id) ||
-        job.status !== 'encoded' ||
-        !job.output
+        !isJobReadyForExport(normalizedSession, job)
       ) {
-        return job;
-      }
-      const effectiveSettings = getEffectiveSettings(
-        normalizedSession.globalSettings,
-        job.overrides,
-      );
-      if (job.output.settingsHash !== settingsHash(effectiveSettings)) {
         return job;
       }
       newlyExportedCount += 1;

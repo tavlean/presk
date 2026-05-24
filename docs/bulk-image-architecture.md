@@ -22,6 +22,8 @@ If users add more images after a batch already exists, UI should append through 
 
 Export UI should create an export plan and then mark that plan exported through the plan helper after downloads are triggered. The helper reuses the stale-output guard, so changed global or per-image settings cannot mark old output as exported.
 
+Current-output, ready-for-export, and current-export predicates live in the session model. Queue, export summaries, export entries, and mark-exported flows should use those shared predicates so stale output handling stays consistent.
+
 Processing code should use the process-plan helper before decoding starts. That keeps encoder validation, per-image override merging, source filename selection, and output settings hashes consistent between the current runner and future UI code.
 
 Snapshot restore is metadata-only. It can restore the batch list, original file metadata, settings, selection, errors, and overrides, but it cannot restore live decoded images or optimized output blobs. Restored jobs that depended on live processing output return to `queued` so the app regenerates outputs before export. Use the serialized restore helper when loading a saved snapshot string so parsing and restoration share the same validation path.

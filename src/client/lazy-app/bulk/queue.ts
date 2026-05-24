@@ -7,9 +7,11 @@ import type {
 import {
   getBulkSessionCounters,
   isActiveImageJobStatus,
+  isJobOutputStale,
   normalizeBulkSessionCounters,
 } from './session';
-import { getEffectiveSettings, settingsHash } from './settings';
+
+export { isJobOutputStale } from './session';
 
 export const defaultBulkConcurrency = 2;
 
@@ -182,15 +184,6 @@ export function requeueJob(session: BulkSession, jobId: string): BulkSession {
     })),
     getBulkJobCounterDelta(job),
   );
-}
-
-export function isJobOutputStale(session: BulkSession, job: ImageJob): boolean {
-  if (!job.output) return true;
-  const effectiveSettings = getEffectiveSettings(
-    session.globalSettings,
-    job.overrides,
-  );
-  return job.output.settingsHash !== settingsHash(effectiveSettings);
 }
 
 export function requeueStaleJobs(session: BulkSession): BulkSession {

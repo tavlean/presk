@@ -1,7 +1,11 @@
 import { getFileNameParts, getSafeFileNameBase } from '../output-filename';
-import { markJobsExported } from './session';
+import {
+  isJobCurrentExport,
+  isJobOutputStale,
+  isJobReadyForExport,
+  markJobsExported,
+} from './session';
 import type { BulkSession, ImageJob } from './session';
-import { isJobOutputStale } from './queue';
 import { getPercentChange } from './size';
 
 export interface BulkExportSummary {
@@ -64,10 +68,7 @@ function createDuplicateSafeName(
 }
 
 export function getExportableJobs(session: BulkSession): ImageJob[] {
-  return session.jobs.filter(
-    (job) =>
-      job.output && job.status === 'encoded' && !isJobOutputStale(session, job),
-  );
+  return session.jobs.filter((job) => isJobReadyForExport(session, job));
 }
 
 function getRequestedJobIds(
@@ -141,19 +142,11 @@ export function getBulkExportSummary(
 
     if (job.status === 'failed') failed += 1;
     else if (job.status === 'skipped') skipped += 1;
-    else if (
-      job.output &&
-      job.status === 'encoded' &&
-      !isJobOutputStale(session, job)
-    ) {
+    else if (isJobReadyForExport(session, job)) {
       ready += 1;
       totalOriginalSize += job.originalSize;
-      totalOutputSize += job.output.size;
-    } else if (
-      job.status === 'exported' &&
-      job.output &&
-      !isJobOutputStale(session, job)
-    ) {
+      totalOutputSize += job.output!.size;
+    } else if (isJobCurrentExport(session, job)) {
       exported += 1;
     } else {
       pending += 1;
