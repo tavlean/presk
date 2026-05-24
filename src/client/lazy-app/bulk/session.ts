@@ -90,10 +90,14 @@ export interface SelectedJobContext {
 
 export function getJobStatusGroup(status: ImageJobStatus): ImageJobStatusGroup {
   if (status === 'queued') return 'pending';
-  if (isActiveStatus(status)) return 'active';
+  if (isActiveImageJobStatus(status)) return 'active';
   if (status === 'encoded' || status === 'exported') return 'complete';
   if (status === 'failed') return 'failed';
   return 'skipped';
+}
+
+export function isActiveImageJobStatus(status: ImageJobStatus): boolean {
+  return status === 'decoding' || status === 'processing';
 }
 
 export function createBulkSession(
@@ -157,12 +161,8 @@ export function addJobs(session: BulkSession, jobs: ImageJob[]): BulkSession {
   };
 }
 
-function isActiveStatus(status: ImageJobStatus): boolean {
-  return status === 'decoding' || status === 'processing';
-}
-
 function isActiveJob(job: ImageJob): boolean {
-  return isActiveStatus(job.status);
+  return isActiveImageJobStatus(job.status);
 }
 
 export function getBulkSessionCounters(

@@ -8,6 +8,8 @@ The helper surface now includes pure strip item selectors, selected-job detail s
 
 Queue UI should consume the queue-state selector rather than calculating active jobs, open slots, or runnable jobs itself. That keeps concurrency behavior consistent between the runner and future controls.
 
+Active bulk statuses are defined by the session model. Queue transitions and snapshot restore/counter logic should use that helper instead of duplicating `decoding`/`processing` checks.
+
 Queue status transitions should use the shared job counter delta helper when removing a job from an active or exported state. That keeps direct completion/failure/requeue and batch stale/incomplete/cancel transitions aligned if persisted session counters drift from the job list.
 
 Import UI should create sessions through the import-to-session helper so rejected files are kept out of the live session consistently and the first accepted image is selected by the same session rules everywhere.

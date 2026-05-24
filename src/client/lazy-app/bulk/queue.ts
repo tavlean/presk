@@ -6,6 +6,7 @@ import type {
 } from './session';
 import {
   getBulkSessionCounters,
+  isActiveImageJobStatus,
   normalizeBulkSessionCounters,
 } from './session';
 import { getEffectiveSettings, settingsHash } from './settings';
@@ -89,13 +90,9 @@ function getJob(session: BulkSession, jobId: string): ImageJob | undefined {
   return session.jobs.find((job) => job.id === jobId);
 }
 
-function isActiveStatus(status: ImageJobStatus): boolean {
-  return status === 'decoding' || status === 'processing';
-}
-
 export function getBulkJobCounterDelta(job: ImageJob): BulkJobCounterDelta {
   return {
-    activeJobs: isActiveStatus(job.status) ? 1 : 0,
+    activeJobs: isActiveImageJobStatus(job.status) ? 1 : 0,
     exportedCount: job.status === 'exported' ? 1 : 0,
   };
 }
@@ -237,7 +234,7 @@ export function requeueIncompleteJobs(session: BulkSession): BulkSession {
         const shouldRequeue =
           job.status === 'failed' ||
           job.status === 'skipped' ||
-          isActiveStatus(job.status);
+          isActiveImageJobStatus(job.status);
         if (!shouldRequeue) return job;
         addBulkJobCounterDelta(counterDelta, job);
         return {
@@ -263,7 +260,7 @@ export function cancelActiveJobs(session: BulkSession): BulkSession {
     {
       ...normalizedSession,
       jobs: normalizedSession.jobs.map((job) => {
-        if (!isActiveStatus(job.status)) return job;
+        if (!isActiveImageJobStatus(job.status)) return job;
         addBulkJobCounterDelta(counterDelta, job);
         return {
           ...job,

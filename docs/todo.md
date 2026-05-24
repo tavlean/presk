@@ -103,6 +103,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image supported encoder filtering now lives in a tested helper instead of inline Preact options module setup.
     - Single-image saved-settings import availability now lives in a tested helper instead of inline Preact option-render logic.
     - Bulk normal import and MIME-sniffed import now share accepted/rejected result recording so future import surfaces do not duplicate job ID or rejection bookkeeping.
+    - Bulk active status checks now come from the session model and are reused by queue and snapshot logic.
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
     - Removed obsolete TS suppressions from option controls and icon props by using element-specific Preact JSX attribute types.
     - Removed the remaining maintained app/lib `@ts-ignore` by making worker-bridge dispatch explicit.

@@ -6,6 +6,7 @@ import type {
 } from './session';
 import {
   getBulkSessionCounters,
+  isActiveImageJobStatus,
   normalizeBulkSessionCounters,
 } from './session';
 import type { BulkImageOverrides, BulkImageSettings } from './settings';
@@ -180,8 +181,7 @@ function restoreFileSnapshot(snapshot: BulkFileSnapshot): File {
 
 function getRestoredJobStatus(status: ImageJobStatus): ImageJobStatus {
   if (
-    status === 'decoding' ||
-    status === 'processing' ||
+    isActiveImageJobStatus(status) ||
     status === 'encoded' ||
     status === 'exported'
   ) {
@@ -208,9 +208,7 @@ function getSnapshotCounters(
   let exportedCount = 0;
 
   for (const job of jobs) {
-    if (job.status === 'decoding' || job.status === 'processing') {
-      activeJobs += 1;
-    }
+    if (isActiveImageJobStatus(job.status)) activeJobs += 1;
     if (job.status === 'exported') exportedCount += 1;
   }
 
