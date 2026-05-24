@@ -7,6 +7,7 @@ import { SourceImage } from '../';
 import {
   getInitialResultLoadingState,
   getResultLoadingEffect,
+  getResultLoadingVisibilityState,
 } from './loading-state';
 import { getResultDownloadState } from './download-state';
 import { getResultSizeState } from './size-state';
@@ -44,14 +45,18 @@ export default class Results extends Component<Props, State> {
     if (loadingEffect === 'hide') {
       // Just stopped loading
       clearTimeout(this.loadingTimeoutId);
-      this.setState({ showLoadingState: false });
+      this.setState(getResultLoadingVisibilityState(false));
     } else if (loadingEffect === 'delay-show') {
       // Just started loading
       this.loadingTimeoutId = self.setTimeout(
-        () => this.setState({ showLoadingState: true }),
+        () => this.setState(getResultLoadingVisibilityState(true)),
         loadingReactionDelay,
       );
     }
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.loadingTimeoutId);
   }
 
   render(

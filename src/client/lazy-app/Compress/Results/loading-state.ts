@@ -4,6 +4,12 @@ export function getInitialResultLoadingState(loading: boolean): boolean {
   return loading;
 }
 
+export function getResultLoadingVisibilityState(showLoadingState: boolean): {
+  showLoadingState: boolean;
+} {
+  return { showLoadingState };
+}
+
 export function getResultLoadingEffect(
   previousLoading: boolean,
   nextLoading: boolean,

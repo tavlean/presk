@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>options state load</strong>
+            <strong>result loading cleanup</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -656,11 +656,11 @@
               </svg>
             </span>
             <div>
-              <strong>95% <span class="delta">+1</span></strong>
+              <strong>96% <span class="delta">+1</span></strong>
               <span>Repo simplification</span>
             </div>
           </div>
-          <div class="bar"><span style="width: 95%"></span></div>
+          <div class="bar"><span style="width: 96%"></span></div>
         </div>
         <div class="metric">
           <div class="metric-body">
@@ -677,11 +677,11 @@
               </svg>
             </span>
             <div>
-              <strong>80% <span class="delta">+1</span></strong>
+              <strong>81% <span class="delta">+1</span></strong>
               <span>Svelte readiness</span>
             </div>
           </div>
-          <div class="bar"><span style="width: 80%"></span></div>
+          <div class="bar"><span style="width: 81%"></span></div>
         </div>
       </section>
 
@@ -904,9 +904,9 @@
                     </span>
                     Repo simplification
                   </span>
-                  <span>95%</span>
+                  <span>96%</span>
                 </div>
-                <div class="bar"><span style="width: 95%"></span></div>
+                <div class="bar"><span style="width: 96%"></span></div>
                 <p class="progress-note">
                   Single-image behavior is being extracted from Preact into
                   tested helpers, including the initial app entry state, and
@@ -954,6 +954,10 @@
                     <li>
                       Options initial state and supported encoder map load state
                       now live in tested helpers.
+                    </li>
+                    <li>
+                      Result loading visibility patches now come from a helper
+                      and delayed timers are cleared on unmount.
                     </li>
                     <li>
                       Preprocessor-change state now lives in a tested source
@@ -1020,9 +1024,9 @@
                     </span>
                     Svelte/SvelteKit migration readiness
                   </span>
-                  <span>80%</span>
+                  <span>81%</span>
                 </div>
-                <div class="bar"><span style="width: 80%"></span></div>
+                <div class="bar"><span style="width: 81%"></span></div>
                 <p class="progress-note">
                   Migration has not started. Current work is preparing reusable
                   logic, reducing legacy Preact assumptions, and documenting the
@@ -1055,6 +1059,9 @@
                     <li>
                       Options supported-encoder load state is now plain helper
                       data.
+                    </li>
+                    <li>
+                      Result loading visibility state is now plain helper data.
                     </li>
                     <li>
                       Single-image side job state, side settings state, initial
