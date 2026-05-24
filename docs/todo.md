@@ -101,6 +101,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - The main editor no longer uses the deprecated `componentWillReceiveProps` lifecycle for new-file handling.
     - Single-image editor update effects for new files, title refreshes, and work scheduling now go through a tested helper instead of inline Preact lifecycle logic.
     - Single-image supported encoder filtering now lives in a tested helper instead of inline Preact options module setup.
+    - Single-image saved-settings import availability now lives in a tested helper instead of inline Preact option-render logic.
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
     - Removed obsolete TS suppressions from option controls and icon props by using element-specific Preact JSX attribute types.
     - Removed the remaining maintained app/lib `@ts-ignore` by making worker-bridge dispatch explicit.

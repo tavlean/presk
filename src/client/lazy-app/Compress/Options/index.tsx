@@ -16,12 +16,15 @@ import Select from './Select';
 import { Options as QuantOptionsComponent } from 'features/processors/quantize/client';
 import { Options as ResizeOptionsComponent } from 'features/processors/resize/client';
 import { ImportIcon, SaveIcon, SwapIcon } from 'client/lazy-app/icons';
-import { hasSavedSideSettings } from '../saved-settings';
 import { mergeProcessorOptions, setProcessorEnabled } from '../processor-state';
 import {
   getSupportedEncoderMap,
   type SupportedEncoderMap,
 } from './encoder-support';
+import {
+  canImportSavedSideSettings,
+  getSavedSideSettingsAvailability,
+} from './saved-settings-state';
 
 interface Props {
   index: 0 | 1;
@@ -48,8 +51,7 @@ const supportedEncoderMapP = getSupportedEncoderMap();
 export default class Options extends Component<Props, State> {
   state: State = {
     supportedEncoderMap: undefined,
-    hasLeftSideSettings: hasSavedSideSettings('leftSideSettings'),
-    hasRightSideSettings: hasSavedSideSettings('rightSideSettings'),
+    ...getSavedSideSettingsAvailability(),
   };
 
   constructor() {
@@ -61,13 +63,15 @@ export default class Options extends Component<Props, State> {
 
   private setLeftSideSettings = () => {
     this.setState({
-      hasLeftSideSettings: hasSavedSideSettings('leftSideSettings'),
+      hasLeftSideSettings:
+        getSavedSideSettingsAvailability().hasLeftSideSettings,
     });
   };
 
   private setRightSideSettings = () => {
     this.setState({
-      hasRightSideSettings: hasSavedSideSettings('rightSideSettings'),
+      hasRightSideSettings:
+        getSavedSideSettingsAvailability().hasRightSideSettings,
     });
   };
 
@@ -195,6 +199,11 @@ export default class Options extends Component<Props, State> {
     { source, encoderState, processorState }: Props,
     { supportedEncoderMap }: State,
   ) {
+    const canImportSavedSettings = canImportSavedSideSettings(
+      this.state,
+      this.props.index,
+    );
+
     return (
       <div
         class={
@@ -226,25 +235,11 @@ export default class Options extends Component<Props, State> {
                   <button
                     class={
                       style.importButton +
-                      ' ' +
-                      (!this.state.hasLeftSideSettings && this.props.index === 0
-                        ? style.buttonOpacity
-                        : '') +
-                      ' ' +
-                      (!this.state.hasRightSideSettings &&
-                      this.props.index === 1
-                        ? style.buttonOpacity
-                        : '')
+                      (canImportSavedSettings ? '' : ` ${style.buttonOpacity}`)
                     }
                     title="Import saved side settings"
                     onClick={this.onImportSideSettingsClick}
-                    disabled={
-                      // Disabled if this side's settings haven't been saved
-                      (!this.state.hasLeftSideSettings &&
-                        this.props.index === 0) ||
-                      (!this.state.hasRightSideSettings &&
-                        this.props.index === 1)
-                    }
+                    disabled={!canImportSavedSettings}
                   >
                     <ImportIcon />
                   </button>
