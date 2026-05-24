@@ -155,6 +155,27 @@ export function selectJob(
   };
 }
 
+export function selectNextJob(session: BulkSession): BulkSession {
+  if (session.jobs.length === 0) return session;
+  const currentIndex = session.jobs.findIndex(
+    (job) => job.id === session.selectedJobId,
+  );
+  const nextIndex =
+    currentIndex === -1
+      ? 0
+      : Math.min(session.jobs.length - 1, currentIndex + 1);
+  return selectJob(session, session.jobs[nextIndex].id);
+}
+
+export function selectPreviousJob(session: BulkSession): BulkSession {
+  if (session.jobs.length === 0) return session;
+  const currentIndex = session.jobs.findIndex(
+    (job) => job.id === session.selectedJobId,
+  );
+  const nextIndex = currentIndex === -1 ? 0 : Math.max(0, currentIndex - 1);
+  return selectJob(session, session.jobs[nextIndex].id);
+}
+
 export function updateGlobalSettings(
   session: BulkSession,
   globalSettings: BulkImageSettings,

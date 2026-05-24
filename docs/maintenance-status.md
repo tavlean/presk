@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: clean after bulk override summary helper and CI verification. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
+Working tree at last update: bulk selection navigation helpers changed and docs updated. Local work may be ahead of `origin/main`; run `git status --short --branch` and `git log --oneline origin/main..HEAD` for the exact local-only list.
 
 Latest local-only committed work at last update:
 
@@ -76,6 +76,8 @@ Latest verification run:
 - `npm run test:unit`: passed after shared bulk percent-change helper.
 - `npm run typecheck`: passed after bulk override summary helper.
 - `npm run test:unit`: passed after bulk override summary helper.
+- `npm run typecheck`: passed after bulk selection navigation helpers.
+- `npm run test:unit`: passed after bulk selection navigation helpers.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -157,6 +159,7 @@ Quick investigation note:
 - Tightened bulk override detection so empty nested override objects are not treated as real overrides.
 - Tightened bulk session updates so empty per-image override objects are stored as no override.
 - Added framework-neutral bulk override summary helpers for future image-strip indicators.
+- Added framework-neutral bulk next/previous selection helpers for future image-strip navigation.
 - Tightened bulk settings merging so falsy overrides such as `false` and `0` remain valid per-image overrides.
 - Added a settings override path helper for future per-image override highlighting.
 - Hardened bulk queue transitions so missing or repeated jobs do not corrupt active-job counts.
