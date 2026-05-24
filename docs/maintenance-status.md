@@ -147,6 +147,7 @@ Latest verification run:
 - `npm run test:helpers`: passed after adding `ImageBitmap` cleanup to built-in decode.
 - `npm run typecheck`: passed after adding `ImageBitmap` cleanup to built-in decode.
 - `npm run check`: passed after adding `ImageBitmap` cleanup to built-in decode.
+- GitHub Actions passed on Ubuntu, Windows, and macOS for `95087f7` (`Update handoff after filename cleanup`).
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -181,6 +182,7 @@ Latest verification run:
 - Latest observed GitHub Actions state after selected bulk export summaries: `54a12b5` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after single-image side reset cleanup: `baed797` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after compressed output filename cleanup: `7b2984a` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after built-in decode cleanup: `95087f7` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
