@@ -104,6 +104,8 @@ Latest verification run:
 - `npm run check`: passed after adding the automated browser smoke command.
 - `npm run check`: passed after service-worker/shared type cleanup.
 - `npm run smoke:browser`: passed after service-worker/shared type cleanup.
+- `npm audit --audit-level=low`: passed after dependency drift review.
+- `npm outdated --cache /private/tmp/sqush-npm-cache`: reviewed on 2026-05-24; remaining drift is major-version migration work, not routine patch cleanup.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -121,6 +123,7 @@ Latest verification run:
 - Latest observed GitHub Actions state after latest handoff update: `677750f` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after bulk per-job size summaries: `7243559` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after automated browser smoke command: `f890ea1` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after CI hygiene cleanup: `974ea79` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.

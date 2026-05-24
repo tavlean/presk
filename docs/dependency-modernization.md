@@ -1,6 +1,6 @@
 # Dependency modernization
 
-The current toolchain is old but coherent: Rollup 2, TypeScript 4.9, PostCSS 7, cssnano 4, Prettier 2, and Preact 10.5.
+The current toolchain is old but coherent: Rollup 2, TypeScript 4.9, PostCSS 8, cssnano 6, Prettier 2, and Preact 10.5.
 
 The cleanup goal is to reduce audit risk without destabilizing workers, WASM, CSS modules, service-worker output, or static prerendering.
 
@@ -13,6 +13,12 @@ Recent `npm audit` state after the terser plugin upgrade:
 - 0 high.
 - 0 moderate.
 - 0 low.
+
+Latest `npm outdated --cache /private/tmp/sqush-npm-cache` snapshot on 2026-05-24:
+
+- No same-range package updates were available through the current semver ranges.
+- Remaining visible drift is mostly major-version work: Rollup 4, TypeScript 6, Prettier 3, Preact 10.29, cssnano 8, idb-keyval 6, Husky 9, lint-staged 17, `del` 8, and related Rollup plugin majors.
+- Treat those as migration tasks, not routine patch cleanup.
 
 Most findings are development/build-chain transitive dependencies, mainly from:
 
