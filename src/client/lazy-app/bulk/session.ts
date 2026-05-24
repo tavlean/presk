@@ -1,3 +1,4 @@
+import { hasSettingsOverrides } from './settings';
 import type { BulkImageOverrides, BulkImageSettings } from './settings';
 
 export type ImageJobStatus =
@@ -157,10 +158,14 @@ export function updateJobOverrides(
   jobId: string,
   overrides: BulkImageOverrides,
 ): BulkSession {
+  const normalizedOverrides = hasSettingsOverrides(overrides)
+    ? overrides
+    : undefined;
+
   return {
     ...session,
     jobs: session.jobs.map((job) =>
-      job.id === jobId ? { ...job, overrides } : job,
+      job.id === jobId ? { ...job, overrides: normalizedOverrides } : job,
     ),
   };
 }
