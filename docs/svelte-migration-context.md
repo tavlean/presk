@@ -97,6 +97,8 @@ Do not remove these early:
 - existing smoke tests;
 - codec files that are still referenced by generated metadata or cache lists.
 
+Single-image editor work planning is now partly extracted into `src/client/lazy-app/Compress/work-plan.ts`. Preserve that pure boundary when changing decode/preprocess/process/encode scheduling so the current optimizer remains testable before any Svelte rewrite.
+
 ## Bulk feature alignment
 
 The bulk backend helpers being created now should be easy for Svelte to consume later:

@@ -36,8 +36,12 @@ import {
   readSavedSideSettings,
   writeSavedSideSettings,
 } from './saved-settings';
-import { processorStateEquivalent } from './processor-state';
 import { resetSidesForNewSourceData } from './side-state';
+import {
+  getImageWorkPlan,
+  type MainJobState,
+  type SideJobState,
+} from './work-plan';
 import type { LocalStorageKey } from '../storage';
 
 export type OutputType = EncoderType | 'identity';
@@ -67,16 +71,6 @@ interface State {
   mobileView: boolean;
   preprocessorState: PreprocessorState;
   encodedPreprocessorState?: PreprocessorState;
-}
-
-interface MainJob {
-  file: File;
-  preprocessorState: PreprocessorState;
-}
-
-interface SideJob {
-  processorState: ProcessorState;
-  encoderState?: EncoderState;
 }
 
 interface LoadingFileInfo {
@@ -387,9 +381,12 @@ export default class Compress extends Component<Props, State> {
 
   private sourceFile: File;
   /** The in-progress job for decoding and preprocessing */
-  private activeMainJob?: MainJob;
+  private activeMainJob?: MainJobState;
   /** The in-progress job for each side (processing and encoding) */
-  private activeSideJobs: [SideJob?, SideJob?] = [undefined, undefined];
+  private activeSideJobs: [SideJobState?, SideJobState?] = [
+    undefined,
+    undefined,
+  ];
 
   /**
    * Perform image processing.
@@ -402,13 +399,13 @@ export default class Compress extends Component<Props, State> {
     const currentState = this.state;
 
     // State of the last completed job, or ongoing job
-    const latestMainJobState: Partial<MainJob> = this.activeMainJob || {
+    const latestMainJobState: Partial<MainJobState> = this.activeMainJob || {
       file: currentState.source && currentState.source.file,
       preprocessorState: currentState.encodedPreprocessorState,
     };
-    const latestSideJobStates: Partial<SideJob>[] = currentState.sides.map(
-      (side, i) =>
-        this.activeSideJobs[i] || {
+    const latestSideJobStates: Partial<SideJobState>[] = currentState.sides.map(
+      (side, index) =>
+        this.activeSideJobs[index] || {
           processorState:
             side.encodedSettings && side.encodedSettings.processorState,
           encoderState:
@@ -417,11 +414,11 @@ export default class Compress extends Component<Props, State> {
     );
 
     // State for this job
-    const mainJobState: MainJob = {
+    const mainJobState: MainJobState = {
       file: this.sourceFile,
       preprocessorState: currentState.preprocessorState,
     };
-    const sideJobStates: SideJob[] = currentState.sides.map((side) => ({
+    const sideJobStates: SideJobState[] = currentState.sides.map((side) => ({
       // If there isn't an encoder selected, we don't process either
       processorState: side.latestSettings.encoderState
         ? side.latestSettings.processorState
@@ -429,49 +426,28 @@ export default class Compress extends Component<Props, State> {
       encoderState: side.latestSettings.encoderState,
     }));
 
-    // Figure out what needs doing:
-    const needsDecoding = latestMainJobState.file != mainJobState.file;
-    const needsPreprocessing =
-      needsDecoding ||
-      latestMainJobState.preprocessorState !== mainJobState.preprocessorState;
-    const sideWorksNeeded = latestSideJobStates.map((latestSideJob, i) => {
-      const needsProcessing =
-        needsPreprocessing ||
-        !latestSideJob.processorState ||
-        // If we're going to or from 'original image' we should reprocess
-        !!latestSideJob.encoderState !== !!sideJobStates[i].encoderState ||
-        !processorStateEquivalent(
-          latestSideJob.processorState,
-          sideJobStates[i].processorState,
-        );
-
-      return {
-        processing: needsProcessing,
-        encoding:
-          needsProcessing ||
-          latestSideJob.encoderState !== sideJobStates[i].encoderState,
-      };
-    });
-
-    let jobNeeded = false;
+    const workPlan = getImageWorkPlan(
+      latestMainJobState,
+      mainJobState,
+      latestSideJobStates,
+      sideJobStates,
+    );
 
     // Abort running tasks & cycle the controllers
-    if (needsDecoding || needsPreprocessing) {
+    if (workPlan.needsDecoding || workPlan.needsPreprocessing) {
       this.mainAbortController.abort();
       this.mainAbortController = new AbortController();
-      jobNeeded = true;
       this.activeMainJob = mainJobState;
     }
-    for (const [i, sideWorkNeeded] of sideWorksNeeded.entries()) {
+    for (const [i, sideWorkNeeded] of workPlan.sideWorksNeeded.entries()) {
       if (sideWorkNeeded.processing || sideWorkNeeded.encoding) {
         this.sideAbortControllers[i].abort();
         this.sideAbortControllers[i] = new AbortController();
-        jobNeeded = true;
         this.activeSideJobs[i] = sideJobStates[i];
       }
     }
 
-    if (!jobNeeded) return;
+    if (!workPlan.jobNeeded) return;
 
     const mainSignal = this.mainAbortController.signal;
     const sideSignals = this.sideAbortControllers.map((ac) => ac.signal);
@@ -480,7 +456,7 @@ export default class Compress extends Component<Props, State> {
     let vectorImage: HTMLImageElement | undefined;
 
     // Handle decoding
-    if (needsDecoding) {
+    if (workPlan.needsDecoding) {
       try {
         assertSignal(mainSignal);
         this.setState({
@@ -534,7 +510,7 @@ export default class Compress extends Component<Props, State> {
     let source: SourceImage;
 
     // Handle preprocessing
-    if (needsPreprocessing) {
+    if (workPlan.needsPreprocessing) {
       try {
         assertSignal(mainSignal);
         this.setState({
@@ -594,7 +570,7 @@ export default class Compress extends Component<Props, State> {
     this.activeMainJob = undefined;
 
     // Allow side jobs to happen in parallel
-    sideWorksNeeded.forEach(async (sideWorkNeeded, sideIndex) => {
+    workPlan.sideWorksNeeded.forEach(async (sideWorkNeeded, sideIndex) => {
       try {
         // If processing is true, encoding is always true.
         if (!sideWorkNeeded.encoding) return;
