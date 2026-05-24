@@ -1,6 +1,6 @@
 # Browser support policy
 
-Last reviewed: 2026-05-23.
+Last reviewed: 2026-05-24.
 
 Sqush should target modern browsers that can run the optimizer locally. The product promise is not just that the page renders; the browser must be able to decode inputs, run WebAssembly codecs in workers, preview results, download outputs, and support the service-worker path for offline use.
 
@@ -37,12 +37,24 @@ Browser image support and bundled WASM codec support are separate concerns. A br
 
 Product priority:
 
-- WebP is the safest first-class output.
-- AVIF is first-class, but should be tested carefully because encoding can be slower and browser history is shorter.
-- JPEG XL should stay advanced or experimental until support and preview behavior are clear.
+- WebP is the safest first-class output. MDN lists WebP as supported in Chrome, Edge, Firefox, Opera, and Safari.
+- AVIF is first-class, but should be tested carefully because encoding can be slower and browser history is shorter. MDN lists AVIF support in Chrome, Edge, Firefox, Opera, and Safari, with version floors including Chrome 85, Edge 121, Firefox 93, and Safari 16.1.
+- JPEG XL should stay advanced or experimental until default browser support and preview behavior are proven. Sqush can keep its bundled WASM codec path for local conversion, but public delivery guidance should still prefer AVIF/WebP fallbacks.
 - WebP 2 should not be treated as a normal production output.
 
-MDN currently lists WebP and AVIF support across Chrome, Edge, Firefox, Opera, and Safari, and notes AVIF support starting at Chrome 85, Edge 121, Firefox 93, and Safari 16.1. MDN also lists BMP as broadly browser-supported and TIFF as Safari-only, which is why extension acceptance and actual decode success must remain separate.
+MDN also lists BMP as broadly browser-supported and TIFF as Safari-only, which is why extension acceptance and actual decode success must remain separate.
+
+## Svelte migration baseline
+
+The future Svelte or SvelteKit build should keep the same browser promise unless a measured prototype proves a reason to change it. A Svelte migration should not add support for older browsers by accident or drop currently supported evergreen browsers without an explicit decision.
+
+For Svelte/SvelteKit planning:
+
+- keep the target at modern evergreen browsers only;
+- prefer static output and browser-local processing;
+- avoid adding server-only requirements for image optimization;
+- treat Web Workers, WebAssembly, service workers, Canvas/ImageData, File/Blob APIs, object URLs, and dynamic imports as required platform features;
+- keep browser smoke coverage as the proof, not framework assumptions.
 
 ## Release gates
 
@@ -62,3 +74,5 @@ Before claiming support for a browser version:
 - MDN ServiceWorker API: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
 - MDN Web Workers API: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API
 - MDN WebAssembly: https://developer.mozilla.org/en-US/docs/WebAssembly
+- Svelte migration docs checked for framework planning: https://svelte.dev/docs
+- Web platform features explorer, JPEG XL status: https://web-platform-dx.github.io/web-features-explorer/features/jpegxl/

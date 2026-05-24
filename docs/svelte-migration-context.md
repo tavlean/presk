@@ -148,4 +148,4 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
 - Choose SvelteKit static output or Svelte plus Vite after a prototype measures build complexity.
 - Decide whether the first Svelte prototype lives beside the current app or on a separate branch.
 - Decide final codec surface before deleting codec code.
-- Verify current browser support targets against Svelte 5 and WASM worker requirements.
+- Current browser support targets were reviewed on 2026-05-24. Re-check before production migration, but do not lower the modern evergreen baseline or remove WebAssembly, worker, service-worker, Canvas/ImageData, File/Blob, object URL, or dynamic import assumptions without measured evidence.

@@ -166,10 +166,11 @@ This list is ordered by priority. Do the high-priority items before building new
     - Svelte migration guidance is now tracked in [Svelte migration context](svelte-migration-context.md).
     - Any Svelte-adjacent extraction should keep logic framework-neutral and avoid adding UI framework assumptions.
 
-19. Partially completed: review browser support.
+19. Completed: review browser support.
 
     - Initial policy note lives in [Browser support policy](browser-support.md).
-    - Exact minimum browser versions still need current compatibility research before public release.
+    - Current policy was reviewed again on 2026-05-24 against MDN image format guidance and Svelte migration constraints.
+    - Re-check before public release or before changing codec visibility, because browser support can change quickly.
 
 20. Completed: create an issue list from this todo.
 
