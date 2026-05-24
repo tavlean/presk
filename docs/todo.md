@@ -121,6 +121,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Preview and options custom elements now disconnect child observers when they leave the DOM.
     - Preview and range custom elements now clear removable listeners and pending animation frames on disconnect.
     - Range thumb-label precision and display formatting now live in tested helper logic instead of custom-element DOM code.
+    - Output preview update decisions for pinch-zoom resets, transform compensation, and canvas redraws now come from tested helper logic.
     - Initial app file-drop custom element handler typing now uses `void` instead of `any`.
     - Single-image active job completion bookkeeping now goes through pure helpers instead of direct Preact component field mutation.
     - Single-image work-start scheduling now goes through a pure helper instead of inline Preact component logic.

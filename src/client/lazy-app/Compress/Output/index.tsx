@@ -20,11 +20,7 @@ import type { PreprocessorState } from '../../feature-meta';
 import type { SourceImage } from '../../Compress';
 import { linkRef } from 'shared/prerendered-app/util';
 import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
-import {
-  didOutputSourceFileChange,
-  getOutputDrawableState,
-  getOutputPinchZoomUpdate,
-} from './draw-state';
+import { getOutputDrawableState, getOutputUpdatePlan } from './draw-state';
 import { getOutputPreviewState } from './preview-state';
 import {
   getNextOutputScale,
@@ -94,14 +90,11 @@ export default class Output extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    const previousDrawState = getOutputDrawableState(prevProps);
     const drawState = getOutputDrawableState(this.props);
-
-    const oldSourceData = prevProps.source && prevProps.source.preprocessed;
-    const newSourceData = this.props.source && this.props.source.preprocessed;
     const pinchZoom = this.pinchZoomLeft!;
+    const updatePlan = getOutputUpdatePlan(prevProps, this.props, pinchZoom);
 
-    if (didOutputSourceFileChange(prevProps, this.props)) {
+    if (updatePlan.resetPinchZoom) {
       // New image? Reset the pinch-zoom.
       pinchZoom.setTransform({
         allowChangeEvent: true,
@@ -109,27 +102,14 @@ export default class Output extends Component<Props, State> {
         y: 0,
         scale: 1,
       });
-    } else {
-      const pinchZoomUpdate = getOutputPinchZoomUpdate(
-        oldSourceData,
-        newSourceData,
-        pinchZoom,
-      );
-      if (pinchZoomUpdate) pinchZoom.setTransform(pinchZoomUpdate);
+    } else if (updatePlan.pinchZoomUpdate) {
+      pinchZoom.setTransform(updatePlan.pinchZoomUpdate);
     }
 
-    if (
-      drawState.leftDraw &&
-      drawState.leftDraw !== previousDrawState.leftDraw &&
-      this.canvasLeft
-    ) {
+    if (updatePlan.redrawLeft && drawState.leftDraw && this.canvasLeft) {
       drawDataToCanvas(this.canvasLeft, drawState.leftDraw);
     }
-    if (
-      drawState.rightDraw &&
-      drawState.rightDraw !== previousDrawState.rightDraw &&
-      this.canvasRight
-    ) {
+    if (updatePlan.redrawRight && drawState.rightDraw && this.canvasRight) {
       drawDataToCanvas(this.canvasRight, drawState.rightDraw);
     }
   }

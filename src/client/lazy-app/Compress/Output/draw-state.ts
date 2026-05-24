@@ -32,6 +32,13 @@ export interface OutputPinchZoomTransform {
   scale?: number;
 }
 
+export interface OutputUpdatePlan {
+  resetPinchZoom: boolean;
+  pinchZoomUpdate: OutputPinchZoomTransform | undefined;
+  redrawLeft: boolean;
+  redrawRight: boolean;
+}
+
 export function getOutputDrawableState<Drawable>({
   source,
   leftCompressed,
@@ -79,5 +86,35 @@ export function getOutputPinchZoomUpdate(
     allowChangeEvent: true,
     x: pinchZoom.x - oldXScaleOffset + oldYScaleOffset,
     y: pinchZoom.y - oldYScaleOffset + oldXScaleOffset,
+  };
+}
+
+export function getOutputUpdatePlan<Drawable extends OutputImageSize>(
+  previous: OutputDrawableInput<Drawable>,
+  current: OutputDrawableInput<Drawable>,
+  pinchZoom: OutputPinchZoomState,
+): OutputUpdatePlan {
+  const previousDrawState = getOutputDrawableState(previous);
+  const drawState = getOutputDrawableState(current);
+  const resetPinchZoom = didOutputSourceFileChange(previous, current);
+  const previousSourceData = previous.source && previous.source.preprocessed;
+  const currentSourceData = current.source && current.source.preprocessed;
+
+  return {
+    resetPinchZoom,
+    pinchZoomUpdate: resetPinchZoom
+      ? undefined
+      : getOutputPinchZoomUpdate(
+          previousSourceData,
+          currentSourceData,
+          pinchZoom,
+        ),
+    redrawLeft: Boolean(
+      drawState.leftDraw && drawState.leftDraw !== previousDrawState.leftDraw,
+    ),
+    redrawRight: Boolean(
+      drawState.rightDraw &&
+        drawState.rightDraw !== previousDrawState.rightDraw,
+    ),
   };
 }
