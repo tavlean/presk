@@ -497,8 +497,6 @@ export default class Compress extends Component<Props, State> {
             source,
             encodedPreprocessorState: mainJobState.preprocessorState,
             sides: currentState.sides.map((side) => {
-              if (side.downloadUrl) URL.revokeObjectURL(side.downloadUrl);
-
               const newSide: Side = {
                 ...side,
                 // Intermediate render
