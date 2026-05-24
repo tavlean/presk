@@ -184,7 +184,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image side-copy tests now cover side index lookup, feedback action data, and blob URL regeneration when copying one side to the other.
     - Single-image processing error tests now cover source decode, preprocessing, and side processing messages.
     - Single-image encoder select tests now cover identity/WebP values, original-image filename labels, and supported encoder option mapping.
-    - Single-image processor control tests now cover resize/quantize control parsing, default resize option inputs, and vector resize option inputs.
+    - Single-image processor control tests now cover resize/quantize control parsing, enable transitions, processor option merges, default resize option inputs, and vector resize option inputs.
     - Resize preset tests now cover preset size rounding and custom preset detection.
     - Single-image result size tests now cover empty, original, smaller, and larger output display states.
     - Single-image result loading tests now cover initial loading state plus hide, delayed-show, and no-op transitions.

@@ -16,14 +16,16 @@ import Select from './Select';
 import { Options as QuantOptionsComponent } from 'features/processors/quantize/client';
 import { Options as ResizeOptionsComponent } from 'features/processors/resize/client';
 import { ImportIcon, SaveIcon, SwapIcon } from 'client/lazy-app/icons';
-import { mergeProcessorOptions, setProcessorEnabled } from '../processor-state';
 import {
   getSupportedEncoderMap,
   type SupportedEncoderMap,
 } from './encoder-support';
 import { getEncoderSelectOptions } from './encoder-select-state';
 import { getSavedSideSettingsAvailability } from './saved-settings-state';
-import { getProcessorTypeFromControlName } from './processor-controls-state';
+import {
+  getProcessorStateWithEnabledControl,
+  getProcessorStateWithOptions,
+} from './processor-controls-state';
 import { getOptionsRenderState } from './render-state';
 
 interface Props {
@@ -97,25 +99,28 @@ export default class Options extends Component<Props, State> {
 
   private onProcessorEnabledChange = (event: Event) => {
     const el = event.currentTarget as HTMLInputElement;
-    const processor = getProcessorTypeFromControlName(el.name);
 
     this.props.onProcessorOptionsChange(
       this.props.index,
-      setProcessorEnabled(this.props.processorState, processor, el.checked),
+      getProcessorStateWithEnabledControl(
+        this.props.processorState,
+        el.name,
+        el.checked,
+      ),
     );
   };
 
   private onQuantizerOptionsChange = (opts: ProcessorOptions['quantize']) => {
     this.props.onProcessorOptionsChange(
       this.props.index,
-      mergeProcessorOptions(this.props.processorState, 'quantize', opts),
+      getProcessorStateWithOptions(this.props.processorState, 'quantize', opts),
     );
   };
 
   private onResizeOptionsChange = (opts: ProcessorOptions['resize']) => {
     this.props.onProcessorOptionsChange(
       this.props.index,
-      mergeProcessorOptions(this.props.processorState, 'resize', opts),
+      getProcessorStateWithOptions(this.props.processorState, 'resize', opts),
     );
   };
 
