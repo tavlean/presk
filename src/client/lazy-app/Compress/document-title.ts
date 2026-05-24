@@ -3,7 +3,42 @@ export interface LoadingFileInfo {
   filename?: string;
 }
 
+export interface LoadingSide {
+  loading: boolean;
+}
+
+export interface LoadingState {
+  source?: {
+    file: {
+      name: string;
+    };
+  };
+  sides: [LoadingSide, LoadingSide];
+  loading: boolean;
+}
+
 export const loadingIndicator = '⏳ ';
+
+export function isEditorLoading(state: LoadingState): boolean {
+  return state.loading || state.sides[0].loading || state.sides[1].loading;
+}
+
+export function shouldUpdateDocumentTitle(
+  previousState: LoadingState,
+  currentState: LoadingState,
+): boolean {
+  return (
+    isEditorLoading(previousState) !== isEditorLoading(currentState) ||
+    previousState.source !== currentState.source
+  );
+}
+
+export function getLoadingFileInfo(state: LoadingState): LoadingFileInfo {
+  return {
+    loading: isEditorLoading(state),
+    filename: state.source?.file.name,
+  };
+}
 
 export function getDocumentTitle(
   originalTitle: string,

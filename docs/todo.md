@@ -122,6 +122,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image source-state tests now cover default raster and vector resize settings for newly decoded source images.
     - Single-image source-state tests now cover orientation-change detection and resize width/height swapping after rotation.
     - Single-image document-title tests now cover idle, loading, and loaded file title text.
+    - Single-image document-title tests now cover loading-state detection, file info derivation, and update gating.
     - Single-image side-copy tests now cover side index lookup and blob URL regeneration when copying one side to the other.
     - Output filename tests now cover extensionless sources, trailing dots, hidden names, and path-like source names.
     - Single-image side reset tests now cover clearing both side outputs and revoking both side download URLs when a new source image is loaded.

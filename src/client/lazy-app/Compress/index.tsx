@@ -16,7 +16,12 @@ import {
 import Output from './Output';
 import Options from './Options';
 import ResultCache from './result-cache';
-import { getDocumentTitle, type LoadingFileInfo } from './document-title';
+import {
+  getDocumentTitle,
+  getLoadingFileInfo,
+  shouldUpdateDocumentTitle,
+  type LoadingFileInfo,
+} from './document-title';
 import { cleanMerge, cleanSet } from '../util/clean-modify';
 import {
   copySideToOther,
@@ -212,20 +217,8 @@ export default class Compress extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State): void {
-    const wasLoading =
-      prevState.loading ||
-      prevState.sides[0].loading ||
-      prevState.sides[1].loading;
-    const isLoading =
-      this.state.loading ||
-      this.state.sides[0].loading ||
-      this.state.sides[1].loading;
-    const sourceChanged = prevState.source !== this.state.source;
-    if (wasLoading !== isLoading || sourceChanged) {
-      updateDocumentTitle({
-        loading: isLoading,
-        filename: this.state.source?.file.name,
-      });
+    if (shouldUpdateDocumentTitle(prevState, this.state)) {
+      updateDocumentTitle(getLoadingFileInfo(this.state));
     }
     this.queueUpdateImage();
   }
