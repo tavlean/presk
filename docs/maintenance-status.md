@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: TIFF MIME sniffing tightened and locally verified. Run `git status --short --branch` for the exact state.
+Working tree at last update: AVIF MIME sniffing relaxed to accept normal `ftypavif` headers and locally verified. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -122,6 +122,7 @@ Latest verification run:
 - `npm run test:helpers`: passed after adding MIME sniffing coverage for PNG, JPEG, WebP, JPEG XL, and unknown data.
 - `npm run check`: passed after adding MIME sniffing coverage for PNG, JPEG, WebP, JPEG XL, and unknown data.
 - `npm run check`: passed after tightening TIFF MIME sniffing and adding little-endian, big-endian, and false-positive coverage.
+- `npm run check`: passed after relaxing AVIF MIME sniffing and adding AVIF/non-AVIF `ftyp` coverage.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -221,6 +222,7 @@ Quick investigation note:
 - Added result-cache helper coverage for matching, mismatched image data, mismatched encoder options, and mismatched processor options.
 - Added MIME sniffing helper coverage for PNG, JPEG, WebP, JPEG XL, and unknown data.
 - Tightened TIFF MIME sniffing to require real little-endian or big-endian TIFF headers instead of loose `I`/`MM` prefixes.
+- Relaxed AVIF MIME sniffing to accept normal `ftypavif` headers regardless of box size while still rejecting non-AVIF `ftyp` data.
 - Replaced avoidable `any` usage and optional Promise entries in service-worker cache cleanup and shared ref utilities.
 - Added framework-neutral bulk settings, session, import, queue, and stale-output helpers.
 - Hardened bulk session construction so initial active and exported jobs derive matching counters.
