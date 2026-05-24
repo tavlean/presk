@@ -248,6 +248,40 @@ export function getActiveImageJobsAfterStarts(
   };
 }
 
+export function getActiveImageJobsAfterMainCompletion(
+  activeJobs: ActiveImageJobs,
+): ActiveImageJobs {
+  return {
+    mainJob: undefined,
+    sideJobs: activeJobs.sideJobs,
+  };
+}
+
+export interface ActiveTwoSideJobs {
+  mainJob?: MainJobState;
+  sideJobs: [SideJobState?, SideJobState?];
+}
+
+export function getActiveImageJobsAfterSideCompletion(
+  activeJobs: ActiveTwoSideJobs,
+  index: number,
+): ActiveTwoSideJobs;
+export function getActiveImageJobsAfterSideCompletion(
+  activeJobs: ActiveImageJobs,
+  index: number,
+): ActiveImageJobs;
+export function getActiveImageJobsAfterSideCompletion(
+  activeJobs: ActiveImageJobs,
+  index: number,
+): ActiveImageJobs {
+  return {
+    mainJob: activeJobs.mainJob,
+    sideJobs: activeJobs.sideJobs.map((sideJob, sideIndex) =>
+      sideIndex === index ? undefined : sideJob,
+    ),
+  };
+}
+
 export function getRunnableSideJobIndexes(
   sideWorksNeeded: readonly SideWorkNeeded[],
 ): number[] {

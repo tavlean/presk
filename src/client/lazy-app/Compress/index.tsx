@@ -74,6 +74,8 @@ import {
 import { getImageProcessingErrorMessage } from './processing-errors';
 import {
   getActiveImageJobsAfterStarts,
+  getActiveImageJobsAfterMainCompletion,
+  getActiveImageJobsAfterSideCompletion,
   getImageWorkAbortPlan,
   getSideJobCacheEntry,
   getSideJobEncodedResult,
@@ -460,7 +462,10 @@ export default class Compress extends Component<Props, State> {
     }
 
     // That's the main part of the job done.
-    this.activeMainJob = undefined;
+    this.activeMainJob = getActiveImageJobsAfterMainCompletion({
+      mainJob: this.activeMainJob,
+      sideJobs: this.activeSideJobs,
+    }).mainJob;
 
     const runnableSideJobIndexes = new Set(
       getRunnableSideJobIndexes(workPlan.sideWorksNeeded),
@@ -548,7 +553,13 @@ export default class Compress extends Component<Props, State> {
           return getSideEncodedResultState(currentState, sideIndex, sideResult);
         });
 
-        this.activeSideJobs[sideIndex] = undefined;
+        this.activeSideJobs = getActiveImageJobsAfterSideCompletion(
+          {
+            mainJob: this.activeMainJob,
+            sideJobs: this.activeSideJobs,
+          },
+          sideIndex,
+        ).sideJobs;
       } catch (err) {
         if (isAbortError(err)) return;
         this.setState((currentState) => {
