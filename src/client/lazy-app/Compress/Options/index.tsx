@@ -18,6 +18,7 @@ import Select from './Select';
 import { Options as QuantOptionsComponent } from 'features/processors/quantize/client';
 import { Options as ResizeOptionsComponent } from 'features/processors/resize/client';
 import { ImportIcon, SaveIcon, SwapIcon } from 'client/lazy-app/icons';
+import { hasSavedSideSettings } from '../saved-settings';
 
 interface Props {
   index: 0 | 1;
@@ -35,8 +36,8 @@ interface Props {
 
 interface State {
   supportedEncoderMap?: PartialButNotUndefined<typeof encoderMap>;
-  leftSideSettings?: string | null;
-  rightSideSettings?: string | null;
+  hasLeftSideSettings: boolean;
+  hasRightSideSettings: boolean;
 }
 
 type PartialButNotUndefined<T> = {
@@ -64,8 +65,8 @@ const supportedEncoderMapP: Promise<PartialButNotUndefined<typeof encoderMap>> =
 export default class Options extends Component<Props, State> {
   state: State = {
     supportedEncoderMap: undefined,
-    leftSideSettings: localStorage.getItem('leftSideSettings'),
-    rightSideSettings: localStorage.getItem('rightSideSettings'),
+    hasLeftSideSettings: hasSavedSideSettings('leftSideSettings'),
+    hasRightSideSettings: hasSavedSideSettings('rightSideSettings'),
   };
 
   constructor() {
@@ -77,13 +78,13 @@ export default class Options extends Component<Props, State> {
 
   private setLeftSideSettings = () => {
     this.setState({
-      leftSideSettings: localStorage.getItem('leftSideSettings'),
+      hasLeftSideSettings: hasSavedSideSettings('leftSideSettings'),
     });
   };
 
   private setRightSideSettings = () => {
     this.setState({
-      rightSideSettings: localStorage.getItem('rightSideSettings'),
+      hasRightSideSettings: hasSavedSideSettings('rightSideSettings'),
     });
   };
 
@@ -95,7 +96,7 @@ export default class Options extends Component<Props, State> {
 
   componentWillUnmount(): void {
     window.removeEventListener('leftSideSettings', this.setLeftSideSettings);
-    window.removeEventListener('removeSideSettings', this.setRightSideSettings);
+    window.removeEventListener('rightSideSettings', this.setRightSideSettings);
   }
 
   private onEncoderTypeChange = (event: Event) => {
@@ -243,11 +244,12 @@ export default class Options extends Component<Props, State> {
                     class={
                       style.importButton +
                       ' ' +
-                      (!this.state.leftSideSettings && this.props.index === 0
+                      (!this.state.hasLeftSideSettings && this.props.index === 0
                         ? style.buttonOpacity
                         : '') +
                       ' ' +
-                      (!this.state.rightSideSettings && this.props.index === 1
+                      (!this.state.hasRightSideSettings &&
+                      this.props.index === 1
                         ? style.buttonOpacity
                         : '')
                     }
@@ -255,9 +257,10 @@ export default class Options extends Component<Props, State> {
                     onClick={this.onImportSideSettingsClick}
                     disabled={
                       // Disabled if this side's settings haven't been saved
-                      (!this.state.leftSideSettings &&
+                      (!this.state.hasLeftSideSettings &&
                         this.props.index === 0) ||
-                      (!this.state.rightSideSettings && this.props.index === 1)
+                      (!this.state.hasRightSideSettings &&
+                        this.props.index === 1)
                     }
                   >
                     <ImportIcon />

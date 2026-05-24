@@ -33,10 +33,11 @@ import {
 import {
   SavedSideSettings,
   SideSettings,
-  parseSavedSideSettings,
-  serializeSavedSideSettings,
+  readSavedSideSettings,
+  writeSavedSideSettings,
 } from './saved-settings';
 import { processorStateEquivalent } from './processor-state';
+import type { LocalStorageKey } from '../storage';
 
 export type OutputType = EncoderType | 'identity';
 export type { SourceImage } from '../image-pipeline';
@@ -82,16 +83,10 @@ interface LoadingFileInfo {
   filename?: string;
 }
 
-const savedSettingsKeys = ['leftSideSettings', 'rightSideSettings'] as const;
-
-function readSideSettings(
-  key: (typeof savedSettingsKeys)[number],
-): SavedSideSettings | undefined {
-  const serializedSettings = localStorage.getItem(key);
-  if (!serializedSettings) return;
-
-  return parseSavedSideSettings(serializedSettings);
-}
+const savedSettingsKeys: readonly [LocalStorageKey, LocalStorageKey] = [
+  'leftSideSettings',
+  'rightSideSettings',
+];
 
 function defaultSide(index: 0 | 1): Side {
   return {
@@ -110,7 +105,7 @@ function defaultSide(index: 0 | 1): Side {
 }
 
 function initialSide(index: 0 | 1): Side {
-  const savedSettings = readSideSettings(savedSettingsKeys[index]);
+  const savedSettings = readSavedSideSettings(savedSettingsKeys[index]);
   return {
     ...defaultSide(index),
     ...savedSettings,
@@ -293,35 +288,18 @@ export default class Compress extends Component<Props, State> {
    * @returns
    */
   private onSaveSideSettingsClick = async (index: 0 | 1) => {
-    if (index === 0) {
-      const leftSideSettings = serializeSavedSideSettings({
-        encodedSettings: this.state.sides[index].encodedSettings,
-        latestSettings: this.state.sides[index].latestSettings,
-      });
-      localStorage.setItem('leftSideSettings', leftSideSettings);
-      // Fire an event when we save side settings in local storage.
-      window.dispatchEvent(new CustomEvent('leftSideSettings'));
-      await this.props.showSnack('Left side settings saved', {
-        timeout: 1500,
-        actions: ['dismiss'],
-      });
-      return;
-    }
-
-    if (index === 1) {
-      const rightSideSettings = serializeSavedSideSettings({
-        encodedSettings: this.state.sides[index].encodedSettings,
-        latestSettings: this.state.sides[index].latestSettings,
-      });
-      localStorage.setItem('rightSideSettings', rightSideSettings);
-      // Fire an event when we save side settings in local storage.
-      window.dispatchEvent(new CustomEvent('rightSideSettings'));
-      await this.props.showSnack('Right side settings saved', {
-        timeout: 1500,
-        actions: ['dismiss'],
-      });
-      return;
-    }
+    const key = savedSettingsKeys[index];
+    const sideLabel = index === 0 ? 'Left' : 'Right';
+    writeSavedSideSettings(key, {
+      encodedSettings: this.state.sides[index].encodedSettings,
+      latestSettings: this.state.sides[index].latestSettings,
+    });
+    // Fire an event when we save side settings in local storage.
+    window.dispatchEvent(new CustomEvent(key));
+    await this.props.showSnack(`${sideLabel} side settings saved`, {
+      timeout: 1500,
+      actions: ['dismiss'],
+    });
   };
 
   /**
@@ -330,68 +308,39 @@ export default class Compress extends Component<Props, State> {
    * @returns
    */
   private onImportSideSettingsClick = async (index: 0 | 1) => {
-    const leftSideSettingsString = localStorage.getItem('leftSideSettings');
-    const rightSideSettingsString = localStorage.getItem('rightSideSettings');
-
-    if (index === 0 && leftSideSettingsString) {
-      const savedSettings = readSideSettings('leftSideSettings');
-      if (!savedSettings) {
-        await this.props.showSnack('Saved left side settings are invalid', {
+    const key = savedSettingsKeys[index];
+    const sideLabel = index === 0 ? 'Left' : 'Right';
+    const savedSettings = readSavedSideSettings(key);
+    if (!savedSettings) {
+      await this.props.showSnack(
+        `Saved ${sideLabel.toLowerCase()} side settings are invalid`,
+        {
           timeout: 3000,
           actions: ['dismiss'],
-        });
-        return;
-      }
-      const oldLeftSideSettings = this.state.sides[index];
-      const newLeftSideSettings = {
-        ...this.state.sides[index],
-        ...savedSettings,
-      };
-      this.setState({
-        sides: cleanSet(this.state.sides, index, newLeftSideSettings),
-      });
-      const result = await this.props.showSnack('Left side settings imported', {
-        timeout: 3000,
-        actions: ['undo', 'dismiss'],
-      });
-      if (result === 'undo') {
-        this.setState({
-          sides: cleanSet(this.state.sides, index, oldLeftSideSettings),
-        });
-      }
+        },
+      );
       return;
     }
 
-    if (index === 1 && rightSideSettingsString) {
-      const savedSettings = readSideSettings('rightSideSettings');
-      if (!savedSettings) {
-        await this.props.showSnack('Saved right side settings are invalid', {
-          timeout: 3000,
-          actions: ['dismiss'],
-        });
-        return;
-      }
-      const oldRightSideSettings = this.state.sides[index];
-      const newRightSideSettings = {
-        ...this.state.sides[index],
-        ...savedSettings,
-      };
+    const oldSideSettings = this.state.sides[index];
+    const newSideSettings = {
+      ...this.state.sides[index],
+      ...savedSettings,
+    };
+    this.setState({
+      sides: cleanSet(this.state.sides, index, newSideSettings),
+    });
+    const result = await this.props.showSnack(
+      `${sideLabel} side settings imported`,
+      {
+        timeout: 3000,
+        actions: ['undo', 'dismiss'],
+      },
+    );
+    if (result === 'undo') {
       this.setState({
-        sides: cleanSet(this.state.sides, index, newRightSideSettings),
+        sides: cleanSet(this.state.sides, index, oldSideSettings),
       });
-      const result = await this.props.showSnack(
-        'Right side settings imported',
-        {
-          timeout: 3000,
-          actions: ['undo', 'dismiss'],
-        },
-      );
-      if (result === 'undo') {
-        this.setState({
-          sides: cleanSet(this.state.sides, index, oldRightSideSettings),
-        });
-      }
-      return;
     }
   };
 

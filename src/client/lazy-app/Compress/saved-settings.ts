@@ -1,5 +1,7 @@
 import type { EncoderState, ProcessorState } from '../feature-meta';
 import { encoderMap } from '../feature-meta';
+import { readLocalStorage, writeLocalStorage } from '../storage';
+import type { LocalStorageKey } from '../storage';
 
 export interface SideSettings {
   processorState: ProcessorState;
@@ -77,6 +79,26 @@ export function parseSavedSideSettings(
   } catch (err) {
     return;
   }
+}
+
+export function readSavedSideSettings(
+  key: LocalStorageKey,
+): SavedSideSettings | undefined {
+  const serializedSettings = readLocalStorage(key);
+  if (!serializedSettings) return;
+
+  return parseSavedSideSettings(serializedSettings);
+}
+
+export function hasSavedSideSettings(key: LocalStorageKey): boolean {
+  return readLocalStorage(key) !== undefined;
+}
+
+export function writeSavedSideSettings(
+  key: LocalStorageKey,
+  settings: SavedSideSettings,
+): void {
+  writeLocalStorage(key, serializeSavedSideSettings(settings));
 }
 
 export function serializeSavedSideSettings(

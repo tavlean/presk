@@ -42,6 +42,7 @@ Use this as a backlog seed. Keep each issue small enough to review in one focuse
    - Started: bulk queue tests now cover invalid concurrency values before future UI controls can pass them through.
    - Started: shared abort helper tests now cover listener cleanup on resolve and abort.
    - Started: saved-settings parsing now rejects missing, array-shaped, or null-valued encoder options and invalid processor enabled/null values.
+   - Started: saved-settings storage now goes through shared read/write helpers, with tests for round-tripping saved side settings.
    - Started: service-worker/shared utilities no longer use avoidable `any` types or optional Promise entries in cache cleanup paths.
    - Add more saved-settings migration cases when the schema changes again.
 

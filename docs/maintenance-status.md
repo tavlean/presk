@@ -14,10 +14,13 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: service-worker/shared type cleanup prepared and locally verified. Run `git status --short --branch` for the exact state.
+Working tree at last update: saved-settings storage refactor prepared and locally verified. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
+- `b98f4c0` Document dependency drift
+- `974ea79` Limit redundant CI runs
+- `abd74e7` Tighten service worker utility types
 - `f890ea1` Automate production browser smoke
 - `7243559` Summarize bulk job sizes
 - `6f007fe` Add bulk job settings lookup
@@ -106,6 +109,8 @@ Latest verification run:
 - `npm run smoke:browser`: passed after service-worker/shared type cleanup.
 - `npm audit --audit-level=low`: passed after dependency drift review.
 - `npm outdated --cache /private/tmp/sqush-npm-cache`: reviewed on 2026-05-24; remaining drift is major-version migration work, not routine patch cleanup.
+- `npm run check`: passed after saved-settings storage refactor.
+- `npm run smoke:browser`: passed after saved-settings storage refactor.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -124,6 +129,7 @@ Latest verification run:
 - Latest observed GitHub Actions state after bulk per-job size summaries: `7243559` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after automated browser smoke command: `f890ea1` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after CI hygiene cleanup: `974ea79` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after dependency drift documentation: `b98f4c0` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
@@ -180,6 +186,7 @@ Quick investigation note:
 - Hardened saved settings parsing to reject missing or array-shaped encoder options.
 - Hardened saved settings parsing to reject null encoder option values.
 - Hardened saved settings parsing to reject invalid processor enabled values and null option values.
+- Centralized saved-settings storage reads/writes and fixed the right-side settings event listener cleanup path.
 - Modernized one editor media query listener path.
 - Hardened the shared abort helper so it removes abort listeners when wrapped work settles.
 - Replaced avoidable `any` types in shared DOM input helpers and gesture prevention.
