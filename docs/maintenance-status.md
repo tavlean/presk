@@ -191,6 +191,7 @@ Latest verification run:
 - `npm run test:helpers`: passed after extracting single-image work planning.
 - `npm run typecheck`: passed after extracting single-image work planning.
 - `npm run check`: passed after extracting single-image work planning.
+- `npm run smoke:browser`: passed after extracting single-image work planning; production build still imports PNG, exports WebP, handles extensionless input naming, saves side settings, and reloads the app shell offline.
 - `npm audit --audit-level=low`: passed, 0 vulnerabilities.
 - Latest observed GitHub Actions state: pushed commits through `63adddf` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after the WebP smoke documentation push: `995c9b2` passed on Ubuntu, Windows, and macOS.
