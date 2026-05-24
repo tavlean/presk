@@ -159,10 +159,17 @@ export function requeueStaleJobs(session: BulkSession): BulkSession {
 }
 
 export function requeueIncompleteJobs(session: BulkSession): BulkSession {
+  let requeuedActiveCount = 0;
+
   return {
     ...session,
     jobs: session.jobs.map((job) => {
-      if (job.status !== 'failed' && job.status !== 'skipped') return job;
+      const shouldRequeue =
+        job.status === 'failed' ||
+        job.status === 'skipped' ||
+        isActiveStatus(job.status);
+      if (!shouldRequeue) return job;
+      if (isActiveStatus(job.status)) requeuedActiveCount += 1;
       return {
         ...job,
         status: 'queued',
@@ -170,5 +177,6 @@ export function requeueIncompleteJobs(session: BulkSession): BulkSession {
         error: undefined,
       };
     }),
+    activeJobs: Math.max(0, session.activeJobs - requeuedActiveCount),
   };
 }

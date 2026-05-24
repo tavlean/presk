@@ -14,7 +14,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Old fork: `tavlean/SquooshPlus`, archived and kept as historical reference.
 
-Working tree at last update: stale encoded bulk outputs can no longer be marked exported after settings change. Run `git status --short --branch` for the exact state.
+Working tree at last update: incomplete bulk requeueing now handles active jobs and decrements active counters safely. Run `git status --short --branch` for the exact state.
 
 Latest recent committed work at last update:
 
@@ -162,6 +162,9 @@ Latest verification run:
 - GitHub Actions passed on Ubuntu, Windows, and macOS for `773afcf` (`Expand bulk action state flags`).
 - `npm run test:helpers`: passed after guarding bulk exported-state updates against stale outputs.
 - `npm run check`: passed after guarding bulk exported-state updates against stale outputs.
+- GitHub Actions passed on Ubuntu, Windows, and macOS for `6618b01` (`Ignore stale bulk exports`).
+- `npm run test:helpers`: passed after active jobs were added to incomplete bulk requeueing.
+- `npm run check`: passed after active jobs were added to incomplete bulk requeueing.
 - `npm run build && npm run smoke:build`: passed.
 - `npm run test:helpers`: passed.
 - `npm run check`: passed after CI matrix diagnostics.
@@ -202,6 +205,7 @@ Latest verification run:
 - Latest observed GitHub Actions state after full bulk queue draining: `590f2c3` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after queue-drain handoff update: `aa329a9` passed on Ubuntu, Windows, and macOS.
 - Latest observed GitHub Actions state after bulk action-state flags: `773afcf` passed on Ubuntu, Windows, and macOS.
+- Latest observed GitHub Actions state after stale bulk export guard: `6618b01` passed on Ubuntu, Windows, and macOS.
 - `npm run serve` wrapper: launched successfully on port 55194.
 - Browser production-preview smoke: passed after shared image pipeline extraction; app shell, Sqush logo, and drop target rendered.
 - Playwright CLI production-build smoke: passed after the Sqush rename, with `Sqush` title, file input present, Sqush logo alt text present, and zero console messages.
