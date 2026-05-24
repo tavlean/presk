@@ -4,7 +4,7 @@ import * as style from './style.css';
 import 'add-css:./style.css';
 import 'shared/custom-els/loading-spinner';
 import { SourceImage } from '../';
-import prettyBytes from './pretty-bytes';
+import { getResultSizeState } from './size-state';
 import { Arrow, DownloadIcon } from 'client/lazy-app/icons';
 
 interface Props {
@@ -48,23 +48,14 @@ export default class Results extends Component<Props, State> {
     { source, imageFile, downloadUrl, flipSide, typeLabel }: Props,
     { showLoadingState }: State,
   ) {
-    const prettySize = imageFile && prettyBytes(imageFile.size);
-    const isOriginal = !source || !imageFile || source.file === imageFile;
-    let diff;
-    let percent;
-
-    if (source && imageFile) {
-      diff = imageFile.size / source.file.size;
-      const absolutePercent = Math.round(Math.abs(diff) * 100);
-      percent = diff > 1 ? absolutePercent - 100 : 100 - absolutePercent;
-    }
+    const sizeState = getResultSizeState(source, imageFile);
 
     return (
       <div
         class={
           (flipSide ? style.resultsRight : style.resultsLeft) +
           ' ' +
-          (isOriginal ? style.isOriginal : '')
+          (sizeState.isOriginal ? style.isOriginal : '')
         }
       >
         <div class={style.expandArrow}>
@@ -74,10 +65,10 @@ export default class Results extends Component<Props, State> {
           <div class={style.bubbleInner}>
             <div class={style.sizeInfo}>
               <div class={style.fileSize}>
-                {prettySize ? (
+                {sizeState.prettySize ? (
                   <Fragment>
-                    {prettySize.value}{' '}
-                    <span class={style.unit}>{prettySize.unit}</span>
+                    {sizeState.prettySize.value}{' '}
+                    <span class={style.unit}>{sizeState.prettySize.unit}</span>
                     <span class={style.typeLabel}> {typeLabel}</span>
                   </Fragment>
                 ) : (
@@ -94,12 +85,12 @@ export default class Results extends Component<Props, State> {
                 <path d="M1 0v2L0 1z" />
               </svg>
               <div class={style.percentOutput}>
-                {diff && diff !== 1 && (
+                {sizeState.direction && (
                   <span class={style.sizeDirection}>
-                    {diff < 1 ? '↓' : '↑'}
+                    {sizeState.direction === 'down' ? '↓' : '↑'}
                   </span>
                 )}
-                <span class={style.sizeValue}>{percent || 0}</span>
+                <span class={style.sizeValue}>{sizeState.percent}</span>
                 <span class={style.percentChar}>%</span>
               </div>
             </div>
