@@ -1,4 +1,6 @@
-import { createImageJob, ImageJob } from './session';
+import { createBulkSession, createImageJob } from './session';
+import type { BulkSession, ImageJob } from './session';
+import type { BulkImageSettings } from './settings';
 
 export interface BulkImportResult {
   accepted: ImageJob[];
@@ -115,4 +117,12 @@ export function getBulkImportSummary(
       0,
     ),
   };
+}
+
+export function createBulkSessionFromImport(
+  id: string,
+  globalSettings: BulkImageSettings,
+  result: BulkImportResult,
+): BulkSession {
+  return createBulkSession(id, globalSettings, result.accepted);
 }

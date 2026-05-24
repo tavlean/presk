@@ -105,6 +105,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Bulk helper tests now cover settings merge/hash behavior, session changes, queue stale detection, and export summaries.
     - Bulk action-state tests now cover process, retry, cancel, queued, active, and incomplete command flags.
     - Bulk import tests now cover injected MIME sniffing for extensionless, misnamed, rejected, and unreadable image files.
+    - Bulk import tests now cover creating a bulk session from accepted import jobs while ignoring rejected files.
     - Bulk runner tests now cover no-op runs when no jobs are runnable or concurrency is zero.
     - Bulk runner tests now cover draining the full queue across multiple concurrency-limited batches.
     - Bulk queue tests now cover derived queue state for normalized concurrency, active counts, open slots, queued counts, and runnable job ids.

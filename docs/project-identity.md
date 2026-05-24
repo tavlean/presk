@@ -18,4 +18,6 @@ The old `tavlean/SquooshPlus` fork is historical only. It is not the current pro
 
 ## Local folder note
 
-This Codex workspace is currently mounted at `/Users/tav/Development/Tavlean/SquooshPlus`. That folder name is local machine state, not project branding. Rename it to `Sqush` only after closing this active workspace/session and reopening Codex from the new path, otherwise running tools may keep pointing at the old mounted path.
+This Codex workspace is currently mounted at `/Users/tav/Development/Tavlean/SquooshPlus`. That is the only known remaining old-name item, and it is local machine state rather than project branding.
+
+Recommended cleanup: after this active Codex workspace/session is closed, rename the folder to `/Users/tav/Development/Tavlean/Sqush` and reopen Codex from that new path. Renaming the mounted folder during an active tool session is risky because running tools can keep pointing at the old path.

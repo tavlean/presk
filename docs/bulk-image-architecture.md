@@ -8,6 +8,8 @@ The helper surface now includes pure strip item selectors, selected-job detail s
 
 Queue UI should consume the queue-state selector rather than calculating active jobs, open slots, or runnable jobs itself. That keeps concurrency behavior consistent between the runner and future controls.
 
+Import UI should create sessions through the import-to-session helper so rejected files are kept out of the live session consistently and the first accepted image is selected by the same session rules everywhere.
+
 Snapshot restore is metadata-only. It can restore the batch list, original file metadata, settings, selection, errors, and overrides, but it cannot restore live decoded images or optimized output blobs. Restored jobs that depended on live processing output return to `queued` so the app regenerates outputs before export. Use the serialized restore helper when loading a saved snapshot string so parsing and restoration share the same validation path.
 
 ## Product goal
