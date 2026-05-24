@@ -128,6 +128,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - No remaining `catched`, `matchMedia().addListener`, or `matchMedia().removeListener` matches were found in `src/`.
     - Removed obsolete TS suppressions from option controls and icon props by using element-specific Preact JSX attribute types.
     - Removed the remaining maintained app/lib `@ts-ignore` by making worker-bridge dispatch explicit.
+    - Stateless checkbox, toggle, select, and revealer option controls no longer use empty-state Preact classes.
 
 ## Priority 3: tests and release confidence
 
