@@ -172,6 +172,7 @@ Latest verification run:
 - `npm run check`: passed after extracting the update workflow coordinator, adding no-work helper coverage, and updating dashboard/docs.
 - `npm run smoke:browser`: passed after extracting the update workflow coordinator; production build still imports PNG, exports WebP, resizes WebP to `64px`, imports saved side settings, handles extensionless input naming, reloads the app shell offline, and loads with service worker disabled.
 - `npm run dashboard`: confirmed the dashboard is already running at `http://localhost:4177`; local dashboard HTML shows update workflow helper, five top cards, and no stale top-card deltas.
+- `gh run list --repo tavlean/sqush --branch main --limit 3`: latest pushed CI run `26377994493` completed successfully for `598b0c1`.
 - `gh run list --repo tavlean/sqush --branch main --limit 5`: latest pushed CI run `26377765152` completed successfully for `616acb5`.
 - `npm run check`: passed after refreshing README local-first verification guidance and dashboard/docs.
 - `npm run dashboard`: confirmed the dashboard is already running at `http://localhost:4177`; local dashboard HTML shows README verification docs, five top cards, and only the Documentation `+1` top-card delta.
