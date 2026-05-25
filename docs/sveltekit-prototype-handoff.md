@@ -258,6 +258,21 @@ adapter or generated-file boundary, starting with the worker bridge (`omt:`)
 because the SvelteKit prototype already proved Vite module workers can run the
 WebP encoder path.
 
+Worker-bridge seam progress:
+
+- `src/client/lazy-app/worker-bridge/bridge.ts` now owns the reusable Comlink
+  bridge runtime and accepts a `createWorker` function.
+- `src/client/lazy-app/worker-bridge/index.ts` is now the Rollup adapter that
+  imports the current `omt:` worker URL and passes `() => new Worker(workerURL)`
+  into the shared bridge factory.
+- Root `npm run check` and `npm run smoke:browser` passed after the split,
+  including real WebP output, resize processing, saved-settings import, and
+  offline app-shell reload.
+
+Next worker seam: add a Vite/SvelteKit-facing adapter in the prototype that uses
+the shared bridge factory with a module worker URL, then re-attempt a narrow
+pipeline import through that adapter before touching the production app shell.
+
 ### Verification expectations
 
 - In `prototypes/sveltekit`: run `npm run check`, `npm run build`,
