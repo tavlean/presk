@@ -9,8 +9,12 @@ export default defineConfig({
   resolve: {
     alias: {
       'client/lazy-app/feature-meta': fileURLToPath(
-        new URL('./src/lib/sqush-feature-meta-stub.ts', import.meta.url),
+        new URL(
+          './.svelte-kit/sqush-generated/feature-meta.ts',
+          import.meta.url,
+        ),
       ),
+      codecs: fileURLToPath(new URL('../../codecs', import.meta.url)),
       client: fileURLToPath(new URL('../../src/client', import.meta.url)),
       features: fileURLToPath(new URL('../../src/features', import.meta.url)),
       shared: fileURLToPath(new URL('../../src/shared', import.meta.url)),

@@ -1,15 +1,43 @@
 <script lang="ts">
+  import { runCodecAssetProbe } from '$lib/codec-asset-probe';
   import { createPrototypeModel } from '$lib/prototype-data';
+  import type { CodecAssetProbeResult } from '$lib/codec-asset-probe';
 
   const model = createPrototypeModel();
 
   let selectedJobId = $state(model.session.selectedJobId ?? '');
+  let codecProbe = $state<
+    | { status: 'checking' }
+    | { status: 'ready'; result: CodecAssetProbeResult }
+    | { status: 'failed'; message: string }
+  >({ status: 'checking' });
   const selectedJob = $derived(
     model.session.jobs.find((job) => job.id === selectedJobId) ??
       model.session.jobs[0],
   );
   const progress = $derived(model.summary.progress);
   const exportSummary = $derived(model.summary.export);
+
+  $effect(() => {
+    let cancelled = false;
+
+    runCodecAssetProbe()
+      .then((result) => {
+        if (!cancelled) codecProbe = { status: 'ready', result };
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          codecProbe = {
+            status: 'failed',
+            message: error instanceof Error ? error.message : String(error),
+          };
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  });
 </script>
 
 <svelte:head>
@@ -87,6 +115,30 @@
       {/each}
     </ul>
   </section>
+
+  <section class="codec-probe" aria-label="Worker and WASM probe">
+    <h2>Worker/WASM probe</h2>
+    {#if codecProbe.status === 'checking'}
+      <p>Checking WebP codec asset from a module worker.</p>
+    {:else if codecProbe.status === 'ready'}
+      <dl>
+        <div>
+          <dt>WASM bytes</dt>
+          <dd>{codecProbe.result.wasmBytes}</dd>
+        </div>
+        <div>
+          <dt>Magic bytes</dt>
+          <dd>{codecProbe.result.wasmMagic}</dd>
+        </div>
+        <div>
+          <dt>Asset URL</dt>
+          <dd>{codecProbe.result.wasmUrl}</dd>
+        </div>
+      </dl>
+    {:else}
+      <p class="error">{codecProbe.message}</p>
+    {/if}
+  </section>
 </main>
 
 <style>
@@ -145,7 +197,8 @@
   .summary div,
   .jobs,
   .detail,
-  .notes {
+  .notes,
+  .codec-probe {
     border: 1px solid #d8d1c4;
     border-radius: 8px;
     background: #fffdfa;
@@ -175,7 +228,8 @@
 
   .jobs,
   .detail,
-  .notes {
+  .notes,
+  .codec-probe {
     padding: 18px;
   }
 
@@ -226,6 +280,20 @@
   .notes ul {
     margin-bottom: 0;
     padding-left: 20px;
+  }
+
+  .codec-probe {
+    margin-top: 16px;
+  }
+
+  .codec-probe dd {
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+
+  .error {
+    color: #b91c1c;
+    font-weight: 700;
   }
 
   @media (max-width: 760px) {

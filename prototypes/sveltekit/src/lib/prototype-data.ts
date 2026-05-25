@@ -4,6 +4,10 @@ import {
 } from '../../../../src/client/lazy-app/bulk/import';
 import { completeJob } from '../../../../src/client/lazy-app/bulk/queue';
 import { getBulkSessionSummary } from '../../../../src/client/lazy-app/bulk/summary';
+import {
+  defaultProcessorState,
+  encoderMap,
+} from 'client/lazy-app/feature-meta';
 import type { BulkSession } from '../../../../src/client/lazy-app/bulk/session';
 import type { BulkImageSettings } from '../../../../src/client/lazy-app/bulk/settings';
 
@@ -17,16 +21,19 @@ const globalSettings: BulkImageSettings = {
   encoderState: {
     type: 'webP',
     options: {
+      ...encoderMap.webP.meta.defaultOptions,
       quality: 75,
     },
   },
   processorState: {
     resize: {
+      ...defaultProcessorState.resize,
       enabled: true,
       width: 1200,
       height: 800,
     },
     quantize: {
+      ...defaultProcessorState.quantize,
       enabled: false,
     },
   },
@@ -68,6 +75,8 @@ export function createPrototypeModel(): PrototypeModel {
     notes: [
       'Imported existing framework-neutral bulk helpers into SvelteKit.',
       'Created a metadata-only batch without Preact.',
+      'Generated shared feature metadata for SvelteKit instead of using a hand-written stub.',
+      'Imported a real WebP WASM asset through a SvelteKit-built module worker.',
       'Generated export/readiness summaries from shared selectors.',
       'Kept image processing local; no upload or server route is involved.',
     ],

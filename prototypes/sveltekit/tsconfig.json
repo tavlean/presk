@@ -9,13 +9,15 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "strict": true
+    "strict": true,
+    "verbatimModuleSyntax": false
   },
   "include": [
     "src/**/*.d.ts",
     "src/**/*.js",
     "src/**/*.ts",
     "src/**/*.svelte",
+    ".svelte-kit/sqush-generated/**/*.ts",
     "../../src/client/lazy-app/bulk/changes.ts",
     "../../src/client/lazy-app/bulk/detail.ts",
     "../../src/client/lazy-app/bulk/export.ts",

@@ -13,6 +13,7 @@ service-worker entry point.
 npm install
 npm run check
 npm run build
+npm run audit:static-output
 npm audit --audit-level=low
 ```
 
@@ -20,9 +21,17 @@ npm audit --audit-level=low
 
 - Uses Svelte 5 runes in `src/routes/+page.svelte`.
 - Imports existing bulk helpers from `src/client/lazy-app/bulk`.
+- Generates a SvelteKit prototype `client/lazy-app/feature-meta` module from
+  existing WebP, processor, and preprocessor shared metadata before `check` and
+  `build`.
+- Imports a real committed WebP encoder WASM asset through a SvelteKit-built
+  module worker.
 - Builds with `@sveltejs/adapter-static`.
 - Includes a prototype service worker using SvelteKit's `$service-worker`
   asset manifest.
+- `npm run audit:static-output` verifies that static output includes the
+  fallback page, service worker, module worker, WebP WASM asset, and
+  service-worker cache coverage for the worker/WASM assets.
 - Produces `build/index.html`, `build/200.html`, and
   `build/service-worker.js`.
 - `npm audit --audit-level=low` is clean with a prototype-only `cookie`
@@ -34,16 +43,48 @@ npm audit --audit-level=low
 ## Findings
 
 - Pure bulk/session helpers can be consumed from a SvelteKit app today.
-- The full bulk barrel import is not ready for this prototype because it pulls
-  in processing helpers, which then pull in image-pipeline, generated
-  feature-meta, worker bridge, custom `omt:` imports, and codec-facing modules.
-- A narrow feature-meta type stub is enough for the current metadata-only proof,
-  but production migration needs a real generated metadata strategy.
-- Service-worker generation is straightforward for static assets; codec/WASM
-  precaching still needs a dedicated proof with real current codec assets.
+- Generated shared feature metadata can be produced for SvelteKit without
+  committing generated files or importing Preact option components. The current
+  proof intentionally starts with WebP, Sqush's first production codec target.
+- Full generated encoder metadata is not drop-in yet. AVIF, MozJPEG, QOI, and
+  WP2 shared metadata currently import declaration-only codec exports or
+  ambient `const enum` values as runtime values, which SvelteKit/Vite rejects.
+  Those modules need type-only exports or local metadata constants before a full
+  image-pipeline import can pass.
+- The prototype also sets `verbatimModuleSyntax: false` because the current
+  WebP metadata re-exports `EncodeOptions` without `export type`.
+- SvelteKit/Vite can emit a browser module worker and real committed WebP WASM
+  asset using native `new URL(..., import.meta.url)` and `?url` imports.
+- SvelteKit's `$service-worker` build manifest does not automatically include
+  the nested worker/WASM assets. The viable path is to expose codec asset URLs
+  from a shared module and add them to the service-worker cache list
+  explicitly. Importing a worker URL from the service-worker build emits a
+  second worker file, so the prototype also runtime-caches non-manifest GETs to
+  cover the app worker after first load. A production migration should prefer a
+  generated manifest that gives both the app and service worker the same worker
+  asset URL.
+- The full image-pipeline import is still blocked by production-only Rollup
+  virtual imports and Preact client option entries: `omt:`, `url:`,
+  `entry-data:`, `service-worker:`, and generated `feature-meta` entries that
+  merge metadata with Preact option components.
 - This prototype uses `ssr = false` because the app is browser-local and relies
   on `File`. A production migration should revisit whether selected routes can
   prerender meaningful HTML without touching browser-only APIs.
+
+## Migration implications
+
+- Replace the production Rollup `feature-plugin` with a SvelteKit/Vite-aware
+  generator. The first Svelte-safe split should keep shared metadata separate
+  from UI option components so framework-neutral helpers can import types and
+  defaults without pulling Preact into a Svelte build.
+- Replace the production `omt:` worker bridge with Vite worker imports. The
+  prototype proves the emitted asset shape, but the real `features-worker`
+  Comlink bridge still needs a focused port.
+- Replace production `url:` codec references with Vite `?url` imports or
+  `new URL(..., import.meta.url)` in codec-facing modules.
+- Replace `entry-data:` service-worker cache generation with `$service-worker`
+  for the SvelteKit app shell plus an explicit generated codec asset manifest
+  for lazy/feature-detected workers and WASM assets.
 
 ## Non-goals
 
