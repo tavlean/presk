@@ -335,10 +335,15 @@ Worker-bridge seam progress:
   encoder WASM URL manifest. The service-worker asset list and
   `SvelteKitWorkerBridge` both consume those generated URLs, so the app, worker
   bridge, and cache manifest agree on the top-level WebP WASM asset URLs.
+- The SvelteKit prototype sync step now emits
+  `.svelte-kit/sqush-generated/worker-surface/ready.ts`. The generated worker
+  bridge metadata imports its ready method-name list, and the same file records
+  blocked worker methods with their current codec asset, thread-support, or type
+  blockers.
 
-Next worker seam: expand the generated Vite-facing `features-worker` entry
-beyond WebP only as each codec's asset URL, thread-support alias, and stricter
-worker type blockers are resolved.
+Next worker seam: pick one blocked method from the generated worker-surface
+manifest, resolve only that method's asset URL, thread-support alias, or worker
+type blocker, and then move it into the ready list with prototype verification.
 
 Full worker-surface blocker inventory:
 
@@ -363,11 +368,10 @@ Full worker-surface blocker inventory:
   the shared metadata split, or the production generator must emit a
   SvelteKit-safe runtime encoder map separate from UI controls.
 
-Recommended next implementation step: generate a WebP-first Vite worker entry
-and method list from the same feature inventory used by `lib/feature-plugin.js`,
-but filter it to SvelteKit-ready methods until each codec's asset URL and type
-blockers are resolved. That keeps WebP production-focused while preserving a
-clear path to AVIF, JPEG XL, and the remaining codecs.
+Recommended next implementation step: use the generated worker-surface manifest
+as the admission list for the next narrow method. The lowest-risk candidate is
+the method whose blocker can be removed with a small asset-manifest or type
+adapter change, without importing the full production `features-worker` surface.
 
 ### Verification expectations
 

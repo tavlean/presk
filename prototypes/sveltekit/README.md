@@ -83,6 +83,10 @@ npm audit --audit-level=low
   `sw-bridge` runtime helper with the SvelteKit-emitted `/service-worker.js`
   URL, proving the `service-worker:` replacement shape for registration without
   changing the current Rollup adapter.
+- The prototype sync step now emits a generated worker-surface manifest. The
+  SvelteKit worker bridge consumes its ready method-name list, while the same
+  generated file records the worker methods still blocked by codec asset URL,
+  thread-support alias, or stricter worker type work.
 
 ## Readiness verdict
 
@@ -221,11 +225,12 @@ minimal SvelteKit single-image editor slice with real user-selected files.
 - Replace the production `omt:` worker bridge with Vite worker imports. The
   prototype now proves the shared bridge runtime can be reused with a WebP-only
   SvelteKit module-worker adapter, but the full generated `features-worker`
-  surface still needs a focused Vite-facing generated entry.
-- Generate that Vite-facing worker entry incrementally. The next useful target
-  is a WebP-first generated method list and worker entry; full production parity
-  is blocked by `worker-shared/supports-wasm-threads`, `url:` WASM imports,
-  stricter worker `ArrayBufferLike` types, and non-WebP codec asset URLs.
+  surface still needs incremental broadening.
+- Generate the Vite-facing worker entry incrementally from an explicit ready
+  surface. The current generated manifest enables `webpEncode` and `rotate`;
+  full production parity is blocked by `worker-shared/supports-wasm-threads`,
+  `url:` WASM imports, stricter worker `ArrayBufferLike` types, and non-WebP
+  codec asset URLs.
 - Replace production `url:` codec references with reusable runtimes plus
   generated Vite `?url` asset manifests, following the rotate preprocessor seam
   before broadening to the remaining codec surfaces.
