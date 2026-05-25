@@ -56,12 +56,18 @@ const resizeMethods: WorkerResizeOptions['method'][] = [
 let resizeWasmReady: Promise<unknown>;
 let hqxWasmReady: Promise<unknown>;
 
+export interface ResizeWasmUrls {
+  hqx?: string;
+  resize?: string;
+}
+
 async function hqx(
   input: ImageData,
   opts: HqxResizeOptions,
+  wasmUrls?: ResizeWasmUrls,
 ): Promise<ImageData> {
   if (!hqxWasmReady) {
-    hqxWasmReady = initHqxWasm();
+    hqxWasmReady = initHqxWasm(wasmUrls?.hqx);
   }
 
   await hqxWasmReady;
@@ -80,25 +86,25 @@ async function hqx(
     factor,
   );
 
-  return new ImageData(
-    new Uint8ClampedArray(result.buffer),
-    input.width * factor,
-    input.height * factor,
-  );
+  const pixels = new Uint8ClampedArray(result.length * 4);
+  pixels.set(new Uint8ClampedArray(result.buffer));
+
+  return new ImageData(pixels, input.width * factor, input.height * factor);
 }
 
 export default async function resize(
   data: ImageData,
   opts: WorkerResizeOptions,
+  wasmUrls?: ResizeWasmUrls,
 ): Promise<ImageData> {
   let input = data;
 
   if (!resizeWasmReady) {
-    resizeWasmReady = initResizeWasm();
+    resizeWasmReady = initResizeWasm(wasmUrls?.resize);
   }
 
   if (optsIsHqxOpts(opts)) {
-    input = await hqx(input, opts);
+    input = await hqx(input, opts, wasmUrls);
     // Regular resize to make up the difference
     opts = { ...opts, method: 'catrom' };
   }
@@ -132,9 +138,8 @@ export default async function resize(
     opts.linearRGB,
   );
 
-  return new ImageData(
-    new Uint8ClampedArray(result.buffer),
-    opts.width,
-    opts.height,
-  );
+  const pixels = new Uint8ClampedArray(result.length);
+  pixels.set(result);
+
+  return new ImageData(pixels, opts.width, opts.height);
 }

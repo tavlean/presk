@@ -51,6 +51,8 @@ export interface WebpPipelineProbeResult {
   quantizedWidth: number;
   quantizedHeight: number;
   quantizedUniqueColors: number;
+  workerResizedWidth: number;
+  workerResizedHeight: number;
   stages: string[];
 }
 
@@ -160,6 +162,7 @@ export async function runWebpPipelineProbe(
   let qoiDecoded: ImageData;
   let jpegOutput: ArrayBuffer;
   let quantized: ImageData;
+  let workerResized: ImageData;
   try {
     outputFile = await compressImageWithEncoder(
       signal,
@@ -182,6 +185,14 @@ export async function runWebpPipelineProbe(
       zx: 0,
       maxNumColors: 4,
       dither: 0,
+    });
+    workerResized = await workerBridge.resize(signal, processed, {
+      width: 2,
+      height: 2,
+      fitMethod: 'stretch',
+      method: 'lanczos3',
+      premultiply: true,
+      linearRGB: true,
     });
   } finally {
     workerBridge.dispose();
@@ -220,6 +231,8 @@ export async function runWebpPipelineProbe(
     quantizedWidth: quantized.width,
     quantizedHeight: quantized.height,
     quantizedUniqueColors: countUniqueColors(quantized),
+    workerResizedWidth: workerResized.width,
+    workerResizedHeight: workerResized.height,
     stages: [
       'source generated locally with existing canvasEncode helper',
       'source type sniffed with existing sniffMimeType helper',
@@ -239,6 +252,7 @@ export async function runWebpPipelineProbe(
       `quantize promoted through the same generated worker surface (${
         quantized.width
       } x ${quantized.height}, ${countUniqueColors(quantized)} colors)`,
+      `worker resize promoted through the same generated worker surface (${workerResized.width} x ${workerResized.height})`,
       'export metadata built with existing filename, percent-change, and settings-hash helpers',
     ],
   };

@@ -106,6 +106,11 @@ npm audit --audit-level=low
   SvelteKit worker bridge, verifies a reduced-color ImageData result from the
   existing quantize worker module, and confirms service-worker cache coverage
   for the ImageQuant WASM asset.
+- Worker `resize` has been promoted through the same generated worker surface.
+  The prototype now generates resize and HQX WASM URL manifests, passes them
+  through the SvelteKit worker bridge, verifies a 2x2 ImageData result from the
+  existing resize worker module, and confirms service-worker cache coverage for
+  both wasm-bindgen assets.
 
 ## Readiness verdict
 
@@ -115,9 +120,10 @@ architecture, but the production app is not ready for a direct migration yet.
 The prototype has proven the platform path that matters most: a static SvelteKit
 app can consume shared Sqush helpers, generate Svelte-safe WebP/MozJPEG
 metadata, run existing WebP/QOI/MozJPEG WASM encoding, QOI WASM decoding,
-ImageQuant quantization, and rotate preprocessing in Vite-built module workers,
-register an offline service worker, cache the app shell and codec probe assets,
-and keep runtime WASM lookup pointed at generated asset URLs.
+ImageQuant quantization, worker resize, and rotate preprocessing in Vite-built
+module workers, register an offline service worker, cache the app shell and
+codec probe assets, and keep runtime WASM lookup pointed at generated asset
+URLs.
 
 The remaining blockers are migration seams, not a SvelteKit blocker:
 
@@ -248,10 +254,10 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   surface still needs incremental broadening.
 - Generate the Vite-facing worker entry incrementally from an explicit ready
   surface. The current generated manifest enables `webpEncode`, `rotate`, and
-  QOI encode/decode plus `mozjpegEncode` and `quantize`; full production parity
-  is blocked by `worker-shared/supports-wasm-threads`, remaining `url:` WASM
-  imports, stricter worker `ArrayBufferLike` types, and remaining codec asset
-  URLs.
+  QOI encode/decode plus `mozjpegEncode`, `quantize`, and worker `resize`; full
+  production parity is blocked by `worker-shared/supports-wasm-threads`,
+  remaining `url:` WASM imports, stricter worker `ArrayBufferLike` types, and
+  remaining codec asset URLs.
 - Replace production `url:` codec references with reusable runtimes plus
   generated Vite `?url` asset manifests, following the rotate preprocessor seam
   before broadening to the remaining codec surfaces.

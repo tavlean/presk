@@ -23,9 +23,15 @@ import {
   imagequantCodecAssetUrls,
   imagequantWasmUrl,
 } from 'sqush-generated/codec-assets/imagequant';
+import {
+  hqxWasmUrl,
+  resizeCodecAssetUrls,
+  resizeWasmUrl,
+} from 'sqush-generated/codec-assets/resize';
 
 export {
   codecAssetProbeWorkerUrl,
+  hqxWasmUrl,
   imagequantCodecAssetUrls,
   imagequantWasmUrl,
   mozjpegCodecAssetUrls,
@@ -33,6 +39,8 @@ export {
   qoiCodecAssetUrls,
   qoiDecoderWasmUrl,
   qoiEncoderWasmUrl,
+  resizeCodecAssetUrls,
+  resizeWasmUrl,
   rotateCodecAssetUrls,
   rotateWasmUrl,
   svelteKitFeaturesWorkerUrl,
@@ -50,5 +58,6 @@ export const codecAssetUrls = [
   ...qoiCodecAssetUrls,
   ...mozjpegCodecAssetUrls,
   ...imagequantCodecAssetUrls,
+  ...resizeCodecAssetUrls,
   ...rotateCodecAssetUrls,
 ];

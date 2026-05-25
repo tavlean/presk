@@ -75,6 +75,14 @@ const mozjpegEncoderWasmAssets = files
 const imagequantWasmAssets = files
   .filter((file) => file.includes('imagequant') && file.endsWith('.wasm'))
   .sort();
+const resizeWasmAssets = files
+  .filter(
+    (file) => file.includes('squoosh_resize_bg') && file.endsWith('.wasm'),
+  )
+  .sort();
+const hqxWasmAssets = files
+  .filter((file) => file.includes('squooshhqx_bg') && file.endsWith('.wasm'))
+  .sort();
 const wasmAsset = files.find(
   (file) =>
     file.includes('/webp_enc.') &&
@@ -101,6 +109,12 @@ const mozjpegEncoderWasmAsset = files.find(
 );
 const imagequantWasmAsset = files.find(
   (file) => file.includes('/imagequant.') && file.endsWith('.wasm'),
+);
+const resizeWasmAsset = files.find(
+  (file) => file.includes('/squoosh_resize_bg.') && file.endsWith('.wasm'),
+);
+const hqxWasmAsset = files.find(
+  (file) => file.includes('/squooshhqx_bg.') && file.endsWith('.wasm'),
 );
 const workerRotateWasmAsset = files.find(
   (file) => file.includes('/workers/assets/rotate-') && file.endsWith('.wasm'),
@@ -153,6 +167,8 @@ assert(qoiEncoderWasmAsset, 'Missing emitted QOI encoder WASM asset.');
 assert(qoiDecoderWasmAsset, 'Missing emitted QOI decoder WASM asset.');
 assert(mozjpegEncoderWasmAsset, 'Missing emitted MozJPEG encoder WASM asset.');
 assert(imagequantWasmAsset, 'Missing emitted ImageQuant WASM asset.');
+assert(resizeWasmAsset, 'Missing emitted resize WASM asset.');
+assert(hqxWasmAsset, 'Missing emitted HQX WASM asset.');
 assert(
   workerRotateWasmAsset,
   'Missing generated worker-local rotate WASM asset.',
@@ -185,6 +201,8 @@ assert(
   imagequantWasmAssets.length >= 1,
   'Expected emitted ImageQuant WASM asset.',
 );
+assert(resizeWasmAssets.length >= 1, 'Expected emitted resize WASM asset.');
+assert(hqxWasmAssets.length >= 1, 'Expected emitted HQX WASM asset.');
 assert(
   serviceWorkerImportedWorkerAsset,
   'Missing emitted module worker asset from the worker probe.',
@@ -236,6 +254,14 @@ assert(
 assert(
   serviceWorker.includes(imagequantWasmAsset),
   `Service-worker build manifest does not include ${imagequantWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(resizeWasmAsset),
+  `Service-worker build manifest does not include ${resizeWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(hqxWasmAsset),
+  `Service-worker build manifest does not include ${hqxWasmAsset}.`,
 );
 assert(
   serviceWorker.includes(serviceWorkerImportedWorkerAsset),
@@ -298,6 +324,8 @@ console.log(
     `QOI decoder WASM asset: ${qoiDecoderWasmAsset}`,
     `MozJPEG encoder WASM asset: ${mozjpegEncoderWasmAsset}`,
     `ImageQuant WASM asset: ${imagequantWasmAsset}`,
+    `Resize WASM asset: ${resizeWasmAsset}`,
+    `HQX WASM asset: ${hqxWasmAsset}`,
     `Worker rotate WASM asset: ${workerRotateWasmAsset}`,
     `Baseline WebP WASM copies: ${baselineWasmAssets.length}`,
     ...baselineWasmAssets.map((asset) => `  - ${asset}`),
@@ -313,6 +341,10 @@ console.log(
     ...mozjpegEncoderWasmAssets.map((asset) => `  - ${asset}`),
     `ImageQuant WASM copies: ${imagequantWasmAssets.length}`,
     ...imagequantWasmAssets.map((asset) => `  - ${asset}`),
+    `Resize WASM copies: ${resizeWasmAssets.length}`,
+    ...resizeWasmAssets.map((asset) => `  - ${asset}`),
+    `HQX WASM copies: ${hqxWasmAssets.length}`,
+    ...hqxWasmAssets.map((asset) => `  - ${asset}`),
     `Worker asset: ${serviceWorkerImportedWorkerAsset}`,
     `Encode worker asset: ${serviceWorkerImportedEncodeWorkerAsset}`,
     `Generated WebP features-worker asset: ${serviceWorkerImportedFeaturesWorkerAsset}`,

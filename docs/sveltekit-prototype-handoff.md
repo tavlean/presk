@@ -362,6 +362,14 @@ Worker-bridge seam progress:
   service-worker cache coverage for the ImageQuant WASM asset. The production
   quantize worker now returns an ImageData-compatible `Uint8ClampedArray`
   instance under stricter SvelteKit TypeScript settings.
+- Worker `resize` has moved from blocked to ready in the generated
+  worker-surface manifest. The prototype now generates
+  `.svelte-kit/sqush-generated/codec-assets/resize.ts`, passes resize and HQX
+  WASM URLs through the SvelteKit worker bridge, verifies a 2x2 ImageData result
+  in the runtime pipeline probe, and audits service-worker cache coverage for
+  both wasm-bindgen assets. The production resize worker keeps its default
+  Rollup-compatible initialization path while accepting optional injected WASM
+  URLs for Vite/SvelteKit.
 
 Next worker seam: pick another blocked method from the generated worker-surface
 manifest, resolve only that method's asset URL, thread-support alias, or worker
@@ -371,9 +379,9 @@ Full worker-surface blocker inventory:
 
 - Importing the production `features-worker` surface directly from SvelteKit
   still pulls every codec worker, not just WebP. That reintroduces AVIF, WP2,
-  JXL, OxiPNG, AVIF/JXL/WP2 decoder, and resize-worker type/build issues before
-  the prototype needs those codecs. QOI encode/decode, MozJPEG encode, and
-  quantize now have narrow generated SvelteKit paths, but the broader production
+  JXL, OxiPNG, and AVIF/JXL/WP2 decoder type/build issues before the prototype
+  needs those codecs. QOI encode/decode, MozJPEG encode, quantize, and worker
+  resize now have narrow generated SvelteKit paths, but the broader production
   worker surface remains intentionally filtered.
 - AVIF, JXL, OxiPNG, and WP2 workers import
   `worker-shared/supports-wasm-threads`, which is a Rollup alias today and needs
@@ -382,11 +390,9 @@ Full worker-surface blocker inventory:
 - Rotate now has a proven split: production keeps the Rollup `url:` adapter,
   while the SvelteKit generated worker imports the shared rotate runtime with a
   generated Vite `?url` asset manifest.
-- Resize worker modules still surface `ArrayBufferLike`/`ImageDataArray` type
-  errors under the prototype's stricter SvelteKit TypeScript settings.
-  Browser-resize runtime now works through the shared pipeline seam, but worker
-  resize needs a focused compatibility pass before enabling that method in the
-  SvelteKit worker surface.
+- Resize now has a proven split: production keeps default wasm-bindgen
+  initialization, while the SvelteKit generated worker passes resize/HQX WASM
+  URLs from a generated Vite `?url` asset manifest.
 - Importing the production generated `feature-meta/index.ts` from SvelteKit
   still pulls Preact `.tsx` encoder option entries. The prototype must keep using
   the shared metadata split, or the production generator must emit a

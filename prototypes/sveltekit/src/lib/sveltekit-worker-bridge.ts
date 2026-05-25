@@ -3,19 +3,23 @@ import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
 import type { EncodeOptions as QoiEncodeOptions } from 'features/encoders/qoi/shared/meta';
 import type { EncodeOptions as MozjpegEncodeOptions } from 'features/encoders/mozJPEG/shared/meta';
 import type { Options as QuantizeOptions } from 'features/processors/quantize/shared/meta';
+import type { WorkerResizeOptions } from 'features/processors/resize/shared/meta';
 import type { Options as RotateOptions } from 'features/preprocessors/rotate/shared/meta';
 import { methodNames } from 'sqush-generated/worker-bridge/meta';
 import type {
   ImagequantWasmUrls,
   MozjpegWasmUrls,
   QoiWasmUrls,
+  ResizeWasmUrls,
   WebpWasmUrls,
 } from 'sqush-generated/features-worker/webp';
 import {
+  hqxWasmUrl,
   imagequantWasmUrl,
   mozjpegEncoderWasmUrl,
   qoiDecoderWasmUrl,
   qoiEncoderWasmUrl,
+  resizeWasmUrl,
   svelteKitFeaturesWorkerUrl,
   webpEncoderSimdWasmUrl,
   webpEncoderWasmUrl,
@@ -47,6 +51,11 @@ export interface SvelteKitWorkerBridgeApi {
     signal: AbortSignal,
     imageData: ImageData,
     options: QuantizeOptions,
+  ): Promise<ImageData>;
+  resize(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: WorkerResizeOptions,
   ): Promise<ImageData>;
   dispose(): void;
 }
@@ -80,6 +89,12 @@ interface SvelteKitWorkerBridgeWorkerApi {
     imageData: ImageData,
     options: QuantizeOptions,
     wasmUrls: ImagequantWasmUrls,
+  ): Promise<ImageData>;
+  resize(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: WorkerResizeOptions,
+    wasmUrls: ResizeWasmUrls,
   ): Promise<ImageData>;
   dispose(): void;
 }
@@ -141,6 +156,17 @@ export default class SvelteKitWorkerBridge
   ): Promise<ImageData> {
     return super.quantize(signal, imageData, options, {
       processor: imagequantWasmUrl,
+    });
+  }
+
+  resize(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: WorkerResizeOptions,
+  ): Promise<ImageData> {
+    return super.resize(signal, imageData, options, {
+      hqx: hqxWasmUrl,
+      resize: resizeWasmUrl,
     });
   }
 }
