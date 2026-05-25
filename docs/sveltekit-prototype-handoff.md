@@ -293,6 +293,11 @@ Worker-bridge seam progress:
   SvelteKit probe now imports those helpers and uses
   `compressImageWithEncoder` with the WebP runtime plus the SvelteKit worker
   bridge.
+- The SvelteKit prototype sync step now emits
+  `.svelte-kit/sqush-generated/codec-assets/webp.ts` as the canonical WebP
+  encoder WASM URL manifest. The service-worker asset list and
+  `SvelteKitWorkerBridge` both consume those generated URLs, so the app, worker
+  bridge, and cache manifest agree on the top-level WebP WASM asset URLs.
 
 Next worker seam: expand the generated Vite-facing `features-worker` entry
 beyond WebP only as each codec's asset URL, thread-support alias, and stricter

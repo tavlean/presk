@@ -63,6 +63,9 @@ npm audit --audit-level=low
   WebP compression, proving the narrow single-image pipeline can run without
   importing the production Preact option components or Rollup `omt:` worker
   entry.
+- The prototype sync step now emits generated WebP codec asset metadata. The
+  service worker and SvelteKit worker bridge both consume that generated WebP
+  WASM URL manifest instead of a handwritten local helper.
 
 ## Readiness verdict
 
