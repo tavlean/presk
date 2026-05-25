@@ -14,11 +14,8 @@ import Output from './Output';
 import Options from './Options';
 import ResultCache from './result-cache';
 import { getDocumentTitle, type LoadingFileInfo } from './document-title';
-import {
-  getEditorUpdateEffects,
-  getEditorUpdateScheduleOptions,
-} from './editor-lifecycle';
 import { getInitialCompressionState } from './editor-state';
+import { runEditorUpdateWorkflow } from './editor-update-workflow';
 import type { ImageUpdateScheduleOptions } from './update-scheduler';
 import { queueImageUpdate } from './update-queue';
 import { getViewportState, mobileWidthMediaQuery } from './viewport-state';
@@ -186,22 +183,17 @@ export default class Compress extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State): void {
-    const updateEffects = getEditorUpdateEffects(
-      prevProps,
-      this.props,
-      prevState,
-      this.state,
-    );
-
-    if (updateEffects.sourceFile) {
-      this.sourceFile = updateEffects.sourceFile;
-    }
-
-    if (updateEffects.loadingFileInfo) {
-      updateDocumentTitle(updateEffects.loadingFileInfo);
-    }
-
-    this.queueUpdateImage(getEditorUpdateScheduleOptions(updateEffects));
+    runEditorUpdateWorkflow({
+      previousProps: prevProps,
+      currentProps: this.props,
+      previousState: prevState,
+      currentState: this.state,
+      setSourceFile: (file) => {
+        this.sourceFile = file;
+      },
+      updateDocumentTitle,
+      queueUpdateImage: (options) => this.queueUpdateImage(options),
+    });
   }
 
   private onCopyToOtherClick = async (index: SideIndex) => {
