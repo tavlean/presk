@@ -52,11 +52,12 @@ npm audit --audit-level=low
   image, 96-byte WebP output, `RIFF`/`WEBP` header, and export metadata.
 - Runtime service-worker verification in Chrome showed the page controlled by
   the prototype service worker after reload, with Cache Storage covering app
-  entry/start/route assets, the WebP pipeline worker, baseline WebP WASM, and
-  SIMD WebP WASM.
+  entry/start/route assets, the generated WebP features-worker, baseline WebP
+  WASM, and SIMD WebP WASM.
 - The WebP pipeline probe now runs through Sqush's shared Comlink worker-bridge
-  runtime with a SvelteKit/Vite module-worker adapter, proving the first
-  replacement seam for the production Rollup `omt:` worker bridge.
+  runtime with a generated WebP-first SvelteKit/Vite module-worker entry,
+  proving the first replacement seam for the production Rollup `omt:` worker
+  bridge.
 - The WebP pipeline probe now imports the framework-neutral
   `image-pipeline-shared` helpers for decode, preprocess, process, and injected
   WebP compression, proving the narrow single-image pipeline can run without

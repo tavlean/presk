@@ -9,6 +9,7 @@ const config = {
         './.svelte-kit/sqush-generated/feature-meta/shared.ts',
       'client/lazy-app/feature-meta':
         './.svelte-kit/sqush-generated/feature-meta/index.ts',
+      'sqush-generated': './.svelte-kit/sqush-generated',
       client: '../../src/client',
       codecs: '../../codecs',
       features: '../../src/features',

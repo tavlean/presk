@@ -163,7 +163,7 @@ export async function runWebpPipelineProbe(
       'source decoded through existing image-pipeline decodeSourceImage helper',
       `preprocess ran through existing image-pipeline preprocessImage helper with rotate=${defaultPreprocessorState.rotate.rotate}`,
       'resize processed through existing image-pipeline processImage helper',
-      'encoded through image-pipeline compressImageWithEncoder using the shared WebP runtime and SvelteKit worker bridge',
+      'encoded through image-pipeline compressImageWithEncoder using the shared WebP runtime and generated SvelteKit features-worker bridge',
       'export metadata built with existing filename, percent-change, and settings-hash helpers',
     ],
   };

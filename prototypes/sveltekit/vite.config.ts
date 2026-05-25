@@ -20,6 +20,9 @@ export default defineConfig({
           import.meta.url,
         ),
       ),
+      'sqush-generated': fileURLToPath(
+        new URL('./.svelte-kit/sqush-generated', import.meta.url),
+      ),
       codecs: fileURLToPath(new URL('../../codecs', import.meta.url)),
       client: fileURLToPath(new URL('../../src/client', import.meta.url)),
       features: fileURLToPath(new URL('../../src/features', import.meta.url)),

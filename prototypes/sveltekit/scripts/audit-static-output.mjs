@@ -77,9 +77,9 @@ const serviceWorkerImportedEncodeWorkerAsset = files.find(
   (file) =>
     file.includes('assets/webp-encode-probe.worker') && file.endsWith('.js'),
 );
-const serviceWorkerImportedPipelineWorkerAsset = files.find(
+const serviceWorkerImportedFeaturesWorkerAsset = files.find(
   (file) =>
-    file.includes('assets/webp-pipeline-probe.worker') && file.endsWith('.js'),
+    /^assets\/webp-[A-Za-z0-9_-]+\.js$/.test(file) && file.endsWith('.js'),
 );
 const immutableWorkerAsset = files.find(
   (file) =>
@@ -91,9 +91,9 @@ const immutableEncodeWorkerAsset = files.find(
     file.includes('_app/immutable/workers/webp-encode-probe.worker') &&
     file.endsWith('.js'),
 );
-const immutablePipelineWorkerAsset = files.find(
+const immutableFeaturesWorkerAsset = files.find(
   (file) =>
-    file.includes('_app/immutable/workers/webp-pipeline-probe.worker') &&
+    /^_app\/immutable\/workers\/webp-[A-Za-z0-9_-]+\.js$/.test(file) &&
     file.endsWith('.js'),
 );
 
@@ -129,8 +129,8 @@ assert(
   'Missing emitted module worker asset from the WebP encode probe.',
 );
 assert(
-  serviceWorkerImportedPipelineWorkerAsset,
-  'Missing emitted module worker asset from the WebP pipeline probe.',
+  serviceWorkerImportedFeaturesWorkerAsset,
+  'Missing emitted generated WebP features-worker asset.',
 );
 assert(
   immutableWorkerAsset,
@@ -141,8 +141,8 @@ assert(
   'Missing app-emitted immutable module worker asset from the WebP encode probe.',
 );
 assert(
-  immutablePipelineWorkerAsset,
-  'Missing app-emitted immutable module worker asset from the WebP pipeline probe.',
+  immutableFeaturesWorkerAsset,
+  'Missing app-emitted immutable generated WebP features-worker asset.',
 );
 assert(
   serviceWorker.includes(wasmAsset),
@@ -161,8 +161,8 @@ assert(
   `Service-worker build manifest does not include ${serviceWorkerImportedEncodeWorkerAsset}.`,
 );
 assert(
-  serviceWorker.includes(serviceWorkerImportedPipelineWorkerAsset),
-  `Service-worker build manifest does not include ${serviceWorkerImportedPipelineWorkerAsset}.`,
+  serviceWorker.includes(serviceWorkerImportedFeaturesWorkerAsset),
+  `Service-worker build manifest does not include ${serviceWorkerImportedFeaturesWorkerAsset}.`,
 );
 assert(
   serviceWorker.includes(appEntryAsset),
@@ -210,9 +210,9 @@ console.log(
     ...simdWasmAssets.map((asset) => `  - ${asset}`),
     `Worker asset: ${serviceWorkerImportedWorkerAsset}`,
     `Encode worker asset: ${serviceWorkerImportedEncodeWorkerAsset}`,
-    `Pipeline worker asset: ${serviceWorkerImportedPipelineWorkerAsset}`,
+    `Generated WebP features-worker asset: ${serviceWorkerImportedFeaturesWorkerAsset}`,
     `App worker asset: ${immutableWorkerAsset}`,
     `App encode worker asset: ${immutableEncodeWorkerAsset}`,
-    `App pipeline worker asset: ${immutablePipelineWorkerAsset}`,
+    `App generated WebP features-worker asset: ${immutableFeaturesWorkerAsset}`,
   ].join('\n'),
 );

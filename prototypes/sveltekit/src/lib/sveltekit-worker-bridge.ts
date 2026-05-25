@@ -1,15 +1,12 @@
 import { createWorkerBridgeRuntime } from '../../../../src/client/lazy-app/worker-bridge/runtime';
 import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
+import { methodNames } from 'sqush-generated/worker-bridge/meta';
+import type { WebpWasmUrls } from 'sqush-generated/features-worker/webp';
 import {
+  svelteKitFeaturesWorkerUrl,
   webpEncoderSimdWasmUrl,
   webpEncoderWasmUrl,
-  webpPipelineProbeWorkerUrl,
 } from './codec-assets';
-
-export interface WebpWasmUrls {
-  baseline: string;
-  simd: string;
-}
 
 export interface SvelteKitWorkerBridgeApi {
   webpEncode(
@@ -31,8 +28,8 @@ interface SvelteKitWorkerBridgeWorkerApi {
 }
 
 const SvelteKitWorkerBridgeBase = createWorkerBridgeRuntime(
-  ['webpEncode'] as const,
-  () => new Worker(webpPipelineProbeWorkerUrl, { type: 'module' }),
+  methodNames,
+  () => new Worker(svelteKitFeaturesWorkerUrl, { type: 'module' }),
 ) as new () => SvelteKitWorkerBridgeWorkerApi;
 
 export default class SvelteKitWorkerBridge

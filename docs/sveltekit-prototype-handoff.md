@@ -164,7 +164,7 @@ The static audit now confirms cache-manifest coverage for app entry/start/route
 assets, page CSS, service-worker-imported codec workers, baseline WebP WASM, and
 SIMD WebP WASM. Runtime Chrome verification confirmed the page becomes
 service-worker controlled after reload and Cache Storage contains the app shell,
-pipeline worker, baseline WebP WASM, and SIMD WebP WASM.
+generated WebP features-worker, baseline WebP WASM, and SIMD WebP WASM.
 
 One important finding: SvelteKit's build manifest and the explicit codec asset
 manifest can both contain the same WebP WASM URLs. Passing duplicates to
@@ -278,9 +278,9 @@ Worker-bridge seam progress:
   offline app-shell reload.
 - The SvelteKit prototype now has a WebP-only Vite adapter at
   `prototypes/sveltekit/src/lib/sveltekit-worker-bridge.ts`. It uses
-  `createWorkerBridgeRuntime(['webpEncode'], createWorker)` with a module
-  worker URL, and the WebP pipeline probe now encodes through that shared bridge
-  runtime instead of a bespoke `postMessage` wrapper.
+  generated SvelteKit worker metadata and a generated WebP-first module worker
+  URL, and the WebP pipeline probe now encodes through that shared bridge
+  runtime instead of a bespoke or handwritten worker entry.
 - Runtime Chrome verification confirmed the controlled SvelteKit page still
   renders the bridge-factory WebP pipeline probe with `RIFF`/`WEBP`, caches the
   app shell and top-level baseline/SIMD WebP WASM assets, and does not add
@@ -294,9 +294,9 @@ Worker-bridge seam progress:
   `compressImageWithEncoder` with the WebP runtime plus the SvelteKit worker
   bridge.
 
-Next worker seam: replace the prototype's WebP-only worker bridge with a
-generated Vite-facing `features-worker` entry, or document why the full worker
-surface still needs additional codec asset URL seams first.
+Next worker seam: expand the generated Vite-facing `features-worker` entry
+beyond WebP only as each codec's asset URL, thread-support alias, and stricter
+worker type blockers are resolved.
 
 Full worker-surface blocker inventory:
 
