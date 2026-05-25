@@ -48,6 +48,9 @@ export interface WebpPipelineProbeResult {
   qoiDecodedHeight: number;
   jpegOutputBytes: number;
   jpegSignature: string;
+  quantizedWidth: number;
+  quantizedHeight: number;
+  quantizedUniqueColors: number;
   stages: string[];
 }
 
@@ -96,6 +99,20 @@ function createSourceImageData(): ImageData {
   );
 }
 
+function countUniqueColors(imageData: ImageData): number {
+  const colors = new Set<string>();
+
+  for (let index = 0; index < imageData.data.length; index += 4) {
+    colors.add(
+      `${imageData.data[index]},${imageData.data[index + 1]},${
+        imageData.data[index + 2]
+      },${imageData.data[index + 3]}`,
+    );
+  }
+
+  return colors.size;
+}
+
 async function createSourceFile(): Promise<File> {
   const blob = await canvasEncode(createSourceImageData(), 'image/png');
   return new File([blob], sourceFileName, {
@@ -142,6 +159,7 @@ export async function runWebpPipelineProbe(
   let qoiOutput: ArrayBuffer;
   let qoiDecoded: ImageData;
   let jpegOutput: ArrayBuffer;
+  let quantized: ImageData;
   try {
     outputFile = await compressImageWithEncoder(
       signal,
@@ -159,6 +177,11 @@ export async function runWebpPipelineProbe(
     jpegOutput = await workerBridge.mozjpegEncode(signal, processed, {
       ...mozjpegMeta.defaultOptions,
       quality: 72,
+    });
+    quantized = await workerBridge.quantize(signal, processed, {
+      zx: 0,
+      maxNumColors: 4,
+      dither: 0,
     });
   } finally {
     workerBridge.dispose();
@@ -194,6 +217,9 @@ export async function runWebpPipelineProbe(
     jpegSignature: Array.from(jpegOutputBytes.slice(0, 3), (byte) =>
       byte.toString(16).padStart(2, '0'),
     ).join(' '),
+    quantizedWidth: quantized.width,
+    quantizedHeight: quantized.height,
+    quantizedUniqueColors: countUniqueColors(quantized),
     stages: [
       'source generated locally with existing canvasEncode helper',
       'source type sniffed with existing sniffMimeType helper',
@@ -210,6 +236,9 @@ export async function runWebpPipelineProbe(
       } bytes, ${Array.from(jpegOutputBytes.slice(0, 3), (byte) =>
         byte.toString(16).padStart(2, '0'),
       ).join(' ')})`,
+      `quantize promoted through the same generated worker surface (${
+        quantized.width
+      } x ${quantized.height}, ${countUniqueColors(quantized)} colors)`,
       'export metadata built with existing filename, percent-change, and settings-hash helpers',
     ],
   };

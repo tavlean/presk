@@ -19,9 +19,15 @@ import {
   mozjpegCodecAssetUrls,
   mozjpegEncoderWasmUrl,
 } from 'sqush-generated/codec-assets/mozjpeg';
+import {
+  imagequantCodecAssetUrls,
+  imagequantWasmUrl,
+} from 'sqush-generated/codec-assets/imagequant';
 
 export {
   codecAssetProbeWorkerUrl,
+  imagequantCodecAssetUrls,
+  imagequantWasmUrl,
   mozjpegCodecAssetUrls,
   mozjpegEncoderWasmUrl,
   qoiCodecAssetUrls,
@@ -43,5 +49,6 @@ export const codecAssetUrls = [
   ...webpCodecAssetUrls,
   ...qoiCodecAssetUrls,
   ...mozjpegCodecAssetUrls,
+  ...imagequantCodecAssetUrls,
   ...rotateCodecAssetUrls,
 ];
