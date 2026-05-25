@@ -1,11 +1,18 @@
 import codecAssetProbeWorkerUrl from './codec-asset-probe.worker.ts?worker&url';
 import webpEncodeProbeWorkerUrl from './webp-encode-probe.worker.ts?worker&url';
-import svelteKitFeaturesWorkerUrl from 'sqush-generated/features-worker/webp.ts?worker&url';
-import { webpCodecAssetUrls } from 'sqush-generated/codec-assets/webp';
+import {
+  collectEntryUrls,
+  dedupeUrls,
+  type ServiceWorkerCacheEntry,
+} from '../../../../src/sw/cache-plan';
+import { generatedCodecCacheUrls } from 'sqush-generated/service-worker/cache-plan';
 
-export const serviceWorkerCodecAssetUrls = [
-  codecAssetProbeWorkerUrl,
-  webpEncodeProbeWorkerUrl,
-  svelteKitFeaturesWorkerUrl,
-  ...webpCodecAssetUrls,
-];
+const localProbeEntries = [
+  { main: codecAssetProbeWorkerUrl, deps: [] },
+  { main: webpEncodeProbeWorkerUrl, deps: [] },
+] satisfies readonly ServiceWorkerCacheEntry[];
+
+export const serviceWorkerCodecAssetUrls = dedupeUrls([
+  ...collectEntryUrls(localProbeEntries),
+  ...generatedCodecCacheUrls,
+]);

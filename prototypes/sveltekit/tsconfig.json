@@ -31,6 +31,7 @@
     "../../src/client/lazy-app/abort.ts",
     "../../src/client/lazy-app/image-decode.ts",
     "../../src/client/lazy-app/output-filename.ts",
-    "../../src/client/lazy-app/util/canvas.ts"
+    "../../src/client/lazy-app/util/canvas.ts",
+    "../../src/sw/cache-plan.ts"
   ]
 }

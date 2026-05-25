@@ -2,15 +2,14 @@ import { simd } from 'wasm-feature-detect';
 import webpDataUrl from 'data-url:./tiny.webp';
 import avifDataUrl from 'data-url:./tiny.avif';
 import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
+import {
+  buildAdditionalProcessorCacheUrls,
+  buildInitialCacheUrls,
+  shouldCacheDynamically,
+} from './cache-plan';
 
 // Give TypeScript the correct global.
 declare var self: ServiceWorkerGlobalScope;
-
-function subtractSets<T>(set1: Set<T>, set2: Set<T>): Set<T> {
-  const result = new Set(set1);
-  for (const item of set2) result.delete(item);
-  return result;
-}
 
 // Initial app stuff
 import * as initialApp from 'entry-data:client/initial-app';
@@ -49,38 +48,16 @@ import * as wp2EncMtSimd from 'entry-data:codecs/wp2/enc/wp2_enc_mt_simd';
 import * as wp2EncMt from 'entry-data:codecs/wp2/enc/wp2_enc_mt';
 import * as wp2Enc from 'entry-data:codecs/wp2/enc/wp2_enc';
 
-export function shouldCacheDynamically(url: string) {
-  return url.startsWith('/c/demo-');
-}
+export { shouldCacheDynamically };
 
-let initialJs = new Set([
-  compress.main,
-  ...compress.deps,
-  swBridge.main,
-  ...swBridge.deps,
-  blobAnim.main,
-  ...blobAnim.deps,
-]);
-initialJs = subtractSets(
-  initialJs,
-  new Set([
-    initialApp.main,
-    ...initialApp.deps.filter(
-      (item) =>
-        // Exclude JS deps that have been inlined:
-        item.endsWith('.js') ||
-        // As well as large image deps we want to keep dynamic:
-        shouldCacheDynamically(item),
-    ),
-    // Exclude features Worker itself - it's referenced from the main app,
-    // but is meant to be cached lazily.
-    featuresWorker.main,
-    // Also exclude Service Worker itself (we're inside right now).
-    swUrl,
-  ]),
-);
-
-export const initial = ['/', ...initialJs];
+export const initial = buildInitialCacheUrls({
+  initialApp,
+  compress,
+  swBridge,
+  blobAnim,
+  featuresWorker,
+  serviceWorkerUrl: swUrl,
+});
 
 export const theRest = (async () => {
   const [supportsThreads, supportsSimd, supportsWebP, supportsAvif] =
@@ -98,55 +75,29 @@ export const theRest = (async () => {
       }),
     ]);
 
-  const items: string[] = [];
-
-  function addWithDeps(entry: typeof import('entry-data:*')) {
-    items.push(entry.main, ...entry.deps);
-  }
-
-  addWithDeps(featuresWorker);
-
-  if (!supportsAvif) addWithDeps(avifDec);
-  if (!supportsWebP) addWithDeps(webpDec);
-
-  // AVIF
-  if (supportsThreads) {
-    addWithDeps(avifEncMt);
-  } else {
-    addWithDeps(avifEnc);
-  }
-
-  // JXL
-  if (supportsThreads && supportsSimd) {
-    addWithDeps(jxlEncMtSimd);
-  } else if (supportsThreads) {
-    addWithDeps(jxlEncMt);
-  } else {
-    addWithDeps(jxlEnc);
-  }
-
-  // OXI
-  if (supportsThreads) {
-    addWithDeps(oxiMt);
-  } else {
-    addWithDeps(oxi);
-  }
-
-  // WebP
-  if (supportsSimd) {
-    addWithDeps(webpEncSimd);
-  } else {
-    addWithDeps(webpEnc);
-  }
-
-  // WP2
-  if (supportsThreads && supportsSimd) {
-    addWithDeps(wp2EncMtSimd);
-  } else if (supportsThreads) {
-    addWithDeps(wp2EncMt);
-  } else {
-    addWithDeps(wp2Enc);
-  }
-
-  return [...new Set(items)];
+  return buildAdditionalProcessorCacheUrls(
+    {
+      threads: supportsThreads,
+      simd: supportsSimd,
+      webp: supportsWebP,
+      avif: supportsAvif,
+    },
+    {
+      featuresWorker,
+      avifDec,
+      webpDec,
+      avifEncMt,
+      avifEnc,
+      jxlEncMtSimd,
+      jxlEncMt,
+      jxlEnc,
+      oxiMt,
+      oxi,
+      webpEncSimd,
+      webpEnc,
+      wp2EncMtSimd,
+      wp2EncMt,
+      wp2Enc,
+    },
+  );
 })();

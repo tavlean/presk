@@ -276,11 +276,23 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
   before resize/WebP encode. Runtime Chrome verification produced valid
   `RIFF`/`WEBP` output with the `rotate=90` stage visible and Cache Storage
   covering both the top-level rotate WASM and the worker-local rotate WASM.
+- `src/sw/cache-plan.ts` now owns the framework-neutral service-worker cache
+  planning logic for Rollup `entry-data:` records shaped as `{ main, deps }`.
+  Production `src/sw/to-cache.ts` still imports Rollup virtual modules at the
+  boundary, but initial-cache and feature-detected codec-cache selection now run
+  through a reusable helper with focused tests.
+- The SvelteKit prototype generator now emits
+  `.svelte-kit/sqush-generated/service-worker/cache-plan.ts`, which mirrors the
+  same `{ main, deps }` shape with Vite worker URLs and generated WebP WASM URL
+  deps. The prototype service-worker asset list consumes that generated plan,
+  proving the first replacement shape for production `entry-data:` cache
+  records without changing current production offline behavior.
 
-Next seam: replace the first Rollup virtual import assumption with a narrow
-adapter or generated-file boundary, starting with the worker bridge (`omt:`)
-because the SvelteKit prototype already proved Vite module workers can run the
-WebP encoder path.
+Next seam: broaden the generated Vite-facing worker/cache surface only as each
+codec's URL, thread-support, and type blockers are resolved. The remaining
+Rollup virtual assumptions are now smaller: `service-worker:` registration URL
+adapters, non-WebP `url:` codec assets, and production codec wrappers that still
+embed worker-local WASM URLs.
 
 Worker-bridge seam progress:
 
@@ -332,10 +344,9 @@ Full worker-surface blocker inventory:
   `worker-shared/supports-wasm-threads`, which is a Rollup alias today and needs
   a Vite/SvelteKit equivalent before those threaded codecs can join a generated
   worker entry.
-- `src/features/preprocessors/rotate/worker/rotate.ts` still imports
-  `url:codecs/rotate/rotate.wasm`; the SvelteKit path needs a Vite `?url` or
-  generated asset-manifest equivalent before rotate can be part of the worker
-  proof.
+- Rotate now has a proven split: production keeps the Rollup `url:` adapter,
+  while the SvelteKit generated worker imports the shared rotate runtime with a
+  generated Vite `?url` asset manifest.
 - Resize and quantize worker modules surface `ArrayBufferLike`/`ImageDataArray`
   type errors under the prototype's stricter SvelteKit TypeScript settings.
   Browser-resize runtime now works through the shared pipeline seam, but worker

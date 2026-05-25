@@ -74,6 +74,11 @@ npm audit --audit-level=low
   resize and encode. Browser verification produced a valid `RIFF`/`WEBP`
   payload with `rotate=90` in the stage log and Cache Storage covering both the
   top-level rotate WASM and the worker-local rotate WASM fetched by the worker.
+- The prototype sync step now emits a generated service-worker cache plan that
+  uses the same `{ main, deps }` entry shape as production `entry-data:` records,
+  but fills it with SvelteKit/Vite worker URLs and generated WebP WASM deps.
+  The prototype service-worker asset list consumes that generated plan through
+  the shared production `src/sw/cache-plan.ts` helper.
 
 ## Readiness verdict
 
@@ -92,7 +97,8 @@ The remaining blockers are migration seams, not a SvelteKit blocker:
   option entries;
 - Rollup virtual imports (`omt:`, broader `url:`, `entry-data:`,
   `service-worker:`) need Vite/SvelteKit equivalents; the generated rotate seam
-  proves the first narrow `url:` replacement pattern;
+  proves the first narrow `url:` replacement pattern, and the generated
+  service-worker cache plan proves the first `entry-data:` replacement pattern;
 - codec WASM asset URLs need a canonical generated source or wrapper patch so
   app code, workers, and service-worker manifests agree on runtime URLs without
   physical duplication.
@@ -139,13 +145,15 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   tree.
 - SvelteKit's `$service-worker` build manifest does not automatically include
   the nested worker/WASM assets. The viable path is to expose codec asset URLs
-  from a shared module and add them to the service-worker cache list
-  explicitly. The worker URLs are enough for the explicit codec manifest; the
-  top-level WebP WASM URLs are already covered by SvelteKit's build manifest
-  because the app imports the WebP asset probe. The combined build and codec
-  manifests are still de-duped before `cache.addAll` as a guardrail, because an
-  earlier explicit-WASM version produced duplicate install-list URLs and made
-  the service-worker install become redundant. Importing a worker URL from the
+  through generated `{ main, deps }` cache records and add them to the
+  service-worker cache list explicitly. The generated cache records now use the
+  shared `src/sw/cache-plan.ts` helper, matching the production `entry-data:`
+  shape while using Vite worker and WASM URLs. The top-level WebP and rotate
+  WASM URLs are also covered by SvelteKit's build manifest because the app
+  imports those assets. The combined build and codec manifests are still
+  de-duped before `cache.addAll` as a guardrail, because an earlier
+  explicit-WASM version produced duplicate install-list URLs and made the
+  service-worker install become redundant. Importing a worker URL from the
   service-worker build emits a second worker file, so the prototype also
   runtime-caches non-manifest GETs to cover the app worker after first load. A
   production migration should prefer a generated manifest that gives both the
@@ -175,6 +183,10 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   while shared rotate logic lives in a runtime factory that accepts an injected
   WASM URL. The prototype generator supplies that URL from a generated Vite
   `?url` manifest.
+- The first `entry-data:` seam is now proven for service-worker cache planning:
+  production still resolves real Rollup entries at the boundary, but the cache
+  planning logic accepts plain `{ main, deps }` records that SvelteKit can
+  generate from Vite worker and asset URL imports.
 - The current prototype pipeline intentionally does not import
   `src/client/lazy-app/image-pipeline.ts` or `bulk/processor.ts`; those modules
   still pull the full encoder map, production worker bridge, and Rollup-only
@@ -208,8 +220,9 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   generated Vite `?url` asset manifests, following the rotate preprocessor seam
   before broadening to the remaining codec surfaces.
 - Replace `entry-data:` service-worker cache generation with `$service-worker`
-  for the SvelteKit app shell plus an explicit generated codec asset manifest
-  for lazy/feature-detected workers and WASM assets.
+  for the SvelteKit app shell plus generated `{ main, deps }` cache records for
+  lazy/feature-detected workers and WASM assets, following the prototype
+  `sqush-generated/service-worker/cache-plan.ts` proof.
 - Resolve WebP WASM duplication before production migration. The likely paths
   are a generated Vite asset manifest consumed by both app and service worker,
   or codec wrapper changes that remove Emscripten's worker-local `new URL`
