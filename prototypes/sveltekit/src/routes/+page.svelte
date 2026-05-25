@@ -2,6 +2,10 @@
   import { runCodecAssetProbe } from '$lib/codec-asset-probe';
   import { createPrototypeModel } from '$lib/prototype-data';
   import type { CodecAssetProbeResult } from '$lib/codec-asset-probe';
+  import {
+    runWebpEncodeProbe,
+    type WebpEncodeProbeResult,
+  } from '$lib/webp-encode-probe';
 
   const model = createPrototypeModel();
 
@@ -9,6 +13,11 @@
   let codecProbe = $state<
     | { status: 'checking' }
     | { status: 'ready'; result: CodecAssetProbeResult }
+    | { status: 'failed'; message: string }
+  >({ status: 'checking' });
+  let encodeProbe = $state<
+    | { status: 'checking' }
+    | { status: 'ready'; result: WebpEncodeProbeResult }
     | { status: 'failed'; message: string }
   >({ status: 'checking' });
   const selectedJob = $derived(
@@ -28,6 +37,27 @@
       .catch((error: unknown) => {
         if (!cancelled) {
           codecProbe = {
+            status: 'failed',
+            message: error instanceof Error ? error.message : String(error),
+          };
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  $effect(() => {
+    let cancelled = false;
+
+    runWebpEncodeProbe()
+      .then((result) => {
+        if (!cancelled) encodeProbe = { status: 'ready', result };
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          encodeProbe = {
             status: 'failed',
             message: error instanceof Error ? error.message : String(error),
           };
@@ -137,6 +167,30 @@
       </dl>
     {:else}
       <p class="error">{codecProbe.message}</p>
+    {/if}
+  </section>
+
+  <section class="codec-probe" aria-label="WebP encode probe">
+    <h2>WebP encode probe</h2>
+    {#if encodeProbe.status === 'checking'}
+      <p>Encoding a synthetic 2x2 image through the existing WebP worker path.</p>
+    {:else if encodeProbe.status === 'ready'}
+      <dl>
+        <div>
+          <dt>Output bytes</dt>
+          <dd>{encodeProbe.result.outputBytes}</dd>
+        </div>
+        <div>
+          <dt>RIFF header</dt>
+          <dd>{encodeProbe.result.riffHeader}</dd>
+        </div>
+        <div>
+          <dt>Magic bytes</dt>
+          <dd>{encodeProbe.result.magicBytes}</dd>
+        </div>
+      </dl>
+    {:else}
+      <p class="error">{encodeProbe.message}</p>
     {/if}
   </section>
 </main>

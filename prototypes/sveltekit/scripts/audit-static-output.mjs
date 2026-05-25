@@ -28,16 +28,36 @@ function assert(condition, message) {
 }
 
 const files = await listFiles(buildDir);
-const serviceWorker = await readFile(join(buildDir, 'service-worker.js'), 'utf8');
+const serviceWorker = await readFile(
+  join(buildDir, 'service-worker.js'),
+  'utf8',
+);
 
-const wasmAsset = files.find((file) => file.endsWith('.wasm'));
+const wasmAsset = files.find(
+  (file) =>
+    file.includes('/webp_enc.') &&
+    !file.includes('webp_enc_simd') &&
+    file.endsWith('.wasm'),
+);
+const simdWasmAsset = files.find(
+  (file) => file.includes('webp_enc_simd') && file.endsWith('.wasm'),
+);
 const serviceWorkerImportedWorkerAsset = files.find(
   (file) =>
     file.includes('assets/codec-asset-probe.worker') && file.endsWith('.js'),
 );
+const serviceWorkerImportedEncodeWorkerAsset = files.find(
+  (file) =>
+    file.includes('assets/webp-encode-probe.worker') && file.endsWith('.js'),
+);
 const immutableWorkerAsset = files.find(
   (file) =>
     file.includes('_app/immutable/workers/codec-asset-probe.worker') &&
+    file.endsWith('.js'),
+);
+const immutableEncodeWorkerAsset = files.find(
+  (file) =>
+    file.includes('_app/immutable/workers/webp-encode-probe.worker') &&
     file.endsWith('.js'),
 );
 
@@ -48,21 +68,38 @@ assert(
   'Missing SvelteKit service-worker output.',
 );
 assert(wasmAsset, 'Missing emitted WebP WASM asset from the worker probe.');
+assert(simdWasmAsset, 'Missing emitted SIMD WebP WASM asset.');
 assert(
   serviceWorkerImportedWorkerAsset,
   'Missing emitted module worker asset from the worker probe.',
+);
+assert(
+  serviceWorkerImportedEncodeWorkerAsset,
+  'Missing emitted module worker asset from the WebP encode probe.',
 );
 assert(
   immutableWorkerAsset,
   'Missing app-emitted immutable module worker asset from the worker probe.',
 );
 assert(
+  immutableEncodeWorkerAsset,
+  'Missing app-emitted immutable module worker asset from the WebP encode probe.',
+);
+assert(
   serviceWorker.includes(wasmAsset),
   `Service-worker build manifest does not include ${wasmAsset}.`,
 );
 assert(
+  serviceWorker.includes(simdWasmAsset),
+  `Service-worker build manifest does not include ${simdWasmAsset}.`,
+);
+assert(
   serviceWorker.includes(serviceWorkerImportedWorkerAsset),
   `Service-worker build manifest does not include ${serviceWorkerImportedWorkerAsset}.`,
+);
+assert(
+  serviceWorker.includes(serviceWorkerImportedEncodeWorkerAsset),
+  `Service-worker build manifest does not include ${serviceWorkerImportedEncodeWorkerAsset}.`,
 );
 assert(
   /\.put\(/.test(serviceWorker),
@@ -73,7 +110,10 @@ console.log(
   [
     'Static output audit passed.',
     `WASM asset: ${wasmAsset}`,
+    `SIMD WASM asset: ${simdWasmAsset}`,
     `Worker asset: ${serviceWorkerImportedWorkerAsset}`,
+    `Encode worker asset: ${serviceWorkerImportedEncodeWorkerAsset}`,
     `App worker asset: ${immutableWorkerAsset}`,
+    `App encode worker asset: ${immutableEncodeWorkerAsset}`,
   ].join('\n'),
 );

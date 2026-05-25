@@ -11,6 +11,8 @@ const config = {
       codecs: '../../codecs',
       features: '../../src/features',
       shared: '../../src/shared',
+      'wasm-feature-detect':
+        './node_modules/wasm-feature-detect/dist/esm/index.js',
     },
     adapter: adapter({
       pages: 'build',

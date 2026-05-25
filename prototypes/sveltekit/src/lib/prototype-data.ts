@@ -77,6 +77,7 @@ export function createPrototypeModel(): PrototypeModel {
       'Created a metadata-only batch without Preact.',
       'Generated shared feature metadata for SvelteKit instead of using a hand-written stub.',
       'Imported a real WebP WASM asset through a SvelteKit-built module worker.',
+      'Encoded synthetic ImageData through the existing WebP worker encode module.',
       'Generated export/readiness summaries from shared selectors.',
       'Kept image processing local; no upload or server route is involved.',
     ],

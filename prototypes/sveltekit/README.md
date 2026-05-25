@@ -26,6 +26,9 @@ npm audit --audit-level=low
   `build`.
 - Imports a real committed WebP encoder WASM asset through a SvelteKit-built
   module worker.
+- Encodes a synthetic 2x2 `ImageData` through the existing
+  `src/features/encoders/webP/worker/webpEncode` module from a SvelteKit-built
+  worker.
 - Builds with `@sveltejs/adapter-static`.
 - Includes a prototype service worker using SvelteKit's `$service-worker`
   asset manifest.
@@ -37,8 +40,9 @@ npm audit --audit-level=low
 - `npm audit --audit-level=low` is clean with a prototype-only `cookie`
   override.
 - Local preview rendered in Chromium through `playwright-cli`; the page title
-  and imported job list were visible. The only console error was the expected
-  missing prototype favicon.
+  and imported job list were visible. The worker/WASM probe reported the
+  expected WebAssembly magic bytes, and the WebP encode probe produced a valid
+  `RIFF`/`WEBP` payload.
 
 ## Findings
 
@@ -55,6 +59,13 @@ npm audit --audit-level=low
   WebP metadata re-exports `EncodeOptions` without `export type`.
 - SvelteKit/Vite can emit a browser module worker and real committed WebP WASM
   asset using native `new URL(..., import.meta.url)` and `?url` imports.
+- The existing WebP worker encode module can run inside a SvelteKit-built
+  module worker and produce a valid WebP RIFF payload from synthetic
+  `ImageData`.
+- The WebP encode path needs the prototype to alias `wasm-feature-detect`
+  because the imported production source lives outside the prototype package
+  root and bare dependency resolution otherwise starts from the repo source
+  tree.
 - SvelteKit's `$service-worker` build manifest does not automatically include
   the nested worker/WASM assets. The viable path is to expose codec asset URLs
   from a shared module and add them to the service-worker cache list
@@ -63,6 +74,11 @@ npm audit --audit-level=low
   cover the app worker after first load. A production migration should prefer a
   generated manifest that gives both the app and service worker the same worker
   asset URL.
+- Importing WebP WASM assets explicitly for service-worker coverage while also
+  importing the existing Emscripten modules currently emits duplicate baseline
+  and SIMD WASM files. This is acceptable for the disposable proof, but a
+  production migration should make codec JS and service-worker manifests share
+  one generated asset URL per WASM file.
 - The full image-pipeline import is still blocked by production-only Rollup
   virtual imports and Preact client option entries: `omt:`, `url:`,
   `entry-data:`, `service-worker:`, and generated `feature-meta` entries that

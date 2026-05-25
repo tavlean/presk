@@ -38,5 +38,7 @@ export default async function encode(
 
   if (!result) throw new Error('Encoding error.');
 
-  return result.buffer;
+  const output = new Uint8Array(result.byteLength);
+  output.set(result);
+  return output.buffer as ArrayBuffer;
 }

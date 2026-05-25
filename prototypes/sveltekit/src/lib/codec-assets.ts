@@ -1,6 +1,20 @@
 import codecAssetProbeWorkerUrl from './codec-asset-probe.worker.ts?worker&url';
-import { webpEncoderWasmUrl } from './webp-codec-assets';
+import webpEncodeProbeWorkerUrl from './webp-encode-probe.worker.ts?worker&url';
+import {
+  webpEncoderSimdWasmUrl,
+  webpEncoderWasmUrl,
+} from './webp-codec-assets';
 
-export { codecAssetProbeWorkerUrl, webpEncoderWasmUrl };
+export {
+  codecAssetProbeWorkerUrl,
+  webpEncodeProbeWorkerUrl,
+  webpEncoderSimdWasmUrl,
+  webpEncoderWasmUrl,
+};
 
-export const codecAssetUrls = [codecAssetProbeWorkerUrl, webpEncoderWasmUrl];
+export const codecAssetUrls = [
+  codecAssetProbeWorkerUrl,
+  webpEncodeProbeWorkerUrl,
+  webpEncoderWasmUrl,
+  webpEncoderSimdWasmUrl,
+];

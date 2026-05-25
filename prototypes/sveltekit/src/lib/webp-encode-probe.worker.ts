@@ -1,0 +1,43 @@
+import encodeWebp from '../../../../src/features/encoders/webP/worker/webpEncode';
+import { defaultOptions } from 'features/encoders/webP/shared/meta';
+
+function createSyntheticImageData(): ImageData {
+  return new ImageData(
+    new Uint8ClampedArray([
+      255, 0, 0, 255, 0, 128, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255,
+    ]),
+    2,
+    2,
+  );
+}
+
+function hex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join(' ');
+}
+
+async function encodeSyntheticWebp() {
+  const output = await encodeWebp(createSyntheticImageData(), {
+    ...defaultOptions,
+    quality: 80,
+  });
+  const bytes = new Uint8Array(output);
+  const riffHeader = new TextDecoder('ascii').decode(bytes.slice(0, 4));
+
+  self.postMessage({
+    outputBytes: bytes.byteLength,
+    magicBytes: hex(bytes.slice(0, 12)),
+    riffHeader,
+  });
+}
+
+self.addEventListener('message', (event) => {
+  if (event.data !== 'encode') return;
+
+  encodeSyntheticWebp().catch((error: unknown) => {
+    self.postMessage({
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
+});
