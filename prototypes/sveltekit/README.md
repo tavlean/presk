@@ -55,6 +55,30 @@ npm audit --audit-level=low
   entry/start/route assets, the WebP pipeline worker, baseline WebP WASM, and
   SIMD WebP WASM.
 
+## Readiness verdict
+
+SvelteKit static output is viable for Sqush's local-first single-image optimizer
+architecture, but the production app is not ready for a direct migration yet.
+
+The prototype has proven the platform path that matters most: a static SvelteKit
+app can consume shared Sqush helpers, generate Svelte-safe WebP metadata, run
+existing WebP WASM encoding in Vite-built module workers, register an offline
+service worker, cache the app shell and WebP probe assets, and keep runtime WASM
+lookup pointed at the top-level cached asset URLs.
+
+The remaining blockers are migration seams, not a SvelteKit blocker:
+
+- generated feature metadata must split framework-neutral codec data from Preact
+  option entries;
+- Rollup virtual imports (`omt:`, `url:`, `entry-data:`, `service-worker:`)
+  need Vite/SvelteKit equivalents;
+- codec WASM asset URLs need a canonical generated source or wrapper patch so
+  app code, workers, and service-worker manifests agree on runtime URLs without
+  physical duplication.
+
+The next production-facing work should solve those seams before building a
+minimal SvelteKit single-image editor slice with real user-selected files.
+
 ## Findings
 
 - Pure bulk/session helpers can be consumed from a SvelteKit app today.

@@ -209,9 +209,35 @@ so WASM URLs are externalized instead of embedded as worker-local
 
 ### 5. Readiness verdict
 
-Keep `prototypes/sveltekit/README.md` and this handoff current. End the spike
-with a clear verdict: what is proven, what remains blocked, and the safest next
-engineering track before any production migration.
+Status: ready for a platform decision.
+
+Verdict: SvelteKit static output can safely carry Sqush's local-first
+single-image optimizer architecture if the migration is done as a build/runtime
+port with explicit seams, not as a direct app-shell import. The prototype proves
+the important platform pieces: static output, Svelte 5 state, shared bulk/session
+helper imports, generated WebP shared metadata, browser-only image helper reuse,
+Vite module workers, real WebP WASM encoding, service-worker registration,
+offline cache coverage for the app shell and WebP probe assets, and runtime
+`locateFile` control over which WebP WASM URLs are cached.
+
+This is not yet production-migration-ready. A direct full image-pipeline import
+is still blocked by production Rollup virtual imports (`omt:`, `url:`,
+`entry-data:`, `service-worker:`), Preact option components in generated
+feature metadata, and Emscripten codec wrappers that embed worker-local WASM
+asset URLs. Those are concrete migration tasks, not evidence that SvelteKit
+static output is the wrong target.
+
+Safest next engineering track:
+
+1. Split generated codec metadata into framework-neutral shared metadata and UI
+   option entries.
+2. Replace Rollup virtual imports with Vite/SvelteKit-compatible worker, URL,
+   entry-data, and service-worker asset seams.
+3. Externalize or generate canonical codec WASM asset URLs so app code,
+   workers, and service-worker manifests agree on one runtime URL per WASM file.
+4. Only after those seams exist, build a minimal SvelteKit single-image editor
+   slice around real user-selected files and compare import, decode, process,
+   encode, preview, export, and offline behavior against the current Preact app.
 
 ### Verification expectations
 
@@ -258,9 +284,9 @@ Constraints:
 - Use Svelte MCP/docs when creating, editing, or analyzing Svelte code.
 - Keep the prototype disposable and separated under `prototypes/sveltekit`.
 
-Current prototype already proves SvelteKit static output, shared bulk/session
-helper imports, generated WebP metadata, worker/WASM asset emission, and real
-WebP worker encoding. Continue through the "Autonomous next-task queue" in
+Current prototype already proves SvelteKit static output, shared helpers,
+generated WebP metadata, Vite workers/WASM, WebP pipeline encoding, and offline
+cache coverage. Continue through the "Autonomous next-task queue" in
 `docs/sveltekit-prototype-handoff.md`, committing meaningful checkpoints.
 
 Verification: use the handoff's verification expectations. Push when CI feedback
