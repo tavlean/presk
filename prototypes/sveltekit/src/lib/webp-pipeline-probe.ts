@@ -43,6 +43,8 @@ export interface WebpPipelineProbeResult {
   webpSignature: string;
   qoiOutputBytes: number;
   qoiSignature: string;
+  qoiDecodedWidth: number;
+  qoiDecodedHeight: number;
   stages: string[];
 }
 
@@ -135,6 +137,7 @@ export async function runWebpPipelineProbe(
   );
   let outputFile: File;
   let qoiOutput: ArrayBuffer;
+  let qoiDecoded: ImageData;
   try {
     outputFile = await compressImageWithEncoder(
       signal,
@@ -145,6 +148,10 @@ export async function runWebpPipelineProbe(
       { meta: webpMeta, encode: encodeWebP },
     );
     qoiOutput = await workerBridge.qoiEncode(signal, processed, {});
+    qoiDecoded = await workerBridge.qoiDecode(
+      signal,
+      new Blob([qoiOutput], { type: 'image/qoi' }),
+    );
   } finally {
     workerBridge.dispose();
   }
@@ -172,6 +179,8 @@ export async function runWebpPipelineProbe(
     webpSignature: ascii.decode(outputBytes.slice(8, 12)),
     qoiOutputBytes: qoiOutput.byteLength,
     qoiSignature: ascii.decode(qoiOutputBytes.slice(0, 4)),
+    qoiDecodedWidth: qoiDecoded.width,
+    qoiDecodedHeight: qoiDecoded.height,
     stages: [
       'source generated locally with existing canvasEncode helper',
       'source type sniffed with existing sniffMimeType helper',
@@ -182,6 +191,7 @@ export async function runWebpPipelineProbe(
       `qoiEncode promoted through the same generated worker surface (${
         qoiOutput.byteLength
       } bytes, ${ascii.decode(qoiOutputBytes.slice(0, 4))})`,
+      `qoiDecode promoted through the same generated worker surface (${qoiDecoded.width} x ${qoiDecoded.height})`,
       'export metadata built with existing filename, percent-change, and settings-hash helpers',
     ],
   };

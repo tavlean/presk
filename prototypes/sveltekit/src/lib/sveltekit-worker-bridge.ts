@@ -9,6 +9,7 @@ import type {
 } from 'sqush-generated/features-worker/webp';
 import {
   qoiEncoderWasmUrl,
+  qoiDecoderWasmUrl,
   svelteKitFeaturesWorkerUrl,
   webpEncoderSimdWasmUrl,
   webpEncoderWasmUrl,
@@ -30,6 +31,7 @@ export interface SvelteKitWorkerBridgeApi {
     imageData: ImageData,
     options: QoiEncodeOptions,
   ): Promise<ArrayBuffer>;
+  qoiDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
   dispose(): void;
 }
 
@@ -46,6 +48,11 @@ interface SvelteKitWorkerBridgeWorkerApi {
     options: QoiEncodeOptions,
     wasmUrls: QoiWasmUrls,
   ): Promise<ArrayBuffer>;
+  qoiDecode(
+    signal: AbortSignal,
+    blob: Blob,
+    wasmUrls: QoiWasmUrls,
+  ): Promise<ImageData>;
   dispose(): void;
 }
 
@@ -77,6 +84,14 @@ export default class SvelteKitWorkerBridge
     options: QoiEncodeOptions,
   ): Promise<ArrayBuffer> {
     return super.qoiEncode(signal, imageData, options, {
+      decoder: qoiDecoderWasmUrl,
+      encoder: qoiEncoderWasmUrl,
+    });
+  }
+
+  qoiDecode(signal: AbortSignal, blob: Blob): Promise<ImageData> {
+    return super.qoiDecode(signal, blob, {
+      decoder: qoiDecoderWasmUrl,
       encoder: qoiEncoderWasmUrl,
     });
   }

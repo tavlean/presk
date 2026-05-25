@@ -340,12 +340,12 @@ Worker-bridge seam progress:
   bridge metadata imports its ready method-name list, and the same file records
   blocked worker methods with their current codec asset, thread-support, or type
   blockers.
-- `qoiEncode` has moved from blocked to ready in that generated worker-surface
-  manifest. The prototype now generates
-  `.svelte-kit/sqush-generated/codec-assets/qoi.ts`, passes the QOI encoder
-  WASM URL through the SvelteKit worker bridge, verifies a `qoif` output in the
-  runtime pipeline probe, and audits service-worker cache coverage for the QOI
-  WASM asset.
+- `qoiEncode` and `qoiDecode` have moved from blocked to ready in that generated
+  worker-surface manifest. The prototype now generates
+  `.svelte-kit/sqush-generated/codec-assets/qoi.ts`, passes the QOI encoder and
+  decoder WASM URLs through the SvelteKit worker bridge, verifies a `qoif`
+  output plus 3x3 QOI decode round trip in the runtime pipeline probe, and
+  audits service-worker cache coverage for both QOI WASM assets.
 
 Next worker seam: pick another blocked method from the generated worker-surface
 manifest, resolve only that method's asset URL, thread-support alias, or worker
@@ -355,9 +355,9 @@ Full worker-surface blocker inventory:
 
 - Importing the production `features-worker` surface directly from SvelteKit
   still pulls every codec worker, not just WebP. That reintroduces AVIF,
-  MozJPEG, WP2, JXL, OxiPNG, AVIF/JXL/QOI/WP2 decoder, resize-worker, and
+  MozJPEG, WP2, JXL, OxiPNG, AVIF/JXL/WP2 decoder, resize-worker, and
   quantize-worker type/build issues before the prototype needs those codecs.
-  QOI encode now has a narrow generated SvelteKit path, but the broader
+  QOI encode/decode now have narrow generated SvelteKit paths, but the broader
   production worker surface remains intentionally filtered.
 - AVIF, JXL, OxiPNG, and WP2 workers import
   `worker-shared/supports-wasm-threads`, which is a Rollup alias today and needs

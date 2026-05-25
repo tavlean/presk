@@ -12,12 +12,14 @@ import {
 } from 'sqush-generated/codec-assets/rotate';
 import {
   qoiCodecAssetUrls,
+  qoiDecoderWasmUrl,
   qoiEncoderWasmUrl,
 } from 'sqush-generated/codec-assets/qoi';
 
 export {
   codecAssetProbeWorkerUrl,
   qoiCodecAssetUrls,
+  qoiDecoderWasmUrl,
   qoiEncoderWasmUrl,
   rotateCodecAssetUrls,
   rotateWasmUrl,

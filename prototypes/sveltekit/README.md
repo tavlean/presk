@@ -50,7 +50,8 @@ npm audit --audit-level=low
 - Local preview rendered in Chrome through Playwright with the WebP pipeline
   probe reporting a generated 155-byte PNG source, 4x4 decode, 3x3 processed
   image, valid `RIFF`/`WEBP` output, QOI `qoif` output from the promoted
-  `qoiEncode` worker method, and export metadata.
+  `qoiEncode` worker method, a 3x3 QOI decode round trip from the promoted
+  `qoiDecode` worker method, and export metadata.
 - Runtime service-worker verification in Chrome showed the page controlled by
   the prototype service worker after reload, with Cache Storage covering app
   entry/start/route assets, the generated WebP features-worker, baseline WebP
@@ -88,10 +89,11 @@ npm audit --audit-level=low
   SvelteKit worker bridge consumes its ready method-name list, while the same
   generated file records the worker methods still blocked by codec asset URL,
   thread-support alias, or stricter worker type work.
-- `qoiEncode` has been promoted through that generated worker surface. The
-  prototype now generates a QOI encoder WASM URL manifest, passes it through the
-  SvelteKit worker bridge, verifies a `qoif` output from the existing QOI worker
-  module, and confirms service-worker cache coverage for the QOI WASM asset.
+- `qoiEncode` and `qoiDecode` have been promoted through that generated worker
+  surface. The prototype now generates QOI encoder and decoder WASM URL
+  manifests, passes them through the SvelteKit worker bridge, verifies a `qoif`
+  output plus 3x3 QOI decode round trip from the existing QOI worker modules,
+  and confirms service-worker cache coverage for both QOI WASM assets.
 
 ## Readiness verdict
 
@@ -100,9 +102,10 @@ architecture, but the production app is not ready for a direct migration yet.
 
 The prototype has proven the platform path that matters most: a static SvelteKit
 app can consume shared Sqush helpers, generate Svelte-safe WebP metadata, run
-existing WebP/QOI WASM encoding and rotate preprocessing in Vite-built module
-workers, register an offline service worker, cache the app shell and codec
-probe assets, and keep runtime WASM lookup pointed at generated asset URLs.
+existing WebP/QOI WASM encoding, QOI WASM decoding, and rotate preprocessing in
+Vite-built module workers, register an offline service worker, cache the app
+shell and codec probe assets, and keep runtime WASM lookup pointed at generated
+asset URLs.
 
 The remaining blockers are migration seams, not a SvelteKit blocker:
 
@@ -233,7 +236,7 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   surface still needs incremental broadening.
 - Generate the Vite-facing worker entry incrementally from an explicit ready
   surface. The current generated manifest enables `webpEncode`, `rotate`, and
-  `qoiEncode`; full production parity is blocked by
+  QOI encode/decode; full production parity is blocked by
   `worker-shared/supports-wasm-threads`, `url:` WASM imports, stricter worker
   `ArrayBufferLike` types, and remaining codec asset URLs.
 - Replace production `url:` codec references with reusable runtimes plus
