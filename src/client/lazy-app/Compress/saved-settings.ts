@@ -1,5 +1,5 @@
-import type { EncoderState, ProcessorState } from '../feature-meta';
-import { encoderMap } from '../feature-meta';
+import type { EncoderState, ProcessorState } from '../feature-meta/shared';
+import { encoderMap } from '../feature-meta/shared';
 import { readLocalStorage, writeLocalStorage } from '../storage';
 import type { LocalStorageKey } from '../storage';
 import type { SideIndex } from './side-state';

@@ -1,10 +1,10 @@
 import { cleanMerge, cleanSet } from '../util/clean-modify';
-import { defaultProcessorState, encoderMap } from '../feature-meta';
+import { defaultProcessorState, encoderMap } from '../feature-meta/shared';
 import type {
   EncoderOptions,
   EncoderType,
   ProcessorState,
-} from '../feature-meta';
+} from '../feature-meta/shared';
 import type { SavedSideSettings, SideSettings } from './saved-settings';
 
 export type SideIndex = 0 | 1;

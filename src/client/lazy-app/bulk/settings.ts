@@ -1,7 +1,7 @@
 import type {
   EncoderState,
   ProcessorState,
-} from 'client/lazy-app/feature-meta';
+} from 'client/lazy-app/feature-meta/shared';
 
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];

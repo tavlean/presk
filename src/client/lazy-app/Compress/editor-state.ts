@@ -1,5 +1,5 @@
-import { defaultPreprocessorState } from '../feature-meta';
-import type { PreprocessorState } from '../feature-meta';
+import { defaultPreprocessorState } from '../feature-meta/shared';
+import type { PreprocessorState } from '../feature-meta/shared';
 import type { SavedSideSettings } from './saved-settings';
 import { getInitialSideStates, type InitialSideState } from './side-state';
 import { getViewportState } from './viewport-state';

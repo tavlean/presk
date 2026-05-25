@@ -239,6 +239,25 @@ Safest next engineering track:
    slice around real user-selected files and compare import, decode, process,
    encode, preview, export, and offline behavior against the current Preact app.
 
+Migration-seams progress on `code/sveltekit-migration-seams`:
+
+- The production `feature-plugin` now emits
+  `src/client/lazy-app/feature-meta/shared.ts` as a generated shared-only
+  metadata module. It contains encoder metadata, encoder/processor/preprocessor
+  state types, default processor state, and default preprocessor state without
+  importing encoder client entries or Preact option components.
+- The existing generated `feature-meta/index.ts` remains the compatibility layer
+  for the Preact app shell. It re-exports shared types/defaults and builds the
+  full encoder map by adding the existing encoder client entries.
+- Pure or mostly framework-neutral production helpers that only need metadata
+  now import from `feature-meta/shared`, including bulk settings/processor
+  helpers and saved-settings/side-state/work-plan/editor-state helpers.
+
+Next seam: replace the first Rollup virtual import assumption with a narrow
+adapter or generated-file boundary, starting with the worker bridge (`omt:`)
+because the SvelteKit prototype already proved Vite module workers can run the
+WebP encoder path.
+
 ### Verification expectations
 
 - In `prototypes/sveltekit`: run `npm run check`, `npm run build`,

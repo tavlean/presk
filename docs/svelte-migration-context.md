@@ -156,6 +156,10 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
 
 - Keep SvelteKit static output as the prototype target and measure build complexity there first.
 - Continue the first prototype under `prototypes/sveltekit/` on the `code/sveltekit-prototype` branch; do not turn it into a production migration by default.
+- Continue migration seam work on `code/sveltekit-migration-seams`. The first
+  seam is a generated `client/lazy-app/feature-meta/shared` module that keeps
+  framework-neutral codec/processor/preprocessor metadata separate from the
+  Preact encoder client entries exposed by the existing `feature-meta` index.
 - Decide final codec surface before deleting codec code.
 - Use [Phase 1 readiness audit](phase-1-readiness-audit.md) as the current rationale for starting a small technical prototype instead of continuing tiny Preact cleanup.
 - Current browser support targets were reviewed on 2026-05-24. Re-check before production migration, but do not lower the modern evergreen baseline or remove WebAssembly, worker, service-worker, Canvas/ImageData, File/Blob, object URL, or dynamic import assumptions without measured evidence.

@@ -2,8 +2,8 @@ import type {
   EncoderState,
   PreprocessorState,
   ProcessorState,
-} from '../feature-meta';
-import { defaultProcessorState } from '../feature-meta';
+} from '../feature-meta/shared';
+import { defaultProcessorState } from '../feature-meta/shared';
 import { processorStateEquivalent } from './processor-state';
 import type { SideSettings } from './saved-settings';
 
