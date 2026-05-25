@@ -25,11 +25,7 @@ import {
   type ImageUpdateScheduleOptions,
 } from './update-scheduler';
 import { getViewportState, mobileWidthMediaQuery } from './viewport-state';
-import {
-  getCopySideChangeState,
-  getCopySideAction,
-  getOtherSideIndex,
-} from './side-copy';
+import { runCopySideToOther } from './side-copy-workflow';
 import './custom-els/MultiPanel';
 import Results from './Results';
 import WorkerBridge from '../worker-bridge';
@@ -217,26 +213,19 @@ export default class Compress extends Component<Props, State> {
   }
 
   private onCopyToOtherClick = async (index: SideIndex) => {
-    const result = getCopySideChangeState(this.state, index);
-    this.setState({
-      sides: result.sides,
-    });
-
-    const copyAction = getCopySideAction();
-    const snackbarResult = await this.props.showSnack(copyAction.message, {
-      timeout: copyAction.timeout,
-      actions: copyAction.actions,
-    });
-
-    if (this.isUnmounted) return;
-    if (snackbarResult !== 'undo') return;
-
-    this.setState({
-      ...getRestoreSideState(
-        this.state,
-        getOtherSideIndex(index),
-        result.oldSide,
-      ),
+    await runCopySideToOther({
+      index,
+      state: this.state,
+      showSnack: this.props.showSnack,
+      isUnmounted: () => this.isUnmounted,
+      onApply: (sides) => {
+        this.setState({ sides });
+      },
+      onRestore: (sideIndex, oldSide) => {
+        this.setState({
+          ...getRestoreSideState(this.state, sideIndex, oldSide),
+        });
+      },
     });
   };
   private onSaveSideSettingsClick = async (index: 0 | 1) => {

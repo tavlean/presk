@@ -99,6 +99,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image saved-settings read/write action helpers now keep side labels, storage keys, and savable payload construction out of the Preact component.
     - Single-image saved-settings save/import feedback actions now come from pure helpers instead of inline Preact component branches.
     - Single-image saved-settings save/import workflows now run through a framework-neutral helper with injected UI, storage, and event callbacks.
+    - Single-image copy-to-other-side workflow and undo orchestration now runs through a framework-neutral helper.
     - Single-image side-copy feedback now comes from a pure helper instead of inline Preact component snackbar options.
     - Single-image processing error messages now come from a pure helper instead of inline Preact component strings.
     - Single-image encoder dropdown value, original-image label, and supported option list now come from a pure helper instead of inline Preact render logic.
@@ -213,6 +214,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image source-job runner tests now cover decode callbacks, preprocessing callbacks, source assembly, and abort-before-start behavior.
     - Single-image work-start runner tests now cover abort/controller replacement and no-op preservation behavior.
     - Single-image saved-settings workflow tests now cover save success, save failure, import undo, unmounted undo suppression, and invalid import behavior.
+    - Single-image side-copy workflow tests now cover apply, undo, dismiss, and unmounted undo suppression behavior.
     - Single-image source-state tests now cover default raster and vector resize settings for newly decoded source images.
     - Single-image source-state tests now cover applying default resize settings to both comparison sides without mutating the old side state.
     - Single-image source-state tests now cover source decode/preprocess loading lifecycle patches.
