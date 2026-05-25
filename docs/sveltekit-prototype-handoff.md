@@ -157,25 +157,26 @@ Do not broaden into production UI work.
 
 ### 3. Prototype offline proof
 
-Status: proven for the prototype shell and WebP probe assets.
+Status: proven for the prototype shell, WebP probe assets, and the first
+generated rotate WASM seam.
 
 The prototype registers its emitted `service-worker.js` in production builds.
 The static audit now confirms cache-manifest coverage for app entry/start/route
-assets, page CSS, service-worker-imported codec workers, baseline WebP WASM, and
-SIMD WebP WASM. Runtime Chrome verification confirmed the page becomes
-service-worker controlled after reload and Cache Storage contains the app shell,
-generated WebP features-worker, baseline WebP WASM, and SIMD WebP WASM.
+assets, page CSS, service-worker-imported codec workers, baseline WebP WASM,
+SIMD WebP WASM, and emitted rotate WASM. Runtime Chrome verification confirmed
+the page becomes service-worker controlled after reload and Cache Storage
+contains the app shell, generated WebP features-worker, baseline WebP WASM, SIMD
+WebP WASM, top-level rotate WASM, and the worker-local rotate WASM fetched by the
+generated worker.
 
 One important finding: SvelteKit's build manifest and the explicit codec asset
 manifest can both contain the same WebP WASM URLs. Passing duplicates to
 `cache.addAll` makes the service-worker install fail and the worker become
 redundant, so the prototype de-dupes the install list with `Set`.
 
-Extend `audit:static-output` and browser checks to confirm app shell, worker
-assets, baseline WebP WASM, SIMD WebP WASM, and generated codec asset
-references are cache-covered. If the available browser surface cannot expose
-service workers, document that limitation and add the strongest static/runtime
-proxy check available.
+Extend `audit:static-output` and browser checks as new codec surfaces are added.
+If the available browser surface cannot expose service workers, document that
+limitation and add the strongest static/runtime proxy check available.
 
 ### 4. Codec asset duplication
 
@@ -207,6 +208,14 @@ share one generated asset URL per WASM file, or patch/regenerate codec wrappers
 so WASM URLs are externalized instead of embedded as worker-local
 `new URL(..., import.meta.url)` references.
 
+For tiny WASM files, Vite's default asset inlining can hide a codec asset inside
+the JS bundle. The prototype now disables WASM inlining so emitted files and
+service-worker coverage remain visible. It also keeps service-worker codec
+assets in a narrow module that avoids importing the generated rotate manifest
+from the service-worker graph; the app's SvelteKit build manifest already
+pre-caches the top-level rotate WASM, and runtime caching covers the worker-local
+rotate WASM after first use.
+
 ### 5. Readiness verdict
 
 Status: ready for a platform decision.
@@ -221,11 +230,13 @@ offline cache coverage for the app shell and WebP probe assets, and runtime
 `locateFile` control over which WebP WASM URLs are cached.
 
 This is not yet production-migration-ready. A direct full image-pipeline import
-is still blocked by production Rollup virtual imports (`omt:`, `url:`,
+is still blocked by production Rollup virtual imports (`omt:`, broader `url:`,
 `entry-data:`, `service-worker:`), Preact option components in generated
 feature metadata, and Emscripten codec wrappers that embed worker-local WASM
-asset URLs. Those are concrete migration tasks, not evidence that SvelteKit
-static output is the wrong target.
+asset URLs. The rotate seam proves the likely `url:` replacement shape for a
+small WASM preprocessor: split the production Rollup adapter from a reusable
+runtime that accepts a generated Vite `?url` asset. Those are concrete migration
+tasks, not evidence that SvelteKit static output is the wrong target.
 
 Safest next engineering track:
 
@@ -257,6 +268,14 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
   `.svelte-kit/sqush-generated/`. This keeps the prototype on the narrow WebP
   metadata proof instead of falling through to the full production shared
   metadata module and reintroducing the known AVIF/MozJPEG/QOI/WP2 blockers.
+- The production rotate preprocessor worker now has a reusable runtime factory
+  that accepts a WASM URL, while the production `rotate.ts` remains the Rollup
+  `url:` adapter. The SvelteKit prototype generator emits a Vite `?url` rotate
+  WASM manifest and wires it into the generated WebP-first features worker.
+- The prototype pipeline now exercises that generated worker `rotate` method
+  before resize/WebP encode. Runtime Chrome verification produced valid
+  `RIFF`/`WEBP` output with the `rotate=90` stage visible and Cache Storage
+  covering both the top-level rotate WASM and the worker-local rotate WASM.
 
 Next seam: replace the first Rollup virtual import assumption with a narrow
 adapter or generated-file boundary, starting with the worker bridge (`omt:`)

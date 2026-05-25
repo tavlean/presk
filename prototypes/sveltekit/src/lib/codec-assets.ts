@@ -6,9 +6,15 @@ import {
   webpEncoderSimdWasmUrl,
   webpEncoderWasmUrl,
 } from 'sqush-generated/codec-assets/webp';
+import {
+  rotateCodecAssetUrls,
+  rotateWasmUrl,
+} from 'sqush-generated/codec-assets/rotate';
 
 export {
   codecAssetProbeWorkerUrl,
+  rotateCodecAssetUrls,
+  rotateWasmUrl,
   svelteKitFeaturesWorkerUrl,
   webpCodecAssetUrls,
   webpEncodeProbeWorkerUrl,
@@ -21,4 +27,5 @@ export const codecAssetUrls = [
   webpEncodeProbeWorkerUrl,
   svelteKitFeaturesWorkerUrl,
   ...webpCodecAssetUrls,
+  ...rotateCodecAssetUrls,
 ];

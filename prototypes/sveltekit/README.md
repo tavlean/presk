@@ -66,6 +66,14 @@ npm audit --audit-level=low
 - The prototype sync step now emits generated WebP codec asset metadata. The
   service worker and SvelteKit worker bridge both consume that generated WebP
   WASM URL manifest instead of a handwritten local helper.
+- The prototype sync step now emits generated rotate WASM asset metadata. The
+  generated SvelteKit features worker imports the shared rotate runtime with a
+  Vite `?url` WASM asset, proving the first replacement shape for production
+  `url:` codec references without changing the current Rollup adapter.
+- The WebP pipeline probe now runs rotate through the generated worker before
+  resize and encode. Browser verification produced a valid `RIFF`/`WEBP`
+  payload with `rotate=90` in the stage log and Cache Storage covering both the
+  top-level rotate WASM and the worker-local rotate WASM fetched by the worker.
 
 ## Readiness verdict
 
@@ -74,16 +82,17 @@ architecture, but the production app is not ready for a direct migration yet.
 
 The prototype has proven the platform path that matters most: a static SvelteKit
 app can consume shared Sqush helpers, generate Svelte-safe WebP metadata, run
-existing WebP WASM encoding in Vite-built module workers, register an offline
-service worker, cache the app shell and WebP probe assets, and keep runtime WASM
-lookup pointed at the top-level cached asset URLs.
+existing WebP WASM encoding and rotate preprocessing in Vite-built module
+workers, register an offline service worker, cache the app shell and codec probe
+assets, and keep runtime WASM lookup pointed at generated asset URLs.
 
 The remaining blockers are migration seams, not a SvelteKit blocker:
 
 - generated feature metadata must split framework-neutral codec data from Preact
   option entries;
-- Rollup virtual imports (`omt:`, `url:`, `entry-data:`, `service-worker:`)
-  need Vite/SvelteKit equivalents;
+- Rollup virtual imports (`omt:`, broader `url:`, `entry-data:`,
+  `service-worker:`) need Vite/SvelteKit equivalents; the generated rotate seam
+  proves the first narrow `url:` replacement pattern;
 - codec WASM asset URLs need a canonical generated source or wrapper patch so
   app code, workers, and service-worker manifests agree on runtime URLs without
   physical duplication.
@@ -106,6 +115,10 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   WebP metadata re-exports `EncodeOptions` without `export type`.
 - SvelteKit/Vite can emit a browser module worker and real committed WebP WASM
   asset using native `new URL(..., import.meta.url)` and `?url` imports.
+- SvelteKit/Vite can emit the small rotate WASM as a file when WASM inlining is
+  disabled. This matters because the default Vite inline limit otherwise turns
+  tiny WASM imports into `data:` URLs, which hides the asset from explicit
+  service-worker cache evidence.
 - The existing WebP worker encode module can run inside a SvelteKit-built
   module worker and produce a valid WebP RIFF payload from synthetic
   `ImageData`.
@@ -157,6 +170,11 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   virtual imports and Preact client option entries: `omt:`, `url:`,
   `entry-data:`, `service-worker:`, and generated `feature-meta` entries that
   merge metadata with Preact option components.
+- The first `url:` seam is now proven for rotate: production keeps
+  `src/features/preprocessors/rotate/worker/rotate.ts` as the Rollup adapter,
+  while shared rotate logic lives in a runtime factory that accepts an injected
+  WASM URL. The prototype generator supplies that URL from a generated Vite
+  `?url` manifest.
 - The current prototype pipeline intentionally does not import
   `src/client/lazy-app/image-pipeline.ts` or `bulk/processor.ts`; those modules
   still pull the full encoder map, production worker bridge, and Rollup-only
@@ -186,8 +204,9 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   is a WebP-first generated method list and worker entry; full production parity
   is blocked by `worker-shared/supports-wasm-threads`, `url:` WASM imports,
   stricter worker `ArrayBufferLike` types, and non-WebP codec asset URLs.
-- Replace production `url:` codec references with Vite `?url` imports or
-  `new URL(..., import.meta.url)` in codec-facing modules.
+- Replace production `url:` codec references with reusable runtimes plus
+  generated Vite `?url` asset manifests, following the rotate preprocessor seam
+  before broadening to the remaining codec surfaces.
 - Replace `entry-data:` service-worker cache generation with `$service-worker`
   for the SvelteKit app shell plus an explicit generated codec asset manifest
   for lazy/feature-detected workers and WASM assets.

@@ -70,6 +70,11 @@ const pipelineSettings: BulkImageSettings = {
   },
 };
 
+const pipelinePreprocessorState = {
+  ...defaultPreprocessorState,
+  rotate: { rotate: 90 as const },
+};
+
 function createSourceImageData(): ImageData {
   return new ImageData(
     new Uint8ClampedArray([
@@ -116,7 +121,7 @@ export async function runWebpPipelineProbe(
   const preprocessed = await preprocessImage(
     signal,
     decodedSource.decoded,
-    defaultPreprocessorState,
+    pipelinePreprocessorState,
     pipelineWorkerBridge,
   );
   const source = { ...decodedSource, preprocessed };
@@ -161,7 +166,7 @@ export async function runWebpPipelineProbe(
       'source generated locally with existing canvasEncode helper',
       'source type sniffed with existing sniffMimeType helper',
       'source decoded through existing image-pipeline decodeSourceImage helper',
-      `preprocess ran through existing image-pipeline preprocessImage helper with rotate=${defaultPreprocessorState.rotate.rotate}`,
+      `preprocess ran through existing image-pipeline preprocessImage helper with rotate=${pipelinePreprocessorState.rotate.rotate}`,
       'resize processed through existing image-pipeline processImage helper',
       'encoded through image-pipeline compressImageWithEncoder using the shared WebP runtime and generated SvelteKit features-worker bridge',
       'export metadata built with existing filename, percent-change, and settings-hash helpers',

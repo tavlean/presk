@@ -6,6 +6,10 @@ const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 
 export default defineConfig({
   plugins: [sveltekit()],
+  build: {
+    assetsInlineLimit: (filePath) =>
+      filePath.endsWith('.wasm') ? false : undefined,
+  },
   resolve: {
     alias: {
       'client/lazy-app/feature-meta/shared': fileURLToPath(

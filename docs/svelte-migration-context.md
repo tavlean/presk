@@ -160,6 +160,10 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   seam is a generated `client/lazy-app/feature-meta/shared` module that keeps
   framework-neutral codec/processor/preprocessor metadata separate from the
   Preact encoder client entries exposed by the existing `feature-meta` index.
+- The first production `url:` replacement shape is now proven for the rotate
+  preprocessor: keep the current Rollup adapter in production, split reusable
+  worker logic into a runtime that accepts a WASM URL, and let the SvelteKit
+  prototype generator provide that URL from a Vite `?url` manifest.
 - Decide final codec surface before deleting codec code.
 - Use [Phase 1 readiness audit](phase-1-readiness-audit.md) as the current rationale for starting a small technical prototype instead of continuing tiny Preact cleanup.
 - Current browser support targets were reviewed on 2026-05-24. Re-check before production migration, but do not lower the modern evergreen baseline or remove WebAssembly, worker, service-worker, Canvas/ImageData, File/Blob, object URL, or dynamic import assumptions without measured evidence.

@@ -60,6 +60,9 @@ const baselineWasmAssets = files
 const simdWasmAssets = files
   .filter((file) => file.includes('webp_enc_simd') && file.endsWith('.wasm'))
   .sort();
+const rotateWasmAssets = files
+  .filter((file) => file.includes('rotate') && file.endsWith('.wasm'))
+  .sort();
 const wasmAsset = files.find(
   (file) =>
     file.includes('/webp_enc.') &&
@@ -68,6 +71,15 @@ const wasmAsset = files.find(
 );
 const simdWasmAsset = files.find(
   (file) => file.includes('webp_enc_simd') && file.endsWith('.wasm'),
+);
+const rotateWasmAsset = files.find(
+  (file) =>
+    file.includes('/rotate.') &&
+    !file.includes('/workers/assets/') &&
+    file.endsWith('.wasm'),
+);
+const workerRotateWasmAsset = files.find(
+  (file) => file.includes('/workers/assets/rotate-') && file.endsWith('.wasm'),
 );
 const serviceWorkerImportedWorkerAsset = files.find(
   (file) =>
@@ -112,6 +124,11 @@ assert(
 assert(pageCssAsset, 'Missing emitted SvelteKit page CSS asset.');
 assert(wasmAsset, 'Missing emitted WebP WASM asset from the worker probe.');
 assert(simdWasmAsset, 'Missing emitted SIMD WebP WASM asset.');
+assert(rotateWasmAsset, 'Missing emitted rotate WASM asset.');
+assert(
+  workerRotateWasmAsset,
+  'Missing generated worker-local rotate WASM asset.',
+);
 assert(
   baselineWasmAssets.length >= 2,
   'Expected duplicate baseline WebP WASM assets to remain visible for migration analysis.',
@@ -119,6 +136,10 @@ assert(
 assert(
   simdWasmAssets.length >= 2,
   'Expected duplicate SIMD WebP WASM assets to remain visible for migration analysis.',
+);
+assert(
+  rotateWasmAssets.length >= 2,
+  'Expected duplicate rotate WASM assets to remain visible for migration analysis.',
 );
 assert(
   serviceWorkerImportedWorkerAsset,
@@ -151,6 +172,10 @@ assert(
 assert(
   serviceWorker.includes(simdWasmAsset),
   `Service-worker build manifest does not include ${simdWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(rotateWasmAsset),
+  `Service-worker build manifest does not include ${rotateWasmAsset}.`,
 );
 assert(
   serviceWorker.includes(serviceWorkerImportedWorkerAsset),
@@ -194,6 +219,10 @@ assert(
   /\.put\(/.test(serviceWorker),
   'Service worker does not runtime-cache fetched GET assets.',
 );
+assert(
+  !serviceWorker.includes('data:application/wasm'),
+  'Service worker should not pre-cache inlined WASM data URLs.',
+);
 
 console.log(
   [
@@ -204,10 +233,14 @@ console.log(
     `Page CSS asset: ${pageCssAsset}`,
     `WASM asset: ${wasmAsset}`,
     `SIMD WASM asset: ${simdWasmAsset}`,
+    `Rotate WASM asset: ${rotateWasmAsset}`,
+    `Worker rotate WASM asset: ${workerRotateWasmAsset}`,
     `Baseline WebP WASM copies: ${baselineWasmAssets.length}`,
     ...baselineWasmAssets.map((asset) => `  - ${asset}`),
     `SIMD WebP WASM copies: ${simdWasmAssets.length}`,
     ...simdWasmAssets.map((asset) => `  - ${asset}`),
+    `Rotate WASM copies: ${rotateWasmAssets.length}`,
+    ...rotateWasmAssets.map((asset) => `  - ${asset}`),
     `Worker asset: ${serviceWorkerImportedWorkerAsset}`,
     `Encode worker asset: ${serviceWorkerImportedEncodeWorkerAsset}`,
     `Generated WebP features-worker asset: ${serviceWorkerImportedFeaturesWorkerAsset}`,
