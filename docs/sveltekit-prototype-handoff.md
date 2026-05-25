@@ -346,6 +346,14 @@ Worker-bridge seam progress:
   decoder WASM URLs through the SvelteKit worker bridge, verifies a `qoif`
   output plus 3x3 QOI decode round trip in the runtime pipeline probe, and
   audits service-worker cache coverage for both QOI WASM assets.
+- `mozjpegEncode` has moved from blocked to ready in the generated
+  worker-surface manifest. The prototype now generates
+  `.svelte-kit/sqush-generated/codec-assets/mozjpeg.ts`, passes the MozJPEG
+  encoder WASM URL through the SvelteKit worker bridge, verifies JPEG
+  `ff d8 ff` output in the runtime pipeline probe, and audits service-worker
+  cache coverage for the MozJPEG WASM asset. The shared MozJPEG metadata now
+  exposes local numeric color-space constants instead of importing a
+  declaration-only codec enum as a runtime value.
 
 Next worker seam: pick another blocked method from the generated worker-surface
 manifest, resolve only that method's asset URL, thread-support alias, or worker
@@ -354,10 +362,10 @@ type blocker, and then move it into the ready list with prototype verification.
 Full worker-surface blocker inventory:
 
 - Importing the production `features-worker` surface directly from SvelteKit
-  still pulls every codec worker, not just WebP. That reintroduces AVIF,
-  MozJPEG, WP2, JXL, OxiPNG, AVIF/JXL/WP2 decoder, resize-worker, and
-  quantize-worker type/build issues before the prototype needs those codecs.
-  QOI encode/decode now have narrow generated SvelteKit paths, but the broader
+  still pulls every codec worker, not just WebP. That reintroduces AVIF, WP2,
+  JXL, OxiPNG, AVIF/JXL/WP2 decoder, resize-worker, and quantize-worker
+  type/build issues before the prototype needs those codecs. QOI encode/decode
+  and MozJPEG encode now have narrow generated SvelteKit paths, but the broader
   production worker surface remains intentionally filtered.
 - AVIF, JXL, OxiPNG, and WP2 workers import
   `worker-shared/supports-wasm-threads`, which is a Rollup alias today and needs

@@ -17,6 +17,7 @@ import {
 } from '../../../../src/client/lazy-app/image-pipeline-shared';
 import { encode as encodeWebP } from '../../../../src/features/encoders/webP/client/runtime';
 import * as webpMeta from 'features/encoders/webP/shared/meta';
+import * as mozjpegMeta from 'features/encoders/mozJPEG/shared/meta';
 import {
   defaultPreprocessorState,
   defaultProcessorState,
@@ -45,6 +46,8 @@ export interface WebpPipelineProbeResult {
   qoiSignature: string;
   qoiDecodedWidth: number;
   qoiDecodedHeight: number;
+  jpegOutputBytes: number;
+  jpegSignature: string;
   stages: string[];
 }
 
@@ -138,6 +141,7 @@ export async function runWebpPipelineProbe(
   let outputFile: File;
   let qoiOutput: ArrayBuffer;
   let qoiDecoded: ImageData;
+  let jpegOutput: ArrayBuffer;
   try {
     outputFile = await compressImageWithEncoder(
       signal,
@@ -152,12 +156,17 @@ export async function runWebpPipelineProbe(
       signal,
       new Blob([qoiOutput], { type: 'image/qoi' }),
     );
+    jpegOutput = await workerBridge.mozjpegEncode(signal, processed, {
+      ...mozjpegMeta.defaultOptions,
+      quality: 72,
+    });
   } finally {
     workerBridge.dispose();
   }
   const outputBuffer = await outputFile.arrayBuffer();
   const outputBytes = new Uint8Array(outputBuffer);
   const qoiOutputBytes = new Uint8Array(qoiOutput);
+  const jpegOutputBytes = new Uint8Array(jpegOutput);
   const ascii = new TextDecoder('ascii');
 
   return {
@@ -181,6 +190,10 @@ export async function runWebpPipelineProbe(
     qoiSignature: ascii.decode(qoiOutputBytes.slice(0, 4)),
     qoiDecodedWidth: qoiDecoded.width,
     qoiDecodedHeight: qoiDecoded.height,
+    jpegOutputBytes: jpegOutput.byteLength,
+    jpegSignature: Array.from(jpegOutputBytes.slice(0, 3), (byte) =>
+      byte.toString(16).padStart(2, '0'),
+    ).join(' '),
     stages: [
       'source generated locally with existing canvasEncode helper',
       'source type sniffed with existing sniffMimeType helper',
@@ -192,6 +205,11 @@ export async function runWebpPipelineProbe(
         qoiOutput.byteLength
       } bytes, ${ascii.decode(qoiOutputBytes.slice(0, 4))})`,
       `qoiDecode promoted through the same generated worker surface (${qoiDecoded.width} x ${qoiDecoded.height})`,
+      `mozjpegEncode promoted through the same generated worker surface (${
+        jpegOutput.byteLength
+      } bytes, ${Array.from(jpegOutputBytes.slice(0, 3), (byte) =>
+        byte.toString(16).padStart(2, '0'),
+      ).join(' ')})`,
       'export metadata built with existing filename, percent-change, and settings-hash helpers',
     ],
   };

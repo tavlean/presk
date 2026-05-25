@@ -10,11 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  EncodeOptions,
-  MozJpegColorSpace,
-} from 'codecs/mozjpeg/enc/mozjpeg_enc';
-export { EncodeOptions, MozJpegColorSpace };
+import type { EncodeOptions as CodecEncodeOptions } from 'codecs/mozjpeg/enc/mozjpeg_enc';
+
+export const MozJpegColorSpace = {
+  GRAYSCALE: 1,
+  RGB: 2,
+  YCbCr: 3,
+} as const;
+
+export type MozJpegColorSpace =
+  (typeof MozJpegColorSpace)[keyof typeof MozJpegColorSpace];
+
+export interface EncodeOptions extends Omit<CodecEncodeOptions, 'color_space'> {
+  color_space: MozJpegColorSpace;
+}
 
 export const label = 'MozJPEG';
 export const mimeType = 'image/jpeg';

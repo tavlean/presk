@@ -88,7 +88,7 @@ export class Options extends Component<Props, State> {
       color_space: inputFieldValueAsNumber(
         form.color_space,
         options.color_space,
-      ),
+      ) as MozJpegColorSpace,
       quant_table: inputFieldValueAsNumber(
         form.quant_table,
         options.quant_table,

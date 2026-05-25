@@ -1,15 +1,18 @@
 import { createWorkerBridgeRuntime } from '../../../../src/client/lazy-app/worker-bridge/runtime';
 import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
 import type { EncodeOptions as QoiEncodeOptions } from 'features/encoders/qoi/shared/meta';
+import type { EncodeOptions as MozjpegEncodeOptions } from 'features/encoders/mozJPEG/shared/meta';
 import type { Options as RotateOptions } from 'features/preprocessors/rotate/shared/meta';
 import { methodNames } from 'sqush-generated/worker-bridge/meta';
 import type {
+  MozjpegWasmUrls,
   QoiWasmUrls,
   WebpWasmUrls,
 } from 'sqush-generated/features-worker/webp';
 import {
-  qoiEncoderWasmUrl,
+  mozjpegEncoderWasmUrl,
   qoiDecoderWasmUrl,
+  qoiEncoderWasmUrl,
   svelteKitFeaturesWorkerUrl,
   webpEncoderSimdWasmUrl,
   webpEncoderWasmUrl,
@@ -32,6 +35,11 @@ export interface SvelteKitWorkerBridgeApi {
     options: QoiEncodeOptions,
   ): Promise<ArrayBuffer>;
   qoiDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
+  mozjpegEncode(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: MozjpegEncodeOptions,
+  ): Promise<ArrayBuffer>;
   dispose(): void;
 }
 
@@ -53,6 +61,12 @@ interface SvelteKitWorkerBridgeWorkerApi {
     blob: Blob,
     wasmUrls: QoiWasmUrls,
   ): Promise<ImageData>;
+  mozjpegEncode(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: MozjpegEncodeOptions,
+    wasmUrls: MozjpegWasmUrls,
+  ): Promise<ArrayBuffer>;
   dispose(): void;
 }
 
@@ -93,6 +107,16 @@ export default class SvelteKitWorkerBridge
     return super.qoiDecode(signal, blob, {
       decoder: qoiDecoderWasmUrl,
       encoder: qoiEncoderWasmUrl,
+    });
+  }
+
+  mozjpegEncode(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: MozjpegEncodeOptions,
+  ): Promise<ArrayBuffer> {
+    return super.mozjpegEncode(signal, imageData, options, {
+      encoder: mozjpegEncoderWasmUrl,
     });
   }
 }

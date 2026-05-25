@@ -15,9 +15,15 @@ import {
   qoiDecoderWasmUrl,
   qoiEncoderWasmUrl,
 } from 'sqush-generated/codec-assets/qoi';
+import {
+  mozjpegCodecAssetUrls,
+  mozjpegEncoderWasmUrl,
+} from 'sqush-generated/codec-assets/mozjpeg';
 
 export {
   codecAssetProbeWorkerUrl,
+  mozjpegCodecAssetUrls,
+  mozjpegEncoderWasmUrl,
   qoiCodecAssetUrls,
   qoiDecoderWasmUrl,
   qoiEncoderWasmUrl,
@@ -36,5 +42,6 @@ export const codecAssetUrls = [
   svelteKitFeaturesWorkerUrl,
   ...webpCodecAssetUrls,
   ...qoiCodecAssetUrls,
+  ...mozjpegCodecAssetUrls,
   ...rotateCodecAssetUrls,
 ];

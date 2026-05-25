@@ -51,7 +51,8 @@ npm audit --audit-level=low
   probe reporting a generated 155-byte PNG source, 4x4 decode, 3x3 processed
   image, valid `RIFF`/`WEBP` output, QOI `qoif` output from the promoted
   `qoiEncode` worker method, a 3x3 QOI decode round trip from the promoted
-  `qoiDecode` worker method, and export metadata.
+  `qoiDecode` worker method, MozJPEG `ff d8 ff` output from the promoted
+  `mozjpegEncode` worker method, and export metadata.
 - Runtime service-worker verification in Chrome showed the page controlled by
   the prototype service worker after reload, with Cache Storage covering app
   entry/start/route assets, the generated WebP features-worker, baseline WebP
@@ -94,6 +95,12 @@ npm audit --audit-level=low
   manifests, passes them through the SvelteKit worker bridge, verifies a `qoif`
   output plus 3x3 QOI decode round trip from the existing QOI worker modules,
   and confirms service-worker cache coverage for both QOI WASM assets.
+- `mozjpegEncode` has been promoted through the same generated worker surface.
+  The prototype now generates a MozJPEG encoder WASM URL manifest, passes it
+  through the SvelteKit worker bridge, verifies JPEG `ff d8 ff` output from the
+  existing MozJPEG worker module, and confirms service-worker cache coverage for
+  the MozJPEG WASM asset. MozJPEG shared metadata now exposes local runtime
+  constants instead of importing declaration-only codec values.
 
 ## Readiness verdict
 
@@ -101,11 +108,11 @@ SvelteKit static output is viable for Sqush's local-first single-image optimizer
 architecture, but the production app is not ready for a direct migration yet.
 
 The prototype has proven the platform path that matters most: a static SvelteKit
-app can consume shared Sqush helpers, generate Svelte-safe WebP metadata, run
-existing WebP/QOI WASM encoding, QOI WASM decoding, and rotate preprocessing in
-Vite-built module workers, register an offline service worker, cache the app
-shell and codec probe assets, and keep runtime WASM lookup pointed at generated
-asset URLs.
+app can consume shared Sqush helpers, generate Svelte-safe WebP/MozJPEG
+metadata, run existing WebP/QOI/MozJPEG WASM encoding, QOI WASM decoding, and
+rotate preprocessing in Vite-built module workers, register an offline service
+worker, cache the app shell and codec probe assets, and keep runtime WASM lookup
+pointed at generated asset URLs.
 
 The remaining blockers are migration seams, not a SvelteKit blocker:
 
@@ -130,7 +137,7 @@ minimal SvelteKit single-image editor slice with real user-selected files.
 - Generated shared feature metadata can be produced for SvelteKit without
   committing generated files or importing Preact option components. The current
   proof intentionally starts with WebP, Sqush's first production codec target.
-- Full generated encoder metadata is not drop-in yet. AVIF, MozJPEG, and WP2
+- Full generated encoder metadata is not drop-in yet. AVIF and WP2
   shared metadata currently import declaration-only codec exports or
   ambient `const enum` values as runtime values, which SvelteKit/Vite rejects.
   Those modules need type-only exports or local metadata constants before a full
@@ -236,7 +243,7 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   surface still needs incremental broadening.
 - Generate the Vite-facing worker entry incrementally from an explicit ready
   surface. The current generated manifest enables `webpEncode`, `rotate`, and
-  QOI encode/decode; full production parity is blocked by
+  QOI encode/decode plus `mozjpegEncode`; full production parity is blocked by
   `worker-shared/supports-wasm-threads`, `url:` WASM imports, stricter worker
   `ArrayBufferLike` types, and remaining codec asset URLs.
 - Replace production `url:` codec references with reusable runtimes plus
