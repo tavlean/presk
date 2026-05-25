@@ -20,10 +20,8 @@ import {
   getEditorUpdateScheduleOptions,
 } from './editor-lifecycle';
 import { getInitialCompressionState } from './editor-state';
-import {
-  getImageUpdateSchedule,
-  type ImageUpdateScheduleOptions,
-} from './update-scheduler';
+import type { ImageUpdateScheduleOptions } from './update-scheduler';
+import { queueImageUpdate } from './update-queue';
 import { getViewportState, mobileWidthMediaQuery } from './viewport-state';
 import { runCopySideToOther } from './side-copy-workflow';
 import './custom-els/MultiPanel';
@@ -274,19 +272,11 @@ export default class Compress extends Component<Props, State> {
    * Otherwise, the thrashing causes jank, and sometimes crashes iOS Safari.
    */
   private queueUpdateImage(options: ImageUpdateScheduleOptions = {}): void {
-    // Call updateImage after this delay, unless queueUpdateImage is called
-    // again, in which case the timeout is reset.
-    const schedule = getImageUpdateSchedule(options);
-
-    clearTimeout(this.updateImageTimeout);
-    if (schedule.kind === 'immediate') {
-      this.updateImage();
-    } else {
-      this.updateImageTimeout = setTimeout(
-        () => this.updateImage(),
-        schedule.delay,
-      );
-    }
+    this.updateImageTimeout = queueImageUpdate({
+      currentTimeout: this.updateImageTimeout,
+      options,
+      runUpdate: () => this.updateImage(),
+    });
   }
 
   private sourceFile: File;

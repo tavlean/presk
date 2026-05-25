@@ -114,6 +114,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image preprocessor-change state updates now go through a pure helper instead of inline Preact component logic.
     - Single-image current/latest job-state derivation and work-plan assembly now go through a pure helper instead of inline Preact component logic.
     - Single-image source decode and preprocessing workflow orchestration now runs through a framework-neutral helper with injected image-pipeline functions and tested abort/error handling.
+    - Single-image image update debounce/runtime scheduling now goes through a framework-neutral helper with injected timers instead of inline Preact component timeout management.
     - Single-image work-start abort/controller cycling now runs through a framework-neutral helper instead of inline Preact component logic.
     - Initial app editor-open state now comes from a pure helper instead of inline app-shell state construction.
     - Initial app global gesture and popstate listeners now have matching unmount cleanup.
