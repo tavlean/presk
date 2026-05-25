@@ -178,6 +178,10 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   prototype now proves the shared bridge runtime can be reused with a WebP-only
   SvelteKit module-worker adapter, but the full generated `features-worker`
   surface still needs a focused Vite-facing generated entry.
+- Generate that Vite-facing worker entry incrementally. The next useful target
+  is a WebP-first generated method list and worker entry; full production parity
+  is blocked by `worker-shared/supports-wasm-threads`, `url:` WASM imports,
+  stricter worker `ArrayBufferLike` types, and non-WebP codec asset URLs.
 - Replace production `url:` codec references with Vite `?url` imports or
   `new URL(..., import.meta.url)` in codec-facing modules.
 - Replace `entry-data:` service-worker cache generation with `$service-worker`

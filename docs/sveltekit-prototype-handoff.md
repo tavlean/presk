@@ -298,6 +298,36 @@ Next worker seam: replace the prototype's WebP-only worker bridge with a
 generated Vite-facing `features-worker` entry, or document why the full worker
 surface still needs additional codec asset URL seams first.
 
+Full worker-surface blocker inventory:
+
+- Importing the production `features-worker` surface directly from SvelteKit
+  still pulls every codec worker, not just WebP. That reintroduces AVIF,
+  MozJPEG, QOI, WP2, JXL, OxiPNG, rotate, resize-worker, and quantize-worker
+  type/build issues before the prototype needs those codecs.
+- AVIF, JXL, OxiPNG, and WP2 workers import
+  `worker-shared/supports-wasm-threads`, which is a Rollup alias today and needs
+  a Vite/SvelteKit equivalent before those threaded codecs can join a generated
+  worker entry.
+- `src/features/preprocessors/rotate/worker/rotate.ts` still imports
+  `url:codecs/rotate/rotate.wasm`; the SvelteKit path needs a Vite `?url` or
+  generated asset-manifest equivalent before rotate can be part of the worker
+  proof.
+- Resize and quantize worker modules surface `ArrayBufferLike`/`ImageDataArray`
+  type errors under the prototype's stricter SvelteKit TypeScript settings.
+  Browser-resize runtime now works through the shared pipeline seam, but worker
+  resize/quantize need a focused compatibility pass before enabling those
+  methods in the SvelteKit worker surface.
+- Importing the production generated `feature-meta/index.ts` from SvelteKit
+  still pulls Preact `.tsx` encoder option entries. The prototype must keep using
+  the shared metadata split, or the production generator must emit a
+  SvelteKit-safe runtime encoder map separate from UI controls.
+
+Recommended next implementation step: generate a WebP-first Vite worker entry
+and method list from the same feature inventory used by `lib/feature-plugin.js`,
+but filter it to SvelteKit-ready methods until each codec's asset URL and type
+blockers are resolved. That keeps WebP production-focused while preserving a
+clear path to AVIF, JPEG XL, and the remaining codecs.
+
 ### Verification expectations
 
 - In `prototypes/sveltekit`: run `npm run check`, `npm run build`,
