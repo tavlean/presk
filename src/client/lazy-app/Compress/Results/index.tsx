@@ -10,8 +10,7 @@ import {
   type ResultLoadingState,
 } from './loading-state';
 import { runResultLoadingWorkflow } from './loading-workflow';
-import { getResultDownloadState } from './download-state';
-import { getResultSizeState } from './size-state';
+import { getResultRenderState } from './render-state';
 import { Arrow, DownloadIcon } from 'client/lazy-app/icons';
 
 interface Props {
@@ -55,14 +54,13 @@ export default class Results extends Component<Props, State> {
     { source, imageFile, downloadUrl, flipSide, typeLabel }: Props,
     { showLoadingState }: State,
   ) {
-    const sizeState = getResultSizeState(source, imageFile);
-    const downloadState = getResultDownloadState(
-      flipSide,
-      sizeState.isOriginal,
-      showLoadingState,
-      downloadUrl,
+    const { sizeState, downloadState } = getResultRenderState({
+      source,
       imageFile,
-    );
+      downloadUrl,
+      flipSide,
+      showLoadingState,
+    });
 
     return (
       <div

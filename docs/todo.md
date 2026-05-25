@@ -107,6 +107,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image encoder dropdown value, original-image label, and supported option list now come from a pure helper instead of inline Preact render logic.
     - Single-image processor control parsing and resize input state now come from a pure helper instead of inline Preact option logic.
     - Single-image result size, original-output detection, percent, and direction display state now come from a pure helper instead of inline Preact result logic.
+    - Single-image result size and download display values now compose through a tested render-state helper instead of inline JSX calculations.
     - Single-image result loading lifecycle decisions now come from a pure helper instead of inline Preact result lifecycle branching.
     - Single-image result loading timer workflow now runs through a tested helper with injected timer callbacks.
     - Single-image result loading visibility patches now come from a helper and delayed timers are cleared on unmount.
@@ -241,6 +242,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image saved-settings availability tests now cover per-side event update patches.
     - Resize preset tests now cover preset size rounding and custom preset detection.
     - Single-image result size tests now cover empty, original, smaller, and larger output display states.
+    - Single-image result render-state tests now cover size and download display composition.
     - Single-image result loading tests now cover initial loading state plus hide, delayed-show, and no-op transitions.
     - Single-image result loading tests now cover visibility state patches.
     - Single-image result loading tests now cover initial visibility state patches.
