@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>result render state</strong>
+            <strong>initial app startup workflow</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -918,9 +918,9 @@
                 <div class="bar"><span style="width: 99%"></span></div>
                 <p class="progress-note">
                   Single-image behavior is being extracted from Preact into
-                  tested helpers, including the initial app entry state, and
-                  legacy component APIs are being retired while preserving the
-                  current optimizer.
+                  tested helpers, including the initial app startup workflow,
+                  entry state, and legacy component APIs are being retired while
+                  preserving the current optimizer.
                 </p>
               </summary>
               <div class="detail-grid">
@@ -928,25 +928,29 @@
                   <h3>Done</h3>
                   <ul>
                     <li>
-                      Initial app entry state, side job state patches, side
-                      settings state patches, side copy/import state patches,
-                      initial editor state, source lifecycle state, source
-                      decode success state, viewport state, work planning,
-                      work-start scheduling, editor update scheduling options,
-                      image update scheduling, active job bookkeeping, active
-                      job completion bookkeeping, work abort planning, side job
-                      run selection, side job execution planning, side encode
-                      planning, side result assembly, abort guards, job-state
-                      derivation, source resize, display, composed render-state,
-                      options render state, panel layout state, output draw
-                      state, output control state, output control interaction
-                      state, output preview state, saved-settings availability
-                      updates, saved-settings actions and feedback, side-copy
-                      feedback, processing error messages, encoder select state,
-                      processor control state, processor option transitions,
-                      resize preset state, result size state, result loading
-                      state, result download state, initial side-state, and
-                      side-state mutation helpers extracted.
+                      Initial app startup workflow, entry state, side job state
+                      patches, side settings state patches, side copy/import
+                      state patches, initial editor state, source lifecycle
+                      state, source decode success state, viewport state, work
+                      planning, work-start scheduling, editor update scheduling
+                      options, image update scheduling, active job bookkeeping,
+                      active job completion bookkeeping, work abort planning,
+                      side job run selection, side job execution planning, side
+                      encode planning, side result assembly, abort guards,
+                      job-state derivation, source resize, display, composed
+                      render-state, options render state, panel layout state,
+                      output draw state, output control state, output control
+                      interaction state, output preview state, saved-settings
+                      availability updates, saved-settings actions and feedback,
+                      side-copy feedback, processing error messages, encoder
+                      select state, processor control state, processor option
+                      transitions, resize preset state, result size state,
+                      result loading state, result download state, initial
+                      side-state, and side-state mutation helpers extracted.
+                    </li>
+                    <li>
+                      Initial app lazy Compress loading and share-target bridge
+                      orchestration now run through a tested workflow helper.
                     </li>
                     <li>
                       Initial app editor-open state now comes from a tested
@@ -1125,8 +1129,9 @@
                     <li>Svelte 5/SvelteKit guidance captured.</li>
                     <li>Bulk logic is framework-neutral.</li>
                     <li>
-                      Initial app share-target, editor-route, file-entry, and
-                      render-mode state is now plain helper data.
+                      Initial app share-target, editor-route, file-entry,
+                      render-mode state, lazy Compress loading, and share-target
+                      bridge orchestration now live in plain helpers.
                     </li>
                     <li>
                       Initial app editor-open state is now plain helper data.

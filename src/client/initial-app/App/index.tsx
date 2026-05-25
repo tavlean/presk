@@ -12,17 +12,18 @@ import 'shared/custom-els/snack-bar';
 import Intro from 'shared/prerendered-app/Intro';
 import 'shared/custom-els/loading-spinner';
 import {
-  getCompressLoadedState,
   getEditorOpenState,
   getEditorUrl,
   getFileEntryState,
   getInitialAppRenderState,
   getInitialAppState,
   getPopStateRouteState,
-  getShareTargetErrorState,
-  getShareTargetImageState,
   type InitialAppState,
 } from './state';
+import {
+  runInitialAppCompressLoadWorkflow,
+  runInitialAppShareTargetWorkflow,
+} from './workflow';
 
 const compressPromise = import('client/lazy-app/Compress');
 const swBridgePromise = import('client/lazy-app/sw-bridge');
@@ -44,33 +45,25 @@ export default class App extends Component<Props, State> {
   constructor() {
     super();
 
-    compressPromise
-      .then((module) => {
-        if (this.isUnmounted) return;
-        this.setState(getCompressLoadedState(module.default));
-      })
-      .catch(() => {
-        this.showSnackIfMounted('Failed to load app');
-      });
+    runInitialAppCompressLoadWorkflow({
+      compressPromise,
+      isUnmounted: () => this.isUnmounted,
+      setState: (state) => this.setState(state),
+      showSnack: (message) => this.showSnackIfMounted(message),
+    });
 
-    swBridgePromise.then(async ({ offliner, getSharedImage }) => {
-      if (this.isUnmounted) return;
-      offliner(this.showSnackIfMounted);
-      if (!this.state.awaitingShareTarget) return;
-      let file: File;
-      try {
-        file = await getSharedImage();
-      } catch {
-        if (this.isUnmounted) return;
-        this.showSnackIfMounted('Failed to load shared image');
-        this.setState(getShareTargetErrorState());
-        return;
-      }
-      if (this.isUnmounted) return;
-      // Remove the ?share-target from the URL
-      history.replaceState('', '', '/');
-      this.openEditor();
-      this.setState(getShareTargetImageState(file));
+    runInitialAppShareTargetWorkflow({
+      swBridgePromise,
+      isUnmounted: () => this.isUnmounted,
+      isAwaitingShareTarget: () => this.state.awaitingShareTarget,
+      showSnack: (message, options) =>
+        this.showSnackIfMounted(message, options),
+      setState: (state) => this.setState(state),
+      openEditor: () => this.openEditor(),
+      replaceUrl: (url) => {
+        // Remove the ?share-target from the URL.
+        history.replaceState('', '', url);
+      },
     });
 
     // Since iOS 10, Apple tries to prevent disabling pinch-zoom. This is great in theory, but

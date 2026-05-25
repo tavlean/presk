@@ -121,6 +121,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image image update debounce/runtime scheduling now goes through a framework-neutral helper with injected timers instead of inline Preact component timeout management.
     - Single-image editor unmount cleanup now goes through a framework-neutral helper instead of inline Preact component resource cleanup.
     - Single-image work-start abort/controller cycling now runs through a framework-neutral helper instead of inline Preact component logic.
+    - Initial app lazy Compress loading and share-target bridge orchestration now run through a tested framework-neutral workflow helper.
     - Initial app editor-open state now comes from a pure helper instead of inline app-shell state construction.
     - Initial app global gesture and popstate listeners now have matching unmount cleanup.
     - Initial app lazy-load, share-target, and snackbar async callbacks now guard against post-unmount updates.
@@ -152,6 +153,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image editor update effects for new files, title refreshes, and work scheduling options now go through tested helpers instead of inline Preact lifecycle logic.
     - Single-image supported encoder filtering now lives in a tested helper instead of inline Preact options module setup.
     - Single-image options async encoder loading and saved-settings listener wiring now run through tested workflow helpers.
+    - Initial app startup workflow tests now cover lazy Compress load success/failure/unmount behavior and share-target success/skip/failure behavior.
     - Single-image saved-settings import availability now lives in a tested helper instead of inline Preact option-render logic.
     - Single-image options initial state and supported encoder map load state now live in tested helpers.
     - Single-image saved-settings action tests now cover initial reads, per-side reads, write success, write failure, labels, keys, saved payload construction, save feedback, and import feedback.
