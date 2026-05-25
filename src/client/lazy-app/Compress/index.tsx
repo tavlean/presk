@@ -28,6 +28,7 @@ import './custom-els/MultiPanel';
 import Results from './Results';
 import WorkerBridge from '../worker-bridge';
 import type SnackBarElement from 'shared/custom-els/snack-bar';
+import { cleanupEditorRuntime } from './editor-cleanup';
 import {
   SourceImage,
   compressImage,
@@ -50,7 +51,6 @@ import {
   getSideProcessorOptionsChangeState,
   getRestoreSideState,
   resetSidesForNewSourceData,
-  revokeSideDownloadUrls,
   setPreprocessedSourceState,
   type SideIndex,
 } from './side-state';
@@ -179,15 +179,13 @@ export default class Compress extends Component<Props, State> {
     this.isUnmounted = true;
     updateDocumentTitle({ loading: false });
     this.widthQuery.removeEventListener('change', this.onMobileWidthChange);
-    clearTimeout(this.updateImageTimeout);
-    this.mainAbortController.abort();
-    for (const controller of this.sideAbortControllers) {
-      controller.abort();
-    }
-    for (const workerBridge of this.workerBridges) {
-      workerBridge.dispose();
-    }
-    revokeSideDownloadUrls(this.state.sides);
+    cleanupEditorRuntime({
+      updateImageTimeout: this.updateImageTimeout,
+      mainAbortController: this.mainAbortController,
+      sideAbortControllers: this.sideAbortControllers,
+      workerBridges: this.workerBridges,
+      sides: this.state.sides,
+    });
   }
 
   componentDidUpdate(prevProps: Props, prevState: State): void {
