@@ -179,11 +179,33 @@ proxy check available.
 
 ### 4. Codec asset duplication
 
-Investigate why explicit service-worker codec imports plus existing Emscripten
-worker imports emit duplicate WASM files. Prefer a disposable generated manifest
-or Vite-compatible asset URL seam if it removes duplication without moving
-codec files. If not solved, document the exact blocker and migration
-implication.
+Status: documented blocker.
+
+Static output currently emits three baseline WebP WASM files and three SIMD
+WebP WASM files:
+
+- top-level SvelteKit assets from the app's explicit WebP asset probe import;
+- app-worker-local assets from the app's Emscripten encoder worker graph;
+- service-worker-worker-local assets from importing worker URLs in the
+  service-worker graph.
+
+Removing explicit WebP WASM URLs from `codecAssetUrls` avoids duplicate
+`cache.addAll` install-list entries while keeping top-level WebP WASM covered by
+SvelteKit's build manifest. The prototype now passes those top-level WASM URLs
+from the app module into the WebP probe workers and exposes them through an
+Emscripten `locateFile` hook before initializing the encoder module. Runtime
+Chrome verification showed the controlled page still encodes WebP, Cache Storage
+contains the top-level baseline and SIMD WASM assets, and no worker-local WASM
+URLs are runtime-cached.
+
+This does not remove physical duplicates, because the Emscripten-generated WebP
+JS still contains `new URL("webp_enc*.wasm", import.meta.url)` references, and
+Vite emits those assets separately for each worker graph.
+
+Production migration implication: make codec JS and service-worker manifests
+share one generated asset URL per WASM file, or patch/regenerate codec wrappers
+so WASM URLs are externalized instead of embedded as worker-local
+`new URL(..., import.meta.url)` references.
 
 ### 5. Readiness verdict
 

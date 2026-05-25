@@ -3,6 +3,10 @@
 
 declare global {
   namespace App {}
+
+  var __squshEmscriptenLocateFile:
+    | ((path: string, prefix?: string) => string)
+    | undefined;
 }
 
 export {};

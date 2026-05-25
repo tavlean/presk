@@ -13,7 +13,14 @@
 export function initEmscriptenModule<T extends EmscriptenWasm.Module>(
   moduleFactory: EmscriptenWasm.ModuleFactory<T>,
 ): Promise<T> {
+  const locateFile = (
+    globalThis as {
+      __squshEmscriptenLocateFile?: (path: string, prefix?: string) => string;
+    }
+  ).__squshEmscriptenLocateFile;
+
   return moduleFactory({
+    locateFile,
     // Just to be safe, don't automatically invoke any wasm functions
     noInitialRun: true,
   });

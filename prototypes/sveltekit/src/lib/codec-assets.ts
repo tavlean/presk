@@ -18,6 +18,4 @@ export const codecAssetUrls = [
   codecAssetProbeWorkerUrl,
   webpEncodeProbeWorkerUrl,
   webpPipelineProbeWorkerUrl,
-  webpEncoderWasmUrl,
-  webpEncoderSimdWasmUrl,
 ];

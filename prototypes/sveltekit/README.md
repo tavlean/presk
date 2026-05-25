@@ -91,18 +91,32 @@ npm audit --audit-level=low
 - SvelteKit's `$service-worker` build manifest does not automatically include
   the nested worker/WASM assets. The viable path is to expose codec asset URLs
   from a shared module and add them to the service-worker cache list
-  explicitly. The combined build and codec manifests must be de-duped before
-  `cache.addAll`; otherwise duplicate WebP WASM URLs make the service-worker
-  install become redundant. Importing a worker URL from the service-worker build
-  emits a second worker file, so the prototype also runtime-caches non-manifest
-  GETs to cover the app worker after first load. A production migration should
-  prefer a generated manifest that gives both the app and service worker the
-  same worker asset URL.
+  explicitly. The worker URLs are enough for the explicit codec manifest; the
+  top-level WebP WASM URLs are already covered by SvelteKit's build manifest
+  because the app imports the WebP asset probe. The combined build and codec
+  manifests are still de-duped before `cache.addAll` as a guardrail, because an
+  earlier explicit-WASM version produced duplicate install-list URLs and made
+  the service-worker install become redundant. Importing a worker URL from the
+  service-worker build emits a second worker file, so the prototype also
+  runtime-caches non-manifest GETs to cover the app worker after first load. A
+  production migration should prefer a generated manifest that gives both the
+  app and service worker the same worker asset URL.
 - Importing WebP WASM assets explicitly for service-worker coverage while also
   importing the existing Emscripten modules currently emits duplicate baseline
-  and SIMD WASM files. This is acceptable for the disposable proof, but a
-  production migration should make codec JS and service-worker manifests share
-  one generated asset URL per WASM file.
+  and SIMD WASM files. The current build emits three copies of each WebP encoder
+  WASM: one top-level SvelteKit asset, one app-worker-local asset, and one
+  service-worker-imported-worker-local asset. The prototype passes the
+  top-level WASM URLs from the app module into the WebP probe workers and
+  exposes them through Emscripten `locateFile`, so runtime Chrome verification
+  now shows the controlled page caching the top-level baseline and SIMD WASM
+  URLs without adding worker-local WASM URLs to Cache Storage. This fixes the
+  runtime cache target for the proof but not the physical output duplication,
+  because Vite still sees the generated Emscripten
+  `new URL("webp_enc*.wasm", import.meta.url)` references and emits
+  worker-local assets per graph. This is acceptable for the disposable proof,
+  but a production migration should make codec JS and service-worker manifests
+  share one generated asset URL per WASM file or patch the generated codec
+  wrappers to externalize WASM URLs.
 - The full image-pipeline import is still blocked by production-only Rollup
   virtual imports and Preact client option entries: `omt:`, `url:`,
   `entry-data:`, `service-worker:`, and generated `feature-meta` entries that
@@ -134,6 +148,10 @@ npm audit --audit-level=low
 - Replace `entry-data:` service-worker cache generation with `$service-worker`
   for the SvelteKit app shell plus an explicit generated codec asset manifest
   for lazy/feature-detected workers and WASM assets.
+- Resolve WebP WASM duplication before production migration. The likely paths
+  are a generated Vite asset manifest consumed by both app and service worker,
+  or codec wrapper changes that remove Emscripten's worker-local `new URL`
+  references and accept externally supplied WASM URLs.
 
 ## Non-goals
 

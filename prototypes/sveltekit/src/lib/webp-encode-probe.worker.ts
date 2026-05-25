@@ -1,6 +1,14 @@
 import encodeWebp from '../../../../src/features/encoders/webP/worker/webpEncode';
 import { defaultOptions } from 'features/encoders/webP/shared/meta';
 
+interface WebpEncodeProbeRequest {
+  type: 'encode';
+  wasmUrls: {
+    baseline: string;
+    simd: string;
+  };
+}
+
 function createSyntheticImageData(): ImageData {
   return new ImageData(
     new Uint8ClampedArray([
@@ -32,12 +40,21 @@ async function encodeSyntheticWebp() {
   });
 }
 
-self.addEventListener('message', (event) => {
-  if (event.data !== 'encode') return;
+self.addEventListener(
+  'message',
+  (event: MessageEvent<WebpEncodeProbeRequest>) => {
+    if (event.data.type !== 'encode') return;
 
-  encodeSyntheticWebp().catch((error: unknown) => {
-    self.postMessage({
-      error: error instanceof Error ? error.message : String(error),
+    globalThis.__squshEmscriptenLocateFile = (path) => {
+      if (path === 'webp_enc.wasm') return event.data.wasmUrls.baseline;
+      if (path === 'webp_enc_simd.wasm') return event.data.wasmUrls.simd;
+      return path;
+    };
+
+    encodeSyntheticWebp().catch((error: unknown) => {
+      self.postMessage({
+        error: error instanceof Error ? error.message : String(error),
+      });
     });
-  });
-});
+  },
+);

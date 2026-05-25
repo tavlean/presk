@@ -1,4 +1,8 @@
-import { webpEncodeProbeWorkerUrl } from './codec-assets';
+import {
+  webpEncoderSimdWasmUrl,
+  webpEncoderWasmUrl,
+  webpEncodeProbeWorkerUrl,
+} from './codec-assets';
 
 export interface WebpEncodeProbeResult {
   outputBytes: number;
@@ -26,6 +30,12 @@ export function runWebpEncodeProbe(): Promise<WebpEncodeProbeResult> {
       reject(new Error(event.message || 'WebP encode worker failed.'));
     };
 
-    worker.postMessage('encode');
+    worker.postMessage({
+      type: 'encode',
+      wasmUrls: {
+        baseline: webpEncoderWasmUrl,
+        simd: webpEncoderSimdWasmUrl,
+      },
+    });
   });
 }

@@ -49,6 +49,17 @@ const pageCssAsset = files.find(
     file.endsWith('.css') &&
     !file.includes('/webp_'),
 );
+const baselineWasmAssets = files
+  .filter(
+    (file) =>
+      file.includes('webp_enc') &&
+      !file.includes('webp_enc_simd') &&
+      file.endsWith('.wasm'),
+  )
+  .sort();
+const simdWasmAssets = files
+  .filter((file) => file.includes('webp_enc_simd') && file.endsWith('.wasm'))
+  .sort();
 const wasmAsset = files.find(
   (file) =>
     file.includes('/webp_enc.') &&
@@ -101,6 +112,14 @@ assert(
 assert(pageCssAsset, 'Missing emitted SvelteKit page CSS asset.');
 assert(wasmAsset, 'Missing emitted WebP WASM asset from the worker probe.');
 assert(simdWasmAsset, 'Missing emitted SIMD WebP WASM asset.');
+assert(
+  baselineWasmAssets.length >= 2,
+  'Expected duplicate baseline WebP WASM assets to remain visible for migration analysis.',
+);
+assert(
+  simdWasmAssets.length >= 2,
+  'Expected duplicate SIMD WebP WASM assets to remain visible for migration analysis.',
+);
 assert(
   serviceWorkerImportedWorkerAsset,
   'Missing emitted module worker asset from the worker probe.',
@@ -185,6 +204,10 @@ console.log(
     `Page CSS asset: ${pageCssAsset}`,
     `WASM asset: ${wasmAsset}`,
     `SIMD WASM asset: ${simdWasmAsset}`,
+    `Baseline WebP WASM copies: ${baselineWasmAssets.length}`,
+    ...baselineWasmAssets.map((asset) => `  - ${asset}`),
+    `SIMD WebP WASM copies: ${simdWasmAssets.length}`,
+    ...simdWasmAssets.map((asset) => `  - ${asset}`),
     `Worker asset: ${serviceWorkerImportedWorkerAsset}`,
     `Encode worker asset: ${serviceWorkerImportedEncodeWorkerAsset}`,
     `Pipeline worker asset: ${serviceWorkerImportedPipelineWorkerAsset}`,

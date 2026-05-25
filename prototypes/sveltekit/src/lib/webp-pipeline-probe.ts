@@ -20,7 +20,11 @@ import {
   encoderMap,
 } from 'client/lazy-app/feature-meta';
 import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
-import { webpPipelineProbeWorkerUrl } from './codec-assets';
+import {
+  webpEncoderSimdWasmUrl,
+  webpEncoderWasmUrl,
+  webpPipelineProbeWorkerUrl,
+} from './codec-assets';
 import type {
   WebpPipelineEncodeRequest,
   WebpPipelineEncodeResult,
@@ -116,7 +120,14 @@ function encodeWebpInWorker(
       reject(new Error(event.message || 'WebP pipeline worker failed.'));
     };
 
-    const request: WebpPipelineEncodeRequest = { imageData, options };
+    const request: WebpPipelineEncodeRequest = {
+      imageData,
+      options,
+      wasmUrls: {
+        baseline: webpEncoderWasmUrl,
+        simd: webpEncoderSimdWasmUrl,
+      },
+    };
     worker.postMessage(request);
   });
 }
