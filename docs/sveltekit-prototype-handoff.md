@@ -123,11 +123,21 @@ blocked with a concrete reproduction, or a safer next task is clearly documented
 
 ### 1. WebP single-image pipeline probe
 
-Add a diagnostic SvelteKit prototype path that starts from a generated or
-fixture-backed local image source, runs decode/preprocess/process/encode through
-the smallest reusable existing helpers possible, and produces a real WebP output
-plus export metadata. Keep it WebP-only and diagnostic. Document every
-production import that blocks reuse.
+Status: proven for a narrow WebP path.
+
+The prototype now has a diagnostic SvelteKit path that starts from a locally
+generated PNG `File`, uses existing local helper primitives for encode-to-source,
+mime sniffing, browser decode, resize processing, output naming, percent change,
+settings resolution, and settings hashing, then encodes through the existing
+WebP worker module in a SvelteKit-built worker. Runtime browser verification
+produced a real `RIFF`/`WEBP` output and export metadata.
+
+Do not treat this as proof that the full current image pipeline is drop-in.
+`src/client/lazy-app/image-pipeline.ts` and `bulk/processor.ts` still pull the
+full generated encoder map, production worker bridge, Preact option entries, and
+Rollup-only virtual import schemes. The next task should turn the successful
+primitive imports into a reusable migration seam instead of broadening the
+prototype into production UI.
 
 ### 2. Reusable migration seams
 

@@ -78,6 +78,7 @@ export function createPrototypeModel(): PrototypeModel {
       'Generated shared feature metadata for SvelteKit instead of using a hand-written stub.',
       'Imported a real WebP WASM asset through a SvelteKit-built module worker.',
       'Encoded synthetic ImageData through the existing WebP worker encode module.',
+      'Ran a WebP-only single-image pipeline probe with local source generation, decode, resize, encode, and export metadata.',
       'Generated export/readiness summaries from shared selectors.',
       'Kept image processing local; no upload or server route is involved.',
     ],

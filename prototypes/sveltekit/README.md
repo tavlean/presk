@@ -29,6 +29,9 @@ npm audit --audit-level=low
 - Encodes a synthetic 2x2 `ImageData` through the existing
   `src/features/encoders/webP/worker/webpEncode` module from a SvelteKit-built
   worker.
+- Runs a WebP-only single-image pipeline probe from a locally generated PNG
+  `File` through existing decode/canvas/process/export helpers and the existing
+  WebP worker encoder.
 - Builds with `@sveltejs/adapter-static`.
 - Includes a prototype service worker using SvelteKit's `$service-worker`
   asset manifest.
@@ -43,6 +46,9 @@ npm audit --audit-level=low
   and imported job list were visible. The worker/WASM probe reported the
   expected WebAssembly magic bytes, and the WebP encode probe produced a valid
   `RIFF`/`WEBP` payload.
+- Local preview rendered in Chrome through Playwright with the WebP pipeline
+  probe reporting a generated 155-byte PNG source, 4x4 decode, 3x3 processed
+  image, 96-byte WebP output, `RIFF`/`WEBP` header, and export metadata.
 
 ## Findings
 
@@ -62,6 +68,12 @@ npm audit --audit-level=low
 - The existing WebP worker encode module can run inside a SvelteKit-built
   module worker and produce a valid WebP RIFF payload from synthetic
   `ImageData`.
+- A narrow single-image WebP path can reuse existing local helpers from
+  SvelteKit today: `canvasEncode`, `sniffMimeType`, `builtinDecode`,
+  `builtinResize`, `getOutputFileName`, `getPercentChange`,
+  `getEffectiveSettings`, and `settingsHash`. This proves the useful seam is
+  shared source/decode/process/export primitives plus codec-specific workers,
+  not the full current Preact app shell.
 - The WebP encode path needs the prototype to alias `wasm-feature-detect`
   because the imported production source lives outside the prototype package
   root and bare dependency resolution otherwise starts from the repo source
@@ -83,6 +95,12 @@ npm audit --audit-level=low
   virtual imports and Preact client option entries: `omt:`, `url:`,
   `entry-data:`, `service-worker:`, and generated `feature-meta` entries that
   merge metadata with Preact option components.
+- The current prototype pipeline intentionally does not import
+  `src/client/lazy-app/image-pipeline.ts` or `bulk/processor.ts`; those modules
+  still pull the full encoder map, production worker bridge, and Rollup-only
+  import schemes. A reusable migration seam should split source/decode/process
+  helper primitives and injectable codec workers from Preact option UI and
+  Rollup virtual modules before attempting a drop-in import.
 - This prototype uses `ssr = false` because the app is browser-local and relies
   on `File`. A production migration should revisit whether selected routes can
   prerender meaningful HTML without touching browser-only APIs.
