@@ -106,6 +106,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image processor control parsing and resize input state now come from a pure helper instead of inline Preact option logic.
     - Single-image result size, original-output detection, percent, and direction display state now come from a pure helper instead of inline Preact result logic.
     - Single-image result loading lifecycle decisions now come from a pure helper instead of inline Preact result lifecycle branching.
+    - Single-image result loading timer workflow now runs through a tested helper with injected timer callbacks.
     - Single-image result loading visibility patches now come from a helper and delayed timers are cleared on unmount.
     - Single-image result initial loading visibility state now comes from a helper instead of inline Preact result state construction.
     - Single-image result side/download link display state now comes from a pure helper instead of inline Preact result JSX.

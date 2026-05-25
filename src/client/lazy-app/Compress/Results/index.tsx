@@ -6,10 +6,10 @@ import 'shared/custom-els/loading-spinner';
 import { SourceImage } from '../';
 import {
   getInitialResultLoadingVisibilityState,
-  getResultLoadingEffect,
   getResultLoadingVisibilityState,
   type ResultLoadingState,
 } from './loading-state';
+import { runResultLoadingWorkflow } from './loading-workflow';
 import { getResultDownloadState } from './download-state';
 import { getResultSizeState } from './size-state';
 import { Arrow, DownloadIcon } from 'client/lazy-app/icons';
@@ -34,22 +34,17 @@ export default class Results extends Component<Props, State> {
   private loadingTimeoutId: number = 0;
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    const loadingEffect = getResultLoadingEffect(
-      prevProps.loading,
-      this.props.loading,
-    );
-
-    if (loadingEffect === 'hide') {
-      // Just stopped loading
-      clearTimeout(this.loadingTimeoutId);
-      this.setState(getResultLoadingVisibilityState(false));
-    } else if (loadingEffect === 'delay-show') {
-      // Just started loading
-      this.loadingTimeoutId = self.setTimeout(
-        () => this.setState(getResultLoadingVisibilityState(true)),
-        loadingReactionDelay,
-      );
-    }
+    this.loadingTimeoutId = runResultLoadingWorkflow({
+      previousLoading: prevProps.loading,
+      currentLoading: this.props.loading,
+      currentTimeoutId: this.loadingTimeoutId,
+      delay: loadingReactionDelay,
+      setLoadingState: (showLoadingState) => {
+        this.setState(getResultLoadingVisibilityState(showLoadingState));
+      },
+      setTimeout: (callback, delay) => self.setTimeout(callback, delay),
+      clearTimeout,
+    });
   }
 
   componentWillUnmount() {
