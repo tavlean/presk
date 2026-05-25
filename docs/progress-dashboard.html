@@ -540,7 +540,7 @@
               </svg>
               Current work
             </span>
-            <strong>update workflow helper</strong>
+            <strong>output render state</strong>
           </div>
           <div class="meta-row">
             <span class="meta-label">
@@ -1000,6 +1000,10 @@
                       tested helper logic.
                     </li>
                     <li>
+                      Output drawable, preview, and zoom display values now
+                      compose through a tested render-state helper.
+                    </li>
+                    <li>
                       Output touch-retarget focus cleanup now uses a tested
                       helper instead of inline component branching.
                     </li>
@@ -1241,6 +1245,10 @@
                     <li>
                       Output preview orientation and canvas sizing state are now
                       plain helper data.
+                    </li>
+                    <li>
+                      Output render-state composition now keeps drawable,
+                      preview, and zoom display data outside JSX.
                     </li>
                     <li>
                       Desktop and mobile comparison panel ordering is now plain

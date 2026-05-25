@@ -130,6 +130,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Preview and range custom elements now clear removable listeners and pending animation frames on disconnect.
     - Range thumb-label precision and display formatting now live in tested helper logic instead of custom-element DOM code.
     - Output preview update decisions for pinch-zoom resets, transform compensation, and canvas redraws now come from tested helper logic.
+    - Output drawable, preview, and zoom render values now compose through a tested helper instead of inline JSX calculations.
     - Output touch-retarget focus cleanup now uses a tested helper instead of inline component branching.
     - Svelte migration context now reflects the latest range display, output update-plan, and output retarget focus helper boundaries.
     - Initial app file-drop custom element handler typing now uses `void` instead of `any`.
@@ -253,6 +254,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image viewport-state tests now cover the mobile media query and mobile-view state derivation.
     - Single-image options render-state tests now cover original and encoded option panel decisions.
     - Single-image output draw-state tests now cover drawable selection, source-file change detection, and pinch-zoom update transforms.
+    - Single-image output render-state tests now cover drawable, preview, and zoom display composition.
     - Single-image side-state tests now cover saved-settings import while preserving live output fields for undo.
     - Single-image side-state tests now cover default side setup, paired initial sides, and saved initial side overrides.
     - Single-image side-state tests now cover loading transitions, intermediate processed output, final encoded output, and old blob URL revocation.

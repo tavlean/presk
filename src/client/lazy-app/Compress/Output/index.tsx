@@ -21,7 +21,7 @@ import type { SourceImage } from '../../Compress';
 import { linkRef } from 'shared/prerendered-app/util';
 import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
 import { getOutputDrawableState } from './draw-state';
-import { getOutputPreviewState } from './preview-state';
+import { getOutputRenderState } from './render-state';
 import { runOutputMountWorkflow, runOutputUpdateWorkflow } from './workflow';
 import {
   getNextOutputScale,
@@ -30,7 +30,6 @@ import {
   getBackgroundToggleState,
   getEditingScaleState,
   getOutputScaleFromPercent,
-  getOutputScalePercent,
   getPinchZoomScaleState,
   getRotatedPreprocessorState,
   shouldBlurActiveElementAfterOutputRetarget,
@@ -239,15 +238,14 @@ export default class Output extends Component<Props, State> {
     { mobileView, leftImgContain, rightImgContain, source }: Props,
     { scale, editingScale, altBackground, aliasing }: State,
   ) {
-    const leftDraw = this.leftDrawable();
-    const rightDraw = this.rightDrawable();
-    // To keep position stable, the output is put in a square using the longest dimension.
-    const originalImage = source && source.preprocessed;
-    const previewState = getOutputPreviewState({
+    const renderState = getOutputRenderState({
       mobileView,
-      originalImage,
+      source,
+      leftCompressed: this.props.leftCompressed,
+      rightCompressed: this.props.rightCompressed,
       leftImgContain,
       rightImgContain,
+      scale,
     });
 
     return (
@@ -258,7 +256,7 @@ export default class Output extends Component<Props, State> {
           <two-up
             legacy-clip-compat
             class={style.twoUp}
-            orientation={previewState.orientation}
+            orientation={renderState.previewState.orientation}
             // Event redirecting. See onRetargetableEvent.
             onTouchStartCapture={this.onRetargetableEvent}
             onTouchEndCapture={this.onRetargetableEvent}
@@ -281,9 +279,9 @@ export default class Output extends Component<Props, State> {
                   aliasing ? style.pixelated : ''
                 }`}
                 ref={linkRef(this, 'canvasLeft')}
-                width={leftDraw && leftDraw.width}
-                height={leftDraw && leftDraw.height}
-                style={previewState.leftImage}
+                width={renderState.leftDraw && renderState.leftDraw.width}
+                height={renderState.leftDraw && renderState.leftDraw.height}
+                style={renderState.previewState.leftImage}
               />
             </pinch-zoom>
             <pinch-zoom
@@ -295,9 +293,9 @@ export default class Output extends Component<Props, State> {
                   aliasing ? style.pixelated : ''
                 }`}
                 ref={linkRef(this, 'canvasRight')}
-                width={rightDraw && rightDraw.width}
-                height={rightDraw && rightDraw.height}
-                style={previewState.rightImage}
+                width={renderState.rightDraw && renderState.rightDraw.width}
+                height={renderState.rightDraw && renderState.rightDraw.height}
+                style={renderState.previewState.rightImage}
               />
             </pinch-zoom>
           </two-up>
@@ -315,7 +313,7 @@ export default class Output extends Component<Props, State> {
                 max="1000000"
                 ref={linkRef(this, 'scaleInput')}
                 class={style.zoom}
-                value={getOutputScalePercent(scale)}
+                value={renderState.scalePercent}
                 onInput={this.onScaleInputChanged}
                 onBlur={this.onScaleInputBlur}
               />
@@ -325,10 +323,7 @@ export default class Output extends Component<Props, State> {
                 tabIndex={0}
                 onFocus={this.onScaleValueFocus}
               >
-                <span class={style.zoomValue}>
-                  {getOutputScalePercent(scale)}
-                </span>
-                %
+                <span class={style.zoomValue}>{renderState.scalePercent}</span>%
               </span>
             )}
             <button class={style.lastButton} onClick={this.zoomIn}>
