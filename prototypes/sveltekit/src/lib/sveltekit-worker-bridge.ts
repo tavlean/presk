@@ -1,6 +1,10 @@
 import { createWorkerBridgeRuntime } from '../../../../src/client/lazy-app/worker-bridge/runtime';
 import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
-import { webpPipelineProbeWorkerUrl } from './codec-assets';
+import {
+  webpEncoderSimdWasmUrl,
+  webpEncoderWasmUrl,
+  webpPipelineProbeWorkerUrl,
+} from './codec-assets';
 
 export interface WebpWasmUrls {
   baseline: string;
@@ -8,6 +12,15 @@ export interface WebpWasmUrls {
 }
 
 export interface SvelteKitWorkerBridgeApi {
+  webpEncode(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: EncodeOptions,
+  ): Promise<ArrayBuffer>;
+  dispose(): void;
+}
+
+interface SvelteKitWorkerBridgeWorkerApi {
   webpEncode(
     signal: AbortSignal,
     imageData: ImageData,
@@ -20,6 +33,20 @@ export interface SvelteKitWorkerBridgeApi {
 const SvelteKitWorkerBridgeBase = createWorkerBridgeRuntime(
   ['webpEncode'] as const,
   () => new Worker(webpPipelineProbeWorkerUrl, { type: 'module' }),
-) as new () => SvelteKitWorkerBridgeApi;
+) as new () => SvelteKitWorkerBridgeWorkerApi;
 
-export default class SvelteKitWorkerBridge extends SvelteKitWorkerBridgeBase {}
+export default class SvelteKitWorkerBridge
+  extends SvelteKitWorkerBridgeBase
+  implements SvelteKitWorkerBridgeApi
+{
+  webpEncode(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: EncodeOptions,
+  ): Promise<ArrayBuffer> {
+    return super.webpEncode(signal, imageData, options, {
+      baseline: webpEncoderWasmUrl,
+      simd: webpEncoderSimdWasmUrl,
+    });
+  }
+}

@@ -285,10 +285,18 @@ Worker-bridge seam progress:
   renders the bridge-factory WebP pipeline probe with `RIFF`/`WEBP`, caches the
   app shell and top-level baseline/SIMD WebP WASM assets, and does not add
   worker-local WASM URLs to Cache Storage.
+- `src/features/encoders/webP/client/runtime.ts` and
+  `src/features/processors/resize/client/runtime.ts` now expose the WebP encode
+  and resize runtime helpers without importing Preact option controls.
+- `src/client/lazy-app/image-pipeline-shared.ts` provides a framework-neutral
+  pipeline surface for decode, preprocess, process, and injected encoding. The
+  SvelteKit probe now imports those helpers and uses
+  `compressImageWithEncoder` with the WebP runtime plus the SvelteKit worker
+  bridge.
 
-Next worker seam: re-attempt a narrow real pipeline import through the
-SvelteKit-facing adapter and document the next concrete blocker, likely
-remaining full encoder-map or asset URL coupling.
+Next worker seam: replace the prototype's WebP-only worker bridge with a
+generated Vite-facing `features-worker` entry, or document why the full worker
+surface still needs additional codec asset URL seams first.
 
 ### Verification expectations
 

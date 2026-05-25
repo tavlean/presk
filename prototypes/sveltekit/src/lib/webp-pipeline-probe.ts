@@ -1,13 +1,5 @@
-import {
-  builtinDecode,
-  sniffMimeType,
-} from '../../../../src/client/lazy-app/image-decode';
-import {
-  builtinResize,
-  canvasEncode,
-  type BuiltinResizeMethod,
-} from '../../../../src/client/lazy-app/util/canvas';
-import { getOutputFileName } from '../../../../src/client/lazy-app/output-filename';
+import { sniffMimeType } from '../../../../src/client/lazy-app/image-decode';
+import { canvasEncode } from '../../../../src/client/lazy-app/util/canvas';
 import { getPercentChange } from '../../../../src/client/lazy-app/bulk/size';
 import {
   getEffectiveSettings,
@@ -15,12 +7,22 @@ import {
   type BulkImageSettings,
 } from '../../../../src/client/lazy-app/bulk/settings';
 import {
+  compressImageWithEncoder,
+  decodeSourceImage,
+  type DecodeWorkerBridge,
+  preprocessImage,
+  type PreprocessWorkerBridge,
+  processImage,
+  type ProcessWorkerBridge,
+} from '../../../../src/client/lazy-app/image-pipeline-shared';
+import { encode as encodeWebP } from '../../../../src/features/encoders/webP/client/runtime';
+import * as webpMeta from 'features/encoders/webP/shared/meta';
+import {
   defaultPreprocessorState,
   defaultProcessorState,
   encoderMap,
 } from 'client/lazy-app/feature-meta';
 import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
-import { webpEncoderSimdWasmUrl, webpEncoderWasmUrl } from './codec-assets';
 import SvelteKitWorkerBridge from './sveltekit-worker-bridge';
 
 export interface WebpPipelineProbeResult {
@@ -90,63 +92,51 @@ async function createSourceFile(): Promise<File> {
   });
 }
 
-function encodeWebpInWorker(
-  signal: AbortSignal,
-  imageData: ImageData,
-  options: EncodeOptions,
-): Promise<ArrayBuffer> {
-  const workerBridge = new SvelteKitWorkerBridge();
-
-  return workerBridge
-    .webpEncode(signal, imageData, options, {
-      baseline: webpEncoderWasmUrl,
-      simd: webpEncoderSimdWasmUrl,
-    })
-    .finally(() => {
-      workerBridge.dispose();
-    });
-}
-
 export async function runWebpPipelineProbe(
   signal = new AbortController().signal,
 ): Promise<WebpPipelineProbeResult> {
   const sourceFile = await createSourceFile();
   const detectedSourceMimeType = await sniffMimeType(sourceFile);
-  const decoded = await builtinDecode(signal, sourceFile);
   const effectiveSettings = getEffectiveSettings(pipelineSettings);
-  const resize = effectiveSettings.processorState.resize;
-  const resizeMethod = resize.method.startsWith('browser-')
-    ? (resize.method.replace('browser-', '') as BuiltinResizeMethod)
-    : undefined;
-  const processed =
-    resize.enabled && resizeMethod
-      ? builtinResize(
-          decoded,
-          0,
-          0,
-          decoded.width,
-          decoded.height,
-          resize.width,
-          resize.height,
-          resizeMethod,
-        )
-      : decoded;
   const encoderState = effectiveSettings.encoderState;
 
   if (!encoderState || encoderState.type !== 'webP') {
     throw new Error('WebP pipeline probe requires WebP encoder settings.');
   }
 
-  const outputBuffer = await encodeWebpInWorker(
+  const workerBridge = new SvelteKitWorkerBridge();
+  const pipelineWorkerBridge = workerBridge as unknown as DecodeWorkerBridge &
+    PreprocessWorkerBridge &
+    ProcessWorkerBridge;
+  const decodedSource = await decodeSourceImage(
+    signal,
+    sourceFile,
+    pipelineWorkerBridge,
+  );
+  const preprocessed = await preprocessImage(
+    signal,
+    decodedSource.decoded,
+    defaultPreprocessorState,
+    pipelineWorkerBridge,
+  );
+  const source = { ...decodedSource, preprocessed };
+  const processed = await processImage(
+    signal,
+    source,
+    effectiveSettings.processorState,
+    pipelineWorkerBridge,
+  );
+  const outputFile = await compressImageWithEncoder(
     signal,
     processed,
     encoderState.options as EncodeOptions,
-  );
-  const outputFile = new File(
-    [outputBuffer],
-    getOutputFileName(sourceFile.name, encoderMap.webP.meta.extension),
-    { type: encoderMap.webP.meta.mimeType, lastModified: 2 },
-  );
+    sourceFile.name,
+    workerBridge,
+    { meta: webpMeta, encode: encodeWebP },
+  ).finally(() => {
+    workerBridge.dispose();
+  });
+  const outputBuffer = await outputFile.arrayBuffer();
   const outputBytes = new Uint8Array(outputBuffer);
   const ascii = new TextDecoder('ascii');
 
@@ -155,8 +145,8 @@ export async function runWebpPipelineProbe(
     sourceMimeType: sourceFile.type,
     sourceBytes: sourceFile.size,
     detectedSourceMimeType,
-    decodedWidth: decoded.width,
-    decodedHeight: decoded.height,
+    decodedWidth: decodedSource.decoded.width,
+    decodedHeight: decodedSource.decoded.height,
     processedWidth: processed.width,
     processedHeight: processed.height,
     outputFileName: outputFile.name,
@@ -170,10 +160,10 @@ export async function runWebpPipelineProbe(
     stages: [
       'source generated locally with existing canvasEncode helper',
       'source type sniffed with existing sniffMimeType helper',
-      'source decoded with existing builtinDecode helper',
-      `preprocess inspected default rotate=${defaultPreprocessorState.rotate.rotate}; no worker rotation needed`,
-      'resize processed with existing builtinResize helper',
-      'encoded through existing WebP worker encode module via the shared worker-bridge factory and a SvelteKit module worker',
+      'source decoded through existing image-pipeline decodeSourceImage helper',
+      `preprocess ran through existing image-pipeline preprocessImage helper with rotate=${defaultPreprocessorState.rotate.rotate}`,
+      'resize processed through existing image-pipeline processImage helper',
+      'encoded through image-pipeline compressImageWithEncoder using the shared WebP runtime and SvelteKit worker bridge',
       'export metadata built with existing filename, percent-change, and settings-hash helpers',
     ],
   };

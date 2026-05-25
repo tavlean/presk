@@ -8,13 +8,10 @@ import {
 import type { ImageMimeTypes } from './image-decode';
 import { abortable, assertSignal, isAbortError } from './abort';
 import { parseSvgViewBoxSize } from './util/svg';
-import {
+import type {
   PreprocessorState,
   ProcessorState,
-  EncoderState,
-  encoderMap,
-} from './feature-meta';
-import type WorkerBridge from './worker-bridge';
+} from 'client/lazy-app/feature-meta/shared';
 import { resize } from 'features/processors/resize/client/runtime';
 import { getOutputFileName } from './output-filename';
 import { drawableToImageData } from './util/canvas';
@@ -30,6 +27,31 @@ export interface DecodedSourceImage {
   file: File;
   decoded: ImageData;
   vectorImage?: HTMLImageElement;
+}
+
+export interface DecodeWorkerBridge {
+  avifDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
+  webpDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
+  jxlDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
+  wp2Decode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
+  qoiDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
+}
+
+export interface PreprocessWorkerBridge {
+  rotate(
+    signal: AbortSignal,
+    data: ImageData,
+    options: PreprocessorState['rotate'],
+  ): Promise<ImageData>;
+}
+
+export interface ProcessWorkerBridge {
+  resize: Parameters<typeof resize>[3]['resize'];
+  quantize(
+    signal: AbortSignal,
+    data: ImageData,
+    options: ProcessorState['quantize'],
+  ): Promise<ImageData>;
 }
 
 export interface ImagePipelineEncoder<WorkerBridgeType, Options> {
@@ -48,7 +70,7 @@ export interface ImagePipelineEncoder<WorkerBridgeType, Options> {
 export async function decodeImage(
   signal: AbortSignal,
   blob: Blob,
-  workerBridge: WorkerBridge,
+  workerBridge: DecodeWorkerBridge,
 ): Promise<ImageData> {
   assertSignal(signal);
   const mimeType = await abortable(signal, sniffMimeType(blob));
@@ -72,7 +94,6 @@ export async function decodeImage(
         return await workerBridge.qoiDecode(signal, blob);
       }
     }
-    // Otherwise fall through and try built-in decoding for a laugh.
     return await builtinDecode(signal, blob);
   } catch (err) {
     if (isAbortError(err)) throw err;
@@ -94,13 +115,10 @@ export async function decodeImage(
 export async function decodeSourceImage(
   signal: AbortSignal,
   file: File,
-  workerBridge: WorkerBridge,
+  workerBridge: DecodeWorkerBridge,
 ): Promise<DecodedSourceImage> {
   assertSignal(signal);
 
-  // Special-case SVG. We need to avoid createImageBitmap because of
-  // https://bugs.chromium.org/p/chromium/issues/detail?id=606319.
-  // Also, we cache the HTMLImageElement so vector resizing can use it later.
   if (file.type.startsWith('image/svg+xml')) {
     const vectorImage = await processSvg(signal, file);
     return {
@@ -120,7 +138,7 @@ export async function preprocessImage(
   signal: AbortSignal,
   data: ImageData,
   preprocessorState: PreprocessorState,
-  workerBridge: WorkerBridge,
+  workerBridge: PreprocessWorkerBridge,
 ): Promise<ImageData> {
   assertSignal(signal);
   let processedData = data;
@@ -140,7 +158,7 @@ export async function processImage(
   signal: AbortSignal,
   source: SourceImage,
   processorState: ProcessorState,
-  workerBridge: WorkerBridge,
+  workerBridge: ProcessWorkerBridge,
 ): Promise<ImageData> {
   assertSignal(signal);
   let result = source.preprocessed;
@@ -156,111 +174,6 @@ export async function processImage(
     );
   }
   return result;
-}
-
-export async function compressImage(
-  signal: AbortSignal,
-  image: ImageData,
-  encodeData: EncoderState,
-  sourceFilename: string,
-  workerBridge: WorkerBridge,
-): Promise<File> {
-  assertSignal(signal);
-
-  const encoder = encoderMap[encodeData.type];
-  let compressedData: Blob | ArrayBuffer;
-
-  switch (encodeData.type) {
-    case 'avif':
-      compressedData = await encoderMap.avif.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'browserGIF':
-      compressedData = await encoderMap.browserGIF.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'browserJPEG':
-      compressedData = await encoderMap.browserJPEG.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'browserPNG':
-      compressedData = await encoderMap.browserPNG.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'jxl':
-      compressedData = await encoderMap.jxl.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'mozJPEG':
-      compressedData = await encoderMap.mozJPEG.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'oxiPNG':
-      compressedData = await encoderMap.oxiPNG.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'qoi':
-      compressedData = await encoderMap.qoi.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'webP':
-      compressedData = await encoderMap.webP.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-    case 'wp2':
-      compressedData = await encoderMap.wp2.encode(
-        signal,
-        workerBridge,
-        image,
-        encodeData.options,
-      );
-      break;
-  }
-
-  // This type ensures the image mimetype is consistent with our mimetype sniffer
-  const type: ImageMimeTypes = encoder.meta.mimeType;
-
-  return new File(
-    [compressedData],
-    getOutputFileName(sourceFilename, encoder.meta.extension),
-    { type },
-  );
 }
 
 export async function compressImageWithEncoder<WorkerBridgeType, Options>(
@@ -292,9 +205,6 @@ export async function processSvg(
   blob: Blob,
 ): Promise<HTMLImageElement> {
   assertSignal(signal);
-  // Firefox throws if you try to draw an SVG to canvas that doesn't have width/height.
-  // In Chrome it loads, but drawImage behaves weirdly.
-  // This function sets width/height if it isn't already set.
   const parser = new DOMParser();
   const text = await abortable(signal, blobToText(blob));
   const document = parser.parseFromString(text, 'image/svg+xml');

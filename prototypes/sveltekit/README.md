@@ -57,6 +57,11 @@ npm audit --audit-level=low
 - The WebP pipeline probe now runs through Sqush's shared Comlink worker-bridge
   runtime with a SvelteKit/Vite module-worker adapter, proving the first
   replacement seam for the production Rollup `omt:` worker bridge.
+- The WebP pipeline probe now imports the framework-neutral
+  `image-pipeline-shared` helpers for decode, preprocess, process, and injected
+  WebP compression, proving the narrow single-image pipeline can run without
+  importing the production Preact option components or Rollup `omt:` worker
+  entry.
 
 ## Readiness verdict
 
@@ -166,7 +171,9 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   defaults without pulling Preact into a Svelte build.
 - Continue extracting small framework-neutral runtime seams from broad
   production modules. The initial decode/abort seam shows this can be done
-  behavior-preservingly while keeping existing imports compatible.
+  behavior-preservingly while keeping existing imports compatible. The current
+  prototype also proves WebP encode, resize, and an injected single-image
+  pipeline surface can be split from Preact option controls.
 - Replace the production `omt:` worker bridge with Vite worker imports. The
   prototype now proves the shared bridge runtime can be reused with a WebP-only
   SvelteKit module-worker adapter, but the full generated `features-worker`
