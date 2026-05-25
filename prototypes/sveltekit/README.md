@@ -79,6 +79,10 @@ npm audit --audit-level=low
   but fills it with SvelteKit/Vite worker URLs and generated WebP WASM deps.
   The prototype service-worker asset list consumes that generated plan through
   the shared production `src/sw/cache-plan.ts` helper.
+- The prototype service-worker registration now uses the shared production
+  `sw-bridge` runtime helper with the SvelteKit-emitted `/service-worker.js`
+  URL, proving the `service-worker:` replacement shape for registration without
+  changing the current Rollup adapter.
 
 ## Readiness verdict
 
@@ -98,7 +102,9 @@ The remaining blockers are migration seams, not a SvelteKit blocker:
 - Rollup virtual imports (`omt:`, broader `url:`, `entry-data:`,
   `service-worker:`) need Vite/SvelteKit equivalents; the generated rotate seam
   proves the first narrow `url:` replacement pattern, and the generated
-  service-worker cache plan proves the first `entry-data:` replacement pattern;
+  service-worker cache plan proves the first `entry-data:` replacement pattern,
+  and the shared registration helper proves the `service-worker:` replacement
+  pattern;
 - codec WASM asset URLs need a canonical generated source or wrapper patch so
   app code, workers, and service-worker manifests agree on runtime URLs without
   physical duplication.
@@ -187,6 +193,10 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   production still resolves real Rollup entries at the boundary, but the cache
   planning logic accepts plain `{ main, deps }` records that SvelteKit can
   generate from Vite worker and asset URL imports.
+- The first `service-worker:` seam is now proven for registration: production
+  keeps the Rollup URL adapter in `sw-bridge/index.ts`, while shared
+  registration/update/share-target behavior lives in `sw-bridge/runtime.ts` and
+  the prototype provides the SvelteKit service-worker URL explicitly.
 - The current prototype pipeline intentionally does not import
   `src/client/lazy-app/image-pipeline.ts` or `bulk/processor.ts`; those modules
   still pull the full encoder map, production worker bridge, and Rollup-only

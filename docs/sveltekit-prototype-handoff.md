@@ -287,12 +287,18 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
   deps. The prototype service-worker asset list consumes that generated plan,
   proving the first replacement shape for production `entry-data:` cache
   records without changing current production offline behavior.
+- `src/client/lazy-app/sw-bridge/runtime.ts` now owns the framework-neutral
+  service-worker registration/update/share-target bridge. Production
+  `src/client/lazy-app/sw-bridge/index.ts` keeps the Rollup `service-worker:`
+  URL import as a tiny adapter, while the SvelteKit prototype calls the same
+  registration helper with its emitted `/service-worker.js` URL from
+  `prototypes/sveltekit/src/lib/service-worker-registration.ts`.
 
 Next seam: broaden the generated Vite-facing worker/cache surface only as each
 codec's URL, thread-support, and type blockers are resolved. The remaining
-Rollup virtual assumptions are now smaller: `service-worker:` registration URL
-adapters, non-WebP `url:` codec assets, and production codec wrappers that still
-embed worker-local WASM URLs.
+Rollup virtual assumptions are now smaller: non-WebP `url:` codec assets,
+thread-support aliases, and production codec wrappers that still embed
+worker-local WASM URLs.
 
 Worker-bridge seam progress:
 

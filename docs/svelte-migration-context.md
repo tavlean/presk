@@ -169,6 +169,11 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   boundary, move cache selection into a helper that accepts plain
   `{ main, deps }` records, and let the SvelteKit prototype generator provide
   those records from Vite worker and asset URL imports.
+- The first production `service-worker:` replacement shape is now proven for
+  registration: keep the Rollup URL adapter at the production boundary, move
+  registration/update/share-target behavior into a helper that accepts an
+  explicit service-worker URL, and let the SvelteKit prototype pass its emitted
+  `/service-worker.js` URL.
 - Decide final codec surface before deleting codec code.
 - Use [Phase 1 readiness audit](phase-1-readiness-audit.md) as the current rationale for starting a small technical prototype instead of continuing tiny Preact cleanup.
 - Current browser support targets were reviewed on 2026-05-24. Re-check before production migration, but do not lower the modern evergreen baseline or remove WebAssembly, worker, service-worker, Canvas/ImageData, File/Blob, object URL, or dynamic import assumptions without measured evidence.

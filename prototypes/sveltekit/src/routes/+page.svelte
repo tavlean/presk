@@ -10,6 +10,7 @@
     runWebpPipelineProbe,
     type WebpPipelineProbeResult,
   } from '$lib/webp-pipeline-probe';
+  import { registerPrototypeServiceWorker } from '$lib/service-worker-registration';
 
   const model = createPrototypeModel();
 
@@ -37,16 +38,12 @@
   const exportSummary = $derived(model.summary.export);
 
   $effect(() => {
-    if (import.meta.env.DEV || !('serviceWorker' in navigator)) return;
-
-    navigator.serviceWorker
-      .register('/service-worker.js')
-      .catch((error: unknown) => {
-        console.error(
-          'SvelteKit prototype service-worker registration failed',
-          error,
-        );
-      });
+    registerPrototypeServiceWorker().catch((error: unknown) => {
+      console.error(
+        'SvelteKit prototype service-worker registration failed',
+        error,
+      );
+    });
   });
 
   $effect(() => {
