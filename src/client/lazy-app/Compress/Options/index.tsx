@@ -17,11 +17,7 @@ import { Options as QuantOptionsComponent } from 'features/processors/quantize/c
 import { Options as ResizeOptionsComponent } from 'features/processors/resize/client';
 import { ImportIcon, SaveIcon, SwapIcon } from 'client/lazy-app/icons';
 import { getSupportedEncoderMap } from './encoder-support';
-import {
-  getInitialOptionsState,
-  getSupportedEncoderMapLoadedState,
-  type OptionsState,
-} from './state';
+import { getInitialOptionsState, type OptionsState } from './state';
 import { getEncoderSelectOptions } from './encoder-select-state';
 import { getSavedSideSettingsAvailabilityUpdate } from './saved-settings-state';
 import {
@@ -29,6 +25,11 @@ import {
   getProcessorStateWithOptions,
 } from './processor-controls-state';
 import { getOptionsRenderState } from './render-state';
+import {
+  addSavedSideSettingsListeners,
+  removeSavedSideSettingsListeners,
+  runSupportedEncoderLoadWorkflow,
+} from './workflow';
 
 interface Props {
   index: 0 | 1;
@@ -54,9 +55,10 @@ export default class Options extends Component<Props, State> {
 
   constructor() {
     super();
-    supportedEncoderMapP.then((supportedEncoderMap) => {
-      if (this.isUnmounted) return;
-      this.setState(getSupportedEncoderMapLoadedState(supportedEncoderMap));
+    runSupportedEncoderLoadWorkflow({
+      supportedEncoderMapPromise: supportedEncoderMapP,
+      isUnmounted: () => this.isUnmounted,
+      onLoaded: (state) => this.setState(state),
     });
   }
 
@@ -69,15 +71,18 @@ export default class Options extends Component<Props, State> {
   };
 
   componentDidMount(): void {
-    // Changing the state when side setting is stored in localstorage
-    window.addEventListener('leftSideSettings', this.setLeftSideSettings);
-    window.addEventListener('rightSideSettings', this.setRightSideSettings);
+    addSavedSideSettingsListeners(window, {
+      leftSideSettings: this.setLeftSideSettings,
+      rightSideSettings: this.setRightSideSettings,
+    });
   }
 
   componentWillUnmount(): void {
     this.isUnmounted = true;
-    window.removeEventListener('leftSideSettings', this.setLeftSideSettings);
-    window.removeEventListener('rightSideSettings', this.setRightSideSettings);
+    removeSavedSideSettingsListeners(window, {
+      leftSideSettings: this.setLeftSideSettings,
+      rightSideSettings: this.setRightSideSettings,
+    });
   }
 
   private onEncoderTypeChange = (event: Event) => {
