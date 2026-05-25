@@ -138,6 +138,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - Single-image runnable side job records now ignore missing job-state entries instead of returning incomplete records.
     - Single-image side job execution now runs through a framework-neutral helper with injected image-pipeline functions instead of being fully inline in the Preact component.
     - Single-image runnable side-job loop orchestration now runs through a framework-neutral helper with injected state and cache callbacks.
+    - Single-image side image workflow orchestration now wraps runnable side jobs, cache updates, worker lookup, and processing error handling in a framework-neutral helper.
     - Single-image, image-pipeline, and bulk runner abort-error checks now use a shared utility helper instead of open-coded name checks.
     - The main editor no longer uses the deprecated `componentWillReceiveProps` lifecycle for new-file handling.
     - The resize processor options no longer use `componentWillReceiveProps`; preset matching now comes from a tested pure helper.

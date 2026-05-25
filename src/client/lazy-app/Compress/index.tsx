@@ -2,7 +2,6 @@ import { h, Component } from 'preact';
 
 import * as style from './style.css';
 import 'add-css:./style.css';
-import { isAbortError } from '../util';
 import {
   PreprocessorState,
   ProcessorState,
@@ -61,14 +60,12 @@ import {
   getSourcePreprocessErrorState,
   getSourcePreprocessStartState,
 } from './source-state';
-import { getImageProcessingErrorMessage } from './processing-errors';
 import { runSourceImageWorkflow } from './source-workflow';
-import { runRunnableSideJobs } from './side-job-runner';
+import { runSideImageWorkflow } from './side-workflow';
 import {
   getActiveImageJobsAfterMainCompletion,
   getActiveImageJobsAfterSideCompletion,
   getPlannedImageWork,
-  getRunnableSideJobs,
   type MainJobState,
   type SideJobState,
 } from './work-plan';
@@ -373,23 +370,21 @@ export default class Compress extends Component<Props, State> {
       sideJobs: this.activeSideJobs,
     }).mainJob;
 
-    // Allow side jobs to happen in parallel.
-    runRunnableSideJobs({
-      runnableSideJobs: getRunnableSideJobs(
-        workPlan.sideWorksNeeded,
-        sideJobStates,
-      ),
+    runSideImageWorkflow({
+      sideWorksNeeded: workPlan.sideWorksNeeded,
+      sideJobStates,
       sideSignals,
       source,
-      getCurrentProcessed: (sideIndex) =>
-        currentState.sides[sideIndex].processed,
-      getCacheResult: (...args) => this.encodeCache.match(...args),
+      sides: currentState.sides,
+      encodeCache: this.encodeCache,
       getWorkerBridge: (sideIndex) => this.workerBridges[sideIndex],
       pipeline: {
         processImage,
         compressImage,
         decodeImage,
       },
+      isUnmounted: () => this.isUnmounted,
+      showSnack: this.showSnackIfMounted,
       onProcessingStart: (sideIndex, signal) => {
         this.setState((currentState) => {
           if (signal.aborted) return {};
@@ -412,7 +407,6 @@ export default class Compress extends Component<Props, State> {
           );
         });
       },
-      onCacheEntry: (cacheEntry) => this.encodeCache.add(cacheEntry),
       onEncodedResult: (sideIndex, signal, sideResult) => {
         this.setState((currentState) => {
           if (signal.aborted) return {};
@@ -432,9 +426,7 @@ export default class Compress extends Component<Props, State> {
           sideIndex,
         ).sideJobs;
       },
-      onError: (sideIndex, signal, err) => {
-        if (isAbortError(err)) return;
-        if (this.isUnmounted) return;
+      onProcessingError: (sideIndex) => {
         this.setState((currentState) => {
           return getSideLoadingState(
             currentState,
@@ -442,10 +434,6 @@ export default class Compress extends Component<Props, State> {
             false,
           );
         });
-        this.showSnackIfMounted(
-          getImageProcessingErrorMessage('processing', err),
-        );
-        throw err;
       },
     });
   }
