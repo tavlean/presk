@@ -8,9 +8,15 @@ export default defineConfig({
   plugins: [sveltekit()],
   resolve: {
     alias: {
+      'client/lazy-app/feature-meta/shared': fileURLToPath(
+        new URL(
+          './.svelte-kit/sqush-generated/feature-meta/shared.ts',
+          import.meta.url,
+        ),
+      ),
       'client/lazy-app/feature-meta': fileURLToPath(
         new URL(
-          './.svelte-kit/sqush-generated/feature-meta.ts',
+          './.svelte-kit/sqush-generated/feature-meta/index.ts',
           import.meta.url,
         ),
       ),

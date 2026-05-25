@@ -252,6 +252,11 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
 - Pure or mostly framework-neutral production helpers that only need metadata
   now import from `feature-meta/shared`, including bulk settings/processor
   helpers and saved-settings/side-state/work-plan/editor-state helpers.
+- The SvelteKit prototype generator now mirrors that path shape by emitting
+  WebP-only `feature-meta/shared.ts` and `feature-meta/index.ts` files under
+  `.svelte-kit/sqush-generated/`. This keeps the prototype on the narrow WebP
+  metadata proof instead of falling through to the full production shared
+  metadata module and reintroducing the known AVIF/MozJPEG/QOI/WP2 blockers.
 
 Next seam: replace the first Rollup virtual import assumption with a narrow
 adapter or generated-file boundary, starting with the worker bridge (`omt:`)

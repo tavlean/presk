@@ -5,8 +5,10 @@ const config = {
   preprocess: vitePreprocess(),
   kit: {
     alias: {
+      'client/lazy-app/feature-meta/shared':
+        './.svelte-kit/sqush-generated/feature-meta/shared.ts',
       'client/lazy-app/feature-meta':
-        './.svelte-kit/sqush-generated/feature-meta.ts',
+        './.svelte-kit/sqush-generated/feature-meta/index.ts',
       client: '../../src/client',
       codecs: '../../codecs',
       features: '../../src/features',
