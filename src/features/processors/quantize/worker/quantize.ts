@@ -10,34 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import imagequant, { QuantizerModule } from 'codecs/imagequant/imagequant';
-import { initEmscriptenModule } from 'features/worker-utils';
+import imagequant from 'codecs/imagequant/imagequant';
 import type { Options } from '../shared/meta';
+import { createQuantizeRuntime } from './runtime';
 
-let emscriptenModule: Promise<QuantizerModule>;
+const process: (data: ImageData, opts: Options) => Promise<ImageData> =
+  createQuantizeRuntime({
+    loadQuantizer: async () => imagequant,
+  });
 
-export default async function process(
-  data: ImageData,
-  opts: Options,
-): Promise<ImageData> {
-  if (!emscriptenModule) {
-    emscriptenModule = initEmscriptenModule(imagequant);
-  }
-
-  const module = await emscriptenModule;
-
-  const result = opts.zx
-    ? module.zx_quantize(data.data, data.width, data.height, opts.dither)
-    : module.quantize(
-        data.data,
-        data.width,
-        data.height,
-        opts.maxNumColors,
-        opts.dither,
-      );
-
-  const pixels = new Uint8ClampedArray(result.length);
-  pixels.set(result);
-
-  return new ImageData(pixels, data.width, data.height);
-}
+export default process;

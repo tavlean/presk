@@ -435,9 +435,12 @@ Worker-bridge seam progress:
   `.svelte-kit/sqush-generated/codec-assets/imagequant.ts`, passes the
   ImageQuant WASM URL through the SvelteKit worker bridge, verifies a
   reduced-color ImageData result in the runtime pipeline probe, and audits
-  service-worker cache coverage for the ImageQuant WASM asset. The production
-  quantize worker now returns an ImageData-compatible `Uint8ClampedArray`
-  instance under stricter SvelteKit TypeScript settings.
+  service-worker cache coverage for the ImageQuant WASM asset. The quantize
+  worker now uses an injectable runtime factory, and the prototype imports a
+  generated patched ImageQuant wrapper copy so static output emits exactly one
+  canonical ImageQuant WASM asset. The production quantize worker now returns an
+  ImageData-compatible `Uint8ClampedArray` instance under stricter SvelteKit
+  TypeScript settings.
 - Worker `resize` has moved from blocked to ready in the generated
   worker-surface manifest. The prototype now generates
   `.svelte-kit/sqush-generated/codec-assets/resize.ts`, passes resize and HQX

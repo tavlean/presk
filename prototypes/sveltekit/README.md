@@ -157,7 +157,9 @@ npm audit --audit-level=low
   prototype now generates an ImageQuant WASM URL manifest, passes it through the
   SvelteKit worker bridge, verifies a reduced-color ImageData result from the
   existing quantize worker module, and confirms service-worker cache coverage
-  for the ImageQuant WASM asset.
+  for the ImageQuant WASM asset. The prototype now imports a generated patched
+  ImageQuant wrapper copy through an injectable quantize runtime, so static
+  output emits one canonical ImageQuant WASM asset.
 - Worker `resize` has been promoted through the same generated worker surface.
   The prototype now generates resize and HQX WASM URL manifests, passes them
   through the SvelteKit worker bridge, verifies a 2x2 ImageData result from the
@@ -331,12 +333,12 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   lazy/feature-detected workers and WASM assets, following the prototype
   `sqush-generated/service-worker/cache-plan.ts` proof.
 - Resolve codec WASM duplication before production migration. The prototype now
-  proves the WebP and QOI encoder/decoder shapes plus MozJPEG encoder shape
-  with generated patched wrapper copies and injectable runtimes, while runtime
-  loading still flows through generated manifest URLs and `locateFile`.
-  Production still needs a decision between an equivalent post-generation
-  transform, a codec rebuild option, or a checked-in wrapper patch before this
-  is broadened.
+  proves the WebP and QOI encoder/decoder shapes, MozJPEG encoder shape, and
+  ImageQuant processor shape with generated patched wrapper copies and
+  injectable runtimes, while runtime loading still flows through generated
+  manifest URLs and `locateFile`. Production still needs a decision between an
+  equivalent post-generation transform, a codec rebuild option, or a checked-in
+  wrapper patch before this is broadened.
 - Keep the logical codec asset manifest as the next asset-seam shape. The
   manifest should stay the single owner of codec WASM URLs, while app code,
   worker bridge calls, and service-worker cache plans derive their URL lists

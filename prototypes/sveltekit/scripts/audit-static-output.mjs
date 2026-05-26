@@ -327,8 +327,8 @@ assert(
 );
 assert(oxipngWasmAssets.length >= 1, 'Expected emitted OxiPNG WASM asset.');
 assert(
-  imagequantWasmAssets.length >= 1,
-  'Expected emitted ImageQuant WASM asset.',
+  imagequantWasmAssets.length === 1,
+  `Expected exactly one ImageQuant WASM asset after the generated wrapper patch, found ${imagequantWasmAssets.length}.`,
 );
 assert(resizeWasmAssets.length >= 1, 'Expected emitted resize WASM asset.');
 assert(hqxWasmAssets.length >= 1, 'Expected emitted HQX WASM asset.');
