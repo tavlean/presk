@@ -33,7 +33,9 @@ the candidate set to merge or cherry-pick into `main` after verification:
   split from the broad `util` surface while keeping compatibility re-exports.
 - `src/client/lazy-app/image-pipeline-shared.ts` and
   `src/client/lazy-app/image-pipeline.ts`: SvelteKit-importable decode,
-  preprocess, process, and compression helper surface for the proven WebP path.
+  preprocess, process, SVG handling, and compression helper surface for the
+  proven WebP path. The production wrapper reuses the shared implementation and
+  keeps only the production encoder-map dispatch.
 - `src/client/lazy-app/bulk/processor.ts`: structural
   `ImagePipelineWorkerBridge` boundary so bulk processing can use an injected
   worker bridge instead of importing the production Rollup adapter.

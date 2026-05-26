@@ -16,6 +16,8 @@ import { resize } from 'features/processors/resize/client/runtime';
 import { getOutputFileName } from './output-filename';
 import { drawableToImageData } from './util/canvas';
 
+export type WorkerBridgeReturn<T> = Promise<T> | Promise<Promise<T>>;
+
 export interface SourceImage {
   file: File;
   decoded: ImageData;
@@ -30,11 +32,11 @@ export interface DecodedSourceImage {
 }
 
 export interface DecodeWorkerBridge {
-  avifDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
-  webpDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
-  jxlDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
-  wp2Decode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
-  qoiDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
+  avifDecode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
+  webpDecode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
+  jxlDecode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
+  wp2Decode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
+  qoiDecode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
 }
 
 export interface PreprocessWorkerBridge {
@@ -42,7 +44,7 @@ export interface PreprocessWorkerBridge {
     signal: AbortSignal,
     data: ImageData,
     options: PreprocessorState['rotate'],
-  ): Promise<ImageData>;
+  ): WorkerBridgeReturn<ImageData>;
 }
 
 export interface ProcessWorkerBridge {
@@ -51,7 +53,7 @@ export interface ProcessWorkerBridge {
     signal: AbortSignal,
     data: ImageData,
     options: ProcessorState['quantize'],
-  ): Promise<ImageData>;
+  ): WorkerBridgeReturn<ImageData>;
 }
 
 export interface ImagePipelineEncoder<WorkerBridgeType, Options> {
@@ -64,7 +66,7 @@ export interface ImagePipelineEncoder<WorkerBridgeType, Options> {
     workerBridge: WorkerBridgeType,
     imageData: ImageData,
     options: Options,
-  ): Promise<Blob | ArrayBuffer>;
+  ): WorkerBridgeReturn<Blob | ArrayBuffer>;
 }
 
 export async function decodeImage(

@@ -137,14 +137,17 @@ WebP worker module in a SvelteKit-built worker. Runtime browser verification
 produced a real `RIFF`/`WEBP` output and export metadata.
 
 Do not treat this as proof that the full current app shell is drop-in.
-`src/client/lazy-app/image-pipeline.ts` now has a proven WebP prototype path for
-decode, preprocess, process, and compression through the generated SvelteKit
-worker bridge and encode-only metadata map. `bulk/processor.ts` now has a
-proven WebP prototype path through production `processBulkImageJob` using the
-same structural worker-bridge type. The wider app surface still crosses
-production worker, UI option, and Rollup-only virtual import boundaries. The
-next task should keep turning those remaining boundaries into reusable migration
-seams instead of broadening the prototype into production UI.
+`src/client/lazy-app/image-pipeline.ts` now delegates decode, preprocess,
+process, SVG handling, and generic encoder wrapping to
+`src/client/lazy-app/image-pipeline-shared.ts`, then adds only the production
+encoder-map dispatch. That shared implementation has a proven WebP prototype
+path through the generated SvelteKit worker bridge and encode-only metadata map.
+`bulk/processor.ts` now has a proven WebP prototype path through production
+`processBulkImageJob` using the same structural worker-bridge type. The wider
+app surface still crosses production worker, UI option, and Rollup-only virtual
+import boundaries. The next task should keep turning those remaining boundaries
+into reusable migration seams instead of broadening the prototype into
+production UI.
 
 ### 2. Reusable migration seams
 
@@ -166,7 +169,8 @@ The next seam is now partially proven for encoding: generated
 `feature-meta/encoders` combines shared encoder metadata with runtime-only
 encoder modules, while the existing generated `feature-meta` index keeps the
 Preact option entries. `src/client/lazy-app/image-pipeline.ts` imports that
-encode-only map and no longer imports the production Rollup `omt:` worker entry
+encode-only map, re-exports the shared decode/preprocess/process
+implementation, and no longer imports the production Rollup `omt:` worker entry
 for its worker type. The SvelteKit prototype imports the production
 `decodeSourceImage`, `preprocessImage`, `processImage`, and `compressImage`
 helpers for its WebP probe without importing Preact option components.
@@ -362,9 +366,11 @@ Worker-bridge seam progress:
   `src/features/processors/resize/client/runtime.ts` now expose the WebP encode
   and resize runtime helpers without importing Preact option controls.
 - `src/client/lazy-app/image-pipeline.ts` now provides a SvelteKit-importable
-  single-image helper surface for decode, preprocess, process, and WebP
-  compression. The SvelteKit probe calls those production helpers through the
-  generated encode-only metadata/runtime map plus the SvelteKit worker bridge.
+  single-image helper surface by re-exporting the shared decode, preprocess,
+  process, SVG, and generic encoder wrapper implementation, then adding the
+  production encoder-map dispatch for WebP compression. The SvelteKit probe
+  calls those production helpers through the generated encode-only
+  metadata/runtime map plus the SvelteKit worker bridge.
 - `src/client/lazy-app/bulk/processor.ts` now takes the structural
   `ImagePipelineWorkerBridge` type instead of the production Rollup worker
   adapter type. The SvelteKit probe imports production `processBulkImageJob` and
