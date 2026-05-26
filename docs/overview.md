@@ -60,10 +60,15 @@ Features live under `src/features/` and follow a convention:
 The file `lib/feature-plugin.js` scans `src/features/` during the build and generates:
 
 - `src/client/lazy-app/feature-meta/index.ts`
+- `src/client/lazy-app/feature-meta/shared.ts`
+- `src/client/lazy-app/feature-meta/encoders.ts`
 - `src/client/lazy-app/worker-bridge/meta.ts`
+- `src/client/lazy-app/worker-bridge/surface.ts`
 - `src/features-worker/index.ts`
 
-These generated files are ignored by Git and recreated by the build. If you add, remove, or rename a feature, run the build before typechecking or testing the app.
+These generated files are recreated by the build and ignored by Git unless a
+file is intentionally tracked as a source seam. If you add, remove, or rename a
+feature, run the build before typechecking or testing the app.
 
 ## Fork-specific changes noticed
 

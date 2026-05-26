@@ -283,6 +283,12 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
 - The existing generated `feature-meta/index.ts` remains the compatibility layer
   for the Preact app shell. It re-exports shared types/defaults and builds the
   full encoder map by adding the existing encoder client entries.
+- The production `feature-plugin` also emits
+  `src/client/lazy-app/worker-bridge/surface.ts` as an ignored generated
+  worker-surface inventory. It lists active worker methods separately from
+  blocked methods such as WebP 2, while the existing production
+  `features-worker/index.ts` stays the full Rollup/Preact worker entry for
+  current app behavior.
 - Pure or mostly framework-neutral production helpers that only need metadata
   now import from `feature-meta/shared`, including bulk settings/processor
   helpers and saved-settings/side-state/work-plan/editor-state helpers.
@@ -479,13 +485,14 @@ prototype evidence.
 Full worker-surface blocker inventory:
 
 - Importing the production `features-worker` surface directly from SvelteKit
-  still pulls every codec worker, including WebP 2. That can reintroduce
-  product-deprioritized codec work before the migration needs it. AVIF decode,
-  AVIF encode, WebP decode/encode, QOI encode/decode, JPEG XL encode/decode,
-  MozJPEG encode, single-thread OxiPNG encode, quantize, worker resize, and
-  rotate now have narrow generated SvelteKit paths; the broader production
-  worker surface remains intentionally filtered until the generator can express
-  the active product codec set.
+  still pulls every codec worker. The generated production worker-surface
+  inventory now records WebP 2 as blocked/deprioritized, but it does not yet
+  rewrite `features-worker/index.ts` into a SvelteKit-safe filtered entry. AVIF
+  decode, AVIF encode, WebP decode/encode, QOI encode/decode, JPEG XL
+  encode/decode, MozJPEG encode, single-thread OxiPNG encode, quantize, worker
+  resize, and rotate now have narrow generated SvelteKit paths; the broader
+  production worker surface remains intentionally filtered in the prototype
+  until the generator can safely emit the active product codec set.
 - AVIF, JPEG XL, and production-threaded OxiPNG workers still need focused
   threaded-codec passes.
   `worker-shared/supports-wasm-threads` now has a SvelteKit alias shape, but the

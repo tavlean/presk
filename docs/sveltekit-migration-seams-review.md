@@ -24,7 +24,8 @@ the candidate set to merge or cherry-pick into `main` after verification:
 
 - `lib/feature-plugin.js`: emits framework-neutral shared metadata and
   encode-runtime metadata without pulling Preact option entries into every
-  helper import.
+  helper import, and emits an ignored generated worker-surface inventory that
+  separates active worker methods from blocked/deprioritized methods.
 - `src/client/lazy-app/feature-meta/encoders.ts`: generated encode runtime map
   that keeps production compression helpers away from Preact option components.
 - `src/client/lazy-app/abort.ts` and
@@ -87,7 +88,8 @@ the candidate set to merge or cherry-pick into `main` after verification:
   Pure `.ts` compression helpers now avoid the full generated `feature-meta`
   index unless they need runtime encoder client entries.
 - `lib/test-helpers.js` and `lib/smoke-build.js`: focused coverage for the new
-  cache-plan, bridge, and helper seams.
+  cache-plan, bridge, helper seams, generated worker files, and WebP 2 exclusion
+  from the active worker-method surface.
 - `.prettierignore`: ignores disposable SvelteKit build output so root checks
   do not require destructive cleanup prompts.
 
@@ -122,9 +124,10 @@ Do not merge these as solved just because the single-thread prototype passes:
   Use
   [SvelteKit codec asset strategy](sveltekit-codec-asset-strategy.md) as the
   implementation plan for this follow-up.
-- Full production `features-worker` import from SvelteKit: still intentionally
-  filtered to avoid pulling every codec and unresolved asset/threading path into
-  the prototype.
+- Full production `features-worker` import from SvelteKit: the generated
+  worker-surface inventory now distinguishes active methods from blocked WebP 2
+  methods, but production generated worker filtering/import is still not wired
+  for SvelteKit and remains intentionally narrowed in the prototype.
 - Processor/preprocessor metadata and UI option entry splits beyond the proven
   encode-runtime map.
 - Minimal SvelteKit single-image editor slice with real user-selected files.
