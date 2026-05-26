@@ -1,4 +1,4 @@
-import type { ProcessorState } from '../../feature-meta';
+import type { ProcessorState } from '../../feature-meta/shared';
 import {
   mergeProcessorOptions,
   type ProcessorType,

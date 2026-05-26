@@ -1,4 +1,4 @@
-import type { EncoderState } from '../../feature-meta';
+import type { EncoderState } from '../../feature-meta/shared';
 import type { SupportedEncoderMap } from './encoder-support';
 
 export type EncoderSelectValue = EncoderState['type'] | 'identity';

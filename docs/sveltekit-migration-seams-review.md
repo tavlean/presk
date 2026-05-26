@@ -68,6 +68,8 @@ the candidate set to merge or cherry-pick into `main` after verification:
 - Production helper imports under `src/client/lazy-app/Compress/**`,
   `src/client/lazy-app/bulk/**`, and `src/client/lazy-app/util/index.ts`: import
   rewiring to use the new shared seams while keeping the Preact app behavior.
+  Pure `.ts` compression helpers now avoid the full generated `feature-meta`
+  index unless they need runtime encoder client entries.
 - `lib/test-helpers.js` and `lib/smoke-build.js`: focused coverage for the new
   cache-plan, bridge, and helper seams.
 - `.prettierignore`: ignores disposable SvelteKit build output so root checks

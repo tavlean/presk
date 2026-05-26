@@ -1,4 +1,4 @@
-import type { EncoderState } from '../feature-meta';
+import type { EncoderState } from '../feature-meta/shared';
 import type { SideSettings } from './saved-settings';
 
 export interface DisplaySettingsSide {

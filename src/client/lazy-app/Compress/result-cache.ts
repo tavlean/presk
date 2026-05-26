@@ -1,4 +1,4 @@
-import { EncoderState, ProcessorState } from '../feature-meta';
+import type { EncoderState, ProcessorState } from '../feature-meta/shared';
 import { shallowEqual } from '../util';
 
 interface CacheResult {

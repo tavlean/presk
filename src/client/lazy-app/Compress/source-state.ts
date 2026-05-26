@@ -1,4 +1,4 @@
-import type { PreprocessorState, ProcessorState } from '../feature-meta';
+import type { PreprocessorState, ProcessorState } from '../feature-meta/shared';
 import { cleanMerge } from '../util/clean-modify';
 
 export interface SourceDimensions {

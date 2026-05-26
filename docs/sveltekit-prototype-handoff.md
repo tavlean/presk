@@ -286,6 +286,12 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
 - Pure or mostly framework-neutral production helpers that only need metadata
   now import from `feature-meta/shared`, including bulk settings/processor
   helpers and saved-settings/side-state/work-plan/editor-state helpers.
+- Pure compression workflow helpers that only need generated metadata types now
+  import from `feature-meta/shared` as well, including source/side workflow,
+  render-state, result-cache, processor-state, and output/option control-state
+  helpers. The remaining plain `.ts` production import from the full
+  `feature-meta` index is `Options/encoder-support.ts`, which intentionally
+  needs runtime encoder client entries such as `featureTest`.
 - The SvelteKit prototype generator now mirrors that path shape by emitting
   WebP-only `feature-meta/shared.ts` and `feature-meta/index.ts` files under
   `.svelte-kit/sqush-generated/`. This keeps the prototype on the narrow WebP

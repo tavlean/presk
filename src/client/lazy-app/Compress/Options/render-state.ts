@@ -1,5 +1,5 @@
 import type { SourceImage, OutputType } from '..';
-import type { EncoderState, ProcessorState } from '../../feature-meta';
+import type { EncoderState, ProcessorState } from '../../feature-meta/shared';
 import {
   canImportSavedSideSettings,
   type SavedSideSettingsAvailability,

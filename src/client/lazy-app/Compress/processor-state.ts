@@ -1,4 +1,4 @@
-import type { ProcessorState } from '../feature-meta';
+import type { ProcessorState } from '../feature-meta/shared';
 import { cleanMerge, cleanSet } from '../util/clean-modify';
 
 export type ProcessorType = keyof ProcessorState;

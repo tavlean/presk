@@ -1,4 +1,4 @@
-import type { EncoderState, ProcessorState } from '../feature-meta';
+import type { EncoderState, ProcessorState } from '../feature-meta/shared';
 import type { SourceImage } from '../image-pipeline';
 import type {
   RunnableSideJob,

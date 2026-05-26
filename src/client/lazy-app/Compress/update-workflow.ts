@@ -1,4 +1,4 @@
-import type { PreprocessorState, ProcessorState } from '../feature-meta';
+import type { PreprocessorState, ProcessorState } from '../feature-meta/shared';
 import type { SourceImage } from '../image-pipeline';
 import {
   getSideEncodedResultState,

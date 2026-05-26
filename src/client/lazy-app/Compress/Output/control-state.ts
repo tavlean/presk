@@ -1,4 +1,4 @@
-import type { PreprocessorState } from '../../feature-meta';
+import type { PreprocessorState } from '../../feature-meta/shared';
 import { cleanSet } from '../../util/clean-modify';
 
 export function getNextOutputScale(

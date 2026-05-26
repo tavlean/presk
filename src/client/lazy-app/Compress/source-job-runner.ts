@@ -1,4 +1,4 @@
-import type { PreprocessorState } from '../feature-meta';
+import type { PreprocessorState } from '../feature-meta/shared';
 import type { DecodedSourceImage, SourceImage } from '../image-pipeline';
 import { assertSignal } from '../abort';
 
