@@ -251,6 +251,13 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   `ImagePipelineWorkerBridge` type, so the SvelteKit prototype can import and
   run `processBulkImageJob` for the WebP path without importing the production
   Rollup worker adapter.
+- The production compression update workflow now has SvelteKit prototype
+  evidence. `runCompressionUpdateWorkflow` can run the WebP side outside the
+  Preact component shell when given injected state patching, cache, worker
+  bridges, and the existing production pipeline helper set. This narrows the
+  future single-image slice risk to UI/control integration, full codec/threaded
+  runtime parity, and static asset/service-worker strategy rather than the core
+  update orchestration itself.
 - Treat `code/sveltekit-migration-seams` as a review branch with two distinct
   outputs. Production-safe, behavior-preserving seams can merge or be
   cherry-picked to `main` after root checks and production smoke coverage stay

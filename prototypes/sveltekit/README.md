@@ -78,6 +78,11 @@ npm audit --audit-level=low
   worker bridge, proving the bulk processor boundary can use the same
   framework-neutral image pipeline worker shape without importing the production
   Rollup worker adapter.
+- The same probe now imports production `runCompressionUpdateWorkflow` from
+  `src/client/lazy-app/Compress/update-workflow` and completes the WebP side
+  through SvelteKit worker bridges. This proves the extracted single-image
+  orchestration layer can run outside the Preact component shell when supplied
+  with injected state, cache, worker, and pipeline boundaries.
 - The prototype sync step now emits generated WebP codec asset metadata. The
   service worker and SvelteKit worker bridge both consume that generated WebP
   WASM URL manifest instead of a handwritten local helper.
@@ -296,6 +301,12 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   same WebP path. `processBulkImageJob` accepts the structural
   `ImagePipelineWorkerBridge` type, so it no longer needs the production Rollup
   worker adapter type at its import boundary.
+- The production compression update workflow import is now proven from
+  SvelteKit for the same WebP path. The prototype supplies local state patching,
+  `ResultCache`, two generated SvelteKit worker bridges, and the existing
+  production pipeline helper set; `runCompressionUpdateWorkflow` then decodes,
+  preprocesses, processes, encodes, decodes the output, and writes the side
+  result without importing the Preact component shell.
 - The first `url:` seam is now proven for rotate: production keeps
   `src/features/preprocessors/rotate/worker/rotate.ts` as the Rollup adapter,
   while shared rotate logic lives in a runtime factory that accepts an injected

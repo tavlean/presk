@@ -396,6 +396,12 @@ Worker-bridge seam progress:
   `ImagePipelineWorkerBridge` type instead of the production Rollup worker
   adapter type. The SvelteKit probe imports production `processBulkImageJob` and
   completes a WebP bulk job with an injected download URL creator.
+- `src/client/lazy-app/Compress/update-workflow.ts` is now imported by the
+  SvelteKit probe and completes the WebP side of the production compression
+  update workflow with injected state patching, `ResultCache`, generated
+  SvelteKit worker bridges, and the existing production pipeline helper set.
+  This proves the workflow orchestration seam is usable outside the Preact
+  component shell.
 - The SvelteKit prototype sync step now emits
   `.svelte-kit/sqush-generated/codec-assets/webp.ts` as the canonical WebP
   encoder WASM URL manifest. The service-worker asset list and

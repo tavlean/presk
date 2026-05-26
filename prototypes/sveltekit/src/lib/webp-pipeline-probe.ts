@@ -2,6 +2,12 @@ import { sniffMimeType } from '../../../../src/client/lazy-app/image-decode';
 import { canvasEncode } from '../../../../src/client/lazy-app/util/canvas';
 import { getPercentChange } from '../../../../src/client/lazy-app/bulk/size';
 import { processBulkImageJob } from '../../../../src/client/lazy-app/bulk/processor';
+import { getInitialCompressionState } from '../../../../src/client/lazy-app/Compress/editor-state';
+import ResultCache from '../../../../src/client/lazy-app/Compress/result-cache';
+import {
+  runCompressionUpdateWorkflow,
+  type CompressionUpdateRuntime,
+} from '../../../../src/client/lazy-app/Compress/update-workflow';
 import {
   getEffectiveSettings,
   settingsHash,
@@ -11,6 +17,7 @@ import { createImageJob } from '../../../../src/client/lazy-app/bulk/session';
 import tinyAvifUrl from 'sw/tiny.avif?url';
 import {
   compressImage,
+  decodeImage,
   decodeSourceImage,
   type ImagePipelineWorkerBridge,
   preprocessImage,
@@ -73,6 +80,9 @@ export interface WebpPipelineProbeResult {
   bulkOutputBytes: number;
   bulkDownloadUrl: string;
   bulkPercentChange: number;
+  updateWorkflowOutputFileName: string;
+  updateWorkflowOutputBytes: number;
+  updateWorkflowOutputMimeType: string;
   stages: string[];
 }
 
@@ -143,6 +153,95 @@ async function createSourceFile(): Promise<File> {
   });
 }
 
+function applyStatePatch<State>(
+  state: State,
+  patch: Partial<State> | ((currentState: State) => Partial<State>),
+): State {
+  return {
+    ...state,
+    ...(typeof patch === 'function' ? patch(state) : patch),
+  };
+}
+
+async function runProductionUpdateWorkflowProbe(
+  signal: AbortSignal,
+  sourceFile: File,
+): Promise<File> {
+  const rawWorkerBridges: [SvelteKitWorkerBridge, SvelteKitWorkerBridge] = [
+    new SvelteKitWorkerBridge(),
+    new SvelteKitWorkerBridge(),
+  ];
+  const workerBridges = rawWorkerBridges as unknown as [
+    ImagePipelineWorkerBridge,
+    ImagePipelineWorkerBridge,
+  ];
+
+  try {
+    let state = getInitialCompressionState(
+      [
+        {
+          latestSettings: pipelineSettings,
+        },
+        undefined,
+      ],
+      false,
+    );
+    state = {
+      ...state,
+      preprocessorState: pipelinePreprocessorState,
+    };
+    let runtime: CompressionUpdateRuntime = {
+      mainJob: undefined,
+      sideJobs: [undefined, undefined],
+      mainAbortController: new AbortController(),
+      sideAbortControllers: [new AbortController(), new AbortController()],
+    };
+    const updateComplete = new Promise<File>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        reject(new Error('Timed out waiting for compression update workflow.'));
+      }, 30_000);
+
+      void runCompressionUpdateWorkflow({
+        sourceFile,
+        currentState: state,
+        getRuntime: () => runtime,
+        setRuntime: (nextRuntime) => {
+          runtime = nextRuntime;
+        },
+        encodeCache: new ResultCache(),
+        workerBridges,
+        pipeline: {
+          decodeSourceImage,
+          preprocessImage,
+          processImage,
+          compressImage,
+          decodeImage,
+        },
+        isUnmounted: () => false,
+        showSnack: (message) => {
+          reject(new Error(message));
+        },
+        applyState: (patch) => {
+          state = applyStatePatch(state, patch);
+          const file = (state.sides[0] as { file?: unknown }).file;
+          if (file instanceof File) {
+            window.clearTimeout(timeout);
+            resolve(file);
+          }
+        },
+      }).catch((error: unknown) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      });
+    });
+
+    return await updateComplete;
+  } finally {
+    rawWorkerBridges[0].dispose();
+    rawWorkerBridges[1].dispose();
+  }
+}
+
 export async function runWebpPipelineProbe(
   signal = new AbortController().signal,
 ): Promise<WebpPipelineProbeResult> {
@@ -190,6 +289,7 @@ export async function runWebpPipelineProbe(
   let quantized: ImageData;
   let workerResized: ImageData;
   let bulkOutput: Awaited<ReturnType<typeof processBulkImageJob>>;
+  let updateWorkflowOutput: File;
   try {
     outputFile = await compressImage(
       signal,
@@ -256,6 +356,10 @@ export async function runWebpPipelineProbe(
       preprocessorState: pipelinePreprocessorState,
       createDownloadUrl: (file) => `prototype://${file.name}`,
     });
+    updateWorkflowOutput = await runProductionUpdateWorkflowProbe(
+      signal,
+      sourceFile,
+    );
   } finally {
     workerBridge.dispose();
   }
@@ -321,6 +425,9 @@ export async function runWebpPipelineProbe(
     bulkOutputBytes: bulkOutput.file.size,
     bulkDownloadUrl: bulkOutput.downloadUrl,
     bulkPercentChange: Math.round(bulkOutput.percentChange * 10) / 10,
+    updateWorkflowOutputFileName: updateWorkflowOutput.name,
+    updateWorkflowOutputBytes: updateWorkflowOutput.size,
+    updateWorkflowOutputMimeType: updateWorkflowOutput.type,
     stages: [
       'source generated locally with existing canvasEncode helper',
       'source type sniffed with existing sniffMimeType helper',
@@ -359,6 +466,7 @@ export async function runWebpPipelineProbe(
       } x ${quantized.height}, ${countUniqueColors(quantized)} colors)`,
       `worker resize promoted through the same generated worker surface (${workerResized.width} x ${workerResized.height})`,
       `production processBulkImageJob imported and completed (${bulkOutput.file.name}, ${bulkOutput.file.size} bytes)`,
+      `production runCompressionUpdateWorkflow imported and produced ${updateWorkflowOutput.name} (${updateWorkflowOutput.size} bytes) through SvelteKit worker bridges`,
       'export metadata built with existing filename, percent-change, and settings-hash helpers',
     ],
   };
