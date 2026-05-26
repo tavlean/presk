@@ -189,7 +189,8 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   non-WebP-2 method set and
   `src/client/lazy-app/worker-bridge/active-meta.ts` for the matching active
   bridge method names/types. `worker-bridge/active-bridge.ts` can construct a
-  bridge over that active list, while the current Preact/Rollup
+  bridge over that active list, and `worker-bridge/active-index.ts` proves the
+  matching Rollup adapter shape, while the current Preact/Rollup
   `features-worker/index.ts` remains unchanged for existing app behavior.
 - AVIF decode is promoted through that admission list. It uses a generated AVIF
   decoder WASM asset manifest and local fixture decode proof, while the broader

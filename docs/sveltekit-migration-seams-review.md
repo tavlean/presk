@@ -43,9 +43,11 @@ the candidate set to merge or cherry-pick into `main` after verification:
 - `src/client/lazy-app/worker-bridge/runtime.ts`,
   `src/client/lazy-app/worker-bridge/bridge.ts`,
   `src/client/lazy-app/worker-bridge/active-bridge.ts`, and
-  `src/client/lazy-app/worker-bridge/index.ts`: shared Comlink bridge factory,
-  full production bridge, active-method bridge factory, and production Rollup
-  adapter for the existing `omt:` worker URL.
+  `src/client/lazy-app/worker-bridge/index.ts`,
+  `src/client/lazy-app/worker-bridge/active-index.ts`: shared Comlink bridge
+  factory, full production bridge, active-method bridge factory, production
+  Rollup adapter for the existing `omt:` worker URL, and a parallel active
+  Rollup adapter for the generated active worker entry.
 - `src/client/lazy-app/sw-bridge/runtime.ts` and
   `src/client/lazy-app/sw-bridge/index.ts`: shared service-worker
   registration/update/share-target runtime plus production Rollup
@@ -134,9 +136,11 @@ Do not merge these as solved just because the single-thread prototype passes:
   emits `src/features-worker/active.ts` and
   `src/client/lazy-app/worker-bridge/active-meta.ts`, which exclude blocked
   WebP 2 methods. `worker-bridge/active-bridge.ts` can construct a bridge over
-  that active method list, but the active pair is not yet wired to a SvelteKit
-  worker adapter and still needs threaded asset/runtime proof before it can
-  replace the prototype's intentionally narrowed worker entry.
+  that active method list, and `worker-bridge/active-index.ts` proves the
+  equivalent Rollup adapter shape for the generated active worker entry. A
+  SvelteKit adapter is still not wired, and the active worker still needs
+  threaded asset/runtime proof before it can replace the prototype's
+  intentionally narrowed worker entry.
 - Processor/preprocessor metadata and UI option entry splits beyond the proven
   encode-runtime map.
 - Minimal SvelteKit single-image editor slice with real user-selected files.

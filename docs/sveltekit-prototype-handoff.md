@@ -356,6 +356,9 @@ Worker-bridge seam progress:
 - `src/client/lazy-app/worker-bridge/index.ts` is now the Rollup adapter that
   imports the current `omt:` worker URL and passes `() => new Worker(workerURL)`
   into the shared bridge factory.
+- `src/client/lazy-app/worker-bridge/active-index.ts` mirrors that adapter shape
+  for `omt:../../../features-worker/active`, but it is not used by the current
+  app shell.
 - Root `npm run check` and `npm run smoke:browser` passed after the split,
   including real WebP output, resize processing, saved-settings import, and
   offline app-shell reload.
@@ -501,13 +504,15 @@ Full worker-surface blocker inventory:
   `src/features-worker/active.ts` and
   `src/client/lazy-app/worker-bridge/active-meta.ts` for the active non-WebP-2
   method set, and `worker-bridge/active-bridge.ts` can build a bridge over that
-  generated active method list. That entry pair is not yet wired to a SvelteKit
-  worker adapter and still includes active methods whose threaded production
-  runtime needs separate proof. AVIF decode, AVIF encode, WebP decode/encode,
-  QOI encode/decode, JPEG XL encode/decode, MozJPEG encode, single-thread
-  OxiPNG encode, quantize, worker resize, and rotate now have narrow generated
-  SvelteKit paths; the broader production active worker entry remains unwired in
-  the prototype until the threaded and canonical asset risks are resolved.
+  generated active method list. `worker-bridge/active-index.ts` also proves the
+  matching Rollup adapter shape for the active entry. That entry pair is not yet
+  wired to a SvelteKit worker adapter and still includes active methods whose
+  threaded production runtime needs separate proof. AVIF decode, AVIF encode,
+  WebP decode/encode, QOI encode/decode, JPEG XL encode/decode, MozJPEG encode,
+  single-thread OxiPNG encode, quantize, worker resize, and rotate now have
+  narrow generated SvelteKit paths; the broader production active worker entry
+  remains unwired in the prototype until the threaded and canonical asset risks
+  are resolved.
 - AVIF, JPEG XL, and production-threaded OxiPNG workers still need focused
   threaded-codec passes.
   `worker-shared/supports-wasm-threads` now has a SvelteKit alias shape, but the
