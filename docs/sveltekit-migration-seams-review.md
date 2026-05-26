@@ -217,7 +217,7 @@ circumstance.
 - `gh run list --branch code/sveltekit-migration-seams --limit 10`: check
   remote CI for this branch. As of the latest update, PR #1 is clean against
   `main` and GitHub Actions passed the `Node.js CI` matrix on Ubuntu, Windows,
-  and macOS for `a6865c9`.
+  and macOS for the latest migration-seams head.
 
 ## Prototype-only evidence
 

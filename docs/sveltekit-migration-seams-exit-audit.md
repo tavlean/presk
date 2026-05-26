@@ -145,5 +145,5 @@ This branch is ready for review when these are true:
 
 As of this audit, the local gates above have passed on the latest checkpoints.
 After merging latest `main`, PR #1 reports a clean merge state and GitHub
-Actions passed the `Node.js CI` matrix on Ubuntu, Windows, and macOS for
-`a6865c9`.
+Actions passed the `Node.js CI` matrix on Ubuntu, Windows, and macOS for the
+latest migration-seams head.
