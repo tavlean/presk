@@ -230,6 +230,22 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   `ImagePipelineWorkerBridge` type, so the SvelteKit prototype can import and
   run `processBulkImageJob` for the WebP path without importing the production
   Rollup worker adapter.
+- Treat `code/sveltekit-migration-seams` as a review branch with two distinct
+  outputs. Production-safe, behavior-preserving seams can merge or be
+  cherry-picked to `main` after root checks and production smoke coverage stay
+  green. Disposable prototype evidence under `prototypes/sveltekit/`, generated
+  SvelteKit manifests, diagnostic route UI, static-output audit scripts, and
+  prototype package dependencies should stay out of `main` unless explicitly
+  accepted.
+- After the safe seams land, branch the next focused track from updated `main`.
+  If review is still in progress, branch from `code/sveltekit-migration-seams`
+  and rebase or cherry-pick later. The next track should be either threaded
+  codec runtime proof, canonical codec worker/WASM asset URLs, or the minimal
+  SvelteKit single-image slice once those risks are understood.
+- Do not start `code/sveltekit-single-image-slice` as a full app migration. Its
+  target is one real user-selected file path that proves import, decode,
+  process, encode, preview, export, and offline behavior. Start with WebP, add
+  AVIF next, keep JPEG XL advanced, and leave WebP 2 out of scope.
 - Decide final codec surface before deleting codec code.
 - Use [Phase 1 readiness audit](phase-1-readiness-audit.md) as the current rationale for starting a small technical prototype instead of continuing tiny Preact cleanup.
 - Current browser support targets were reviewed on 2026-05-24. Re-check before production migration, but do not lower the modern evergreen baseline or remove WebAssembly, worker, service-worker, Canvas/ImageData, File/Blob, object URL, or dynamic import assumptions without measured evidence.

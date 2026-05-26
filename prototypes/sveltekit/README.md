@@ -330,6 +330,22 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   or codec wrapper changes that remove Emscripten's worker-local `new URL`
   references and accept externally supplied WASM URLs.
 
+## Branch and merge guidance
+
+- Keep this prototype disposable. Its app scaffold, generated manifests,
+  diagnostic route UI, package dependencies, static-output audit scripts, and
+  browser proof scaffolding should not merge to `main` by default.
+- Merge or cherry-pick only production-safe seams from
+  `code/sveltekit-migration-seams` after root checks and production smoke
+  coverage confirm the current Preact/Rollup app still behaves the same.
+- Use a separate follow-up branch for the next focused risk: threaded
+  AVIF/JPEG XL/OxiPNG runtime proof, canonical codec worker/WASM asset URLs, or
+  the minimal SvelteKit single-image slice after those risks are understood.
+- The minimal SvelteKit slice should prove one real user-selected file through
+  import, decode, process, encode, preview, export, and offline behavior. Start
+  with WebP, add AVIF next, keep JPEG XL advanced, and leave WebP 2 out of
+  scope.
+
 ## Non-goals
 
 - No production UI migration.

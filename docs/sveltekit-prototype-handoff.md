@@ -1,6 +1,6 @@
 # SvelteKit prototype handoff
 
-Last updated: 2026-05-25.
+Last updated: 2026-05-26.
 
 ## Purpose
 
@@ -435,8 +435,9 @@ Worker-bridge seam progress:
 Next worker seam: do not spend more migration-seams effort on WebP 2 unless a
 fresh product decision makes it a serious target again. WebP 2 is intentionally
 deprioritized and likely removable later, so the next valuable work is the
-threaded-runtime strategy for already-relevant codecs, or the final merge plan
-for production-safe seams versus disposable prototype evidence.
+threaded-runtime strategy for already-relevant codecs, the canonical codec asset
+URL strategy, and the merge plan for production-safe seams versus disposable
+prototype evidence.
 
 Full worker-surface blocker inventory:
 
@@ -469,10 +470,60 @@ Full worker-surface blocker inventory:
   future seams should follow that pattern for any non-UI runtime surface that
   still depends on UI option entries.
 
-Recommended next implementation step: use the generated worker-surface manifest
-as the admission list for the next narrow method. The lowest-risk candidate is
-the method whose blocker can be removed with a small asset-manifest or type
-adapter change, without importing the full production `features-worker` surface.
+Recommended next implementation step: stop broadening the single-thread
+worker-method list for its own sake. The useful next checkpoint is to package
+the migration-seams branch into a source-only review set, then start a focused
+threaded-runtime or canonical-asset branch before attempting a minimal
+SvelteKit editor slice.
+
+### Merge plan
+
+The `code/sveltekit-migration-seams` branch should be reviewed as two different
+kinds of work:
+
+- Production-safe seam candidates for `main`: behavior-preserving generated
+  metadata splits, runtime helper splits, structural worker-bridge types,
+  service-worker cache planning, service-worker registration runtime helpers,
+  injected codec WASM URL seams, and narrow codec worker fixes that keep the
+  existing Preact/Rollup app behavior intact.
+- Prototype-only evidence to keep out of `main` by default:
+  `prototypes/sveltekit/`, generated SvelteKit manifests, diagnostic route UI,
+  prototype package dependencies, static-output audit scripts, and browser proof
+  scaffolding.
+- Not ready for `main`: threaded AVIF/JPEG XL/OxiPNG runtime parity,
+  canonical de-duplicated codec worker/WASM asset URLs, full production
+  `features-worker` import, processor/preprocessor UI option entry splits, and
+  any SvelteKit production editor UI.
+
+Merge or cherry-pick production-safe seam candidates into `main` only after root
+`npm run check` passes, production smoke coverage remains green where relevant,
+and the review confirms the current Preact app still owns production routing and
+service-worker behavior. Keep prototype evidence available on the branch as the
+reasoning record, but do not merge it unless the maintainer explicitly wants the
+prototype tree preserved in `main`.
+
+### Next branch plan
+
+After the safe seams are reviewed, create the next branch from the best stable
+base:
+
+1. If the production-safe seams have landed, branch from updated `main`.
+2. If review is still in progress, branch from `code/sveltekit-migration-seams`
+   and expect to rebase/cherry-pick once the safe seams land.
+
+Use that next branch for one focused target, not a broad migration:
+
+- `code/sveltekit-threaded-codecs`: prove or document threaded AVIF,
+  JPEG XL, and OxiPNG under static SvelteKit output, including COOP/COEP
+  requirements, nested workers, helper assets, and service-worker cache coverage.
+- `code/sveltekit-codec-assets`: create a canonical codec worker/WASM asset URL
+  strategy that removes physical duplication and gives app code, workers, and
+  service-worker manifests the same generated URL records.
+- `code/sveltekit-single-image-slice`: only after the above risks are clear,
+  build a minimal SvelteKit single-image slice with real user-selected files and
+  compare import, decode, process, encode, preview, export, and offline behavior
+  against the current Preact app. Start with WebP, add AVIF next, keep JPEG XL
+  advanced, and leave WebP 2 out of scope.
 
 ### Verification expectations
 

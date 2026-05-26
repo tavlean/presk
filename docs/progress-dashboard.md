@@ -44,7 +44,9 @@ Bad progress:
 
 1. Stop treating small Preact helper extraction as the main work.
 2. Use [Phase 1 readiness audit](phase-1-readiness-audit.md) as the handoff for the next larger track.
-3. Continue the small SvelteKit technical prototype on `code/sveltekit-prototype`.
+3. Continue the SvelteKit work through focused seams: keep prototype evidence
+   disposable, review behavior-preserving migration seams separately, and merge
+   only source-safe seams to `main`.
 4. Start bulk UI design discussion before production UI implementation.
 5. Decide codec visibility before hiding or removing formats; keep WebP 2
    deprioritized unless it becomes a serious product target again.
