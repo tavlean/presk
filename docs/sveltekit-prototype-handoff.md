@@ -660,11 +660,13 @@ Use Codex Desktop New Worktree from branch `code/sveltekit-prototype`.
 Read first:
 - AGENTS.md
 - docs/sveltekit-prototype-handoff.md
-- docs/svelte-migration-context.md
 - docs/phase-1-readiness-audit.md
+- docs/svelte-migration-context.md
 - docs/bulk-image-architecture.md
+- docs/maintenance-status.md
 - docs/browser-support.md
 - docs/codec-provenance.md
+- docs/codec-source-references.md
 - prototypes/sveltekit/README.md
 
 Prototype lives in `prototypes/sveltekit/`.
