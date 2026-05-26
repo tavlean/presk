@@ -534,11 +534,12 @@ Full worker-surface blocker inventory:
   single-thread encode/decode asset seams, and OxiPNG now has a proven injected
   single-thread encode path, but those do not prove the threaded runtime.
 - WebP 2 is intentionally out of scope for continued prototype work. Keep it
-  filtered from the SvelteKit worker surface and avoid spending engineering time
-  on its asset/threading seams unless the product direction changes. The active
-  service-worker cache planner and `active-to-cache.ts` boundary exclude WebP 2,
-  but production `to-cache.ts` still preserves the current full cache behavior
-  until product removal is a separate decision.
+  filtered from the SvelteKit worker surface, do not treat WebP 2 parity as a
+  migration blocker, and avoid spending engineering time on its asset/threading
+  seams unless the product direction changes. The active service-worker cache
+  planner and `active-to-cache.ts` boundary exclude WebP 2, but production
+  `to-cache.ts` still preserves the current full cache behavior until product
+  removal is a separate cleanup decision.
 - Rotate now has a proven split: production keeps the Rollup `url:` adapter,
   while the SvelteKit generated worker imports the shared rotate runtime with a
   generated Vite `?url` asset manifest.

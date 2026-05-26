@@ -173,7 +173,8 @@ The current app supports many formats. For this fork, a smaller codec surface pr
 
 Do not spend product, prototype, or migration effort on WebP 2 unless the codec
 becomes a serious web-platform contender again. It is not part of the active
-roadmap.
+roadmap, and SvelteKit prototype work should not treat WebP 2 parity as a
+blocker.
 
 1. WebP 1
 
@@ -193,9 +194,10 @@ roadmap.
    - JPEG XL support has improved recently, including renewed Chromium work, but support and default enablement still need careful tracking.
    - Good candidate for power users and future-proof workflows.
 
-### Formats to consider removing from the main UI
+### Formats to consider hiding or removing from the main UI
 
-- WebP 2
+- WebP 2: legacy/deprioritized; likely removable later, but not worth active
+  engineering effort during the SvelteKit prototype or migration-seams tracks
 - Browser JPEG
 - Browser PNG
 - Browser GIF

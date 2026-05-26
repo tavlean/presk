@@ -225,7 +225,8 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   Preact option components. AVIF and the legacy/deprioritized WebP 2 shared
   metadata no longer import declaration-only codec enum exports as runtime
   values; they expose local metadata constants so Vite can consume the shared
-  metadata surface without making WebP 2 an active prototype target.
+  metadata surface without making WebP 2 an active prototype target or a parity
+  blocker.
 - The prototype also sets `verbatimModuleSyntax: false` because the current
   WebP metadata re-exports `EncodeOptions` without `export type`.
 - SvelteKit/Vite can emit a browser module worker and real committed WebP WASM
@@ -339,7 +340,8 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   worker `ArrayBufferLike` types, and remaining codec asset URLs.
 - Do not spend more prototype effort on WebP 2. It remains filtered from the
   generated SvelteKit worker surface because it is not currently a serious
-  product target and may be removed later unless the codec becomes relevant.
+  product target. Treat possible WebP 2 removal as later product cleanup, not
+  as part of this prototype spike.
 - Replace production `url:` codec references with reusable runtimes plus
   generated Vite `?url` asset manifests, following the rotate preprocessor seam
   before broadening to the remaining codec surfaces.

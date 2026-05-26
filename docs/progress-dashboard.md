@@ -48,8 +48,10 @@ Bad progress:
    disposable, review behavior-preserving migration seams separately, and merge
    only source-safe seams to `main`.
 4. Start bulk UI design discussion before production UI implementation.
-5. Decide codec visibility before hiding or removing formats; keep WebP 2
-   deprioritized unless it becomes a serious product target again.
+5. Decide codec visibility before hiding or removing formats. Keep WebP 2
+   deprioritized across product, SvelteKit prototype, and migration work; do
+   not treat WebP 2 parity as a blocker unless it becomes a serious product
+   target again.
 
 ## Svelte migration gate
 
@@ -59,8 +61,8 @@ Do not start a production Svelte/SvelteKit migration until these are true:
 - bulk session logic is framework-neutral and tested;
 - current Preact app has browser smoke tests;
 - format/codec visibility strategy is decided;
-- WebP 2 remains out of scope for SvelteKit prototype and migration work unless
-  product direction changes;
+- WebP 2 remains out of scope for SvelteKit prototype, migration, and roadmap
+  work unless product direction changes;
 - build output and service-worker behavior are understood well enough to reproduce in a new toolchain.
 
 When those conditions are met, start with a small SvelteKit prototype around imported pure modules instead of rewriting the whole app at once. The gate is guidance, not a hard prohibition: if SvelteKit work clearly reduces risk without starting production UI migration, use the Svelte MCP docs and keep the prototype small. Keep [Svelte migration context](svelte-migration-context.md) open while doing any Svelte-adjacent work.
