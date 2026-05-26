@@ -214,6 +214,22 @@ const patchedHqxShimOutputPath = join(
   patchedHqxWrapperOutputDir,
   'squooshhqx.d.ts',
 );
+const patchedOxipngWrapperOutputDir = join(
+  prototypeRoot,
+  '.svelte-kit',
+  'sqush-generated',
+  'codecs',
+  'oxipng',
+  'pkg',
+);
+const patchedOxipngOutputPath = join(
+  patchedOxipngWrapperOutputDir,
+  'squoosh_oxipng.js',
+);
+const patchedOxipngShimOutputPath = join(
+  patchedOxipngWrapperOutputDir,
+  'squoosh_oxipng.d.ts',
+);
 const serviceWorkerOutputDir = join(
   prototypeRoot,
   '.svelte-kit',
@@ -500,8 +516,9 @@ function generateWebpWorkerEntry() {
     "import { createMozjpegEncoderRuntime } from 'features/encoders/mozJPEG/worker/runtime';",
     "import type { EncodeOptions as MozjpegEncodeOptions } from 'features/encoders/mozJPEG/shared/meta';",
     "import mozjpegEncoder from 'sqush-generated/codecs/mozjpeg/enc/mozjpeg_enc';",
-    "import encodeOxipng from 'features/encoders/oxiPNG/worker/oxipngEncode';",
+    "import { createOxiPngEncoderRuntime } from 'features/encoders/oxiPNG/worker/runtime';",
     "import type { EncodeOptions as OxipngEncodeOptions } from 'features/encoders/oxiPNG/shared/meta';",
+    "import initOxipngWasm, { optimise as optimiseOxipng } from 'sqush-generated/codecs/oxipng/pkg/squoosh_oxipng';",
     "import { createQuantizeRuntime } from 'features/processors/quantize/worker/runtime';",
     "import type { Options as QuantizeOptions } from 'features/processors/quantize/shared/meta';",
     "import imagequant from 'sqush-generated/codecs/imagequant/imagequant';",
@@ -601,6 +618,13 @@ function generateWebpWorkerEntry() {
     '});',
     'const encodeMozjpeg = createMozjpegEncoderRuntime({',
     '  loadEncoder: async () => mozjpegEncoder,',
+    '});',
+    'const encodeOxipng = createOxiPngEncoderRuntime({',
+    '  supportsThreads: async () => false,',
+    '  async loadSingleThread(wasmUrl) {',
+    '    await initOxipngWasm(wasmUrl);',
+    '    return optimiseOxipng;',
+    '  },',
     '});',
     'const quantize = createQuantizeRuntime({',
     '  loadQuantizer: async () => imagequant,',
@@ -1205,6 +1229,7 @@ await Promise.all([
   mkdir(patchedImagequantWrapperOutputDir, { recursive: true }),
   mkdir(patchedResizeWrapperOutputDir, { recursive: true }),
   mkdir(patchedHqxWrapperOutputDir, { recursive: true }),
+  mkdir(patchedOxipngWrapperOutputDir, { recursive: true }),
   mkdir(serviceWorkerOutputDir, { recursive: true }),
 ]);
 await Promise.all([
@@ -1370,6 +1395,31 @@ await Promise.all([
     patchedHqxShimOutputPath,
     await generatePatchedWasmBindgenWrapperShim({
       sourcePath: join(repoRoot, 'codecs', 'hqx', 'pkg', 'squooshhqx.d.ts'),
+    }),
+  ),
+  writeFile(
+    patchedOxipngOutputPath,
+    await patchWasmBindgenWrapperFallbackUrl({
+      sourcePath: join(
+        repoRoot,
+        'codecs',
+        'oxipng',
+        'pkg',
+        'squoosh_oxipng.js',
+      ),
+      assetName: 'squoosh_oxipng_bg.wasm',
+    }),
+  ),
+  writeFile(
+    patchedOxipngShimOutputPath,
+    await generatePatchedWasmBindgenWrapperShim({
+      sourcePath: join(
+        repoRoot,
+        'codecs',
+        'oxipng',
+        'pkg',
+        'squoosh_oxipng.d.ts',
+      ),
     }),
   ),
   writeFile(serviceWorkerCachePlanOutputPath, generateServiceWorkerCachePlan()),

@@ -10,64 +10,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { EncodeOptions } from '../shared/meta';
 import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
+import { createOxiPngEncoderRuntime } from './runtime';
 
-export interface OxiPngWasmUrls {
-  multiThread?: string;
-  singleThread?: string;
-}
+export type { OxiPngRuntimeOptions, OxiPngWasmUrls } from './runtime';
 
-export interface OxiPngRuntimeOptions {
-  supportsThreads?: () => Promise<boolean>;
-  wasmUrls?: OxiPngWasmUrls;
-}
+export default createOxiPngEncoderRuntime({
+  supportsThreads: checkThreadsSupport,
+  async loadMultiThread(wasmUrl) {
+    const {
+      default: init,
+      initThreadPool,
+      optimise,
+    } = await import('codecs/oxipng/pkg-parallel/squoosh_oxipng');
+    await init(wasmUrl);
+    await initThreadPool(navigator.hardwareConcurrency);
 
-async function initMT(wasmUrl?: string) {
-  const {
-    default: init,
-    initThreadPool,
-    optimise,
-  } = await import('codecs/oxipng/pkg-parallel/squoosh_oxipng');
-  await init(wasmUrl);
-  await initThreadPool(navigator.hardwareConcurrency);
-  return optimise;
-}
-
-async function initST(wasmUrl?: string) {
-  const { default: init, optimise } = await import(
-    'codecs/oxipng/pkg/squoosh_oxipng'
-  );
-  await init(wasmUrl);
-  return optimise;
-}
-
-let wasmReady: ReturnType<typeof initMT | typeof initST>;
-
-export default async function encode(
-  data: ImageData,
-  options: EncodeOptions,
-  runtimeOptions: OxiPngRuntimeOptions = {},
-): Promise<ArrayBuffer> {
-  if (!wasmReady) {
-    const { supportsThreads = checkThreadsSupport, wasmUrls } = runtimeOptions;
-    wasmReady = supportsThreads().then((hasThreads: boolean) =>
-      hasThreads
-        ? initMT(wasmUrls?.multiThread)
-        : initST(wasmUrls?.singleThread),
+    return optimise;
+  },
+  async loadSingleThread(wasmUrl) {
+    const { default: init, optimise } = await import(
+      'codecs/oxipng/pkg/squoosh_oxipng'
     );
-  }
+    await init(wasmUrl);
 
-  const optimise = await wasmReady;
-  const result = optimise(
-    data.data,
-    data.width,
-    data.height,
-    options.level,
-    options.interlace,
-  );
-  const bytes = new Uint8Array(result.length);
-  bytes.set(result);
-
-  return bytes.buffer;
-}
+    return optimise;
+  },
+});

@@ -318,7 +318,10 @@ assert(
   mozjpegEncoderWasmAssets.length === 1,
   `Expected exactly one MozJPEG encoder WASM asset after the generated wrapper patch, found ${mozjpegEncoderWasmAssets.length}.`,
 );
-assert(oxipngWasmAssets.length >= 1, 'Expected emitted OxiPNG WASM asset.');
+assert(
+  oxipngWasmAssets.length === 1,
+  `Expected exactly one OxiPNG WASM asset after the generated wrapper patch, found ${oxipngWasmAssets.length}.`,
+);
 assert(
   imagequantWasmAssets.length === 1,
   `Expected exactly one ImageQuant WASM asset after the generated wrapper patch, found ${imagequantWasmAssets.length}.`,
@@ -344,8 +347,8 @@ assert(
   'Missing emitted generated WebP features-worker asset.',
 );
 assert(
-  workerHelperAssets.length >= 1,
-  'Expected emitted OxiPNG parallel worker helper asset to remain visible for threaded-runtime migration analysis.',
+  workerHelperAssets.length === 0,
+  `Expected no OxiPNG parallel worker helper assets when the prototype injects the single-thread runtime, found ${workerHelperAssets.length}.`,
 );
 assert(
   immutableWorkerAsset,

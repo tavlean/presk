@@ -174,7 +174,10 @@ npm audit --audit-level=low
   `worker-shared` alias through SvelteKit, generates an OxiPNG WASM URL
   manifest, passes it through the SvelteKit worker bridge, verifies PNG
   `89 50 4e 47` output from the existing OxiPNG worker module, and confirms
-  service-worker cache coverage for the single-thread OxiPNG WASM asset.
+  service-worker cache coverage for the single-thread OxiPNG WASM asset. The
+  prototype imports a generated patched single-thread wasm-bindgen wrapper copy
+  through the shared OxiPNG runtime seam, so static output emits one canonical
+  OxiPNG WASM asset and no parallel OxiPNG worker-helper assets.
 
 ## Readiness verdict
 
@@ -325,7 +328,8 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   `avifEncode`, `rotate`, QOI encode/decode, single-thread `jxlEncode` plus
   `jxlDecode`, `mozjpegEncode`, `quantize`, worker `resize`, and single-thread
   `oxipngEncode`; full production parity is blocked by threaded WASM runtime
-  headers/nested-worker behavior, remaining `url:` WASM imports, stricter
+  headers/nested-worker behavior for AVIF, JPEG XL, and OxiPNG, remaining
+  `url:` WASM imports, stricter
   worker `ArrayBufferLike` types, and remaining codec asset URLs.
 - Do not spend more prototype effort on WebP 2. It remains filtered from the
   generated SvelteKit worker surface because it is not currently a serious

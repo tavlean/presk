@@ -459,9 +459,11 @@ Worker-bridge seam progress:
   `.svelte-kit/sqush-generated/codec-assets/oxipng.ts`, passes the OxiPNG WASM
   URL through the SvelteKit worker bridge, verifies PNG `89 50 4e 47` output in
   the runtime pipeline probe, and audits service-worker cache coverage for the
-  single-thread OxiPNG WASM asset. Importing the OxiPNG module still emits the
-  parallel wasm-bindgen helper and parallel WASM assets, but the prototype does
-  not enable or cache that threaded runtime path yet.
+  single-thread OxiPNG WASM asset. The production OxiPNG worker now keeps its
+  lazy threaded-capable adapter while exposing an injectable runtime factory,
+  and the prototype imports a generated patched single-thread wasm-bindgen
+  wrapper copy so static output emits exactly one canonical OxiPNG WASM asset
+  and no parallel OxiPNG worker-helper assets.
 
 Next worker seam: do not spend more migration-seams effort on WebP 2 unless a
 fresh product decision makes it a serious target again. WebP 2 is intentionally
@@ -479,13 +481,15 @@ Full worker-surface blocker inventory:
   encode, single-thread OxiPNG encode, quantize, and worker resize now have
   narrow generated SvelteKit paths, but the broader production worker surface
   remains intentionally filtered.
-- AVIF and JPEG XL threaded workers still need focused threaded-codec passes.
+- AVIF, JPEG XL, and production-threaded OxiPNG workers still need focused
+  threaded-codec passes.
   `worker-shared/supports-wasm-threads` now has a SvelteKit alias shape, but the
   actual threaded WASM runtime still needs COOP/COEP, nested-worker, worker
   helper asset, and service-worker cache proof before those threaded paths can
   be considered production-ready. AVIF now has a proven forced single-thread
-  encode path, and JPEG XL now has a proven forced single-thread encode/decode
-  path, but those do not prove the threaded runtime.
+  encode path, JPEG XL now has a proven forced single-thread encode/decode path,
+  and OxiPNG now has a proven injected single-thread encode path, but those do
+  not prove the threaded runtime.
 - WebP 2 is intentionally out of scope for continued prototype work. Keep it
   filtered from the SvelteKit worker surface and avoid spending engineering time
   on its asset/threading seams unless the product direction changes.
