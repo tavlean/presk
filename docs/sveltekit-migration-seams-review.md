@@ -55,6 +55,7 @@ the candidate set to merge or cherry-pick into `main` after verification:
   probes that preserve the default threaded-capable production path while
   letting the prototype force single-thread runtime paths.
 - `src/features/encoders/webP/worker/webpEncode.ts`,
+  `src/features/encoders/webP/worker/runtime.ts`,
   `src/features/encoders/oxiPNG/worker/oxipngEncode.ts`,
   `src/features/processors/resize/worker/resize.ts`,
   `src/features/processors/quantize/worker/quantize.ts`, and

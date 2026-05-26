@@ -16,7 +16,9 @@ and WASM files, but the prototype found two production risks:
   through different graph roots and receive different emitted URLs;
 - Emscripten wrappers still contain `new URL("*.wasm", import.meta.url)` fallback
   references, so Vite may emit worker-local physical duplicates even when
-  runtime loading is redirected through `locateFile`.
+  runtime loading is redirected through `locateFile`. The prototype now proves
+  a WebP-only post-generation wrapper patch can strip those fallback references
+  without editing committed codec artifacts.
 
 The migration goal is one generated URL record per logical codec asset, consumed
 by the app worker bridge, codec workers, and service-worker cache plan.
@@ -44,8 +46,10 @@ The prototype already proves the useful shape:
   functions instead of relying on wrapper-local URL discovery.
 
 The prototype also deliberately audits duplicate assets. `audit:static-output`
-expects WebP and rotate duplicates to remain visible today because the existing
-wrappers still embed worker-local URL references.
+now expects WebP encoder WASM to be emitted once from the canonical generated
+URL records after the generated wrapper patch. Rotate duplicates remain visible
+because the prototype still imports both the canonical rotate URL and the
+worker-local wasm-bindgen fallback.
 
 ## Canonical manifest shape
 
@@ -120,7 +124,13 @@ Implementation order:
 5. Pick one Emscripten codec, preferably WebP, and prove a wrapper patch or
    generation option that removes worker-local `new URL("*.wasm",
 import.meta.url)` references while preserving runtime `locateFile` behavior.
-6. Repeat only after root checks, prototype checks, service-worker cache audit,
+   Proven for the WebP encoder wrappers on `code/sveltekit-migration-seams`
+   with prototype-generated patched wrapper copies and an injectable WebP
+   encode runtime.
+6. Decide whether production should use an equivalent post-generation transform,
+   a codec rebuild option, or a checked-in wrapper patch before broadening the
+   approach to other Emscripten codecs.
+7. Repeat only after root checks, prototype checks, service-worker cache audit,
    and browser runtime verification pass.
 
 ## Acceptance gates

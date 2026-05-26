@@ -274,12 +274,12 @@ assert(
   'Missing generated worker-local rotate WASM asset.',
 );
 assert(
-  baselineWasmAssets.length >= 2,
-  'Expected duplicate baseline WebP WASM assets to remain visible for migration analysis.',
+  baselineWasmAssets.length === 1,
+  `Expected exactly one baseline WebP WASM asset after the generated wrapper patch, found ${baselineWasmAssets.length}.`,
 );
 assert(
-  simdWasmAssets.length >= 2,
-  'Expected duplicate SIMD WebP WASM assets to remain visible for migration analysis.',
+  simdWasmAssets.length === 1,
+  `Expected exactly one SIMD WebP WASM asset after the generated wrapper patch, found ${simdWasmAssets.length}.`,
 );
 assert(
   webpDecoderWasmAssets.length >= 1,

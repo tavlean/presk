@@ -11,34 +11,18 @@
  * limitations under the License.
  */
 import type { WebPModule } from 'codecs/webp/enc/webp_enc';
-import type { EncodeOptions } from '../shared/meta';
 
-import { initEmscriptenModule } from 'features/worker-utils';
 import { simd } from 'wasm-feature-detect';
+import { createWebpEncoderRuntime } from './runtime';
 
-let emscriptenModule: Promise<WebPModule>;
-
-async function init() {
-  if (await simd()) {
+export default createWebpEncoderRuntime({
+  detectSimd: simd,
+  async loadBaseline() {
+    const webpEncoder = await import('codecs/webp/enc/webp_enc');
+    return webpEncoder.default as EmscriptenWasm.ModuleFactory<WebPModule>;
+  },
+  async loadSimd() {
     const webpEncoder = await import('codecs/webp/enc/webp_enc_simd');
-    return initEmscriptenModule(webpEncoder.default);
-  }
-  const webpEncoder = await import('codecs/webp/enc/webp_enc');
-  return initEmscriptenModule(webpEncoder.default);
-}
-
-export default async function encode(
-  data: ImageData,
-  options: EncodeOptions,
-): Promise<ArrayBuffer> {
-  if (!emscriptenModule) emscriptenModule = init();
-
-  const module = await emscriptenModule;
-  const result = module.encode(data.data, data.width, data.height, options);
-
-  if (!result) throw new Error('Encoding error.');
-
-  const output = new Uint8Array(result.byteLength);
-  output.set(result);
-  return output.buffer as ArrayBuffer;
-}
+    return webpEncoder.default as EmscriptenWasm.ModuleFactory<WebPModule>;
+  },
+});

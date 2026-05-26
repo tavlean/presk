@@ -1,5 +1,7 @@
-import encodeWebp from '../../../../src/features/encoders/webP/worker/webpEncode';
+import { createWebpEncoderRuntime } from '../../../../src/features/encoders/webP/worker/runtime';
 import { defaultOptions } from 'features/encoders/webP/shared/meta';
+import webpEncoder from 'sqush-generated/codecs/webp/enc/webp_enc';
+import webpEncoderSimd from 'sqush-generated/codecs/webp/enc/webp_enc_simd';
 
 interface WebpEncodeProbeRequest {
   type: 'encode';
@@ -24,6 +26,12 @@ function hex(bytes: Uint8Array): string {
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join(' ');
 }
+
+const encodeWebp = createWebpEncoderRuntime({
+  detectSimd: async () => true,
+  loadBaseline: async () => webpEncoder,
+  loadSimd: async () => webpEncoderSimd,
+});
 
 async function encodeSyntheticWebp() {
   const output = await encodeWebp(createSyntheticImageData(), {

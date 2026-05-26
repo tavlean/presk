@@ -482,6 +482,13 @@ Full worker-surface blocker inventory:
 - Resize now has a proven split: production keeps default wasm-bindgen
   initialization, while the SvelteKit generated worker passes resize/HQX WASM
   URLs from a generated Vite `?url` asset manifest.
+- The WebP encode worker now has an injectable runtime seam. Production keeps
+  the default dynamic imports, while the SvelteKit prototype passes
+  prototype-generated patched WebP encoder wrapper copies that strip
+  Emscripten's worker-local fallback `new URL("webp_enc*.wasm",
+import.meta.url)` references. Runtime loading still uses generated manifest
+  URLs through `locateFile`, and the static-output audit now expects exactly one
+  baseline and one SIMD WebP encoder WASM output.
 - Importing the production generated `feature-meta/index.ts` from SvelteKit
   still pulls Preact `.tsx` encoder option entries. The production generator now
   emits `feature-meta/encoders.ts` as the SvelteKit-safe encode runtime map, and
