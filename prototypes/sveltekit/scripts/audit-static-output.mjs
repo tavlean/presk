@@ -27,6 +27,50 @@ function assert(condition, message) {
   }
 }
 
+function assertDeepEqual(actual, expected, message) {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error(
+      `${message}\nExpected: ${JSON.stringify(
+        expected,
+      )}\nActual: ${JSON.stringify(actual)}`,
+    );
+  }
+}
+
+function parseGeneratedCodecAssetRecords(source, exportName) {
+  const arrayMatch = source.match(
+    new RegExp(
+      `export const ${exportName} = \\[([\\s\\S]*?)\\] satisfies readonly CodecAssetRecord\\[];`,
+    ),
+  );
+  assert(arrayMatch, `Could not find generated ${exportName} records.`);
+
+  const objectMatches = [
+    ...arrayMatch[1].matchAll(
+      /\{\s*logicalKey:\s*'([^']+)',\s*codec:\s*'([^']+)',\s*role:\s*'([^']+)',\s*variant:\s*'([^']+)',\s*url:\s*([A-Za-z0-9_$]+),\s*cache:\s*'([^']+)'\s*\}/g,
+    ),
+  ];
+
+  return objectMatches.map((match) => ({
+    logicalKey: match[1],
+    codec: match[2],
+    role: match[3],
+    variant: match[4],
+    urlBinding: match[5],
+    cache: match[6],
+  }));
+}
+
+function assertUnique(values, label) {
+  const duplicates = values.filter(
+    (value, index) => values.indexOf(value) !== index,
+  );
+  assert(
+    duplicates.length === 0,
+    `Duplicate ${label}: ${duplicates.join(', ')}.`,
+  );
+}
+
 const files = await listFiles(buildDir);
 const serviceWorker = await readFile(
   join(buildDir, 'service-worker.js'),
@@ -203,23 +247,119 @@ const immutableFeaturesWorkerAsset = files.find(
     /^_app\/immutable\/workers\/webp-[A-Za-z0-9_-]+\.js$/.test(file) &&
     file.endsWith('.js'),
 );
-const expectedLogicalAssetKeys = [
-  'avif:decoder:default',
-  'avif:encoder:single-thread',
-  'webp:decoder:default',
-  'webp:encoder:baseline',
-  'webp:encoder:simd',
-  'qoi:decoder:default',
-  'qoi:encoder:default',
-  'jxl:decoder:default',
-  'jxl:encoder:single-thread',
-  'mozjpeg:encoder:default',
-  'oxipng:encoder:single-thread',
-  'imagequant:processor:default',
-  'resize:processor:default',
-  'hqx:processor:hqx',
-  'rotate:preprocessor:default',
+const expectedLogicalAssetRecords = [
+  {
+    logicalKey: 'avif:decoder:default',
+    codec: 'avif',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'avif:encoder:single-thread',
+    codec: 'avif',
+    role: 'encoder',
+    variant: 'single-thread',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'webp:decoder:default',
+    codec: 'webp',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'webp:encoder:baseline',
+    codec: 'webp',
+    role: 'encoder',
+    variant: 'baseline',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'webp:encoder:simd',
+    codec: 'webp',
+    role: 'encoder',
+    variant: 'simd',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'qoi:decoder:default',
+    codec: 'qoi',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'qoi:encoder:default',
+    codec: 'qoi',
+    role: 'encoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'jxl:decoder:default',
+    codec: 'jxl',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'jxl:encoder:single-thread',
+    codec: 'jxl',
+    role: 'encoder',
+    variant: 'single-thread',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'mozjpeg:encoder:default',
+    codec: 'mozjpeg',
+    role: 'encoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'oxipng:encoder:single-thread',
+    codec: 'oxipng',
+    role: 'encoder',
+    variant: 'single-thread',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'imagequant:processor:default',
+    codec: 'imagequant',
+    role: 'processor',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'resize:processor:default',
+    codec: 'resize',
+    role: 'processor',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'hqx:processor:hqx',
+    codec: 'hqx',
+    role: 'processor',
+    variant: 'hqx',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'rotate:preprocessor:default',
+    codec: 'rotate',
+    role: 'preprocessor',
+    variant: 'default',
+    cache: 'runtime',
+  },
 ];
+const expectedLogicalAssetKeys = expectedLogicalAssetRecords.map(
+  (record) => record.logicalKey,
+);
+const expectedPrecacheLogicalAssetKeys = expectedLogicalAssetRecords
+  .filter((record) => record.cache === 'precache')
+  .map((record) => record.logicalKey);
 const physicalWasmGroups = [
   ['webp:encoder:baseline', baselineWasmAssets],
   ['webp:encoder:simd', simdWasmAssets],
@@ -367,6 +507,14 @@ assert(
   'Generated codec asset manifest does not expose logical asset records.',
 );
 assert(
+  generatedCodecAssetManifest.includes("from 'shared/codec-assets'"),
+  'Generated codec asset manifest does not consume the shared codec asset contract.',
+);
+assert(
+  generatedCodecAssetManifest.includes('getPrecacheCodecAssetRecords'),
+  'Generated codec asset manifest does not use the shared precache record helper.',
+);
+assert(
   generatedCodecAssetManifest.includes('precacheCodecAssetUrls'),
   'Generated codec asset manifest does not expose derived precache URLs.',
 );
@@ -375,13 +523,63 @@ assert(
   'Generated codec asset precache manifest does not expose precache URLs.',
 );
 assert(
+  generatedCodecAssetPrecacheManifest.includes("from 'shared/codec-assets'"),
+  'Generated codec asset precache manifest does not consume the shared codec asset contract.',
+);
+assert(
   !generatedCodecAssetPrecacheManifest.includes('rotate:preprocessor:default'),
   'Generated codec asset precache manifest should not import runtime-only rotate WASM.',
 );
-for (const logicalAssetKey of expectedLogicalAssetKeys) {
+const generatedLogicalAssetRecords = parseGeneratedCodecAssetRecords(
+  generatedCodecAssetManifest,
+  'svelteKitCodecAssetRecords',
+);
+const generatedPrecacheAssetRecords = parseGeneratedCodecAssetRecords(
+  generatedCodecAssetPrecacheManifest,
+  'precacheCodecAssetRecords',
+);
+assertDeepEqual(
+  generatedLogicalAssetRecords.map((record) => record.logicalKey),
+  expectedLogicalAssetKeys,
+  'Generated codec asset manifest has an unexpected logical record order or key set.',
+);
+assertDeepEqual(
+  generatedPrecacheAssetRecords.map((record) => record.logicalKey),
+  expectedPrecacheLogicalAssetKeys,
+  'Generated codec asset precache manifest has an unexpected logical record order or key set.',
+);
+assertUnique(
+  generatedLogicalAssetRecords.map((record) => record.logicalKey),
+  'codec asset logical keys',
+);
+assertUnique(
+  generatedLogicalAssetRecords.map((record) => record.urlBinding),
+  'codec asset URL bindings',
+);
+for (const expectedRecord of expectedLogicalAssetRecords) {
+  const generatedRecord = generatedLogicalAssetRecords.find(
+    (record) => record.logicalKey === expectedRecord.logicalKey,
+  );
   assert(
-    generatedCodecAssetManifest.includes(logicalAssetKey),
-    `Generated codec asset manifest is missing ${logicalAssetKey}.`,
+    generatedRecord,
+    `Generated codec asset manifest is missing ${expectedRecord.logicalKey}.`,
+  );
+  assertDeepEqual(
+    {
+      logicalKey: generatedRecord.logicalKey,
+      codec: generatedRecord.codec,
+      role: generatedRecord.role,
+      variant: generatedRecord.variant,
+      cache: generatedRecord.cache,
+    },
+    expectedRecord,
+    `Generated codec asset manifest has an unexpected record for ${expectedRecord.logicalKey}.`,
+  );
+}
+for (const precacheRecord of generatedPrecacheAssetRecords) {
+  assert(
+    precacheRecord.cache === 'precache',
+    `Generated codec asset precache manifest contains non-precache record ${precacheRecord.logicalKey}.`,
   );
 }
 assert(

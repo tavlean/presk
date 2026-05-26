@@ -40,6 +40,11 @@ The prototype already proves the useful shape:
   `CodecAssetRecord` contract plus helper filters for precache records and
   URLs. The prototype generator imports those shared helpers instead of
   defining a SvelteKit-only record shape.
+- `prototypes/sveltekit/scripts/audit-static-output.mjs` parses the generated
+  manifest and precache manifest, then verifies exact logical keys, cache
+  classes, URL binding uniqueness, and runtime-only exclusions. This makes the
+  canonical manifest contract part of the static-output audit instead of a
+  prose-only convention.
 - `src/features/worker-utils/index.ts` passes
   `globalThis.__squshEmscriptenLocateFile` into Emscripten modules, letting the
   prototype route WebP, AVIF, QOI, JPEG XL, MozJPEG, and ImageQuant runtime
@@ -123,8 +128,9 @@ Implementation order:
 3. Replace prototype handwritten `codecAssetUrls` aggregation with records
    derived from that manifest. Proven on `code/sveltekit-migration-seams`.
 4. Update `audit:static-output` to report duplicate physical outputs by logical
-   asset, while still allowing known wrapper duplicates until the wrappers are
-   patched or regenerated. Proven on `code/sveltekit-migration-seams`.
+   asset and validate the generated manifest contract, while still allowing
+   known wrapper duplicates until the wrappers are patched or regenerated.
+   Proven on `code/sveltekit-migration-seams`.
 5. Keep a separate generated precache manifest that imports only assets marked
    `precache`, so runtime-only assets do not get inlined into the service-worker
    bundle. Proven on `code/sveltekit-migration-seams`.

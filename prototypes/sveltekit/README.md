@@ -235,6 +235,9 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   `src/shared/codec-assets.ts` `CodecAssetRecord` contract and precache helpers,
   so the prototype proves a production-source manifest shape instead of carrying
   a SvelteKit-only record type.
+- The static-output audit now parses those generated manifests and verifies
+  exact logical asset keys, cache classes, unique URL bindings, and exclusion of
+  runtime-only records from the precache manifest.
 - SvelteKit/Vite can emit the small rotate WASM as a file when WASM inlining is
   disabled. This matters because the default Vite inline limit otherwise turns
   tiny WASM imports into `data:` URLs, which hides the asset from explicit
