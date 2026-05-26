@@ -236,7 +236,9 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   green. Disposable prototype evidence under `prototypes/sveltekit/`, generated
   SvelteKit manifests, diagnostic route UI, static-output audit scripts, and
   prototype package dependencies should stay out of `main` unless explicitly
-  accepted.
+  accepted. Use
+  [SvelteKit migration seams review](sveltekit-migration-seams-review.md) as the
+  file-level inventory for that split.
 - After the safe seams land, branch the next focused track from updated `main`.
   If review is still in progress, branch from `code/sveltekit-migration-seams`
   and rebase or cherry-pick later. The next track should be either threaded

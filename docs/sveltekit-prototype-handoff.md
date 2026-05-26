@@ -102,9 +102,12 @@ Read these before working:
 
 - `docs/phase-1-readiness-audit.md`
 - `docs/svelte-migration-context.md`
+- `docs/sveltekit-migration-seams-review.md`
 - `docs/bulk-image-architecture.md`
 - `docs/progress-dashboard.md`
 - `docs/maintenance-status.md`
+- `docs/codec-provenance.md`
+- `docs/codec-source-references.md`
 - `AGENTS.md`
 
 ## Current recommendation
@@ -501,6 +504,10 @@ and the review confirms the current Preact app still owns production routing and
 service-worker behavior. Keep prototype evidence available on the branch as the
 reasoning record, but do not merge it unless the maintainer explicitly wants the
 prototype tree preserved in `main`.
+
+Use `docs/sveltekit-migration-seams-review.md` as the review inventory. It
+lists the production-safe seam candidates, prototype-only evidence, unresolved
+follow-up tracks, and verification gates for any source-safe subset.
 
 ### Next branch plan
 
