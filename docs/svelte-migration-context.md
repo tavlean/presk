@@ -243,7 +243,9 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   If review is still in progress, branch from `code/sveltekit-migration-seams`
   and rebase or cherry-pick later. The next track should be either threaded
   codec runtime proof, canonical codec worker/WASM asset URLs, or the minimal
-  SvelteKit single-image slice once those risks are understood.
+  SvelteKit single-image slice once those risks are understood. Use
+  [SvelteKit codec asset strategy](sveltekit-codec-asset-strategy.md) for the
+  canonical asset branch.
 - Do not start `code/sveltekit-single-image-slice` as a full app migration. Its
   target is one real user-selected file path that proves import, decode,
   process, encode, preview, export, and offline behavior. Start with WebP, add

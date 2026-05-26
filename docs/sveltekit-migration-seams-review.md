@@ -99,7 +99,9 @@ Do not merge these as solved just because the single-thread prototype passes:
   proof.
 - Canonical codec worker/WASM asset URL strategy: the prototype controls
   runtime URLs but still documents physical duplication from Emscripten
-  `new URL(..., import.meta.url)` references.
+  `new URL(..., import.meta.url)` references. Use
+  [SvelteKit codec asset strategy](sveltekit-codec-asset-strategy.md) as the
+  implementation plan for this follow-up.
 - Full production `features-worker` import from SvelteKit: still intentionally
   filtered to avoid pulling every codec and unresolved asset/threading path into
   the prototype.
@@ -133,7 +135,8 @@ those seams land. If review is still in progress, branch from
 Recommended order:
 
 1. `code/sveltekit-codec-assets`: decide canonical codec worker/WASM asset URL
-   generation or wrapper externalization.
+   generation or wrapper externalization, following
+   [SvelteKit codec asset strategy](sveltekit-codec-asset-strategy.md).
 2. `code/sveltekit-threaded-codecs`: prove threaded AVIF, JPEG XL, and OxiPNG
    runtime behavior under static SvelteKit output.
 3. `code/sveltekit-single-image-slice`: build the minimal real-file SvelteKit

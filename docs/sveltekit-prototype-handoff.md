@@ -103,6 +103,7 @@ Read these before working:
 - `docs/phase-1-readiness-audit.md`
 - `docs/svelte-migration-context.md`
 - `docs/sveltekit-migration-seams-review.md`
+- `docs/sveltekit-codec-asset-strategy.md`
 - `docs/bulk-image-architecture.md`
 - `docs/progress-dashboard.md`
 - `docs/maintenance-status.md`
@@ -508,6 +509,8 @@ prototype tree preserved in `main`.
 Use `docs/sveltekit-migration-seams-review.md` as the review inventory. It
 lists the production-safe seam candidates, prototype-only evidence, unresolved
 follow-up tracks, and verification gates for any source-safe subset.
+Use `docs/sveltekit-codec-asset-strategy.md` for the canonical codec
+worker/WASM URL plan before starting the codec-asset branch.
 
 ### Next branch plan
 
