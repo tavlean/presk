@@ -107,6 +107,11 @@ The focused codec list being considered is:
 - AVIF
 - JPEG XL
 
+WebP 2 is intentionally excluded from this product direction. Keep the inherited
+WP2 provenance notes for historical accuracy, but do not spend roadmap,
+SvelteKit prototype, or migration-seams effort on WP2 unless it becomes a
+serious product target again.
+
 To reduce risk, first hide unwanted codecs from product UI after design discussion. Delete codec code only after:
 
 1. The focused bulk workflow works.

@@ -171,6 +171,10 @@ The current app supports many formats. For this fork, a smaller codec surface pr
 
 ### Recommended product formats
 
+Do not spend product, prototype, or migration effort on WebP 2 unless the codec
+becomes a serious web-platform contender again. It is not part of the active
+roadmap.
+
 1. WebP 1
 
    - Keep as the default first-class output.
@@ -191,6 +195,7 @@ The current app supports many formats. For this fork, a smaller codec surface pr
 
 ### Formats to consider removing from the main UI
 
+- WebP 2
 - Browser JPEG
 - Browser PNG
 - Browser GIF
