@@ -34,6 +34,7 @@
     "../../src/client/lazy-app/sw-bridge/runtime.ts",
     "../../src/client/lazy-app/sw-bridge/support.ts",
     "../../src/client/lazy-app/util/canvas.ts",
+    "../../src/shared/codec-assets.ts",
     "../../src/sw/cache-plan.ts"
   ]
 }

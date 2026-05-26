@@ -540,6 +540,11 @@ Full worker-surface blocker inventory:
   planner and `active-to-cache.ts` boundary exclude WebP 2, but production
   `to-cache.ts` still preserves the current full cache behavior until product
   removal is a separate cleanup decision.
+- Codec asset records now use the shared `src/shared/codec-assets.ts`
+  `CodecAssetRecord` contract and precache URL helpers. The prototype generator
+  still owns the SvelteKit `?url` imports, but app, worker, and service-worker
+  code now agree on a production-source manifest shape instead of a
+  prototype-only type.
 - Rotate now has a proven split: production keeps the Rollup `url:` adapter,
   while the SvelteKit generated worker imports the shared rotate runtime with a
   generated Vite `?url` asset manifest.

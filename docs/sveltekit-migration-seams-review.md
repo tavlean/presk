@@ -63,6 +63,10 @@ the candidate set to merge or cherry-pick into `main` after verification:
   WebP, and AVIF support detection for both cache boundaries. The active
   cache-planning helper and active cache boundary exclude WebP 2 while the
   current production cache path remains full for existing behavior.
+- `src/shared/codec-assets.ts`: build-tool-neutral codec asset record contract
+  and helper filters for canonical generated asset manifests. The SvelteKit
+  prototype generator consumes this shared seam instead of defining a
+  prototype-only `CodecAssetRecord` shape.
 - `src/features/**/client/runtime.ts`: runtime-only encoder/processor clients
   split from Preact option controls for browser encoders, WebP, AVIF, JPEG XL,
   QOI, MozJPEG, OxiPNG, and resize.
@@ -160,6 +164,7 @@ that touch runtime, worker, codec, or service-worker behavior.
 
 4. Service-worker cache boundaries
 
+   - `src/shared/codec-assets.ts`
    - `src/client/lazy-app/sw-bridge/runtime.ts`
    - `src/client/lazy-app/sw-bridge/index.ts`
    - `src/sw/cache-plan.ts`

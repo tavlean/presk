@@ -1,0 +1,60 @@
+/**
+ * Copyright 2026 Sqush Contributors.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+export type CodecAssetCodec =
+  | 'avif'
+  | 'hqx'
+  | 'imagequant'
+  | 'jxl'
+  | 'mozjpeg'
+  | 'oxipng'
+  | 'qoi'
+  | 'resize'
+  | 'rotate'
+  | 'webp';
+
+export type CodecAssetRole =
+  | 'decoder'
+  | 'encoder'
+  | 'processor'
+  | 'preprocessor'
+  | 'worker-helper';
+
+export type CodecAssetVariant =
+  | 'baseline'
+  | 'default'
+  | 'hqx'
+  | 'simd'
+  | 'single-thread'
+  | 'multi-thread';
+
+export type CodecAssetCache = 'precache' | 'runtime' | 'threaded-only';
+
+export interface CodecAssetRecord {
+  logicalKey: string;
+  codec: CodecAssetCodec;
+  role: CodecAssetRole;
+  variant: CodecAssetVariant;
+  url: string;
+  cache: CodecAssetCache;
+}
+
+export function getPrecacheCodecAssetRecords<
+  RecordType extends CodecAssetRecord,
+>(records: readonly RecordType[]): RecordType[] {
+  return records.filter((record) => record.cache === 'precache');
+}
+
+export function getCodecAssetUrls(
+  records: readonly CodecAssetRecord[],
+): string[] {
+  return [...new Set(records.map((record) => record.url))];
+}
+
+export function getPrecacheCodecAssetUrls(
+  records: readonly CodecAssetRecord[],
+): string[] {
+  return getCodecAssetUrls(getPrecacheCodecAssetRecords(records));
+}
