@@ -63,6 +63,9 @@ const simdWasmAssets = files
 const webpDecoderWasmAssets = files
   .filter((file) => file.includes('webp_dec') && file.endsWith('.wasm'))
   .sort();
+const avifDecoderWasmAssets = files
+  .filter((file) => file.includes('avif_dec') && file.endsWith('.wasm'))
+  .sort();
 const rotateWasmAssets = files
   .filter((file) => file.includes('rotate') && file.endsWith('.wasm'))
   .sort();
@@ -102,6 +105,9 @@ const simdWasmAsset = files.find(
 );
 const webpDecoderWasmAsset = files.find(
   (file) => file.includes('/webp_dec.') && file.endsWith('.wasm'),
+);
+const avifDecoderWasmAsset = files.find(
+  (file) => file.includes('/avif_dec.') && file.endsWith('.wasm'),
 );
 const rotateWasmAsset = files.find(
   (file) =>
@@ -180,6 +186,7 @@ assert(pageCssAsset, 'Missing emitted SvelteKit page CSS asset.');
 assert(wasmAsset, 'Missing emitted WebP WASM asset from the worker probe.');
 assert(simdWasmAsset, 'Missing emitted SIMD WebP WASM asset.');
 assert(webpDecoderWasmAsset, 'Missing emitted WebP decoder WASM asset.');
+assert(avifDecoderWasmAsset, 'Missing emitted AVIF decoder WASM asset.');
 assert(rotateWasmAsset, 'Missing emitted rotate WASM asset.');
 assert(qoiEncoderWasmAsset, 'Missing emitted QOI encoder WASM asset.');
 assert(qoiDecoderWasmAsset, 'Missing emitted QOI decoder WASM asset.');
@@ -203,6 +210,10 @@ assert(
 assert(
   webpDecoderWasmAssets.length >= 1,
   'Expected emitted WebP decoder WASM asset.',
+);
+assert(
+  avifDecoderWasmAssets.length >= 1,
+  'Expected emitted AVIF decoder WASM asset.',
 );
 assert(
   rotateWasmAssets.length >= 2,
@@ -266,6 +277,10 @@ assert(
 assert(
   serviceWorker.includes(webpDecoderWasmAsset),
   `Service-worker build manifest does not include ${webpDecoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(avifDecoderWasmAsset),
+  `Service-worker build manifest does not include ${avifDecoderWasmAsset}.`,
 );
 assert(
   serviceWorker.includes(rotateWasmAsset),
@@ -356,6 +371,7 @@ console.log(
     `WASM asset: ${wasmAsset}`,
     `SIMD WASM asset: ${simdWasmAsset}`,
     `WebP decoder WASM asset: ${webpDecoderWasmAsset}`,
+    `AVIF decoder WASM asset: ${avifDecoderWasmAsset}`,
     `Rotate WASM asset: ${rotateWasmAsset}`,
     `QOI encoder WASM asset: ${qoiEncoderWasmAsset}`,
     `QOI decoder WASM asset: ${qoiDecoderWasmAsset}`,
@@ -371,6 +387,8 @@ console.log(
     ...simdWasmAssets.map((asset) => `  - ${asset}`),
     `WebP decoder WASM copies: ${webpDecoderWasmAssets.length}`,
     ...webpDecoderWasmAssets.map((asset) => `  - ${asset}`),
+    `AVIF decoder WASM copies: ${avifDecoderWasmAssets.length}`,
+    ...avifDecoderWasmAssets.map((asset) => `  - ${asset}`),
     `Rotate WASM copies: ${rotateWasmAssets.length}`,
     ...rotateWasmAssets.map((asset) => `  - ${asset}`),
     `QOI encoder WASM copies: ${qoiEncoderWasmAssets.length}`,

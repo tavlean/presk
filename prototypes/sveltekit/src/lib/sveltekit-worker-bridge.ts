@@ -8,6 +8,7 @@ import type { WorkerResizeOptions } from 'features/processors/resize/shared/meta
 import type { Options as RotateOptions } from 'features/preprocessors/rotate/shared/meta';
 import { methodNames } from 'sqush-generated/worker-bridge/meta';
 import type {
+  AvifWasmUrls,
   ImagequantWasmUrls,
   MozjpegWasmUrls,
   OxipngWasmUrls,
@@ -16,6 +17,7 @@ import type {
   WebpWasmUrls,
 } from 'sqush-generated/features-worker/webp';
 import {
+  avifDecoderWasmUrl,
   hqxWasmUrl,
   imagequantWasmUrl,
   mozjpegEncoderWasmUrl,
@@ -30,6 +32,7 @@ import {
 } from './codec-assets';
 
 export interface SvelteKitWorkerBridgeApi {
+  avifDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
   webpEncode(
     signal: AbortSignal,
     imageData: ImageData,
@@ -71,6 +74,11 @@ export interface SvelteKitWorkerBridgeApi {
 }
 
 interface SvelteKitWorkerBridgeWorkerApi {
+  avifDecode(
+    signal: AbortSignal,
+    blob: Blob,
+    wasmUrls: AvifWasmUrls,
+  ): Promise<ImageData>;
   webpEncode(
     signal: AbortSignal,
     imageData: ImageData,
@@ -130,6 +138,12 @@ export default class SvelteKitWorkerBridge
   implements SvelteKitWorkerBridgeApi
 {
   declare rotate: SvelteKitWorkerBridgeApi['rotate'];
+
+  avifDecode(signal: AbortSignal, blob: Blob): Promise<ImageData> {
+    return super.avifDecode(signal, blob, {
+      decoder: avifDecoderWasmUrl,
+    });
+  }
 
   webpEncode(
     signal: AbortSignal,

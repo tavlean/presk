@@ -2,6 +2,10 @@ import codecAssetProbeWorkerUrl from './codec-asset-probe.worker.ts?worker&url';
 import webpEncodeProbeWorkerUrl from './webp-encode-probe.worker.ts?worker&url';
 import svelteKitFeaturesWorkerUrl from 'sqush-generated/features-worker/webp.ts?worker&url';
 import {
+  avifCodecAssetUrls,
+  avifDecoderWasmUrl,
+} from 'sqush-generated/codec-assets/avif';
+import {
   webpCodecAssetUrls,
   webpDecoderWasmUrl,
   webpEncoderSimdWasmUrl,
@@ -35,6 +39,8 @@ import {
 } from 'sqush-generated/codec-assets/resize';
 
 export {
+  avifCodecAssetUrls,
+  avifDecoderWasmUrl,
   codecAssetProbeWorkerUrl,
   hqxWasmUrl,
   imagequantCodecAssetUrls,
@@ -62,6 +68,7 @@ export const codecAssetUrls = [
   codecAssetProbeWorkerUrl,
   webpEncodeProbeWorkerUrl,
   svelteKitFeaturesWorkerUrl,
+  ...avifCodecAssetUrls,
   ...webpCodecAssetUrls,
   ...qoiCodecAssetUrls,
   ...mozjpegCodecAssetUrls,

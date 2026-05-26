@@ -8,6 +8,7 @@ import {
   type BulkImageSettings,
 } from '../../../../src/client/lazy-app/bulk/settings';
 import { createImageJob } from '../../../../src/client/lazy-app/bulk/session';
+import tinyAvifUrl from 'sw/tiny.avif?url';
 import {
   compressImage,
   decodeSourceImage,
@@ -42,6 +43,8 @@ export interface WebpPipelineProbeResult {
   webpSignature: string;
   webpDecodedWidth: number;
   webpDecodedHeight: number;
+  avifDecodedWidth: number;
+  avifDecodedHeight: number;
   qoiOutputBytes: number;
   qoiSignature: string;
   qoiDecodedWidth: number;
@@ -165,6 +168,7 @@ export async function runWebpPipelineProbe(
   );
   let outputFile: File;
   let webpDecoded: ImageData;
+  let avifDecoded: ImageData;
   let qoiOutput: ArrayBuffer;
   let qoiDecoded: ImageData;
   let jpegOutput: ArrayBuffer;
@@ -181,6 +185,10 @@ export async function runWebpPipelineProbe(
       workerBridge as unknown as Parameters<typeof compressImage>[4],
     );
     webpDecoded = await workerBridge.webpDecode(signal, outputFile);
+    avifDecoded = await workerBridge.avifDecode(
+      signal,
+      await fetch(tinyAvifUrl).then((response) => response.blob()),
+    );
     qoiOutput = await workerBridge.qoiEncode(signal, processed, {});
     qoiDecoded = await workerBridge.qoiDecode(
       signal,
@@ -245,6 +253,8 @@ export async function runWebpPipelineProbe(
     webpSignature: ascii.decode(outputBytes.slice(8, 12)),
     webpDecodedWidth: webpDecoded.width,
     webpDecodedHeight: webpDecoded.height,
+    avifDecodedWidth: avifDecoded.width,
+    avifDecodedHeight: avifDecoded.height,
     qoiOutputBytes: qoiOutput.byteLength,
     qoiSignature: ascii.decode(qoiOutputBytes.slice(0, 4)),
     qoiDecodedWidth: qoiDecoded.width,
@@ -275,6 +285,7 @@ export async function runWebpPipelineProbe(
       'resize processed through existing image-pipeline processImage helper',
       'encoded through the production image-pipeline compressImage helper using the generated encode-only runtime metadata map and SvelteKit features-worker bridge',
       `webpDecode promoted through the same generated worker surface (${webpDecoded.width} x ${webpDecoded.height})`,
+      `avifDecode promoted through the same generated worker surface (${avifDecoded.width} x ${avifDecoded.height})`,
       `qoiEncode promoted through the same generated worker surface (${
         qoiOutput.byteLength
       } bytes, ${ascii.decode(qoiOutputBytes.slice(0, 4))})`,

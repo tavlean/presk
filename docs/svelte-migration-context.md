@@ -178,6 +178,9 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   prototype emits a ready method-name list for the shared worker bridge and a
   blocked-method inventory for codecs or worker methods that still need asset
   URL, thread-support alias, or type work before joining the Vite worker entry.
+- AVIF decode is promoted through that admission list. It uses a generated AVIF
+  decoder WASM asset manifest and local fixture decode proof, while the broader
+  production worker surface remains filtered.
 - WebP decode is promoted through that admission list. It uses the generated
   WebP codec asset manifest plus decoder WASM URL injection, while the broader
   production worker surface remains filtered.
