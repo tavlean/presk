@@ -47,10 +47,9 @@ The prototype already proves the useful shape:
 
 The prototype also deliberately audits duplicate assets. `audit:static-output`
 now expects WebP encoder/decoder, QOI encoder/decoder, MozJPEG encoder,
-ImageQuant processor, and resize/HQX processor WASM to be emitted once from the
-canonical generated URL records after the generated wrapper patches. Rotate
-duplicates remain visible because the prototype still imports both the
-canonical rotate URL and the worker-local wasm-bindgen fallback.
+ImageQuant processor, resize/HQX processor, and rotate preprocessor WASM to be
+emitted once from the canonical generated URL records after the generated
+wrapper patches and worker-bridge URL injection.
 
 ## Canonical manifest shape
 
@@ -128,7 +127,9 @@ import.meta.url)` references while preserving runtime `locateFile` behavior.
    Proven for the WebP encoder/decoder, QOI encoder/decoder, MozJPEG encoder,
    ImageQuant processor, and resize/HQX wasm-bindgen wrappers on
    `code/sveltekit-migration-seams` with prototype-generated patched wrapper
-   copies plus injectable runtimes.
+   copies plus injectable runtimes. Rotate is proven by passing the canonical
+   URL through the SvelteKit worker bridge instead of importing a second worker
+   URL.
 6. Decide whether production should use an equivalent post-generation transform,
    a codec rebuild option, or a checked-in wrapper patch before broadening the
    approach to other Emscripten codecs.
@@ -146,10 +147,12 @@ The strategy is ready for a minimal SvelteKit single-image slice only when:
 - WebP runtime encoding still produces a valid `RIFF`/`WEBP` output, QOI
   runtime encoding still produces a valid `qoif` output, MozJPEG runtime
   encoding still produces a valid JPEG header, ImageQuant runtime processing
-  still returns image data, and resize runtime processing still returns resized
-  image data through the generated URLs;
+  still returns image data, resize runtime processing still returns resized
+  image data, and rotate preprocessing still returns rotated image data through
+  the generated URLs;
 - service-worker Cache Storage contains the intended canonical WebP, QOI,
-  MozJPEG, ImageQuant, resize, and HQX assets after a controlled-page reload;
+  MozJPEG, ImageQuant, resize, HQX, and rotate assets after a controlled-page
+  reload;
 - root `npm run check` and prototype `npm run check`, `npm run build`,
   `npm run audit:static-output`, and `npm audit --audit-level=low` pass.
 

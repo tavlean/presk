@@ -17,6 +17,7 @@ import type {
   OxipngWasmUrls,
   QoiWasmUrls,
   ResizeWasmUrls,
+  RotateWasmUrls,
   WebpWasmUrls,
 } from 'sqush-generated/features-worker/webp';
 import {
@@ -31,6 +32,7 @@ import {
   qoiDecoderWasmUrl,
   qoiEncoderWasmUrl,
   resizeWasmUrl,
+  rotateWasmUrl,
   svelteKitFeaturesWorkerUrl,
   webpDecoderWasmUrl,
   webpEncoderSimdWasmUrl,
@@ -159,6 +161,12 @@ interface SvelteKitWorkerBridgeWorkerApi {
     options: WorkerResizeOptions,
     wasmUrls: ResizeWasmUrls,
   ): Promise<ImageData>;
+  rotate(
+    signal: AbortSignal,
+    data: ImageData,
+    options: RotateOptions,
+    wasmUrls: RotateWasmUrls,
+  ): Promise<ImageData>;
   dispose(): void;
 }
 
@@ -171,8 +179,6 @@ export default class SvelteKitWorkerBridge
   extends SvelteKitWorkerBridgeBase
   implements SvelteKitWorkerBridgeApi
 {
-  declare rotate: SvelteKitWorkerBridgeApi['rotate'];
-
   avifDecode(signal: AbortSignal, blob: Blob): Promise<ImageData> {
     return super.avifDecode(signal, blob, {
       decoder: avifDecoderWasmUrl,
@@ -285,6 +291,16 @@ export default class SvelteKitWorkerBridge
     return super.resize(signal, imageData, options, {
       hqx: hqxWasmUrl,
       resize: resizeWasmUrl,
+    });
+  }
+
+  rotate(
+    signal: AbortSignal,
+    data: ImageData,
+    options: RotateOptions,
+  ): Promise<ImageData> {
+    return super.rotate(signal, data, options, {
+      preprocessor: rotateWasmUrl,
     });
   }
 }

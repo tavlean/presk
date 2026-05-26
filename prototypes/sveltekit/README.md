@@ -89,12 +89,13 @@ npm audit --audit-level=low
   not get inlined into the service-worker bundle.
 - The prototype sync step now emits generated rotate WASM asset metadata. The
   generated SvelteKit features worker imports the shared rotate runtime with a
-  Vite `?url` WASM asset, proving the first replacement shape for production
-  `url:` codec references without changing the current Rollup adapter.
+  canonical Vite `?url` WASM asset passed through the worker bridge, proving
+  the first replacement shape for production `url:` codec references without
+  changing the current Rollup adapter.
 - The WebP pipeline probe now runs rotate through the generated worker before
   resize and encode. Browser verification produced a valid `RIFF`/`WEBP`
-  payload with `rotate=90` in the stage log and Cache Storage covering both the
-  top-level rotate WASM and the worker-local rotate WASM fetched by the worker.
+  payload with `rotate=90` in the stage log and Cache Storage covering the
+  canonical rotate WASM fetched by the worker.
 - The prototype sync step now emits a generated service-worker cache plan that
   uses the same `{ main, deps }` entry shape as production `entry-data:` records,
   but fills it with SvelteKit/Vite worker URLs and generated WebP WASM deps.
@@ -284,7 +285,8 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   `src/features/preprocessors/rotate/worker/rotate.ts` as the Rollup adapter,
   while shared rotate logic lives in a runtime factory that accepts an injected
   WASM URL. The prototype generator supplies that URL from a generated Vite
-  `?url` manifest.
+  `?url` manifest through the SvelteKit worker bridge, so the worker no longer
+  emits a second physical rotate WASM asset.
 - The first `entry-data:` seam is now proven for service-worker cache planning:
   production still resolves real Rollup entries at the boundary, but the cache
   planning logic accepts plain `{ main, deps }` records that SvelteKit can

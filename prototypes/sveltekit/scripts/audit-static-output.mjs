@@ -173,9 +173,6 @@ const resizeWasmAsset = files.find(
 const hqxWasmAsset = files.find(
   (file) => file.includes('/squooshhqx_bg.') && file.endsWith('.wasm'),
 );
-const workerRotateWasmAsset = files.find(
-  (file) => file.includes('/workers/assets/rotate-') && file.endsWith('.wasm'),
-);
 const serviceWorkerImportedWorkerAsset = files.find(
   (file) =>
     file.includes('assets/codec-asset-probe.worker') && file.endsWith('.js'),
@@ -270,10 +267,6 @@ assert(imagequantWasmAsset, 'Missing emitted ImageQuant WASM asset.');
 assert(resizeWasmAsset, 'Missing emitted resize WASM asset.');
 assert(hqxWasmAsset, 'Missing emitted HQX WASM asset.');
 assert(
-  workerRotateWasmAsset,
-  'Missing generated worker-local rotate WASM asset.',
-);
-assert(
   baselineWasmAssets.length === 1,
   `Expected exactly one baseline WebP WASM asset after the generated wrapper patch, found ${baselineWasmAssets.length}.`,
 );
@@ -298,8 +291,8 @@ assert(
   'Expected emitted AVIF threaded worker helper asset to remain visible for threaded-runtime migration analysis.',
 );
 assert(
-  rotateWasmAssets.length >= 2,
-  'Expected duplicate rotate WASM assets to remain visible for migration analysis.',
+  rotateWasmAssets.length === 1,
+  `Expected exactly one rotate WASM asset after passing the canonical URL through the worker bridge, found ${rotateWasmAssets.length}.`,
 );
 assert(
   qoiEncoderWasmAssets.length === 1,
@@ -517,7 +510,6 @@ console.log(
     `ImageQuant WASM asset: ${imagequantWasmAsset}`,
     `Resize WASM asset: ${resizeWasmAsset}`,
     `HQX WASM asset: ${hqxWasmAsset}`,
-    `Worker rotate WASM asset: ${workerRotateWasmAsset}`,
     `Generated logical codec asset records: ${expectedLogicalAssetKeys.length}`,
     `Physical WASM groups: ${physicalWasmGroups
       .map(([logicalKey, assets]) => `${logicalKey}=${assets.length}`)

@@ -300,11 +300,12 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
 - The production rotate preprocessor worker now has a reusable runtime factory
   that accepts a WASM URL, while the production `rotate.ts` remains the Rollup
   `url:` adapter. The SvelteKit prototype generator emits a Vite `?url` rotate
-  WASM manifest and wires it into the generated WebP-first features worker.
+  WASM manifest and passes that canonical URL through the generated worker
+  bridge instead of importing a second worker-local URL.
 - The prototype pipeline now exercises that generated worker `rotate` method
   before resize/WebP encode. Runtime Chrome verification produced valid
   `RIFF`/`WEBP` output with the `rotate=90` stage visible and Cache Storage
-  covering both the top-level rotate WASM and the worker-local rotate WASM.
+  covering the canonical rotate WASM.
 - `src/sw/cache-plan.ts` now owns the framework-neutral service-worker cache
   planning logic for Rollup `entry-data:` records shaped as `{ main, deps }`.
   Production `src/sw/to-cache.ts` still imports Rollup virtual modules at the
