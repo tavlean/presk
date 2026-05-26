@@ -350,6 +350,9 @@ Worker-bridge seam progress:
   function.
 - `src/client/lazy-app/worker-bridge/bridge.ts` adapts that runtime to the
   production generated `methodNames` list.
+- `src/client/lazy-app/worker-bridge/active-bridge.ts` adapts the same runtime
+  to the generated active method list from `worker-bridge/active-meta.ts`
+  without changing the current production adapter.
 - `src/client/lazy-app/worker-bridge/index.ts` is now the Rollup adapter that
   imports the current `omt:` worker URL and passes `() => new Worker(workerURL)`
   into the shared bridge factory.
@@ -497,11 +500,12 @@ Full worker-surface blocker inventory:
   still pulls every codec worker. The generator now emits
   `src/features-worker/active.ts` and
   `src/client/lazy-app/worker-bridge/active-meta.ts` for the active non-WebP-2
-  method set, but that entry pair is not yet wired to a SvelteKit worker adapter
-  and still includes active methods whose threaded production runtime needs
-  separate proof. AVIF decode, AVIF encode, WebP decode/encode, QOI
-  encode/decode, JPEG XL encode/decode, MozJPEG encode, single-thread OxiPNG
-  encode, quantize, worker resize, and rotate now have narrow generated
+  method set, and `worker-bridge/active-bridge.ts` can build a bridge over that
+  generated active method list. That entry pair is not yet wired to a SvelteKit
+  worker adapter and still includes active methods whose threaded production
+  runtime needs separate proof. AVIF decode, AVIF encode, WebP decode/encode,
+  QOI encode/decode, JPEG XL encode/decode, MozJPEG encode, single-thread
+  OxiPNG encode, quantize, worker resize, and rotate now have narrow generated
   SvelteKit paths; the broader production active worker entry remains unwired in
   the prototype until the threaded and canonical asset risks are resolved.
 - AVIF, JPEG XL, and production-threaded OxiPNG workers still need focused
