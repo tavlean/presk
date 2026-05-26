@@ -16,6 +16,7 @@ import {
   preprocessImage,
   processImage,
 } from '../../../../src/client/lazy-app/image-pipeline';
+import * as avifMeta from 'features/encoders/avif/shared/meta';
 import * as mozjpegMeta from 'features/encoders/mozJPEG/shared/meta';
 import * as oxipngMeta from 'features/encoders/oxiPNG/shared/meta';
 import {
@@ -43,6 +44,10 @@ export interface WebpPipelineProbeResult {
   webpSignature: string;
   webpDecodedWidth: number;
   webpDecodedHeight: number;
+  avifOutputBytes: number;
+  avifSignature: string;
+  avifRoundTripWidth: number;
+  avifRoundTripHeight: number;
   avifDecodedWidth: number;
   avifDecodedHeight: number;
   qoiOutputBytes: number;
@@ -168,6 +173,8 @@ export async function runWebpPipelineProbe(
   );
   let outputFile: File;
   let webpDecoded: ImageData;
+  let avifOutput: ArrayBuffer;
+  let avifRoundTrip: ImageData;
   let avifDecoded: ImageData;
   let qoiOutput: ArrayBuffer;
   let qoiDecoded: ImageData;
@@ -185,6 +192,15 @@ export async function runWebpPipelineProbe(
       workerBridge as unknown as Parameters<typeof compressImage>[4],
     );
     webpDecoded = await workerBridge.webpDecode(signal, outputFile);
+    avifOutput = await workerBridge.avifEncode(signal, processed, {
+      ...avifMeta.defaultOptions,
+      quality: 45,
+      speed: 8,
+    });
+    avifRoundTrip = await workerBridge.avifDecode(
+      signal,
+      new Blob([avifOutput], { type: 'image/avif' }),
+    );
     avifDecoded = await workerBridge.avifDecode(
       signal,
       await fetch(tinyAvifUrl).then((response) => response.blob()),
@@ -229,6 +245,7 @@ export async function runWebpPipelineProbe(
   }
   const outputBuffer = await outputFile.arrayBuffer();
   const outputBytes = new Uint8Array(outputBuffer);
+  const avifOutputBytes = new Uint8Array(avifOutput);
   const qoiOutputBytes = new Uint8Array(qoiOutput);
   const jpegOutputBytes = new Uint8Array(jpegOutput);
   const oxipngOutputBytes = new Uint8Array(oxipngOutput);
@@ -253,6 +270,10 @@ export async function runWebpPipelineProbe(
     webpSignature: ascii.decode(outputBytes.slice(8, 12)),
     webpDecodedWidth: webpDecoded.width,
     webpDecodedHeight: webpDecoded.height,
+    avifOutputBytes: avifOutput.byteLength,
+    avifSignature: ascii.decode(avifOutputBytes.slice(4, 8)),
+    avifRoundTripWidth: avifRoundTrip.width,
+    avifRoundTripHeight: avifRoundTrip.height,
     avifDecodedWidth: avifDecoded.width,
     avifDecodedHeight: avifDecoded.height,
     qoiOutputBytes: qoiOutput.byteLength,
@@ -285,6 +306,10 @@ export async function runWebpPipelineProbe(
       'resize processed through existing image-pipeline processImage helper',
       'encoded through the production image-pipeline compressImage helper using the generated encode-only runtime metadata map and SvelteKit features-worker bridge',
       `webpDecode promoted through the same generated worker surface (${webpDecoded.width} x ${webpDecoded.height})`,
+      `avifEncode promoted through a forced single-thread generated worker surface (${
+        avifOutput.byteLength
+      } bytes, ${ascii.decode(avifOutputBytes.slice(4, 8))})`,
+      `avifEncode round trip decoded through avifDecode (${avifRoundTrip.width} x ${avifRoundTrip.height})`,
       `avifDecode promoted through the same generated worker surface (${avifDecoded.width} x ${avifDecoded.height})`,
       `qoiEncode promoted through the same generated worker surface (${
         qoiOutput.byteLength

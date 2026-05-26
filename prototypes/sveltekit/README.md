@@ -50,11 +50,12 @@ npm audit --audit-level=low
 - Local preview rendered in Chrome through Playwright with the WebP pipeline
   probe reporting a generated 155-byte PNG source, 4x4 decode, 3x3 processed
   image, valid `RIFF`/`WEBP` output, QOI `qoif` output from the promoted
-  `qoiEncode` worker method, a 3x3 AVIF fixture decode from the promoted
-  `avifDecode` worker method, a 3x3 WebP decode round trip from the promoted
-  `webpDecode` worker method, a 3x3 QOI decode round trip from the promoted
-  `qoiDecode` worker method, MozJPEG `ff d8 ff` output from the promoted
-  `mozjpegEncode` worker method, and export metadata.
+  `qoiEncode` worker method, AVIF `ftyp` output plus a 3x3 AVIF decode
+  round trip from the promoted `avifEncode` worker method, a 3x3 AVIF fixture
+  decode from the promoted `avifDecode` worker method, a 3x3 WebP decode round
+  trip from the promoted `webpDecode` worker method, a 3x3 QOI decode round
+  trip from the promoted `qoiDecode` worker method, MozJPEG `ff d8 ff` output
+  from the promoted `mozjpegEncode` worker method, and export metadata.
 - Runtime service-worker verification in Chrome showed the page controlled by
   the prototype service worker after reload, with Cache Storage covering app
   entry/start/route assets, the generated WebP features-worker, baseline WebP
@@ -104,6 +105,15 @@ npm audit --audit-level=low
   the SvelteKit worker bridge, verifies a local AVIF fixture decode from the
   existing AVIF worker decoder, and confirms service-worker cache coverage for
   the AVIF decoder WASM asset.
+- `avifEncode` has been promoted through the same generated worker surface for
+  a forced single-thread runtime path. The production worker now accepts an
+  injectable thread-support probe while preserving the default threaded-capable
+  path, the prototype generates an AVIF encoder WASM URL manifest, verifies
+  AVIF `ftyp` output plus an `avifDecode` round trip, and confirms
+  service-worker cache coverage for the single-thread AVIF encoder WASM asset.
+  Vite still emits the AVIF threaded worker helper and MT WASM assets because
+  the production module keeps dynamic threaded imports in its graph; production
+  migration still needs a separate threaded-runtime proof or a build split.
 - `webpDecode` has been promoted through that generated worker surface. The
   prototype now generates a WebP decoder WASM URL alongside the encoder WASM
   URLs, passes it through the SvelteKit worker bridge, verifies a WebP decode
@@ -144,7 +154,7 @@ architecture, but the production app is not ready for a direct migration yet.
 
 The prototype has proven the platform path that matters most: a static SvelteKit
 app can consume shared Sqush helpers, generate Svelte-safe WebP/MozJPEG
-metadata, run existing WebP/QOI/MozJPEG WASM encoding, AVIF/WebP/QOI WASM
+metadata, run existing WebP/AVIF/QOI/MozJPEG WASM encoding, AVIF/WebP/QOI WASM
 decoding, single-thread OxiPNG WASM encoding, ImageQuant quantization, worker
 resize, and rotate preprocessing in Vite-built module workers, register an
 offline service worker, cache the app shell and codec probe assets, and keep
@@ -285,11 +295,12 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   SvelteKit module-worker adapter, but the full generated `features-worker`
   surface still needs incremental broadening.
 - Generate the Vite-facing worker entry incrementally from an explicit ready
-  surface. The current generated manifest enables `webpEncode`, `rotate`, and
-  QOI encode/decode plus `mozjpegEncode`, `quantize`, worker `resize`, and
-  single-thread `oxipngEncode`; full production parity is blocked by threaded
-  WASM runtime headers/nested-worker behavior, remaining `url:` WASM imports,
-  stricter worker `ArrayBufferLike` types, and remaining codec asset URLs.
+  surface. The current generated manifest enables `webpEncode`, single-thread
+  `avifEncode`, `rotate`, QOI encode/decode, `mozjpegEncode`, `quantize`,
+  worker `resize`, and single-thread `oxipngEncode`; full production parity is
+  blocked by threaded WASM runtime headers/nested-worker behavior, remaining
+  `url:` WASM imports, stricter worker `ArrayBufferLike` types, and remaining
+  codec asset URLs.
 - Replace production `url:` codec references with reusable runtimes plus
   generated Vite `?url` asset manifests, following the rotate preprocessor seam
   before broadening to the remaining codec surfaces.

@@ -4,6 +4,7 @@ import svelteKitFeaturesWorkerUrl from 'sqush-generated/features-worker/webp.ts?
 import {
   avifCodecAssetUrls,
   avifDecoderWasmUrl,
+  avifEncoderWasmUrl,
 } from 'sqush-generated/codec-assets/avif';
 import {
   webpCodecAssetUrls,
@@ -41,6 +42,7 @@ import {
 export {
   avifCodecAssetUrls,
   avifDecoderWasmUrl,
+  avifEncoderWasmUrl,
   codecAssetProbeWorkerUrl,
   hqxWasmUrl,
   imagequantCodecAssetUrls,

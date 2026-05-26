@@ -17,8 +17,14 @@ import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
 
 let emscriptenModule: Promise<AVIFModule>;
 
-async function init() {
-  if (await checkThreadsSupport()) {
+export interface AvifEncodeRuntimeOptions {
+  supportsThreads?: typeof checkThreadsSupport;
+}
+
+async function init({
+  supportsThreads = checkThreadsSupport,
+}: AvifEncodeRuntimeOptions = {}) {
+  if (await supportsThreads()) {
     const avifEncoder = await import('codecs/avif/enc/avif_enc_mt');
     return initEmscriptenModule<AVIFModule>(avifEncoder.default);
   }
@@ -29,13 +35,16 @@ async function init() {
 export default async function encode(
   data: ImageData,
   options: EncodeOptions,
+  runtimeOptions?: AvifEncodeRuntimeOptions,
 ): Promise<ArrayBuffer> {
-  if (!emscriptenModule) emscriptenModule = init();
+  if (!emscriptenModule) emscriptenModule = init(runtimeOptions);
 
   const module = await emscriptenModule;
   const result = module.encode(data.data, data.width, data.height, options);
 
   if (!result) throw new Error('Encoding error');
 
-  return result.buffer;
+  const output = new Uint8Array(result.byteLength);
+  output.set(result);
+  return output.buffer as ArrayBuffer;
 }

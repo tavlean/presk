@@ -1,4 +1,5 @@
 import { createWorkerBridgeRuntime } from '../../../../src/client/lazy-app/worker-bridge/runtime';
+import type { EncodeOptions as AvifEncodeOptions } from 'features/encoders/avif/shared/meta';
 import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
 import type { EncodeOptions as QoiEncodeOptions } from 'features/encoders/qoi/shared/meta';
 import type { EncodeOptions as MozjpegEncodeOptions } from 'features/encoders/mozJPEG/shared/meta';
@@ -18,6 +19,7 @@ import type {
 } from 'sqush-generated/features-worker/webp';
 import {
   avifDecoderWasmUrl,
+  avifEncoderWasmUrl,
   hqxWasmUrl,
   imagequantWasmUrl,
   mozjpegEncoderWasmUrl,
@@ -33,6 +35,11 @@ import {
 
 export interface SvelteKitWorkerBridgeApi {
   avifDecode(signal: AbortSignal, blob: Blob): Promise<ImageData>;
+  avifEncode(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: AvifEncodeOptions,
+  ): Promise<ArrayBuffer>;
   webpEncode(
     signal: AbortSignal,
     imageData: ImageData,
@@ -79,6 +86,12 @@ interface SvelteKitWorkerBridgeWorkerApi {
     blob: Blob,
     wasmUrls: AvifWasmUrls,
   ): Promise<ImageData>;
+  avifEncode(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: AvifEncodeOptions,
+    wasmUrls: AvifWasmUrls,
+  ): Promise<ArrayBuffer>;
   webpEncode(
     signal: AbortSignal,
     imageData: ImageData,
@@ -142,6 +155,18 @@ export default class SvelteKitWorkerBridge
   avifDecode(signal: AbortSignal, blob: Blob): Promise<ImageData> {
     return super.avifDecode(signal, blob, {
       decoder: avifDecoderWasmUrl,
+      encoder: avifEncoderWasmUrl,
+    });
+  }
+
+  avifEncode(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: AvifEncodeOptions,
+  ): Promise<ArrayBuffer> {
+    return super.avifEncode(signal, imageData, options, {
+      decoder: avifDecoderWasmUrl,
+      encoder: avifEncoderWasmUrl,
     });
   }
 

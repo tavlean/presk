@@ -181,6 +181,12 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
 - AVIF decode is promoted through that admission list. It uses a generated AVIF
   decoder WASM asset manifest and local fixture decode proof, while the broader
   production worker surface remains filtered.
+- AVIF encode is promoted through that admission list for a forced
+  single-thread runtime path. The production AVIF worker accepts an injectable
+  thread-support probe, the prototype uses generated AVIF encoder WASM URLs,
+  and runtime proof produces AVIF `ftyp` output that decodes back through
+  `avifDecode`. This does not prove AVIF threaded runtime parity; Vite still
+  emits the threaded helper and MT WASM assets from the dynamic import graph.
 - WebP decode is promoted through that admission list. It uses the generated
   WebP codec asset manifest plus decoder WASM URL injection, while the broader
   production worker surface remains filtered.

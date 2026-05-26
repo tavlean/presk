@@ -66,6 +66,12 @@ const webpDecoderWasmAssets = files
 const avifDecoderWasmAssets = files
   .filter((file) => file.includes('avif_dec') && file.endsWith('.wasm'))
   .sort();
+const avifEncoderWasmAssets = files
+  .filter((file) => file.includes('avif_enc') && file.endsWith('.wasm'))
+  .sort();
+const avifThreadedWorkerAssets = files
+  .filter((file) => file.includes('avif_enc_mt.worker') && file.endsWith('.js'))
+  .sort();
 const rotateWasmAssets = files
   .filter((file) => file.includes('rotate') && file.endsWith('.wasm'))
   .sort();
@@ -108,6 +114,9 @@ const webpDecoderWasmAsset = files.find(
 );
 const avifDecoderWasmAsset = files.find(
   (file) => file.includes('/avif_dec.') && file.endsWith('.wasm'),
+);
+const avifEncoderWasmAsset = files.find(
+  (file) => file.includes('/avif_enc.') && file.endsWith('.wasm'),
 );
 const rotateWasmAsset = files.find(
   (file) =>
@@ -187,6 +196,7 @@ assert(wasmAsset, 'Missing emitted WebP WASM asset from the worker probe.');
 assert(simdWasmAsset, 'Missing emitted SIMD WebP WASM asset.');
 assert(webpDecoderWasmAsset, 'Missing emitted WebP decoder WASM asset.');
 assert(avifDecoderWasmAsset, 'Missing emitted AVIF decoder WASM asset.');
+assert(avifEncoderWasmAsset, 'Missing emitted AVIF encoder WASM asset.');
 assert(rotateWasmAsset, 'Missing emitted rotate WASM asset.');
 assert(qoiEncoderWasmAsset, 'Missing emitted QOI encoder WASM asset.');
 assert(qoiDecoderWasmAsset, 'Missing emitted QOI decoder WASM asset.');
@@ -214,6 +224,14 @@ assert(
 assert(
   avifDecoderWasmAssets.length >= 1,
   'Expected emitted AVIF decoder WASM asset.',
+);
+assert(
+  avifEncoderWasmAssets.length >= 1,
+  'Expected emitted AVIF encoder WASM asset.',
+);
+assert(
+  avifThreadedWorkerAssets.length >= 1,
+  'Expected emitted AVIF threaded worker helper asset to remain visible for threaded-runtime migration analysis.',
 );
 assert(
   rotateWasmAssets.length >= 2,
@@ -281,6 +299,10 @@ assert(
 assert(
   serviceWorker.includes(avifDecoderWasmAsset),
   `Service-worker build manifest does not include ${avifDecoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(avifEncoderWasmAsset),
+  `Service-worker build manifest does not include ${avifEncoderWasmAsset}.`,
 );
 assert(
   serviceWorker.includes(rotateWasmAsset),
@@ -372,6 +394,7 @@ console.log(
     `SIMD WASM asset: ${simdWasmAsset}`,
     `WebP decoder WASM asset: ${webpDecoderWasmAsset}`,
     `AVIF decoder WASM asset: ${avifDecoderWasmAsset}`,
+    `AVIF encoder WASM asset: ${avifEncoderWasmAsset}`,
     `Rotate WASM asset: ${rotateWasmAsset}`,
     `QOI encoder WASM asset: ${qoiEncoderWasmAsset}`,
     `QOI decoder WASM asset: ${qoiDecoderWasmAsset}`,
@@ -389,6 +412,10 @@ console.log(
     ...webpDecoderWasmAssets.map((asset) => `  - ${asset}`),
     `AVIF decoder WASM copies: ${avifDecoderWasmAssets.length}`,
     ...avifDecoderWasmAssets.map((asset) => `  - ${asset}`),
+    `AVIF encoder WASM copies: ${avifEncoderWasmAssets.length}`,
+    ...avifEncoderWasmAssets.map((asset) => `  - ${asset}`),
+    `AVIF threaded worker helper assets: ${avifThreadedWorkerAssets.length}`,
+    ...avifThreadedWorkerAssets.map((asset) => `  - ${asset}`),
     `Rotate WASM copies: ${rotateWasmAssets.length}`,
     ...rotateWasmAssets.map((asset) => `  - ${asset}`),
     `QOI encoder WASM copies: ${qoiEncoderWasmAssets.length}`,

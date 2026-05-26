@@ -367,6 +367,16 @@ Worker-bridge seam progress:
   passes it through the SvelteKit worker bridge, verifies a local AVIF fixture
   decode in the runtime pipeline probe, and audits service-worker cache coverage
   for the AVIF decoder WASM asset.
+- `avifEncode` has moved from blocked to ready for a forced single-thread
+  runtime path in the generated worker-surface manifest. The production AVIF
+  worker now accepts an injectable thread-support probe while preserving the
+  default threaded-capable path, the prototype generates an AVIF encoder WASM
+  URL manifest, verifies AVIF `ftyp` output plus an `avifDecode` round trip in
+  the runtime pipeline probe, and audits service-worker cache coverage for the
+  single-thread AVIF encoder WASM asset. Vite still emits the AVIF threaded
+  worker helper and MT WASM assets because the production module keeps dynamic
+  threaded imports in its graph, so threaded production parity remains a
+  separate migration proof.
 - `webpDecode` has moved from blocked to ready in the generated worker-surface
   manifest. The prototype now generates the WebP decoder WASM URL alongside the
   WebP encoder WASM URLs, passes it through the SvelteKit worker bridge,
@@ -425,11 +435,12 @@ Full worker-surface blocker inventory:
   single-thread OxiPNG encode, quantize, and worker resize now have narrow
   generated SvelteKit paths, but the broader production worker surface remains
   intentionally filtered.
-- AVIF, JXL, and WP2 workers still need focused threaded-codec passes.
+- AVIF, JXL, and WP2 threaded workers still need focused threaded-codec passes.
   `worker-shared/supports-wasm-threads` now has a SvelteKit alias shape, but the
   actual threaded WASM runtime still needs COOP/COEP, nested-worker, worker
   helper asset, and service-worker cache proof before those threaded paths can
-  be considered production-ready.
+  be considered production-ready. AVIF now has a proven forced single-thread
+  encode path, but that does not prove the threaded runtime.
 - Rotate now has a proven split: production keeps the Rollup `url:` adapter,
   while the SvelteKit generated worker imports the shared rotate runtime with a
   generated Vite `?url` asset manifest.
