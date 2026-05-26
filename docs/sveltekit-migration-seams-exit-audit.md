@@ -141,8 +141,9 @@ This branch is ready for review when these are true:
   behavior changes.
 - `docs/sveltekit-migration-seams-review.md` remains accurate for the final
   diff.
-- CI is visible and green for the branch, or the maintainer accepts local
-  verification because GitHub Actions still reports no runs.
+- CI is visible and green for the branch.
 
-As of this audit, the local gates above have passed on the latest checkpoints,
-but GitHub Actions has not reported runs for `code/sveltekit-migration-seams`.
+As of this audit, the local gates above have passed on the latest checkpoints.
+After merging latest `main`, PR #1 reports a clean merge state and GitHub
+Actions passed the `Node.js CI` matrix on Ubuntu, Windows, and macOS for
+`a6865c9`.

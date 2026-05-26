@@ -215,8 +215,9 @@ circumstance.
   `npm run audit:static-output`, and `npm audit --audit-level=low` only when
   changing prototype files.
 - `gh run list --branch code/sveltekit-migration-seams --limit 10`: check
-  whether remote CI exists for this branch. As of this update, GitHub has not
-  reported runs for the branch.
+  remote CI for this branch. As of the latest update, PR #1 is clean against
+  `main` and GitHub Actions passed the `Node.js CI` matrix on Ubuntu, Windows,
+  and macOS for `a6865c9`.
 
 ## Prototype-only evidence
 

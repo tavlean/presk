@@ -47,13 +47,17 @@ generated active worker/cache metadata, and prototype evidence for
 worker bridges. The branch also records source-safe merge slices in
 `docs/sveltekit-migration-seams-review.md` and a roadmap-level exit audit in
 `docs/sveltekit-migration-seams-exit-audit.md`. Root `npm run check` and the
-prototype gates have passed on the latest meaningful checkpoints, but GitHub
-Actions has not reported runs for the branch. Run `git status --short --branch`
-for the exact state.
+prototype gates have passed on the latest meaningful checkpoints. PR #1 is
+clean against `main`, and GitHub Actions passed on Ubuntu, Windows, and macOS
+for the latest migration-seams head. Run `git status --short --branch` for the
+exact state.
 
 Latest recent committed work at last update:
 
-- Current local work: SvelteKit migration seams exit audit and review package
+- Current local work: merged latest `main` into `code/sveltekit-migration-seams`
+  and restored green PR CI
+- `a6865c9` Merge main into migration seams
+- `1cd4caf` Sync migration seams status docs
 - `a4832a1` Audit migration seams exit status
 - `a82949b` Guard production image pipeline bundle
 - `93fd5a3` Share production image pipeline bundle
