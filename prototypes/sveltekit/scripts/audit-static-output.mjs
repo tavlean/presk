@@ -282,8 +282,8 @@ assert(
   `Expected exactly one SIMD WebP WASM asset after the generated wrapper patch, found ${simdWasmAssets.length}.`,
 );
 assert(
-  webpDecoderWasmAssets.length >= 1,
-  'Expected emitted WebP decoder WASM asset.',
+  webpDecoderWasmAssets.length === 1,
+  `Expected exactly one WebP decoder WASM asset after the generated wrapper patch, found ${webpDecoderWasmAssets.length}.`,
 );
 assert(
   avifDecoderWasmAssets.length >= 1,

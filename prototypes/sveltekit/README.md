@@ -250,14 +250,14 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   production migration should prefer a generated manifest that gives both the
   app and service worker the same worker asset URL.
 - Importing WebP WASM assets explicitly for service-worker coverage while also
-  importing the existing Emscripten modules originally emitted duplicate
-  baseline and SIMD WASM files. The prototype now splits WebP encode into an
-  injectable runtime and generates patched WebP encoder wrapper copies under
+  importing the existing Emscripten modules originally emitted duplicate encoder
+  and decoder WASM files. The prototype now splits WebP encode/decode into
+  injectable runtimes and generates patched WebP wrapper copies under
   `.svelte-kit/sqush-generated/` with the Emscripten fallback
-  `new URL("webp_enc*.wasm", import.meta.url)` references removed. The app
-  module, generated worker, and service worker now share the top-level WebP
-  encoder WASM URLs, and the static-output audit expects one baseline and one
-  SIMD WebP encoder WASM file. This proves the post-generation wrapper patch
+  `new URL("webp_*.wasm", import.meta.url)` references removed. The app module,
+  generated worker, and service worker now share the top-level WebP WASM URLs,
+  and the static-output audit expects one baseline encoder, one SIMD encoder,
+  and one decoder WebP WASM file. This proves the post-generation wrapper patch
   shape without editing committed codec artifacts.
 - The production single-image pipeline helper import is now proven from
   SvelteKit for the WebP path: decode, preprocess, process, and compress all
@@ -326,11 +326,11 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   lazy/feature-detected workers and WASM assets, following the prototype
   `sqush-generated/service-worker/cache-plan.ts` proof.
 - Resolve codec WASM duplication before production migration. The prototype now
-  proves the WebP encoder shape with generated patched wrapper copies plus an
-  injectable WebP encode runtime, while runtime loading still flows through
-  generated manifest URLs and `locateFile`. Production still needs a decision
-  between an equivalent post-generation transform, a codec rebuild option, or a
-  checked-in wrapper patch before this is broadened.
+  proves the WebP encoder and decoder shapes with generated patched wrapper
+  copies plus injectable WebP runtimes, while runtime loading still flows
+  through generated manifest URLs and `locateFile`. Production still needs a
+  decision between an equivalent post-generation transform, a codec rebuild
+  option, or a checked-in wrapper patch before this is broadened.
 - Keep the logical codec asset manifest as the next asset-seam shape. The
   manifest should stay the single owner of codec WASM URLs, while app code,
   worker bridge calls, and service-worker cache plans derive their URL lists

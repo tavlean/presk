@@ -11,22 +11,11 @@
  * limitations under the License.
  */
 import type { WebPModule } from 'codecs/webp/dec/webp_dec';
-import { initEmscriptenModule, blobToArrayBuffer } from 'features/worker-utils';
+import { createWebpDecoderRuntime } from './runtime';
 
-let emscriptenModule: Promise<WebPModule>;
-
-export default async function decode(blob: Blob): Promise<ImageData> {
-  if (!emscriptenModule) {
+export default createWebpDecoderRuntime({
+  async loadDecoder() {
     const decoder = await import('codecs/webp/dec/webp_dec');
-    emscriptenModule = initEmscriptenModule(decoder.default);
-  }
-
-  const [module, data] = await Promise.all([
-    emscriptenModule,
-    blobToArrayBuffer(blob),
-  ]);
-
-  const result = module.decode(data);
-  if (!result) throw new Error('Decoding error');
-  return result;
-}
+    return decoder.default as EmscriptenWasm.ModuleFactory<WebPModule>;
+  },
+});
