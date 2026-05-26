@@ -448,7 +448,10 @@ Worker-bridge seam progress:
   in the runtime pipeline probe, and audits service-worker cache coverage for
   both wasm-bindgen assets. The production resize worker keeps its default
   Rollup-compatible initialization path while accepting optional injected WASM
-  URLs for Vite/SvelteKit.
+  URLs for Vite/SvelteKit. The resize worker now uses an injectable runtime
+  factory, and the prototype imports generated patched resize/HQX wasm-bindgen
+  wrapper copies so static output emits exactly one canonical resize WASM asset
+  and one canonical HQX WASM asset.
 - `oxipngEncode` has moved from blocked to ready for the single-thread runtime
   path in the generated worker-surface manifest. The prototype now resolves the
   `worker-shared` alias through SvelteKit, generates

@@ -330,8 +330,14 @@ assert(
   imagequantWasmAssets.length === 1,
   `Expected exactly one ImageQuant WASM asset after the generated wrapper patch, found ${imagequantWasmAssets.length}.`,
 );
-assert(resizeWasmAssets.length >= 1, 'Expected emitted resize WASM asset.');
-assert(hqxWasmAssets.length >= 1, 'Expected emitted HQX WASM asset.');
+assert(
+  resizeWasmAssets.length === 1,
+  `Expected exactly one resize WASM asset after the generated wrapper patch, found ${resizeWasmAssets.length}.`,
+);
+assert(
+  hqxWasmAssets.length === 1,
+  `Expected exactly one HQX WASM asset after the generated wrapper patch, found ${hqxWasmAssets.length}.`,
+);
 assert(
   serviceWorkerImportedWorkerAsset,
   'Missing emitted module worker asset from the worker probe.',

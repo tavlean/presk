@@ -66,6 +66,7 @@ the candidate set to merge or cherry-pick into `main` after verification:
   `src/features/encoders/mozJPEG/worker/runtime.ts`,
   `src/features/encoders/oxiPNG/worker/oxipngEncode.ts`,
   `src/features/processors/resize/worker/resize.ts`,
+  `src/features/processors/resize/worker/runtime.ts`,
   `src/features/processors/quantize/worker/quantize.ts`,
   `src/features/processors/quantize/worker/runtime.ts`, and
   `src/features/preprocessors/rotate/worker/runtime.ts`: narrow injected WASM

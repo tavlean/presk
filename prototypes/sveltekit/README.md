@@ -164,7 +164,10 @@ npm audit --audit-level=low
   The prototype now generates resize and HQX WASM URL manifests, passes them
   through the SvelteKit worker bridge, verifies a 2x2 ImageData result from the
   existing resize worker module, and confirms service-worker cache coverage for
-  both wasm-bindgen assets.
+  both wasm-bindgen assets. The prototype now imports generated patched
+  resize/HQX wasm-bindgen wrapper copies through an injectable resize runtime,
+  so static output emits one canonical resize WASM asset and one canonical HQX
+  WASM asset.
 - `oxipngEncode` has been promoted through the same generated worker surface for
   the single-thread runtime path. The prototype now resolves the
   `worker-shared` alias through SvelteKit, generates an OxiPNG WASM URL
@@ -333,10 +336,11 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   lazy/feature-detected workers and WASM assets, following the prototype
   `sqush-generated/service-worker/cache-plan.ts` proof.
 - Resolve codec WASM duplication before production migration. The prototype now
-  proves the WebP and QOI encoder/decoder shapes, MozJPEG encoder shape, and
-  ImageQuant processor shape with generated patched wrapper copies and
-  injectable runtimes, while runtime loading still flows through generated
-  manifest URLs and `locateFile`. Production still needs a decision between an
+  proves the WebP and QOI encoder/decoder shapes, MozJPEG encoder shape,
+  ImageQuant processor shape, and resize/HQX processor shape with generated
+  patched wrapper copies and injectable runtimes, while runtime loading still
+  flows through generated manifest URLs and `locateFile` or explicit
+  wasm-bindgen init URLs. Production still needs a decision between an
   equivalent post-generation transform, a codec rebuild option, or a checked-in
   wrapper patch before this is broadened.
 - Keep the logical codec asset manifest as the next asset-seam shape. The
