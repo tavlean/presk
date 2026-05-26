@@ -266,7 +266,9 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   prototype package dependencies should stay out of `main` unless explicitly
   accepted. Use
   [SvelteKit migration seams review](sveltekit-migration-seams-review.md) as the
-  file-level inventory for that split.
+  file-level inventory for that split and
+  [SvelteKit migration seams exit audit](sveltekit-migration-seams-exit-audit.md)
+  as the roadmap-level status check.
 - After the safe seams land, branch the next focused track from updated `main`.
   If review is still in progress, branch from `code/sveltekit-migration-seams`
   and rebase or cherry-pick later. The next track should be either threaded

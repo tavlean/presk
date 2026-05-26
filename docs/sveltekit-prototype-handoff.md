@@ -606,7 +606,9 @@ prototype tree preserved in `main`.
 
 Use `docs/sveltekit-migration-seams-review.md` as the review inventory. It
 lists the production-safe seam candidates, prototype-only evidence, unresolved
-follow-up tracks, and verification gates for any source-safe subset.
+follow-up tracks, and verification gates for any source-safe subset. Use
+`docs/sveltekit-migration-seams-exit-audit.md` for the roadmap-level status and
+next-branch decision.
 Use `docs/sveltekit-codec-asset-strategy.md` for the canonical codec
 worker/WASM URL plan before starting the codec-asset branch.
 

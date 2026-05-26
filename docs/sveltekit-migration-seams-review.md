@@ -5,6 +5,8 @@ Last updated: 2026-05-26.
 This file packages the `code/sveltekit-migration-seams` branch for review. It
 separates the source changes that can plausibly move toward `main` from the
 prototype evidence that should stay disposable unless explicitly accepted.
+Use [SvelteKit migration seams exit audit](sveltekit-migration-seams-exit-audit.md)
+for the roadmap-level status and next-branch decision.
 
 ## Review baseline
 
