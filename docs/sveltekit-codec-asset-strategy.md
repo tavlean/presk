@@ -30,8 +30,10 @@ The prototype already proves the useful shape:
 - `prototypes/sveltekit/src/lib/codec-assets.ts` re-exports those generated URL
   records for app code and the SvelteKit worker bridge.
 - `prototypes/sveltekit/src/lib/service-worker-codec-assets.ts` feeds the same
-  generated records into `src/sw/cache-plan.ts` before the prototype service
-  worker de-dupes install URLs.
+  generated precache records into `src/sw/cache-plan.ts` before the prototype
+  service worker de-dupes install URLs. Runtime-only records, such as the tiny
+  rotate WASM that Vite can inline in the service-worker graph, stay out of the
+  service-worker imports.
 - `src/features/worker-utils/index.ts` passes
   `globalThis.__squshEmscriptenLocateFile` into Emscripten modules, letting the
   prototype route WebP, AVIF, QOI, JPEG XL, MozJPEG, and ImageQuant runtime
@@ -77,8 +79,9 @@ export interface CodecAssetRecord {
 
 The generated module should also expose codec-specific typed objects for worker
 runtime calls, for example `webpWasmUrls`, `avifWasmUrls`, and
-`resizeWasmUrls`. App code and service-worker code should consume the same
-records so URL ownership is not duplicated.
+`resizeWasmUrls`. App code and service-worker code should consume generated
+records from the same source of truth, but the service-worker graph should
+import only records whose `cache` status is `precache`.
 
 ## Migration rules
 
@@ -105,16 +108,19 @@ are reviewed.
 Implementation order:
 
 1. Generate a prototype manifest with logical `CodecAssetRecord` entries and
-   codec-specific URL objects.
+   codec-specific URL objects. Proven on `code/sveltekit-migration-seams`.
 2. Replace prototype handwritten `codecAssetUrls` aggregation with records
-   derived from that manifest.
+   derived from that manifest. Proven on `code/sveltekit-migration-seams`.
 3. Update `audit:static-output` to report duplicate physical outputs by logical
    asset, while still allowing known wrapper duplicates until the wrappers are
-   patched or regenerated.
-4. Pick one Emscripten codec, preferably WebP, and prove a wrapper patch or
+   patched or regenerated. Proven on `code/sveltekit-migration-seams`.
+4. Keep a separate generated precache manifest that imports only assets marked
+   `precache`, so runtime-only assets do not get inlined into the service-worker
+   bundle. Proven on `code/sveltekit-migration-seams`.
+5. Pick one Emscripten codec, preferably WebP, and prove a wrapper patch or
    generation option that removes worker-local `new URL("*.wasm",
 import.meta.url)` references while preserving runtime `locateFile` behavior.
-5. Repeat only after root checks, prototype checks, service-worker cache audit,
+6. Repeat only after root checks, prototype checks, service-worker cache audit,
    and browser runtime verification pass.
 
 ## Acceptance gates

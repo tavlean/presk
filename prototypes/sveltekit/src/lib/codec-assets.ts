@@ -43,11 +43,20 @@ import {
   resizeCodecAssetUrls,
   resizeWasmUrl,
 } from 'sqush-generated/codec-assets/resize';
+import {
+  svelteKitCodecAssetRecords,
+  type CodecAssetRecord,
+} from 'sqush-generated/codec-assets/manifest';
+import {
+  precacheCodecAssetRecords,
+  precacheCodecAssetUrls,
+} from 'sqush-generated/codec-assets/precache';
 
 export {
   avifCodecAssetUrls,
   avifDecoderWasmUrl,
   avifEncoderWasmUrl,
+  type CodecAssetRecord,
   codecAssetProbeWorkerUrl,
   hqxWasmUrl,
   imagequantCodecAssetUrls,
@@ -66,7 +75,10 @@ export {
   resizeWasmUrl,
   rotateCodecAssetUrls,
   rotateWasmUrl,
+  precacheCodecAssetRecords,
+  precacheCodecAssetUrls,
   svelteKitFeaturesWorkerUrl,
+  svelteKitCodecAssetRecords,
   webpCodecAssetUrls,
   webpDecoderWasmUrl,
   webpEncodeProbeWorkerUrl,
@@ -78,13 +90,5 @@ export const codecAssetUrls = [
   codecAssetProbeWorkerUrl,
   webpEncodeProbeWorkerUrl,
   svelteKitFeaturesWorkerUrl,
-  ...avifCodecAssetUrls,
-  ...webpCodecAssetUrls,
-  ...qoiCodecAssetUrls,
-  ...jxlCodecAssetUrls,
-  ...mozjpegCodecAssetUrls,
-  ...oxipngCodecAssetUrls,
-  ...imagequantCodecAssetUrls,
-  ...resizeCodecAssetUrls,
-  ...rotateCodecAssetUrls,
+  ...precacheCodecAssetUrls,
 ];

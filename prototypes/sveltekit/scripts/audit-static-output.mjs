@@ -32,6 +32,14 @@ const serviceWorker = await readFile(
   join(buildDir, 'service-worker.js'),
   'utf8',
 );
+const generatedCodecAssetManifest = await readFile(
+  join(root, '.svelte-kit', 'sqush-generated', 'codec-assets', 'manifest.ts'),
+  'utf8',
+);
+const generatedCodecAssetPrecacheManifest = await readFile(
+  join(root, '.svelte-kit', 'sqush-generated', 'codec-assets', 'precache.ts'),
+  'utf8',
+);
 
 const appEntryAsset = files.find(
   (file) => file.includes('_app/immutable/entry/app.') && file.endsWith('.js'),
@@ -198,6 +206,40 @@ const immutableFeaturesWorkerAsset = files.find(
     /^_app\/immutable\/workers\/webp-[A-Za-z0-9_-]+\.js$/.test(file) &&
     file.endsWith('.js'),
 );
+const expectedLogicalAssetKeys = [
+  'avif:decoder:default',
+  'avif:encoder:single-thread',
+  'webp:decoder:default',
+  'webp:encoder:baseline',
+  'webp:encoder:simd',
+  'qoi:decoder:default',
+  'qoi:encoder:default',
+  'jxl:decoder:default',
+  'jxl:encoder:single-thread',
+  'mozjpeg:encoder:default',
+  'oxipng:encoder:single-thread',
+  'imagequant:processor:default',
+  'resize:processor:default',
+  'hqx:processor:hqx',
+  'rotate:preprocessor:default',
+];
+const physicalWasmGroups = [
+  ['webp:encoder:baseline', baselineWasmAssets],
+  ['webp:encoder:simd', simdWasmAssets],
+  ['webp:decoder:default', webpDecoderWasmAssets],
+  ['avif:decoder:default', avifDecoderWasmAssets],
+  ['avif:encoder:single-thread', avifEncoderWasmAssets],
+  ['rotate:preprocessor:default', rotateWasmAssets],
+  ['qoi:encoder:default', qoiEncoderWasmAssets],
+  ['qoi:decoder:default', qoiDecoderWasmAssets],
+  ['jxl:encoder:single-thread', jxlEncoderWasmAssets],
+  ['jxl:decoder:default', jxlDecoderWasmAssets],
+  ['mozjpeg:encoder:default', mozjpegEncoderWasmAssets],
+  ['oxipng:encoder:single-thread', oxipngWasmAssets],
+  ['imagequant:processor:default', imagequantWasmAssets],
+  ['resize:processor:default', resizeWasmAssets],
+  ['hqx:processor:hqx', hqxWasmAssets],
+];
 
 assert(files.includes('index.html'), 'Missing static index.html output.');
 assert(files.includes('200.html'), 'Missing static fallback output.');
@@ -318,6 +360,28 @@ assert(
   immutableFeaturesWorkerAsset,
   'Missing app-emitted immutable generated WebP features-worker asset.',
 );
+assert(
+  generatedCodecAssetManifest.includes('svelteKitCodecAssetRecords'),
+  'Generated codec asset manifest does not expose logical asset records.',
+);
+assert(
+  generatedCodecAssetManifest.includes('precacheCodecAssetUrls'),
+  'Generated codec asset manifest does not expose derived precache URLs.',
+);
+assert(
+  generatedCodecAssetPrecacheManifest.includes('precacheCodecAssetUrls'),
+  'Generated codec asset precache manifest does not expose precache URLs.',
+);
+assert(
+  !generatedCodecAssetPrecacheManifest.includes('rotate:preprocessor:default'),
+  'Generated codec asset precache manifest should not import runtime-only rotate WASM.',
+);
+for (const logicalAssetKey of expectedLogicalAssetKeys) {
+  assert(
+    generatedCodecAssetManifest.includes(logicalAssetKey),
+    `Generated codec asset manifest is missing ${logicalAssetKey}.`,
+  );
+}
 assert(
   serviceWorker.includes(wasmAsset),
   `Service-worker build manifest does not include ${wasmAsset}.`,
@@ -448,6 +512,10 @@ console.log(
     `Resize WASM asset: ${resizeWasmAsset}`,
     `HQX WASM asset: ${hqxWasmAsset}`,
     `Worker rotate WASM asset: ${workerRotateWasmAsset}`,
+    `Generated logical codec asset records: ${expectedLogicalAssetKeys.length}`,
+    `Physical WASM groups: ${physicalWasmGroups
+      .map(([logicalKey, assets]) => `${logicalKey}=${assets.length}`)
+      .join(', ')}`,
     `Baseline WebP WASM copies: ${baselineWasmAssets.length}`,
     ...baselineWasmAssets.map((asset) => `  - ${asset}`),
     `SIMD WebP WASM copies: ${simdWasmAssets.length}`,

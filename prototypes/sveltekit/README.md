@@ -81,6 +81,12 @@ npm audit --audit-level=low
 - The prototype sync step now emits generated WebP codec asset metadata. The
   service worker and SvelteKit worker bridge both consume that generated WebP
   WASM URL manifest instead of a handwritten local helper.
+- The prototype sync step now also emits a logical codec asset manifest with
+  typed records for every active generated WASM URL. App code, the SvelteKit
+  worker bridge, and the service-worker cache plan consume URLs derived from
+  that manifest instead of maintaining separate loose URL lists. The generated
+  service-worker path imports a precache-only manifest so runtime-only assets do
+  not get inlined into the service-worker bundle.
 - The prototype sync step now emits generated rotate WASM asset metadata. The
   generated SvelteKit features worker imports the shared rotate runtime with a
   Vite `?url` WASM asset, proving the first replacement shape for production
@@ -329,6 +335,11 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   are a generated Vite asset manifest consumed by both app and service worker,
   or codec wrapper changes that remove Emscripten's worker-local `new URL`
   references and accept externally supplied WASM URLs.
+- Keep the logical codec asset manifest as the next asset-seam shape. The
+  manifest should stay the single owner of codec WASM URLs, while app code,
+  worker bridge calls, and service-worker cache plans derive their URL lists
+  from its records. Keep service-worker imports limited to precacheable records
+  so tiny runtime assets cannot reappear as `data:` URLs in the install cache.
 
 ## Branch and merge guidance
 

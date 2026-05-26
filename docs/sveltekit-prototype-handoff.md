@@ -361,6 +361,14 @@ Worker-bridge seam progress:
   encoder WASM URL manifest. The service-worker asset list and
   `SvelteKitWorkerBridge` both consume those generated URLs, so the app, worker
   bridge, and cache manifest agree on the top-level WebP WASM asset URLs.
+- The prototype sync step now emits
+  `.svelte-kit/sqush-generated/codec-assets/manifest.ts` as the logical asset
+  record manifest for all active generated codec WASM URLs. App code,
+  `SvelteKitWorkerBridge`, and generated service-worker cache entries derive
+  URL lists from that manifest, proving the next canonical asset-manifest shape
+  before wrapper-level physical duplication is fixed. The service-worker graph
+  imports a generated precache-only manifest, so runtime-only records such as
+  rotate do not get inlined into the service-worker install cache.
 - The SvelteKit prototype sync step now emits
   `.svelte-kit/sqush-generated/worker-surface/ready.ts`. The generated worker
   bridge metadata imports its ready method-name list, and the same file records
