@@ -326,6 +326,9 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
   through a reusable helper with focused tests. The shared cache planner now
   also exposes an active non-WebP-2 codec-cache helper for migration work while
   keeping the full current production cache path intact.
+- `src/sw/processor-support.ts` now owns the shared service-worker support probe
+  for threads, SIMD, WebP, and AVIF detection, so the full and active cache
+  boundaries do not drift.
 - `src/sw/active-to-cache.ts` mirrors the production Rollup `entry-data:`
   boundary against `features-worker/active` and the active cache planner, without
   importing WebP 2 codec records. It is not wired to the current service worker.

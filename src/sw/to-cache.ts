@@ -1,15 +1,9 @@
-import { simd } from 'wasm-feature-detect';
-import webpDataUrl from 'data-url:./tiny.webp';
-import avifDataUrl from 'data-url:./tiny.avif';
-import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
 import {
   buildAdditionalProcessorCacheUrls,
   buildInitialCacheUrls,
   shouldCacheDynamically,
 } from './cache-plan';
-
-// Give TypeScript the correct global.
-declare var self: ServiceWorkerGlobalScope;
+import { detectProcessorSupport } from './processor-support';
 
 // Initial app stuff
 import * as initialApp from 'entry-data:client/initial-app';
@@ -60,44 +54,21 @@ export const initial = buildInitialCacheUrls({
 });
 
 export const theRest = (async () => {
-  const [supportsThreads, supportsSimd, supportsWebP, supportsAvif] =
-    await Promise.all([
-      checkThreadsSupport(),
-      simd(),
-      ...[webpDataUrl, avifDataUrl].map(async (dataUrl) => {
-        if (!self.createImageBitmap) return false;
-        const response = await fetch(dataUrl);
-        const blob = await response.blob();
-        return createImageBitmap(blob).then(
-          () => true,
-          () => false,
-        );
-      }),
-    ]);
-
-  return buildAdditionalProcessorCacheUrls(
-    {
-      threads: supportsThreads,
-      simd: supportsSimd,
-      webp: supportsWebP,
-      avif: supportsAvif,
-    },
-    {
-      featuresWorker,
-      avifDec,
-      webpDec,
-      avifEncMt,
-      avifEnc,
-      jxlEncMtSimd,
-      jxlEncMt,
-      jxlEnc,
-      oxiMt,
-      oxi,
-      webpEncSimd,
-      webpEnc,
-      wp2EncMtSimd,
-      wp2EncMt,
-      wp2Enc,
-    },
-  );
+  return buildAdditionalProcessorCacheUrls(await detectProcessorSupport(), {
+    featuresWorker,
+    avifDec,
+    webpDec,
+    avifEncMt,
+    avifEnc,
+    jxlEncMtSimd,
+    jxlEncMt,
+    jxlEnc,
+    oxiMt,
+    oxi,
+    webpEncSimd,
+    webpEnc,
+    wp2EncMtSimd,
+    wp2EncMt,
+    wp2Enc,
+  });
 })();

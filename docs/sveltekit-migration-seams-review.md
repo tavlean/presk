@@ -55,9 +55,10 @@ the candidate set to merge or cherry-pick into `main` after verification:
 - `src/sw/cache-plan.ts`, `src/sw/to-cache.ts`, and
   `src/sw/active-to-cache.ts`: framework-neutral service-worker cache planning
   over `{ main, deps }` records, with Rollup virtual imports kept at the
-  production boundary. The active cache-planning helper and active cache boundary
-  exclude WebP 2 while the current production cache path remains full for
-  existing behavior.
+  production boundary. `src/sw/processor-support.ts` owns shared thread, SIMD,
+  WebP, and AVIF support detection for both cache boundaries. The active
+  cache-planning helper and active cache boundary exclude WebP 2 while the
+  current production cache path remains full for existing behavior.
 - `src/features/**/client/runtime.ts`: runtime-only encoder/processor clients
   split from Preact option controls for browser encoders, WebP, AVIF, JPEG XL,
   QOI, MozJPEG, OxiPNG, and resize.

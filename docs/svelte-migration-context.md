@@ -175,7 +175,8 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   those records from Vite worker and asset URL imports. The shared cache planner
   also has an active non-WebP-2 codec-cache helper and `active-to-cache.ts`
   boundary for migration work while the current production cache path remains
-  full.
+  full. `processor-support.ts` keeps thread, SIMD, WebP, and AVIF support
+  detection shared between the full and active cache boundaries.
 - The first production `service-worker:` replacement shape is now proven for
   registration: keep the Rollup URL adapter at the production boundary, move
   registration/update/share-target behavior into a helper that accepts an

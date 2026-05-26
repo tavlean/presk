@@ -1,14 +1,9 @@
-import { simd } from 'wasm-feature-detect';
-import webpDataUrl from 'data-url:./tiny.webp';
-import avifDataUrl from 'data-url:./tiny.avif';
-import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
 import {
   buildActiveAdditionalProcessorCacheUrls,
   buildInitialCacheUrls,
   shouldCacheDynamically,
 } from './cache-plan';
-
-declare var self: ServiceWorkerGlobalScope;
+import { detectProcessorSupport } from './processor-support';
 
 import * as initialApp from 'entry-data:client/initial-app';
 import swUrl from 'service-worker:sw';
@@ -46,28 +41,8 @@ export const initial = buildInitialCacheUrls({
 });
 
 export const theRest = (async () => {
-  const [supportsThreads, supportsSimd, supportsWebP, supportsAvif] =
-    await Promise.all([
-      checkThreadsSupport(),
-      simd(),
-      ...[webpDataUrl, avifDataUrl].map(async (dataUrl) => {
-        if (!self.createImageBitmap) return false;
-        const response = await fetch(dataUrl);
-        const blob = await response.blob();
-        return createImageBitmap(blob).then(
-          () => true,
-          () => false,
-        );
-      }),
-    ]);
-
   return buildActiveAdditionalProcessorCacheUrls(
-    {
-      threads: supportsThreads,
-      simd: supportsSimd,
-      webp: supportsWebP,
-      avif: supportsAvif,
-    },
+    await detectProcessorSupport(),
     {
       featuresWorker,
       avifDec,
