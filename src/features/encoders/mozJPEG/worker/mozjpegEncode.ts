@@ -10,22 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import mozjpeg_enc, { MozJPEGModule } from 'codecs/mozjpeg/enc/mozjpeg_enc';
+import mozjpeg_enc from 'codecs/mozjpeg/enc/mozjpeg_enc';
 import { EncodeOptions } from '../shared/meta';
-import { initEmscriptenModule } from 'features/worker-utils';
+import { createMozjpegEncoderRuntime } from './runtime';
 
-let emscriptenModule: Promise<MozJPEGModule>;
-
-export default async function encode(
+const encode: (
   data: ImageData,
   options: EncodeOptions,
-): Promise<ArrayBuffer> {
-  if (!emscriptenModule) {
-    emscriptenModule = initEmscriptenModule(mozjpeg_enc);
-  }
+) => Promise<ArrayBuffer> = createMozjpegEncoderRuntime({
+  loadEncoder: async () => mozjpeg_enc,
+});
 
-  const module = await emscriptenModule;
-  const resultView = module.encode(data.data, data.width, data.height, options);
-  // wasm can’t run on SharedArrayBuffers, so we hard-cast to ArrayBuffer.
-  return resultView.buffer as ArrayBuffer;
-}
+export default encode;

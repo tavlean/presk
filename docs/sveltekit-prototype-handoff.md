@@ -424,9 +424,12 @@ Worker-bridge seam progress:
   `.svelte-kit/sqush-generated/codec-assets/mozjpeg.ts`, passes the MozJPEG
   encoder WASM URL through the SvelteKit worker bridge, verifies JPEG
   `ff d8 ff` output in the runtime pipeline probe, and audits service-worker
-  cache coverage for the MozJPEG WASM asset. The shared MozJPEG metadata now
-  exposes local numeric color-space constants instead of importing a
-  declaration-only codec enum as a runtime value.
+  cache coverage for the MozJPEG WASM asset. The MozJPEG encoder now uses an
+  injectable runtime factory, and the prototype imports a generated patched
+  MozJPEG wrapper copy so static output emits exactly one canonical MozJPEG
+  encoder WASM asset. The shared MozJPEG metadata now exposes local numeric
+  color-space constants instead of importing a declaration-only codec enum as a
+  runtime value.
 - `quantize` has moved from blocked to ready in the generated worker-surface
   manifest. The prototype now generates
   `.svelte-kit/sqush-generated/codec-assets/imagequant.ts`, passes the

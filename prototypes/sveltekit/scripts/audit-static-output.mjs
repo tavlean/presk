@@ -322,8 +322,8 @@ assert(
   'Expected emitted JPEG XL threaded worker helper asset to remain visible for threaded-runtime migration analysis.',
 );
 assert(
-  mozjpegEncoderWasmAssets.length >= 1,
-  'Expected emitted MozJPEG encoder WASM asset.',
+  mozjpegEncoderWasmAssets.length === 1,
+  `Expected exactly one MozJPEG encoder WASM asset after the generated wrapper patch, found ${mozjpegEncoderWasmAssets.length}.`,
 );
 assert(oxipngWasmAssets.length >= 1, 'Expected emitted OxiPNG WASM asset.');
 assert(
