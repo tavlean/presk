@@ -10,26 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import qoiEncoder, { QoiModule } from 'codecs/qoi/enc/qoi_enc';
+import qoiEncoder from 'codecs/qoi/enc/qoi_enc';
 import type { EncodeOptions } from '../shared/meta';
-import { initEmscriptenModule } from 'features/worker-utils';
+import { createQoiEncoderRuntime } from './runtime';
 
-let emscriptenModule: Promise<QoiModule>;
-
-async function init() {
-  return initEmscriptenModule(qoiEncoder);
-}
-
-export default async function encode(
+const encode: (
   data: ImageData,
   options: EncodeOptions,
-): Promise<ArrayBuffer> {
-  if (!emscriptenModule) {
-    emscriptenModule = init();
-  }
+) => Promise<ArrayBuffer> = createQoiEncoderRuntime({
+  loadEncoder: async () => qoiEncoder,
+});
 
-  const module = await emscriptenModule;
-  const resultView = module.encode(data.data, data.width, data.height, options);
-  // wasm can’t run on SharedArrayBuffers, so we hard-cast to ArrayBuffer.
-  return resultView.buffer as ArrayBuffer;
-}
+export default encode;

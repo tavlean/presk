@@ -58,6 +58,10 @@ the candidate set to merge or cherry-pick into `main` after verification:
   `src/features/decoders/webP/worker/runtime.ts`,
   `src/features/encoders/webP/worker/webpEncode.ts`,
   `src/features/encoders/webP/worker/runtime.ts`,
+  `src/features/decoders/qoi/worker/qoiDecode.ts`,
+  `src/features/decoders/qoi/worker/runtime.ts`,
+  `src/features/encoders/qoi/worker/qoiEncode.ts`,
+  `src/features/encoders/qoi/worker/runtime.ts`,
   `src/features/encoders/oxiPNG/worker/oxipngEncode.ts`,
   `src/features/processors/resize/worker/resize.ts`,
   `src/features/processors/quantize/worker/quantize.ts`, and

@@ -46,10 +46,10 @@ The prototype already proves the useful shape:
   functions instead of relying on wrapper-local URL discovery.
 
 The prototype also deliberately audits duplicate assets. `audit:static-output`
-now expects WebP encoder and decoder WASM to be emitted once from the canonical
-generated URL records after the generated wrapper patches. Rotate duplicates
-remain visible because the prototype still imports both the canonical rotate URL
-and the worker-local wasm-bindgen fallback.
+now expects WebP encoder/decoder and QOI encoder/decoder WASM to be emitted
+once from the canonical generated URL records after the generated wrapper
+patches. Rotate duplicates remain visible because the prototype still imports
+both the canonical rotate URL and the worker-local wasm-bindgen fallback.
 
 ## Canonical manifest shape
 
@@ -124,9 +124,9 @@ Implementation order:
 5. Pick one Emscripten codec, preferably WebP, and prove a wrapper patch or
    generation option that removes worker-local `new URL("*.wasm",
 import.meta.url)` references while preserving runtime `locateFile` behavior.
-   Proven for the WebP encoder and decoder wrappers on
+   Proven for the WebP encoder/decoder and QOI encoder/decoder wrappers on
    `code/sveltekit-migration-seams` with prototype-generated patched wrapper
-   copies plus injectable WebP encode/decode runtimes.
+   copies plus injectable encode/decode runtimes.
 6. Decide whether production should use an equivalent post-generation transform,
    a codec rebuild option, or a checked-in wrapper patch before broadening the
    approach to other Emscripten codecs.
@@ -141,10 +141,11 @@ The strategy is ready for a minimal SvelteKit single-image slice only when:
   logical asset records;
 - `npm run audit:static-output` can distinguish intentional threaded/helper
   assets from accidental duplicate WASM emissions;
-- WebP runtime encoding still produces a valid `RIFF`/`WEBP` output through the
-  generated URLs;
-- service-worker Cache Storage contains the intended canonical WebP assets after
-  a controlled-page reload;
+- WebP runtime encoding still produces a valid `RIFF`/`WEBP` output and QOI
+  runtime encoding still produces a valid `qoif` output through the generated
+  URLs;
+- service-worker Cache Storage contains the intended canonical WebP and QOI
+  assets after a controlled-page reload;
 - root `npm run check` and prototype `npm run check`, `npm run build`,
   `npm run audit:static-output`, and `npm audit --audit-level=low` pass.
 

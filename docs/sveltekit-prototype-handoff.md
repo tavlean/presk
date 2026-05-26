@@ -405,7 +405,10 @@ Worker-bridge seam progress:
   `.svelte-kit/sqush-generated/codec-assets/qoi.ts`, passes the QOI encoder and
   decoder WASM URLs through the SvelteKit worker bridge, verifies a `qoif`
   output plus 3x3 QOI decode round trip in the runtime pipeline probe, and
-  audits service-worker cache coverage for both QOI WASM assets.
+  audits service-worker cache coverage for both QOI WASM assets. The QOI
+  encoder and decoder now use injectable runtime factories, and the prototype
+  imports generated patched QOI wrapper copies so static output emits exactly
+  one canonical QOI encoder WASM asset and one canonical QOI decoder WASM asset.
 - `jxlEncode` and `jxlDecode` have moved from blocked to ready for a forced
   single-thread runtime path in the generated worker-surface manifest. The
   production JPEG XL encoder now accepts an injectable thread-support probe

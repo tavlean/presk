@@ -302,12 +302,12 @@ assert(
   'Expected duplicate rotate WASM assets to remain visible for migration analysis.',
 );
 assert(
-  qoiEncoderWasmAssets.length >= 1,
-  'Expected emitted QOI encoder WASM asset.',
+  qoiEncoderWasmAssets.length === 1,
+  `Expected exactly one QOI encoder WASM asset after the generated wrapper patch, found ${qoiEncoderWasmAssets.length}.`,
 );
 assert(
-  qoiDecoderWasmAssets.length >= 1,
-  'Expected emitted QOI decoder WASM asset.',
+  qoiDecoderWasmAssets.length === 1,
+  `Expected exactly one QOI decoder WASM asset after the generated wrapper patch, found ${qoiDecoderWasmAssets.length}.`,
 );
 assert(
   jxlEncoderWasmAssets.length >= 1,

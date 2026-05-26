@@ -131,7 +131,10 @@ npm audit --audit-level=low
   surface. The prototype now generates QOI encoder and decoder WASM URL
   manifests, passes them through the SvelteKit worker bridge, verifies a `qoif`
   output plus 3x3 QOI decode round trip from the existing QOI worker modules,
-  and confirms service-worker cache coverage for both QOI WASM assets.
+  and confirms service-worker cache coverage for both QOI WASM assets. The
+  prototype now imports generated patched QOI wrapper copies through injectable
+  QOI encode/decode runtimes, so static output emits one canonical QOI encoder
+  WASM asset and one canonical QOI decoder WASM asset.
 - `jxlEncode` and `jxlDecode` have been promoted through the same generated
   worker surface for a forced single-thread runtime path. The production JPEG XL
   encoder now accepts an injectable thread-support probe while preserving the
@@ -326,11 +329,11 @@ minimal SvelteKit single-image editor slice with real user-selected files.
   lazy/feature-detected workers and WASM assets, following the prototype
   `sqush-generated/service-worker/cache-plan.ts` proof.
 - Resolve codec WASM duplication before production migration. The prototype now
-  proves the WebP encoder and decoder shapes with generated patched wrapper
-  copies plus injectable WebP runtimes, while runtime loading still flows
-  through generated manifest URLs and `locateFile`. Production still needs a
-  decision between an equivalent post-generation transform, a codec rebuild
-  option, or a checked-in wrapper patch before this is broadened.
+  proves the WebP and QOI encoder/decoder shapes with generated patched wrapper
+  copies plus injectable runtimes, while runtime loading still flows through
+  generated manifest URLs and `locateFile`. Production still needs a decision
+  between an equivalent post-generation transform, a codec rebuild option, or a
+  checked-in wrapper patch before this is broadened.
 - Keep the logical codec asset manifest as the next asset-seam shape. The
   manifest should stay the single owner of codec WASM URLs, while app code,
   worker bridge calls, and service-worker cache plans derive their URL lists
