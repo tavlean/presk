@@ -120,9 +120,11 @@ npm audit --audit-level=low
   path, the prototype generates an AVIF encoder WASM URL manifest, verifies
   AVIF `ftyp` output plus an `avifDecode` round trip, and confirms
   service-worker cache coverage for the single-thread AVIF encoder WASM asset.
-  Vite still emits the AVIF threaded worker helper and MT WASM assets because
-  the production module keeps dynamic threaded imports in its graph; production
-  migration still needs a separate threaded-runtime proof or a build split.
+  The prototype now imports generated patched AVIF encoder/decoder wrapper
+  copies through shared AVIF runtime seams, so static output emits one canonical
+  AVIF decoder WASM asset, one canonical single-thread AVIF encoder WASM asset,
+  and no AVIF threaded worker-helper assets. Production migration still needs a
+  separate threaded-runtime proof or a build split for the threaded AVIF path.
 - `webpDecode` has been promoted through that generated worker surface. The
   prototype now generates a WebP decoder WASM URL alongside the encoder WASM
   URLs, passes it through the SvelteKit worker bridge, verifies a WebP decode

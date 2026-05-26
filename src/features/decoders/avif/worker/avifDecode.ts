@@ -10,23 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { AVIFModule } from 'codecs/avif/dec/avif_dec';
-import { initEmscriptenModule, blobToArrayBuffer } from 'features/worker-utils';
+import { createAvifDecoderRuntime } from './runtime';
 
-let emscriptenModule: Promise<AVIFModule>;
-
-export default async function decode(blob: Blob): Promise<ImageData> {
-  if (!emscriptenModule) {
+export default createAvifDecoderRuntime({
+  async loadDecoder() {
     const decoder = await import('codecs/avif/dec/avif_dec');
-    emscriptenModule = initEmscriptenModule(decoder.default);
-  }
-
-  const [module, data] = await Promise.all([
-    emscriptenModule,
-    blobToArrayBuffer(blob),
-  ]);
-
-  const result = module.decode(data);
-  if (!result) throw new Error('Decoding error');
-  return result;
-}
+    return decoder.default;
+  },
+});

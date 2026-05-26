@@ -47,9 +47,10 @@ The prototype already proves the useful shape:
 
 The prototype also deliberately audits duplicate assets. `audit:static-output`
 now expects WebP encoder/decoder, QOI encoder/decoder, MozJPEG encoder,
-OxiPNG single-thread encoder, ImageQuant processor, resize/HQX processor, and
-rotate preprocessor WASM to be emitted once from the canonical generated URL
-records after the generated wrapper patches and worker-bridge URL injection.
+AVIF decoder/single-thread encoder, OxiPNG single-thread encoder, ImageQuant
+processor, resize/HQX processor, and rotate preprocessor WASM to be emitted once
+from the canonical generated URL records after the generated wrapper patches and
+worker-bridge URL injection.
 
 ## Canonical manifest shape
 
@@ -124,12 +125,13 @@ Implementation order:
 5. Pick one Emscripten codec, preferably WebP, and prove a wrapper patch or
    generation option that removes worker-local `new URL("*.wasm",
 import.meta.url)` references while preserving runtime `locateFile` behavior.
-   Proven for the WebP encoder/decoder, QOI encoder/decoder, MozJPEG encoder,
-   ImageQuant processor, resize/HQX wasm-bindgen wrappers, and the OxiPNG
-   single-thread wasm-bindgen wrapper on `code/sveltekit-migration-seams` with
-   prototype-generated patched wrapper copies plus injectable runtimes. Rotate
-   is proven by passing the canonical URL through the SvelteKit worker bridge
-   instead of importing a second worker URL.
+   Proven for the WebP encoder/decoder, AVIF decoder/single-thread encoder,
+   QOI encoder/decoder, MozJPEG encoder, ImageQuant processor, resize/HQX
+   wasm-bindgen wrappers, and the OxiPNG single-thread wasm-bindgen wrapper on
+   `code/sveltekit-migration-seams` with prototype-generated patched wrapper
+   copies plus injectable runtimes. Rotate is proven by passing the canonical
+   URL through the SvelteKit worker bridge instead of importing a second worker
+   URL.
 6. Decide whether production should use an equivalent post-generation transform,
    a codec rebuild option, or a checked-in wrapper patch before broadening the
    approach to other Emscripten codecs.

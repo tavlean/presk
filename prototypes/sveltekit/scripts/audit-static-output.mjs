@@ -279,16 +279,16 @@ assert(
   `Expected exactly one WebP decoder WASM asset after the generated wrapper patch, found ${webpDecoderWasmAssets.length}.`,
 );
 assert(
-  avifDecoderWasmAssets.length >= 1,
-  'Expected emitted AVIF decoder WASM asset.',
+  avifDecoderWasmAssets.length === 1,
+  `Expected exactly one AVIF decoder WASM asset after the generated wrapper patch, found ${avifDecoderWasmAssets.length}.`,
 );
 assert(
-  avifEncoderWasmAssets.length >= 1,
-  'Expected emitted AVIF encoder WASM asset.',
+  avifEncoderWasmAssets.length === 1,
+  `Expected exactly one AVIF encoder WASM asset after the generated wrapper patch, found ${avifEncoderWasmAssets.length}.`,
 );
 assert(
-  avifThreadedWorkerAssets.length >= 1,
-  'Expected emitted AVIF threaded worker helper asset to remain visible for threaded-runtime migration analysis.',
+  avifThreadedWorkerAssets.length === 0,
+  `Expected no AVIF threaded worker helper assets when the prototype injects the single-thread runtime, found ${avifThreadedWorkerAssets.length}.`,
 );
 assert(
   rotateWasmAssets.length === 1,

@@ -10,41 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { AVIFModule } from 'codecs/avif/enc/avif_enc';
-import type { EncodeOptions } from '../shared/meta';
-import { initEmscriptenModule } from 'features/worker-utils';
 import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
+import { createAvifEncoderRuntime } from './runtime';
 
-let emscriptenModule: Promise<AVIFModule>;
+export type { AvifEncodeRuntimeOptions } from './runtime';
 
-export interface AvifEncodeRuntimeOptions {
-  supportsThreads?: typeof checkThreadsSupport;
-}
-
-async function init({
-  supportsThreads = checkThreadsSupport,
-}: AvifEncodeRuntimeOptions = {}) {
-  if (await supportsThreads()) {
+export default createAvifEncoderRuntime({
+  supportsThreads: checkThreadsSupport,
+  async loadMultiThread() {
     const avifEncoder = await import('codecs/avif/enc/avif_enc_mt');
-    return initEmscriptenModule<AVIFModule>(avifEncoder.default);
-  }
-  const avifEncoder = await import('codecs/avif/enc/avif_enc.js');
-  return initEmscriptenModule(avifEncoder.default);
-}
-
-export default async function encode(
-  data: ImageData,
-  options: EncodeOptions,
-  runtimeOptions?: AvifEncodeRuntimeOptions,
-): Promise<ArrayBuffer> {
-  if (!emscriptenModule) emscriptenModule = init(runtimeOptions);
-
-  const module = await emscriptenModule;
-  const result = module.encode(data.data, data.width, data.height, options);
-
-  if (!result) throw new Error('Encoding error');
-
-  const output = new Uint8Array(result.byteLength);
-  output.set(result);
-  return output.buffer as ArrayBuffer;
-}
+    return avifEncoder.default;
+  },
+  async loadSingleThread() {
+    const avifEncoder = await import('codecs/avif/enc/avif_enc.js');
+    return avifEncoder.default;
+  },
+});

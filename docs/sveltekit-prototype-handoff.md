@@ -385,17 +385,19 @@ Worker-bridge seam progress:
   manifest. The prototype now generates an AVIF decoder WASM URL manifest,
   passes it through the SvelteKit worker bridge, verifies a local AVIF fixture
   decode in the runtime pipeline probe, and audits service-worker cache coverage
-  for the AVIF decoder WASM asset.
+  for the AVIF decoder WASM asset. The prototype now imports a generated patched
+  AVIF decoder wrapper copy through the shared AVIF decoder runtime seam, so
+  static output emits exactly one canonical AVIF decoder WASM asset.
 - `avifEncode` has moved from blocked to ready for a forced single-thread
   runtime path in the generated worker-surface manifest. The production AVIF
-  worker now accepts an injectable thread-support probe while preserving the
-  default threaded-capable path, the prototype generates an AVIF encoder WASM
-  URL manifest, verifies AVIF `ftyp` output plus an `avifDecode` round trip in
-  the runtime pipeline probe, and audits service-worker cache coverage for the
-  single-thread AVIF encoder WASM asset. Vite still emits the AVIF threaded
-  worker helper and MT WASM assets because the production module keeps dynamic
-  threaded imports in its graph, so threaded production parity remains a
-  separate migration proof.
+  worker now keeps its lazy threaded-capable adapter while exposing an
+  injectable runtime factory, the prototype generates an AVIF encoder WASM URL
+  manifest, verifies AVIF `ftyp` output plus an `avifDecode` round trip in the
+  runtime pipeline probe, and audits service-worker cache coverage for the
+  single-thread AVIF encoder WASM asset. The prototype imports a generated
+  patched single-thread AVIF encoder wrapper copy, so static output emits
+  exactly one canonical AVIF encoder WASM asset and no AVIF threaded worker
+  helper assets. Threaded production parity remains a separate migration proof.
 - `webpDecode` has moved from blocked to ready in the generated worker-surface
   manifest. The prototype now generates the WebP decoder WASM URL alongside the
   WebP encoder WASM URLs, passes it through the SvelteKit worker bridge,
