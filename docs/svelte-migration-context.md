@@ -156,6 +156,10 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
 
 - Keep SvelteKit static output as the prototype target and measure build complexity there first.
 - Continue the first prototype under `prototypes/sveltekit/` on the `code/sveltekit-prototype` branch; do not turn it into a production migration by default.
+- Treat WebP 2 as deprioritized across the SvelteKit prototype, migration-seams
+  work, and product roadmap. Do not spend effort on WebP 2 worker, WASM, or
+  metadata seams unless the product direction changes and it becomes a serious
+  target again.
 - Continue migration seam work on `code/sveltekit-migration-seams`. The first
   seam is a generated `client/lazy-app/feature-meta/shared` module that keeps
   framework-neutral codec/processor/preprocessor metadata separate from the

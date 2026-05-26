@@ -286,7 +286,7 @@ Migration-seams progress on `code/sveltekit-migration-seams`:
   WebP-only `feature-meta/shared.ts` and `feature-meta/index.ts` files under
   `.svelte-kit/sqush-generated/`. This keeps the prototype on the narrow WebP
   metadata proof instead of falling through to the full production shared
-  metadata module and reintroducing the known AVIF/MozJPEG/WP2 blockers.
+  metadata module and reintroducing the older broad-codec blockers.
 - The production rotate preprocessor worker now has a reusable runtime factory
   that accepts a WASM URL, while the production `rotate.ts` remains the Rollup
   `url:` adapter. The SvelteKit prototype generator emits a Vite `?url` rotate
@@ -432,27 +432,31 @@ Worker-bridge seam progress:
   parallel wasm-bindgen helper and parallel WASM assets, but the prototype does
   not enable or cache that threaded runtime path yet.
 
-Next worker seam: pick another blocked method from the generated worker-surface
-manifest, resolve only that method's asset URL, thread-support alias, or worker
-type blocker, and then move it into the ready list with prototype verification.
+Next worker seam: do not spend more migration-seams effort on WebP 2 unless a
+fresh product decision makes it a serious target again. WebP 2 is intentionally
+deprioritized and likely removable later, so the next valuable work is the
+threaded-runtime strategy for already-relevant codecs, or the final merge plan
+for production-safe seams versus disposable prototype evidence.
 
 Full worker-surface blocker inventory:
 
 - Importing the production `features-worker` surface directly from SvelteKit
-  still pulls every codec worker, not just WebP. That reintroduces AVIF, WP2,
-  JXL, and AVIF/JXL/WP2 decoder type/build issues before the prototype needs
-  those codecs. AVIF decode, WebP decode, QOI encode/decode, MozJPEG encode,
-  single-thread OxiPNG encode, quantize, and worker resize now have narrow
-  generated SvelteKit paths, but the broader production worker surface remains
-  intentionally filtered.
-- AVIF, JPEG XL, and WP2 threaded workers still need focused threaded-codec
-  passes.
+  still pulls every codec worker, not just WebP. That can reintroduce codec
+  build and type issues before the prototype needs those codecs. AVIF decode,
+  AVIF encode, WebP decode, QOI encode/decode, JPEG XL encode/decode, MozJPEG
+  encode, single-thread OxiPNG encode, quantize, and worker resize now have
+  narrow generated SvelteKit paths, but the broader production worker surface
+  remains intentionally filtered.
+- AVIF and JPEG XL threaded workers still need focused threaded-codec passes.
   `worker-shared/supports-wasm-threads` now has a SvelteKit alias shape, but the
   actual threaded WASM runtime still needs COOP/COEP, nested-worker, worker
   helper asset, and service-worker cache proof before those threaded paths can
   be considered production-ready. AVIF now has a proven forced single-thread
   encode path, and JPEG XL now has a proven forced single-thread encode/decode
   path, but those do not prove the threaded runtime.
+- WebP 2 is intentionally out of scope for continued prototype work. Keep it
+  filtered from the SvelteKit worker surface and avoid spending engineering time
+  on its asset/threading seams unless the product direction changes.
 - Rotate now has a proven split: production keeps the Rollup `url:` adapter,
   while the SvelteKit generated worker imports the shared rotate runtime with a
   generated Vite `?url` asset manifest.

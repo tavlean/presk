@@ -89,8 +89,10 @@ Recommended sequence:
 
 ### 4. Codec product scope and provenance
 
-The product direction is WebP, AVIF, and JPEG XL. The inherited app still has a
-larger visible and built codec surface.
+The product direction is WebP, AVIF, and JPEG XL. WebP 2 is deprioritized: do
+not spend prototype, migration, or roadmap effort on it unless it becomes a
+serious contender again. The inherited app still has a larger visible and built
+codec surface.
 
 Recommended sequence:
 

@@ -26,8 +26,10 @@ answered.
 - Do not introduce server-side image processing or upload paths.
 - Do not delete or move codecs, generated metadata, workers, or WASM assets
   unless the build and runtime consequences are proven.
-- Keep WebP as the first production codec focus, AVIF second, JPEG XL advanced,
-  and WebP 2 experimental only.
+- Keep WebP as the first production codec focus, AVIF second, and JPEG XL
+  advanced. WebP 2 is deprioritized and should not receive prototype,
+  migration, or roadmap effort unless it becomes a serious product target
+  again.
 
 ## Engineering rules
 

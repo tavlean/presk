@@ -146,12 +146,13 @@ const svelteKitReadyWorkerMethods = [
 const blockedWorkerMethods = [
   {
     name: 'wp2Decode',
-    blocker: 'Full decoder surface is not part of the WebP-first prototype.',
+    blocker:
+      'WebP 2 is intentionally deprioritized across the prototype, migration, and product roadmap; do not spend effort here unless the product decision changes.',
   },
   {
     name: 'wp2Encode',
     blocker:
-      'Needs worker-shared/supports-wasm-threads alias and WebP 2 asset URL strategy.',
+      'WebP 2 is intentionally deprioritized across the prototype, migration, and product roadmap; do not spend effort here unless the product decision changes.',
   },
 ];
 
