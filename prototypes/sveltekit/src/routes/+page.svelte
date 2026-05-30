@@ -3,42 +3,44 @@
     compressFile,
     getDefaultOptions,
     OUTPUT_FORMATS,
+    IDENTITY,
     type CompressOutcome,
-    type OutputFormat,
+    type SideFormat,
   } from '$lib/compress';
   import { registerPrototypeServiceWorker } from '$lib/service-worker-registration';
   import Output from '$lib/editor/output/Output.svelte';
-  import WebpOptions from '$lib/editor/options/WebpOptions.svelte';
-  import AvifOptions from '$lib/editor/options/AvifOptions.svelte';
-  import JxlOptions from '$lib/editor/options/JxlOptions.svelte';
-  import MozjpegOptions from '$lib/editor/options/MozjpegOptions.svelte';
-  import OxipngOptions from '$lib/editor/options/OxipngOptions.svelte';
-  import ResizeOptions from '$lib/editor/options/ResizeOptions.svelte';
-  import QuantizeOptions from '$lib/editor/options/QuantizeOptions.svelte';
-  import Range from '$lib/editor/options/Range.svelte';
-  import Select from '$lib/editor/options/Select.svelte';
-  import Toggle from '$lib/editor/options/Toggle.svelte';
+  import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
   import {
     defaultPreprocessorState,
     defaultProcessorState,
   } from 'client/lazy-app/feature-meta';
-  import type {
-    ResizeOptionsState,
-    QuantizeOptionsState,
-  } from '$lib/editor/options/processor-types';
-  import type { EncodeOptions as WebpEncodeOptions } from 'features/encoders/webP/shared/meta';
-  import type { EncodeOptions as AvifEncodeOptions } from 'features/encoders/avif/shared/meta';
-  import type { EncodeOptions as JxlEncodeOptions } from 'features/encoders/jxl/shared/meta';
-  import type { EncodeOptions as MozjpegEncodeOptions } from 'features/encoders/mozJPEG/shared/meta';
-  import type { EncodeOptions as OxipngEncodeOptions } from 'features/encoders/oxiPNG/shared/meta';
+  import type { ProcessorState } from 'client/lazy-app/feature-meta';
   import '$lib/editor/theme.css';
 
-  // Saved settings: persist the chosen encoder + its options across reloads.
-  const STORAGE_KEY = 'sqush:settings:v1';
-  function readSaved(): {
+  // Squoosh compares two independently-configured "sides". Each side picks its
+  // own output (Original/identity or any encoder), its own encoder options, and
+  // its own resize/quantize processing. Rotation is a source-level preprocess,
+  // so it is shared across both sides.
+  interface SideState {
+    format: SideFormat;
+    optionsByFormat: Record<string, Record<string, unknown>>;
+    processorState: ProcessorState;
+  }
+
+  type SavedSide = {
     format?: string;
     optionsByFormat?: Record<string, Record<string, unknown>>;
-  } {
+  };
+
+  const STORAGE_KEY = 'sqush:settings:v2';
+  const sideSaveKey = (i: 0 | 1) =>
+    `sqush:side-settings:${i === 0 ? 'left' : 'right'}`;
+
+  function isValidFormat(f: unknown): f is SideFormat {
+    return f === IDENTITY || OUTPUT_FORMATS.some((o) => o.id === f);
+  }
+
+  function readSaved(): { sides?: SavedSide[] } {
     if (typeof localStorage === 'undefined') return {};
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') ?? {};
@@ -46,46 +48,59 @@
       return {};
     }
   }
-  const saved = readSaved();
 
-  let file = $state<File | null>(null);
-  let dragging = $state(false);
-  let format = $state<OutputFormat>(
-    OUTPUT_FORMATS.some((f) => f.id === saved.format)
-      ? (saved.format as OutputFormat)
-      : 'webP',
-  );
-  // One option object per format, seeded from each encoder's defaults merged with
-  // any saved settings. Panels mutate these proxies in place; the encode effect
-  // reads them via a snapshot.
-  let optionsByFormat = $state<Record<string, Record<string, unknown>>>(
-    Object.fromEntries(
+  function buildSide(saved: SavedSide | undefined, fallback: SideFormat): SideState {
+    const optionsByFormat = Object.fromEntries(
       OUTPUT_FORMATS.map((f) => {
         const defaults = getDefaultOptions(f.id);
-        const savedForFormat = saved.optionsByFormat?.[f.id];
+        const savedForFormat = saved?.optionsByFormat?.[f.id];
         return [
           f.id,
           savedForFormat ? { ...defaults, ...savedForFormat } : defaults,
         ];
       }),
-    ),
-  );
+    );
+    return {
+      format: isValidFormat(saved?.format) ? (saved!.format as SideFormat) : fallback,
+      optionsByFormat,
+      processorState: structuredClone(defaultProcessorState),
+    };
+  }
 
-  // Resize/quantize (processors) + rotate (preprocessor) are per-image — reset
-  // on each load. Natural dimensions are seeded from the first encode result.
-  let processorState = $state(structuredClone(defaultProcessorState));
+  const saved = readSaved();
+  // Defaults match Squoosh: left = Original, right = WebP.
+  let sides = $state<[SideState, SideState]>([
+    buildSide(saved.sides?.[0], IDENTITY),
+    buildSide(saved.sides?.[1], 'webP'),
+  ]);
+
+  // Shared, per-image state (reset on each new file).
   let preprocessorState = $state(structuredClone(defaultPreprocessorState));
   let naturalWidth = $state(0);
   let naturalHeight = $state(0);
   let dimsSeeded = false;
 
-  let result = $state<CompressOutcome | null>(null);
-  let status = $state<'idle' | 'working' | 'done' | 'error'>('idle');
-  let errorMessage = $state('');
+  let file = $state<File | null>(null);
+  let dragging = $state(false);
 
-  // Non-reactive holder so revoking the previous output URL does not re-trigger
-  // the compression effect.
-  let lastOutputUrl: string | null = null;
+  let results = $state<[CompressOutcome | null, CompressOutcome | null]>([
+    null,
+    null,
+  ]);
+  let statuses = $state<('idle' | 'working' | 'done' | 'error')[]>([
+    'idle',
+    'idle',
+  ]);
+  let errors = $state<string[]>(['', '']);
+  // Non-reactive: revoking the previous URL must not re-trigger the encode.
+  const lastUrls: (string | null)[] = [null, null];
+
+  let canImport = $state<[boolean, boolean]>([
+    typeof localStorage !== 'undefined' &&
+      !!localStorage.getItem(sideSaveKey(0)),
+    typeof localStorage !== 'undefined' &&
+      !!localStorage.getItem(sideSaveKey(1)),
+  ]);
 
   $effect(() => {
     registerPrototypeServiceWorker().catch((error: unknown) => {
@@ -93,81 +108,75 @@
     });
   });
 
-  // Re-encode whenever the file or any setting changes. Debounced so dragging
-  // the quality slider does not spawn an encode per pixel.
-  $effect(() => {
-    const current = file;
-    // $state.snapshot deeply reads the option object, so editing any nested
-    // option (quality, lossless, advanced…) re-triggers this effect.
-    const request = {
-      format,
-      options: $state.snapshot(optionsByFormat[format]),
-      processorState: $state.snapshot(processorState),
-      preprocessorState: $state.snapshot(preprocessorState),
-    };
-    if (!current) {
-      status = 'idle';
-      return;
-    }
+  // One debounced encode effect per side. Re-runs when that side's format /
+  // options / processing change, or when the file or shared rotation changes.
+  for (const index of [0, 1] as const) {
+    $effect(() => {
+      const current = file;
+      const side = sides[index];
+      const request = {
+        format: side.format,
+        options: $state.snapshot(side.optionsByFormat[side.format] ?? {}),
+        processorState: $state.snapshot(side.processorState),
+        preprocessorState: $state.snapshot(preprocessorState),
+      };
+      if (!current) {
+        statuses[index] = 'idle';
+        return;
+      }
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => {
-      status = 'working';
-      errorMessage = '';
-      compressFile(current, request, controller.signal)
-        .then((outcome) => {
-          if (controller.signal.aborted) {
-            URL.revokeObjectURL(outcome.outputUrl);
-            return;
-          }
-          if (lastOutputUrl) URL.revokeObjectURL(lastOutputUrl);
-          lastOutputUrl = outcome.outputUrl;
-          result = outcome;
-          status = 'done';
-        })
-        .catch((error: unknown) => {
-          if (controller.signal.aborted) return;
-          errorMessage = error instanceof Error ? error.message : String(error);
-          status = 'error';
-        });
-    }, 200);
+      const controller = new AbortController();
+      const timer = setTimeout(() => {
+        statuses[index] = 'working';
+        errors[index] = '';
+        compressFile(current, request, controller.signal)
+          .then((outcome) => {
+            if (controller.signal.aborted) {
+              URL.revokeObjectURL(outcome.outputUrl);
+              return;
+            }
+            if (lastUrls[index]) URL.revokeObjectURL(lastUrls[index]!);
+            lastUrls[index] = outcome.outputUrl;
+            results[index] = outcome;
+            statuses[index] = 'done';
+          })
+          .catch((error: unknown) => {
+            if (controller.signal.aborted) return;
+            errors[index] =
+              error instanceof Error ? error.message : String(error);
+            statuses[index] = 'error';
+          });
+      }, 200);
 
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
-  });
-
-  function pickFiles(list: FileList | null | undefined) {
-    const next = list?.[0];
-    if (next && next.type.startsWith('image/')) {
-      file = next;
-      result = null;
-      // Per-image state resets; encoder settings (format/options) persist.
-      processorState = structuredClone(defaultProcessorState);
-      preprocessorState = structuredClone(defaultPreprocessorState);
-      dimsSeeded = false;
-    }
+      return () => {
+        clearTimeout(timer);
+        controller.abort();
+      };
+    });
   }
 
-  // Seed resize width/height + the natural size from the first result per image.
+  // Seed natural dimensions + each side's resize inputs from the first result.
   $effect(() => {
-    const r = result;
+    const r = results[0] ?? results[1];
     if (!r || dimsSeeded) return;
     dimsSeeded = true;
     naturalWidth = r.sourceImageData.width;
     naturalHeight = r.sourceImageData.height;
-    processorState.resize.width = r.sourceImageData.width;
-    processorState.resize.height = r.sourceImageData.height;
+    for (const s of sides) {
+      s.processorState.resize.width = r.sourceImageData.width;
+      s.processorState.resize.height = r.sourceImageData.height;
+    }
   });
 
-  // Persist encoder settings (not the per-image processor state) for next visit.
+  // Persist each side's encoder settings (processing is per-image, not saved).
   $effect(() => {
-    const payload = JSON.stringify({
-      format,
-      optionsByFormat: $state.snapshot(optionsByFormat),
-    });
     if (typeof localStorage === 'undefined') return;
+    const payload = JSON.stringify({
+      sides: sides.map((s) => ({
+        format: s.format,
+        optionsByFormat: $state.snapshot(s.optionsByFormat),
+      })),
+    });
     try {
       localStorage.setItem(STORAGE_KEY, payload);
     } catch {
@@ -175,33 +184,87 @@
     }
   });
 
-  function rotate() {
-    preprocessorState.rotate.rotate = ((preprocessorState.rotate.rotate + 90) %
-      360) as 0 | 90 | 180 | 270;
+  function pickFiles(list: FileList | null | undefined) {
+    const next = list?.[0];
+    if (next && next.type.startsWith('image/')) {
+      file = next;
+      results = [null, null];
+      for (const s of sides) {
+        s.processorState = structuredClone(defaultProcessorState);
+      }
+      preprocessorState = structuredClone(defaultPreprocessorState);
+      dimsSeeded = false;
+    }
   }
-
   function onInput(event: Event) {
     pickFiles((event.currentTarget as HTMLInputElement).files);
   }
-
   function onDrop(event: DragEvent) {
     event.preventDefault();
     dragging = false;
     pickFiles(event.dataTransfer?.files);
   }
 
-  const activeExt = $derived(
-    OUTPUT_FORMATS.find((f) => f.id === format)?.ext ?? 'bin',
-  );
-  const downloadName = $derived(
-    file ? file.name.replace(/\.[^.]+$/, '') + '.' + activeExt : 'image',
-  );
-
-  function formatBytes(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  function rotate() {
+    preprocessorState.rotate.rotate = ((preprocessorState.rotate.rotate + 90) %
+      360) as 0 | 90 | 180 | 270;
   }
+
+  function setFormat(index: 0 | 1, format: SideFormat) {
+    sides[index].format = format;
+  }
+
+  function copyToOther(from: 0 | 1) {
+    const to: 0 | 1 = from === 0 ? 1 : 0;
+    sides[to].format = sides[from].format;
+    sides[to].optionsByFormat = structuredClone(
+      $state.snapshot(sides[from].optionsByFormat),
+    );
+    sides[to].processorState = structuredClone(
+      $state.snapshot(sides[from].processorState),
+    );
+  }
+
+  function saveSide(index: 0 | 1) {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(
+      sideSaveKey(index),
+      JSON.stringify({
+        format: sides[index].format,
+        optionsByFormat: $state.snapshot(sides[index].optionsByFormat),
+        processorState: $state.snapshot(sides[index].processorState),
+      }),
+    );
+    canImport[index] = true;
+  }
+  function importSide(index: 0 | 1) {
+    if (typeof localStorage === 'undefined') return;
+    const raw = localStorage.getItem(sideSaveKey(index));
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      if (isValidFormat(data.format)) sides[index].format = data.format;
+      if (data.optionsByFormat) {
+        sides[index].optionsByFormat = {
+          ...sides[index].optionsByFormat,
+          ...data.optionsByFormat,
+        };
+      }
+      if (data.processorState) sides[index].processorState = data.processorState;
+    } catch {
+      // Corrupt saved blob; ignore.
+    }
+  }
+
+  function downloadName(index: 0 | 1): string {
+    if (!file) return 'image';
+    const side = sides[index];
+    if (side.format === IDENTITY) return file.name;
+    const ext = OUTPUT_FORMATS.find((f) => f.id === side.format)?.ext ?? 'bin';
+    return file.name.replace(/\.[^.]+$/, '') + '.' + ext;
+  }
+
+  const firstError = $derived(errors.find((e) => e) ?? '');
 </script>
 
 <svelte:head>
@@ -233,157 +296,65 @@
 {:else}
   <div class="compress sqush-editor">
     <Output
-      source={result?.sourceImageData}
-      output={result?.outputImageData}
+      leftImage={results[0]?.outputImageData}
+      rightImage={results[1]?.outputImageData}
       onRotate={rotate}
     />
 
-    {#if status === 'working'}
-      <p class="status-pill">Compressing…</p>
-    {:else if status === 'error'}
-      <p class="status-pill error">{errorMessage}</p>
+    {#if firstError}
+      <p class="status-pill error">{firstError}</p>
     {/if}
 
-    <header class="topbar">
-      <span class="wordmark">Sqush</span>
-      <div class="topbar-actions">
-        <a class="topbar-link" href="/diagnostics">Diagnostics</a>
-        <button
-          type="button"
-          class="topbar-button"
-          onclick={() => (file = null)}
-        >
-          Open image
-        </button>
-      </div>
-    </header>
+    <button class="back" onclick={() => (file = null)} title="Back" aria-label="Back">
+      <svg viewBox="0 0 61 53.3">
+        <title>Back</title>
+        <path
+          class="back-blob"
+          d="M0 25.6c-.5-7.1 4.1-14.5 10-19.1S23.4.1 32.2 0c8.8 0 19 1.6 24.4 8s5.6 17.8 1.7 27a29.7 29.7 0 01-20.5 18c-8.4 1.5-17.3-2.6-24.5-8S.5 32.6.1 25.6z"
+        />
+        <path
+          class="back-x"
+          d="M41.6 17.1l-2-2.1-8.3 8.2-8.2-8.2-2 2 8.2 8.3-8.3 8.2 2.1 2 8.2-8.1 8.3 8.2 2-2-8.2-8.3z"
+        />
+      </svg>
+    </button>
 
     <aside class="options options-1">
-      <div class="options-title">Original</div>
-      <div class="options-scroller">
-        <div class="info-row">
-          <span>File</span><strong title={file.name}>{file.name}</strong>
-        </div>
-        <div class="info-row">
-          <span>Size</span><strong>{formatBytes(file.size)}</strong>
-        </div>
-        {#if result}
-          <div class="info-row">
-            <span>Dimensions</span>
-            <strong
-              >{result.sourceImageData.width} × {result.sourceImageData
-                .height}</strong
-            >
-          </div>
-        {/if}
-      </div>
+      <OptionsPanel
+        side="left"
+        format={sides[0].format}
+        options={sides[0].optionsByFormat[sides[0].format] ?? {}}
+        processorState={sides[0].processorState}
+        {naturalWidth}
+        {naturalHeight}
+        result={results[0]}
+        working={statuses[0] === 'working'}
+        canImport={canImport[0]}
+        downloadName={downloadName(0)}
+        onFormatChange={(f) => setFormat(0, f)}
+        onCopy={() => copyToOther(0)}
+        onSave={() => saveSide(0)}
+        onImport={() => importSide(0)}
+      />
     </aside>
 
     <aside class="options options-2">
-      <div class="options-title">
-        <Select
-          large
-          value={format}
-          onchange={(e) =>
-            (format = (e.currentTarget as HTMLSelectElement)
-              .value as OutputFormat)}
-        >
-          {#each OUTPUT_FORMATS as option (option.id)}
-            <option value={option.id}>{option.label}</option>
-          {/each}
-        </Select>
-      </div>
-      <div class="options-scroller">
-        {#if format === 'webP'}
-          <WebpOptions
-            options={optionsByFormat[format] as unknown as WebpEncodeOptions}
-          />
-        {:else if format === 'avif'}
-          <AvifOptions
-            options={optionsByFormat[format] as unknown as AvifEncodeOptions}
-          />
-        {:else if format === 'jxl'}
-          <JxlOptions
-            options={optionsByFormat[format] as unknown as JxlEncodeOptions}
-          />
-        {:else if format === 'mozJPEG'}
-          <MozjpegOptions
-            options={optionsByFormat[
-              format
-            ] as unknown as MozjpegEncodeOptions}
-          />
-        {:else if format === 'oxiPNG'}
-          <OxipngOptions
-            options={optionsByFormat[
-              format
-            ] as unknown as OxipngEncodeOptions}
-          />
-        {:else}
-          <div class="options-section">
-            {#if typeof optionsByFormat[format].quality === 'number'}
-              <div class="option-one-cell">
-                <Range
-                  min={0}
-                  max={100}
-                  step={0.1}
-                  value={Number(optionsByFormat[format].quality)}
-                  oninput={(v) => (optionsByFormat[format].quality = v)}
-                  >Quality:</Range
-                >
-              </div>
-            {:else}
-              <p class="no-opts">{format} has no adjustable options.</p>
-            {/if}
-          </div>
-        {/if}
-
-        <label class="option-toggle section-enabler">
-          Resize
-          <Toggle bind:checked={processorState.resize.enabled} />
-        </label>
-        {#if processorState.resize.enabled}
-          <ResizeOptions
-            options={processorState.resize as unknown as ResizeOptionsState}
-            inputWidth={naturalWidth}
-            inputHeight={naturalHeight}
-          />
-        {/if}
-
-        <label class="option-toggle section-enabler">
-          Reduce palette
-          <Toggle bind:checked={processorState.quantize.enabled} />
-        </label>
-        {#if processorState.quantize.enabled}
-          <QuantizeOptions
-            options={processorState.quantize as unknown as QuantizeOptionsState}
-          />
-        {/if}
-      </div>
-
-      <div class="options-results">
-        <div class="result-line">
-          <span class="result-size"
-            >{result ? formatBytes(result.outputSize) : '—'}</span
-          >
-          {#if result}
-            <span
-              class="delta"
-              class:good={result.percentChange < 0}
-              class:bad={result.percentChange > 0}
-            >
-              {result.percentChange > 0 ? '+' : ''}{result.percentChange}%
-            </span>
-          {/if}
-        </div>
-        <a
-          class="download"
-          class:disabled={!result || status !== 'done'}
-          href={result?.outputUrl ?? '#'}
-          download={downloadName}
-        >
-          Download {activeExt.toUpperCase()}
-        </a>
-      </div>
+      <OptionsPanel
+        side="right"
+        format={sides[1].format}
+        options={sides[1].optionsByFormat[sides[1].format] ?? {}}
+        processorState={sides[1].processorState}
+        {naturalWidth}
+        {naturalHeight}
+        result={results[1]}
+        working={statuses[1] === 'working'}
+        canImport={canImport[1]}
+        downloadName={downloadName(1)}
+        onFormatChange={(f) => setFormat(1, f)}
+        onCopy={() => copyToOther(1)}
+        onSave={() => saveSide(1)}
+        onImport={() => importSide(1)}
+      />
     </aside>
   </div>
 {/if}
@@ -461,7 +432,7 @@
 
   .status-pill {
     position: absolute;
-    top: 60px;
+    top: 14px;
     left: 50%;
     transform: translateX(-50%);
     margin: 0;
@@ -471,156 +442,63 @@
     color: #fff;
     z-index: 8;
     pointer-events: none;
+    max-width: 70vw;
   }
   .status-pill.error {
     color: #ff8a8a;
     font-weight: 600;
   }
 
-  .topbar {
+  /* Back button (pink blob X), ported from Compress/style.css */
+  .back {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 14px;
-    box-sizing: border-box;
-    z-index: 10;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(6px);
-  }
-  .wordmark {
-    font-weight: 800;
-    font-size: 1.2rem;
-    letter-spacing: -0.01em;
-  }
-  .topbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .topbar-link {
-    color: #bcbcbc;
-    text-decoration: none;
-    font-size: 0.9rem;
-  }
-  .topbar-link:hover {
-    color: #fff;
-  }
-  .topbar-button {
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
+    margin: 14px;
+    background: none;
     border: none;
-    border-radius: 6px;
-    padding: 7px 12px;
+    padding: 0;
     cursor: pointer;
-    font: inherit;
-    font-size: 0.9rem;
+    z-index: 10;
   }
-  .topbar-button:hover {
-    background: rgba(255, 255, 255, 0.2);
+  .back svg {
+    width: 58px;
+    overflow: visible;
+    display: block;
+  }
+  .back-blob {
+    fill: var(--hot-pink);
+    opacity: 0.77;
+  }
+  .back-x {
+    fill: var(--white);
   }
 
-  /* Option rails */
+  /* Bottom-anchored option cards, ported from Compress/style.css.
+     Each side is a content-height card in a bottom corner; the canvas shows
+     above and between them. */
   .options {
     position: absolute;
-    top: 48px;
     bottom: 0;
-    width: 320px;
+    width: 300px;
+    max-height: calc(100% - 64px);
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     color: #fff;
     font-size: 1.2rem;
     z-index: 5;
   }
   .options-1 {
     left: 0;
-    --main-theme-color: var(--pink);
-    --header-text-color: var(--white);
   }
   .options-2 {
     right: 0;
-    --main-theme-color: var(--blue);
-    --header-text-color: var(--dark-text);
-  }
-  .options-title {
-    background: var(--main-theme-color);
-    color: var(--header-text-color);
-    padding: 10px 12px;
-    font-weight: bold;
-    font-size: 1.4rem;
-    border-bottom: 1px solid var(--off-black);
-  }
-  .options-scroller {
-    flex: 1;
-    overflow-y: auto;
-    background: var(--off-black);
   }
 
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 11px 15px;
-    border-bottom: 1px solid #ffffff14;
-  }
-  .info-row span {
-    color: #bcbcbc;
-  }
-  .info-row strong {
-    max-width: 190px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .options-results {
-    background: var(--off-black);
-    border-top: 1px solid #00000066;
-    padding: 14px 15px;
-    display: grid;
-    gap: 10px;
-  }
-  .result-line {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-  }
-  .result-size {
-    font-weight: 700;
-    font-size: 1.4rem;
-  }
-  .delta {
-    font-weight: 700;
-  }
-  .delta.good {
-    color: #7cfc9b;
-  }
-  .delta.bad {
-    color: #ff8a8a;
-  }
-  .download {
-    display: block;
-    text-align: center;
-    padding: 12px;
-    border-radius: 6px;
-    background: var(--main-theme-color);
-    color: var(--header-text-color);
-    font-weight: 700;
-    text-decoration: none;
-  }
-  .download.disabled {
-    background: #444;
-    color: #999;
-    pointer-events: none;
-  }
-
-  @media (max-width: 800px) {
+  @media (max-width: 760px) {
     .options {
-      width: 260px;
+      width: 44vw;
     }
   }
 </style>

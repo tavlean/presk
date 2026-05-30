@@ -30,6 +30,15 @@ import SvelteKitWorkerBridge from './sveltekit-worker-bridge';
 export type OutputFormat = EncoderType;
 
 /**
+ * A side's chosen output. `'identity'` is Squoosh's "Original" pseudo-encoder:
+ * the side shows the (preprocessed) source pixels unchanged and downloads the
+ * original file. Every other value is a real encoder.
+ */
+export type SideFormat = OutputFormat | 'identity';
+
+export const IDENTITY: 'identity' = 'identity';
+
+/**
  * Formats surfaced in the slice's button row. The codec encoders the project
  * focuses on, plus the other single-thread WASM codecs. Browser encoders stay in
  * the type/generated surface but get their own option panels in the editor phase
@@ -49,7 +58,7 @@ export const OUTPUT_FORMATS: {
 ];
 
 export interface CompressRequest {
-  format: OutputFormat;
+  format: SideFormat;
   /** The encoder's full option object (e.g. webP EncodeOptions). */
   options: unknown;
   /** Resize + quantize processor state (enabled flags + options). */
@@ -59,9 +68,9 @@ export interface CompressRequest {
 }
 
 /** A fresh, mutable copy of an encoder's default options (for the UI to bind). */
-export function getDefaultOptions(
-  format: OutputFormat,
-): Record<string, unknown> {
+export function getDefaultOptions(format: SideFormat): Record<string, unknown> {
+  // The Original/identity side has no encoder options.
+  if (format === IDENTITY) return {};
   return structuredClone(
     encoderMap[format].meta.defaultOptions as Record<string, unknown>,
   );
@@ -77,6 +86,8 @@ export interface CompressOutcome {
   sourceImageData: ImageData;
   /** The encoded output decoded back to pixels (right/"after" preview). */
   outputImageData: ImageData;
+  /** True for the Original/identity side (no encoding happened). */
+  isOriginal: boolean;
 }
 
 /**
@@ -85,7 +96,12 @@ export interface CompressOutcome {
  * discriminated-union cast is the prototype adapter's single typing seam.
  */
 function buildEncoderState(request: CompressRequest): EncoderState {
-  return { type: request.format, options: request.options } as EncoderState;
+  // Only called after the identity branch returns, so `format` is a real
+  // encoder here; cast through unknown since the param type is the wider union.
+  return {
+    type: request.format,
+    options: request.options,
+  } as unknown as EncoderState;
 }
 
 /**
@@ -106,6 +122,23 @@ export async function compressFile(
       request.preprocessorState,
       pipelineBridge,
     );
+
+    // Original/identity side: no processing or encoding. Show the preprocessed
+    // source on both before/after, and download the original file as-is.
+    if (request.format === IDENTITY) {
+      const outputUrl = URL.createObjectURL(file);
+      return {
+        outputFile: file,
+        outputUrl,
+        outputSize: file.size,
+        originalSize: file.size,
+        percentChange: 0,
+        sourceImageData: preprocessed,
+        outputImageData: preprocessed,
+        isOriginal: true,
+      };
+    }
+
     const processed = await processImage(
       signal,
       { ...decodedSource, preprocessed },
@@ -139,6 +172,7 @@ export async function compressFile(
         Math.round(getPercentChange(file.size, outputFile.size) * 10) / 10,
       sourceImageData: processed,
       outputImageData,
+      isOriginal: false,
     };
   } finally {
     bridge.dispose();

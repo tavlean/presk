@@ -10,12 +10,14 @@
   import { isSafari } from 'client/lazy-app/util';
 
   interface Props {
-    source?: ImageData;
-    output?: ImageData;
+    /** Pixels drawn on the left ("before") side — side 0's output. */
+    leftImage?: ImageData;
+    /** Pixels drawn on the right ("after") side — side 1's output. */
+    rightImage?: ImageData;
     onRotate?: () => void;
   }
 
-  let { source, output, onRotate }: Props = $props();
+  let { leftImage, rightImage, onRotate }: Props = $props();
 
   let twoUp = $state<HTMLElement>();
   let pinchLeft = $state<PinchZoom>();
@@ -39,17 +41,17 @@
 
   // Draw the pixels whenever they change.
   $effect(() => {
-    if (canvasLeft && source) drawDataToCanvas(canvasLeft, source);
+    if (canvasLeft && leftImage) drawDataToCanvas(canvasLeft, leftImage);
   });
   $effect(() => {
-    if (canvasRight && output) drawDataToCanvas(canvasRight, output);
+    if (canvasRight && rightImage) drawDataToCanvas(canvasRight, rightImage);
   });
 
   // Fit + centre the view when the image dimensions change (new file / resize),
   // but not on every re-encode (which keeps the same dimensions).
   let fittedKey = '';
   $effect(() => {
-    const s = source;
+    const s = leftImage ?? rightImage;
     const pz = pinchLeft;
     const tu = twoUp;
     if (!s || !pz || !tu) return;
@@ -135,8 +137,8 @@
         <canvas
           class="pinch-target"
           class:pixelated
-          width={source?.width}
-          height={source?.height}
+          width={leftImage?.width}
+          height={leftImage?.height}
           bind:this={canvasLeft}
         ></canvas>
       </pinch-zoom>
@@ -144,8 +146,8 @@
         <canvas
           class="pinch-target"
           class:pixelated
-          width={output?.width}
-          height={output?.height}
+          width={rightImage?.width}
+          height={rightImage?.height}
           bind:this={canvasRight}
         ></canvas>
       </pinch-zoom>
@@ -157,8 +159,13 @@
       <button
         class="button first-button"
         onclick={() => zoomTo(scale / 1.5)}
-        title="Zoom out">−</button
+        title="Zoom out"
+        aria-label="Zoom out"
       >
+        <svg class="icon" viewBox="0 0 24 24"
+          ><path d="M19 13H5v-2h14v2z" /></svg
+        >
+      </button>
       {#if editingScale}
         <input
           class="zoom"
@@ -188,28 +195,80 @@
       <button
         class="button last-button"
         onclick={() => zoomTo(scale * 1.5)}
-        title="Zoom in">+</button
+        title="Zoom in"
+        aria-label="Zoom in"
       >
+        <svg class="icon" viewBox="0 0 24 24"
+          ><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg
+        >
+      </button>
     </div>
 
     <div class="button-group">
       <button
         class="button first-button"
+        class:last-button={isSafari}
         onclick={() => onRotate?.()}
-        title="Rotate 90°">⟳</button
+        title="Rotate"
+        aria-label="Rotate"
       >
-      <button
-        class="button"
-        class:active={pixelated}
-        onclick={() => (pixelated = !pixelated)}
-        title="Toggle smoothing">⊞</button
-      >
+        <svg class="icon" viewBox="0 0 24 24"
+          ><path
+            d="M15.6 5.5L11 1v3a8 8 0 0 0 0 16v-2a6 6 0 0 1 0-12v4l4.5-4.5zm4.3 5.5a8 8 0 0 0-1.6-3.9L17 8.5c.5.8.9 1.6 1 2.5h2zM13 17.9v2a8 8 0 0 0 3.9-1.6L15.5 17c-.8.5-1.6.9-2.5 1zm3.9-2.4l1.4 1.4A8 8 0 0 0 20 13h-2c-.1.9-.5 1.7-1 2.5z"
+          /></svg
+        >
+      </button>
+      {#if !isSafari}
+        <button
+          class="button"
+          class:active={pixelated}
+          onclick={() => (pixelated = !pixelated)}
+          title="Toggle smoothing"
+          aria-label="Toggle smoothing"
+          aria-pressed={pixelated}
+        >
+          {#if pixelated}
+            <svg class="icon" viewBox="0 0 24 24"
+              ><path
+                d="M12 3h5v2h2v2h2v5h-2V9h-2V7h-2V5h-3V3M21 12v5h-2v2h-2v2h-5v-2h3v-2h2v-2h2v-3h2M12 21H7v-2H5v-2H3v-5h2v3h2v2h2v2h3v2M3 12V7h2V5h2V3h5v2H9v2H7v2H5v3H3"
+              /></svg
+            >
+          {:else}
+            <svg class="icon" viewBox="0 0 24 24"
+              ><circle
+                cx="12"
+                cy="12"
+                r="8"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              /></svg
+            >
+          {/if}
+        </button>
+      {/if}
       <button
         class="button last-button"
         class:active={altBackground}
         onclick={() => (altBackground = !altBackground)}
-        title="Toggle background">◓</button
+        title="Toggle background"
+        aria-label="Toggle background"
+        aria-pressed={altBackground}
       >
+        {#if altBackground}
+          <svg class="icon" viewBox="0 0 24 24"
+            ><path
+              d="M9 7H7v2h2V7zm0 4H7v2h2v-2zm0-8a2 2 0 0 0-2 2h2V3zm4 12h-2v2h2v-2zm6-12v2h2a2 2 0 0 0-2-2zm-6 0h-2v2h2V3zM9 17v-2H7c0 1.1.9 2 2 2zm10-4h2v-2h-2v2zm0-4h2V7h-2v2zm0 8a2 2 0 0 0 2-2h-2v2zM5 7H3v12c0 1.1.9 2 2 2h12v-2H5V7zm10-2h2V3h-2v2zm0 12h2v-2h-2v2z"
+            /></svg
+          >
+        {:else}
+          <svg class="icon" viewBox="0 0 24 24"
+            ><path
+              d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm2 4v-2H3c0 1.1.9 2 2 2zM3 9h2V7H3v2zm12 12h2v-2h-2v2zm4-18H9a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12H9V5h10v10zm-8 6h2v-2h-2v2zm-4 0h2v-2H7v2z"
+            /></svg
+          >
+        {/if}
+      </button>
     </div>
   </div>
 
@@ -293,6 +352,14 @@
   .button {
     justify-content: center;
     min-width: 39px;
+    padding: 0 7px;
+  }
+
+  .icon {
+    display: block;
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
   }
 
   .button:hover {

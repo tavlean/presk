@@ -28,11 +28,33 @@
   /* Accent used by the two-up scrubber thumb. */
   --accent-color: var(--blue);
 
-  /* Output-side (blue) theme, matching Squoosh's options-2. */
+  /* Sensible fallback (blue); each side overrides these below. */
   --main-theme-color: var(--blue);
   --hot-theme-color: var(--deep-blue);
   --header-text-color: var(--dark-text);
   --scroller-radius: var(--options-radius) var(--options-radius) 0 0;
+}
+
+/*
+ * Per-side themes, ported from src/client/lazy-app/Compress/style.css
+ * (.options-1-theme / .options-2-theme, desktop variant). The left side is
+ * pink, the right side is blue, and each rounds only its inner (centre-facing)
+ * edge and points its copy-over arrow towards the other side.
+ */
+.sqush-editor .options-1 {
+  --main-theme-color: var(--pink);
+  --hot-theme-color: var(--hot-pink);
+  --header-text-color: var(--white);
+  --scroller-radius: 0 var(--options-radius) var(--options-radius) 0;
+  --rotate-copyoverbutton-angle: 0deg; /* point right, towards the other side */
+}
+
+.sqush-editor .options-2 {
+  --main-theme-color: var(--blue);
+  --hot-theme-color: var(--deep-blue);
+  --header-text-color: var(--dark-text);
+  --scroller-radius: var(--options-radius) 0 0 var(--options-radius);
+  --rotate-copyoverbutton-angle: 180deg; /* point left, towards the other side */
 }
 
 /*
