@@ -284,10 +284,35 @@ prerender = true;`. Confirm `adapter-static` `fallback: '200.html'`.
 - **Acceptance:** `npm run build` produces a static SPA; deep links work via
   fallback; no SSR/browser-global errors.
 
-### Phase 5 — Single-image editor parity (the real Squoosh editor)
+### Phase 5 — Single-image editor parity (the real Squoosh editor) ◑ IN PROGRESS
 
 **Goal:** rebuild the actual editor UI in Svelte at visual + functional parity
 with the current Preact app. This is the big UI phase.
+
+> **Progress (2026-05-31, branch `svelte-editor`):** Approach chosen with the
+> user: **parity + light cleanup** (idiomatic Svelte that stays visually close;
+> reference is the original Preact components on the engine/`main`). Done so far:
+>
+> - Reusable option-control primitives in Svelte 5
+>   (`src/lib/editor/options/`): Range (with the drag value-bubble), Checkbox,
+>   Toggle, Revealer, Select; `theme.css` ports the Squoosh palette + tokens.
+> - **All six per-encoder option panels** ported at parity — WebP, AVIF, JXL,
+>   MozJPEG, OxiPNG (QOI has none). AVIF/JXL use the derived-form-state model
+>   (lossless inferred, effort = 10 − speed, etc.) seeded once via an `untrack`
+>   snapshot and written back through `apply()`.
+> - **The two-up before/after editor** (`src/lib/editor/output/`): PinchZoom and
+>   TwoUp ported as local custom elements; `Output.svelte` draws the processed
+>   source (left) and decoded output (right) into two synced pinch-zooms with the
+>   draggable split, fit-to-view, event retargeting, and zoom/pixelated/
+>   background controls. `compress.ts` now returns the before/after ImageData.
+> - `compress.ts` drives `imagePipeline.compressImage` for every active format
+>   (single path shared with bulk); per-format option objects live on the page
+>   and feed the panels via `$bindable`/snapshot.
+>
+> **Remaining:** processor controls (resize beyond the basic toggle, quantize,
+> rotate); saved settings; and the full page reskin from the current light card
+> layout to Squoosh's full-bleed dark editor layout (header + left/right options
+> rails). All work browser-verified; `svelte-check` 0/0, build + audit green.
 
 - Two-up **before/after view with the draggable slider** + pinch/zoom/pan
   (port behavior from the Preact `Output`/pinch-zoom; reuse extracted state
