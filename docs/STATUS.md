@@ -29,11 +29,11 @@ main      untouched Preact + Rollup production app (safety net)
 svelte    migration trunk — Phases 1–5 complete; worktree at ../Sqush-svelte
 ```
 
-Per-phase branches are cut off `svelte` and fast-forward-merged back, then
-deleted (`svelte-plumbing` → Phases 1–4, `svelte-editor` → Phase 5, both merged
-
-- deleted). The next would be `svelte-bulk` for Phase 6. The user prefers short
-  branch names. `main` is the default branch but is NOT where migration work goes.
+Per-phase branches are cut off `svelte`, fast-forward-merged back, then deleted
+(`svelte-plumbing` covered Phases 1–4 and `svelte-editor` covered Phase 5 — both
+merged and deleted). The next would be `svelte-bulk` for Phase 6. The user
+prefers short branch names. `main` is the default branch but is NOT where
+migration work goes.
 
 ## What's done
 
@@ -93,8 +93,9 @@ All paths under `prototypes/sveltekit/`:
 - `src/lib/editor/options/` — primitives (Range, Checkbox, Toggle, Revealer,
   Select) + panels (Webp/Avif/Jxl/Mozjpeg/Oxipng/Resize/Quantize Options) +
   `processor-types.ts` (flat resize/quantize shapes for the UI).
-- `src/lib/editor/output/` — `Output.svelte` (two-up editor + viewport controls)
-  - `pinch-zoom.ts`/`.css` + `two-up.ts`/`.css` (ported custom elements).
+- `src/lib/editor/output/` — `Output.svelte` (two-up editor + viewport
+  controls), plus `pinch-zoom.ts`/`.css` and `two-up.ts`/`.css` (ported custom
+  elements).
 - `src/pointer-tracker.d.ts` — ambient types for the `pointer-tracker` package.
 - `src/service-worker.ts`, `src/lib/service-worker-registration.ts`,
   `src/lib/service-worker-codec-assets.ts` — offline.

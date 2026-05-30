@@ -73,8 +73,8 @@ single-image slice proved it (engine called from Svelte, encoded WebP/AVIF/JXL).
     `two-up` custom elements.
   - `src/lib/compress.ts` — drives `imagePipeline.compressImage` (shared with
     bulk); returns before/after ImageData.
-  - `src/service-worker.ts` (+ helpers) — offline; `scripts/sync-sqush-prototype.mjs`
-    - `scripts/audit-static-output.mjs`.
+  - `src/service-worker.ts` (+ helpers) — offline. Generator
+    `scripts/sync-sqush-prototype.mjs` + `scripts/audit-static-output.mjs`.
 - **Repo hygiene (done earlier):** `upstream` (GoogleChromeLabs) remote + ~113
   stale branches removed (commits preserved in `main`'s ancestry); `SquooshPlus`
   symlink + orphaned codex worktree removed.
