@@ -99,8 +99,11 @@ redesign, keep every codec for now. The sequenced plan lives in
    implemented; runtime-verified on a production `vite preview`: SW active, all
    15 codec WASM + app shell + nav doc cached and cache-served, live encode ran
    under SW control. No code change needed.
-4. **← NEXT** SPA shell + routing (`ssr=false`, `adapter-static` fallback).
-5. Single-image editor parity (before/after slider + all option panels).
+4. ◑ **CONFIG DONE (2026-05-31)** — SPA shell + routing. `ssr=false` +
+   `prerender=true`, `adapter-static` `fallback: 200.html`, static SPA builds
+   with deep-link fallback. `+layout.svelte` shared-context provider deferred
+   until shared state exists (Phases 5–6).
+5. **← NEXT** Single-image editor parity (before/after slider + all option panels).
 6. Bulk UI on the existing bulk engine (the headline feature).
 7. The flip: SvelteKit becomes production; retire Preact + Rollup.
 

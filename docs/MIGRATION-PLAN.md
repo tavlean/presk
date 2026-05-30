@@ -261,7 +261,17 @@ producing valid `RIFF…WEBP` output. The harness can't toggle the browser to
 literal `offline`, but the cache-completeness proof (every load-and-encode asset
 present and cache-served) plus the live SW-served encode is equivalent.
 
-### Phase 4 — App shell, routing, SPA config
+### Phase 4 — App shell, routing, SPA config ◑ CONFIG DONE (2026-05-31)
+
+> **Status (2026-05-31):** The SPA acceptance is already met — `src/routes/+layout.ts`
+> sets `ssr = false` + `prerender = true`, `adapter-static` uses
+> `fallback: '200.html'`, and `npm run build` emits a static SPA (`index.html`,
+> `200.html` deep-link fallback, `diagnostics.html`) with no SSR/browser-global
+> errors. Routes `/` and `/diagnostics` exist. **Deferred:** the `+layout.svelte`
+> shared-context provider — there is no app-wide reactive state to host yet
+> (theme + the bulk store land in Phases 5–6), so it is created alongside that
+> state rather than as an empty shell now. The intro/marketing-route decision
+> stays an open product question (see §8).
 
 **Goal:** the SvelteKit app is a proper SPA shell with the right routes.
 
