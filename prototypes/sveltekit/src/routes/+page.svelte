@@ -1,297 +1,246 @@
 <script lang="ts">
-  import { runCodecAssetProbe } from '$lib/codec-asset-probe';
-  import { createPrototypeModel } from '$lib/prototype-data';
-  import type { CodecAssetProbeResult } from '$lib/codec-asset-probe';
   import {
-    runWebpEncodeProbe,
-    type WebpEncodeProbeResult,
-  } from '$lib/webp-encode-probe';
-  import {
-    runWebpPipelineProbe,
-    type WebpPipelineProbeResult,
-  } from '$lib/webp-pipeline-probe';
+    compressFile,
+    OUTPUT_FORMATS,
+    type CompressOutcome,
+    type OutputFormat,
+  } from '$lib/compress';
   import { registerPrototypeServiceWorker } from '$lib/service-worker-registration';
 
-  const model = createPrototypeModel();
+  let file = $state<File | null>(null);
+  let dragging = $state(false);
+  let format = $state<OutputFormat>('webP');
+  let quality = $state(75);
+  let resizeOn = $state(false);
+  let resizeWidth = $state(1600);
+  let resizeHeight = $state(1600);
 
-  let selectedJobId = $state(model.session.selectedJobId ?? '');
-  let codecProbe = $state<
-    | { status: 'checking' }
-    | { status: 'ready'; result: CodecAssetProbeResult }
-    | { status: 'failed'; message: string }
-  >({ status: 'checking' });
-  let encodeProbe = $state<
-    | { status: 'checking' }
-    | { status: 'ready'; result: WebpEncodeProbeResult }
-    | { status: 'failed'; message: string }
-  >({ status: 'checking' });
-  let pipelineProbe = $state<
-    | { status: 'checking' }
-    | { status: 'ready'; result: WebpPipelineProbeResult }
-    | { status: 'failed'; message: string }
-  >({ status: 'checking' });
-  const selectedJob = $derived(
-    model.session.jobs.find((job) => job.id === selectedJobId) ??
-      model.session.jobs[0],
-  );
-  const progress = $derived(model.summary.progress);
-  const exportSummary = $derived(model.summary.export);
+  let originalUrl = $state('');
+  let result = $state<CompressOutcome | null>(null);
+  let status = $state<'idle' | 'working' | 'done' | 'error'>('idle');
+  let errorMessage = $state('');
+
+  // Non-reactive holder so revoking the previous output URL does not re-trigger
+  // the compression effect.
+  let lastOutputUrl: string | null = null;
 
   $effect(() => {
     registerPrototypeServiceWorker().catch((error: unknown) => {
-      console.error(
-        'SvelteKit prototype service-worker registration failed',
-        error,
-      );
+      console.error('Service worker registration failed', error);
     });
   });
 
+  // Original-image preview lifecycle.
   $effect(() => {
-    let cancelled = false;
-
-    runCodecAssetProbe()
-      .then((result) => {
-        if (!cancelled) codecProbe = { status: 'ready', result };
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) {
-          codecProbe = {
-            status: 'failed',
-            message: error instanceof Error ? error.message : String(error),
-          };
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    const current = file;
+    if (!current) {
+      originalUrl = '';
+      return;
+    }
+    const url = URL.createObjectURL(current);
+    originalUrl = url;
+    return () => URL.revokeObjectURL(url);
   });
 
+  // Re-encode whenever the file or any setting changes. Debounced so dragging
+  // the quality slider does not spawn an encode per pixel.
   $effect(() => {
-    let cancelled = false;
-
-    runWebpEncodeProbe()
-      .then((result) => {
-        if (!cancelled) encodeProbe = { status: 'ready', result };
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) {
-          encodeProbe = {
-            status: 'failed',
-            message: error instanceof Error ? error.message : String(error),
-          };
-        }
-      });
-
-    return () => {
-      cancelled = true;
+    const current = file;
+    const request = {
+      format,
+      quality,
+      resize: resizeOn
+        ? { width: resizeWidth, height: resizeHeight }
+        : undefined,
     };
-  });
+    if (!current) {
+      status = 'idle';
+      return;
+    }
 
-  $effect(() => {
     const controller = new AbortController();
-    let cancelled = false;
-
-    runWebpPipelineProbe(controller.signal)
-      .then((result) => {
-        if (!cancelled) pipelineProbe = { status: 'ready', result };
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) {
-          pipelineProbe = {
-            status: 'failed',
-            message: error instanceof Error ? error.message : String(error),
-          };
-        }
-      });
+    const timer = setTimeout(() => {
+      status = 'working';
+      errorMessage = '';
+      compressFile(current, request, controller.signal)
+        .then((outcome) => {
+          if (controller.signal.aborted) {
+            URL.revokeObjectURL(outcome.outputUrl);
+            return;
+          }
+          if (lastOutputUrl) URL.revokeObjectURL(lastOutputUrl);
+          lastOutputUrl = outcome.outputUrl;
+          result = outcome;
+          status = 'done';
+        })
+        .catch((error: unknown) => {
+          if (controller.signal.aborted) return;
+          errorMessage = error instanceof Error ? error.message : String(error);
+          status = 'error';
+        });
+    }, 200);
 
     return () => {
-      cancelled = true;
+      clearTimeout(timer);
       controller.abort();
     };
   });
+
+  function pickFiles(list: FileList | null | undefined) {
+    const next = list?.[0];
+    if (next && next.type.startsWith('image/')) {
+      file = next;
+      result = null;
+    }
+  }
+
+  function onInput(event: Event) {
+    pickFiles((event.currentTarget as HTMLInputElement).files);
+  }
+
+  function onDrop(event: DragEvent) {
+    event.preventDefault();
+    dragging = false;
+    pickFiles(event.dataTransfer?.files);
+  }
+
+  const activeExt = $derived(
+    OUTPUT_FORMATS.find((f) => f.id === format)?.ext ?? 'bin',
+  );
+  const downloadName = $derived(
+    file ? file.name.replace(/\.[^.]+$/, '') + '.' + activeExt : 'image',
+  );
+
+  function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
 </script>
 
 <svelte:head>
-  <title>Sqush SvelteKit Prototype</title>
+  <title>Sqush — Compress an image</title>
 </svelte:head>
 
 <main>
   <header>
-    <p class="eyebrow">Technical spike</p>
-    <h1>Sqush SvelteKit prototype</h1>
-    <p>
-      This branch checks whether existing local-first Sqush helpers can be
-      consumed from SvelteKit before any production migration starts.
-    </p>
+    <h1>Sqush</h1>
+    <p>Local-first image compression. Nothing leaves your device.</p>
   </header>
 
-  <section class="summary" aria-label="Prototype summary">
-    <div>
-      <span>Total jobs</span>
-      <strong>{progress.total}</strong>
-    </div>
-    <div>
-      <span>Ready exports</span>
-      <strong>{exportSummary.ready}</strong>
-    </div>
-    <div>
-      <span>Pending</span>
-      <strong>{exportSummary.pending}</strong>
-    </div>
-    <div>
-      <span>Saved</span>
-      <strong>{exportSummary.percentChange}%</strong>
-    </div>
-  </section>
+  {#if !file}
+    <label
+      class="dropzone"
+      class:dragging
+      ondragover={(e) => {
+        e.preventDefault();
+        dragging = true;
+      }}
+      ondragleave={() => (dragging = false)}
+      ondrop={onDrop}
+    >
+      <input type="file" accept="image/*" onchange={onInput} />
+      <strong>Drop an image here</strong>
+      <span>or click to choose a file</span>
+    </label>
+  {:else}
+    <section class="workspace">
+      <div class="previews">
+        <figure>
+          <figcaption>Original</figcaption>
+          <div class="frame">
+            {#if originalUrl}<img src={originalUrl} alt="Original" />{/if}
+          </div>
+          <p class="size">{formatBytes(file.size)}</p>
+        </figure>
 
-  <section class="workspace" aria-label="Prototype workspace">
-    <div class="jobs">
-      <h2>Imported jobs</h2>
-      {#each model.session.jobs as job (job.id)}
-        <button
-          class:active={job.id === selectedJobId}
-          type="button"
-          onclick={() => (selectedJobId = job.id)}
-        >
-          <span>{job.sourceFile.name}</span>
-          <small>{job.status}</small>
-        </button>
-      {/each}
-    </div>
+        <figure>
+          <figcaption>{format} output</figcaption>
+          <div class="frame">
+            {#if status === 'working'}
+              <p class="hint">Compressing…</p>
+            {:else if status === 'error'}
+              <p class="hint error">{errorMessage}</p>
+            {:else if result}
+              <img src={result.outputUrl} alt="Compressed output" />
+            {/if}
+          </div>
+          <p class="size">
+            {#if result}
+              {formatBytes(result.outputSize)}
+              <span
+                class="delta"
+                class:good={result.percentChange < 0}
+                class:bad={result.percentChange > 0}
+              >
+                {result.percentChange > 0 ? '+' : ''}{result.percentChange}%
+              </span>
+            {:else}
+              &nbsp;
+            {/if}
+          </p>
+        </figure>
+      </div>
 
-    <div class="detail">
-      <h2>{selectedJob.sourceFile.name}</h2>
-      <dl>
-        <div>
-          <dt>Status</dt>
-          <dd>{selectedJob.status}</dd>
+      <aside class="controls">
+        <div class="field">
+          <span class="label">Format</span>
+          <div class="formats">
+            {#each OUTPUT_FORMATS as option (option.id)}
+              <button
+                type="button"
+                class:active={format === option.id}
+                onclick={() => (format = option.id)}
+              >
+                {option.label}
+              </button>
+            {/each}
+          </div>
         </div>
-        <div>
-          <dt>Original size</dt>
-          <dd>{selectedJob.originalSize} bytes</dd>
-        </div>
-        <div>
-          <dt>Output size</dt>
-          <dd>{selectedJob.output?.size ?? 'not encoded'} bytes</dd>
-        </div>
-      </dl>
-    </div>
-  </section>
 
-  <section class="notes" aria-label="Prototype proof notes">
-    <h2>What this proves</h2>
-    <ul>
-      {#each model.notes as note (note)}
-        <li>{note}</li>
-      {/each}
-    </ul>
-  </section>
+        <div class="field">
+          <label class="label" for="quality">Quality — {quality}</label>
+          <input
+            id="quality"
+            type="range"
+            min="1"
+            max="100"
+            bind:value={quality}
+          />
+        </div>
 
-  <section class="codec-probe" aria-label="Worker and WASM probe">
-    <h2>Worker/WASM probe</h2>
-    {#if codecProbe.status === 'checking'}
-      <p>Checking WebP codec asset from a module worker.</p>
-    {:else if codecProbe.status === 'ready'}
-      <dl>
-        <div>
-          <dt>WASM bytes</dt>
-          <dd>{codecProbe.result.wasmBytes}</dd>
+        <div class="field">
+          <label class="label checkbox">
+            <input type="checkbox" bind:checked={resizeOn} />
+            Resize
+          </label>
+          {#if resizeOn}
+            <div class="dims">
+              <input type="number" min="1" bind:value={resizeWidth} />
+              <span>×</span>
+              <input type="number" min="1" bind:value={resizeHeight} />
+            </div>
+          {/if}
         </div>
-        <div>
-          <dt>Magic bytes</dt>
-          <dd>{codecProbe.result.wasmMagic}</dd>
-        </div>
-        <div>
-          <dt>Asset URL</dt>
-          <dd>{codecProbe.result.wasmUrl}</dd>
-        </div>
-      </dl>
-    {:else}
-      <p class="error">{codecProbe.message}</p>
-    {/if}
-  </section>
 
-  <section class="codec-probe" aria-label="WebP encode probe">
-    <h2>WebP encode probe</h2>
-    {#if encodeProbe.status === 'checking'}
-      <p>Encoding a synthetic 2x2 image through the existing WebP worker path.</p>
-    {:else if encodeProbe.status === 'ready'}
-      <dl>
-        <div>
-          <dt>Output bytes</dt>
-          <dd>{encodeProbe.result.outputBytes}</dd>
+        <div class="actions">
+          <a
+            class="download"
+            class:disabled={!result || status !== 'done'}
+            href={result?.outputUrl ?? '#'}
+            download={downloadName}
+          >
+            Download {activeExt.toUpperCase()}
+          </a>
+          <button type="button" class="ghost" onclick={() => (file = null)}>
+            Choose another
+          </button>
         </div>
-        <div>
-          <dt>RIFF header</dt>
-          <dd>{encodeProbe.result.riffHeader}</dd>
-        </div>
-        <div>
-          <dt>Magic bytes</dt>
-          <dd>{encodeProbe.result.magicBytes}</dd>
-        </div>
-      </dl>
-    {:else}
-      <p class="error">{encodeProbe.message}</p>
-    {/if}
-  </section>
 
-  <section class="codec-probe" aria-label="WebP single-image pipeline probe">
-    <h2>WebP pipeline probe</h2>
-    {#if pipelineProbe.status === 'checking'}
-      <p>Running local decode, resize, WebP encode, and export metadata.</p>
-    {:else if pipelineProbe.status === 'ready'}
-      <dl>
-        <div>
-          <dt>Source</dt>
-          <dd>
-            {pipelineProbe.result.sourceFileName}
-            ({pipelineProbe.result.detectedSourceMimeType},
-            {pipelineProbe.result.sourceBytes} bytes)
-          </dd>
-        </div>
-        <div>
-          <dt>Decoded</dt>
-          <dd>
-            {pipelineProbe.result.decodedWidth} x
-            {pipelineProbe.result.decodedHeight}
-          </dd>
-        </div>
-        <div>
-          <dt>Processed</dt>
-          <dd>
-            {pipelineProbe.result.processedWidth} x
-            {pipelineProbe.result.processedHeight}
-          </dd>
-        </div>
-        <div>
-          <dt>Output</dt>
-          <dd>
-            {pipelineProbe.result.outputFileName}
-            ({pipelineProbe.result.outputMimeType},
-            {pipelineProbe.result.outputBytes} bytes)
-          </dd>
-        </div>
-        <div>
-          <dt>Change</dt>
-          <dd>{pipelineProbe.result.percentChange}%</dd>
-        </div>
-        <div>
-          <dt>Header</dt>
-          <dd>
-            {pipelineProbe.result.riffHeader}/{pipelineProbe.result.webpSignature}
-          </dd>
-        </div>
-      </dl>
-      <ul class="probe-stages">
-        {#each pipelineProbe.result.stages as stage (stage)}
-          <li>{stage}</li>
-        {/each}
-      </ul>
-    {:else}
-      <p class="error">{pipelineProbe.message}</p>
-    {/if}
-  </section>
+        <p class="diag"><a href="/diagnostics">Pipeline diagnostics →</a></p>
+      </aside>
+    </section>
+  {/if}
 </main>
 
 <style>
@@ -301,163 +250,202 @@
     color: #171717;
     font-family:
       Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", sans-serif;
+      'Segoe UI', sans-serif;
   }
-
   main {
-    max-width: 1120px;
+    max-width: 1080px;
     margin: 0 auto;
     padding: 48px 24px;
   }
-
   header {
-    max-width: 760px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
-
-  .eyebrow {
-    margin: 0 0 8px;
-    color: #0f766e;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  h1,
-  h2,
-  p {
-    margin-top: 0;
-  }
-
   h1 {
-    margin-bottom: 12px;
-    font-size: clamp(2rem, 5vw, 4.5rem);
-    line-height: 1;
+    margin: 0 0 4px;
+    font-size: 2.4rem;
+    letter-spacing: -0.02em;
   }
-
-  h2 {
-    font-size: 1rem;
+  header p {
+    margin: 0;
+    color: #666055;
   }
-
-  .summary {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .summary div,
-  .jobs,
-  .detail,
-  .notes,
-  .codec-probe {
-    border: 1px solid #d8d1c4;
-    border-radius: 8px;
+  .dropzone {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    border: 2px dashed #cfc7b8;
+    border-radius: 14px;
     background: #fffdfa;
+    cursor: pointer;
+    text-align: center;
   }
-
-  .summary div {
-    padding: 16px;
+  .dropzone.dragging {
+    border-color: #0f766e;
+    background: #ecfdf5;
   }
-
-  .summary span {
-    display: block;
+  .dropzone strong {
+    font-size: 1.2rem;
+  }
+  .dropzone span {
+    color: #666055;
+  }
+  .dropzone input {
+    display: none;
+  }
+  .workspace {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+    align-items: start;
+  }
+  .previews {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  figure {
+    margin: 0;
+  }
+  figcaption {
     margin-bottom: 8px;
     color: #666055;
     font-size: 0.85rem;
+    text-transform: capitalize;
   }
-
-  .summary strong {
-    font-size: 1.7rem;
-  }
-
-  .workspace {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  .jobs,
-  .detail,
-  .notes,
-  .codec-probe {
-    padding: 18px;
-  }
-
-  button {
+  .frame {
     display: flex;
-    width: 100%;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 8px;
+    justify-content: center;
+    min-height: 280px;
     padding: 12px;
+    border: 1px solid #d8d1c4;
+    border-radius: 10px;
+    background: #fffdfa;
+  }
+  .frame img {
+    max-width: 100%;
+    max-height: 360px;
+    object-fit: contain;
+  }
+  .hint {
+    color: #666055;
+  }
+  .hint.error {
+    color: #b91c1c;
+    font-weight: 600;
+  }
+  .size {
+    margin: 10px 0 0;
+    font-weight: 700;
+  }
+  .delta {
+    margin-left: 8px;
+    font-weight: 700;
+  }
+  .delta.good {
+    color: #047857;
+  }
+  .delta.bad {
+    color: #b91c1c;
+  }
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid #d8d1c4;
+    border-radius: 10px;
+    background: #fffdfa;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .label {
+    color: #666055;
+    font-size: 0.85rem;
+  }
+  .formats {
+    display: flex;
+    gap: 6px;
+  }
+  .formats button {
+    flex: 1;
+    padding: 8px;
     border: 1px solid #ded7cb;
     border-radius: 6px;
     background: #fff;
     color: inherit;
     font: inherit;
-    text-align: left;
+    cursor: pointer;
   }
-
-  button.active {
+  .formats button.active {
     border-color: #0f766e;
     background: #ecfdf5;
+    font-weight: 600;
   }
-
-  small,
-  dt {
-    color: #666055;
+  input[type='range'] {
+    width: 100%;
   }
-
-  dl {
-    display: grid;
-    gap: 12px;
-    margin: 0;
-  }
-
-  dl div {
+  .checkbox {
     display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    border-bottom: 1px solid #eee8dc;
-    padding-bottom: 10px;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
   }
-
-  dd {
+  .dims {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dims input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ded7cb;
+    border-radius: 6px;
+    font: inherit;
+  }
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .download {
+    padding: 10px;
+    border-radius: 6px;
+    background: #0f766e;
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+  }
+  .download.disabled {
+    background: #cfc7b8;
+    pointer-events: none;
+  }
+  .ghost {
+    padding: 9px;
+    border: 1px solid #ded7cb;
+    border-radius: 6px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  .diag {
     margin: 0;
-    font-weight: 700;
+    font-size: 0.85rem;
   }
-
-  .notes ul {
-    margin-bottom: 0;
-    padding-left: 20px;
+  .diag a {
+    color: #0f766e;
   }
-
-  .probe-stages {
-    margin: 16px 0 0;
-    padding-left: 20px;
-    color: #3f3a33;
-  }
-
-  .codec-probe {
-    margin-top: 16px;
-  }
-
-  .codec-probe dd {
-    overflow-wrap: anywhere;
-    text-align: right;
-  }
-
-  .error {
-    color: #b91c1c;
-    font-weight: 700;
-  }
-
   @media (max-width: 760px) {
-    .summary,
-    .workspace {
+    .workspace,
+    .previews {
       grid-template-columns: 1fr;
     }
   }
