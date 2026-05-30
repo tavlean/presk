@@ -183,7 +183,7 @@ the SW pulls the derived precache URLs. A browser run was not repeated: the
 generator change is internal and emits byte-identical assets, so the
 2026-05-30 runtime verification still holds.
 
-### Phase 2 — Worker-bridge parity (all active codecs through one path)
+### Phase 2 — Worker-bridge parity (all active codecs through one path) ✅ DONE (2026-05-31)
 
 **Goal:** every active codec works through the generated worker surface, not just
 WebP. Today the generated `encoderMap`/`features-worker` is **WebP-only**;
@@ -198,6 +198,28 @@ AVIF/JXL/etc. only work via direct `bridge.*Encode` calls.
   removing the per-format `switch` workaround.
 - **Acceptance:** each encoder round-trips in-browser; decoders handle their
   inputs; single-image path and the bulk engine call the same `compressImage`.
+
+**Outcome (2026-05-31):** Done and browser-verified. The generator's
+`prototypeEncoderNames` went from `['webP']` to all nine active encoders (avif,
+browserGIF, browserJPEG, browserPNG, jxl, mozJPEG, oxiPNG, qoi, webP — wp2 stays
+blocked), so the generated `EncoderState`/`encoderMap` now mirror production
+minus wp2 (no more WebP-only split-brain). `src/lib/compress.ts` dropped its
+per-format `switch` + direct `bridge.*Encode` calls and now drives
+`imagePipeline.compressImage` with an `EncoderState` — the exact path
+`bulk/processor.ts` uses, so single-image and bulk share one code path. The
+SvelteKit worker bridge already implemented every active codec, so no bridge
+change was needed.
+
+Browser round-trips (Preview MCP, canvas-built source, encode through the unified
+`compressImage`): WebP `RIFF…WEBP`, AVIF `ftyp avif`, JPEG XL `ff 0a`, MozJPEG
+JFIF, OxiPNG PNG sig, QOI `qoif` — all valid, correct MIME/extension, zero
+console errors. Decoders verified by round-tripping WebP/AVIF/JXL/QOI back to
+256×256 ImageData through the bridge. Gates: `sync` deterministic, `check` 0/0,
+`build` clean, `audit:static-output` unchanged (15 logical assets = 1 physical
+WASM each — widening added only main-thread client runtimes, no new WASM). The
+prototype slice's format row now lists the six codec encoders; browser encoders
+stay in the type/surface but get proper option panels in Phase 5 (their quality
+scales differ).
 
 ### Phase 3 — Service worker / offline (SvelteKit-native)
 

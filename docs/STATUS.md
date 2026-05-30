@@ -91,8 +91,11 @@ redesign, keep every codec for now. The sequenced plan lives in
 1. ✅ **DONE (2026-05-31)** — Productionize the codec-asset strategy (no
    duplicate WASM). Generator now derives both manifests from one
    source-of-truth array; audit confirms 1 physical WASM per logical asset.
-2. **← NEXT** Worker-bridge parity — all active codecs through one generated path.
-3. SvelteKit-native service worker (offline app shell + codec precache).
+2. ✅ **DONE (2026-05-31)** — Worker-bridge parity. Generated encoder surface
+   widened from WebP-only to all nine active codecs (minus wp2); `compress.ts`
+   now drives `imagePipeline.compressImage` (same path as bulk). All six codec
+   formats browser-verified round-tripping; decoders verified.
+3. **← NEXT** SvelteKit-native service worker (offline app shell + codec precache).
 4. SPA shell + routing (`ssr=false`, `adapter-static` fallback).
 5. Single-image editor parity (before/after slider + all option panels).
 6. Bulk UI on the existing bulk engine (the headline feature).

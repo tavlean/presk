@@ -304,7 +304,24 @@ const serviceWorkerCachePlanOutputPath = join(
   serviceWorkerOutputDir,
   'cache-plan.ts',
 );
-const prototypeEncoderNames = ['webP'];
+// Active encoder surface for the SvelteKit prototype: every committed encoder
+// except wp2 (WebP 2), which stays blocked across the migration. The generated
+// feature-meta (EncoderState/encoderMap) and encode-only runtime map are built
+// from this list, so the prototype's generated surface matches the production
+// one minus wp2 — no longer WebP-only. The SvelteKit worker bridge already
+// implements every codec here, so single-image and bulk share one
+// imagePipeline.compressImage path.
+const prototypeEncoderNames = [
+  'avif',
+  'browserGIF',
+  'browserJPEG',
+  'browserPNG',
+  'jxl',
+  'mozJPEG',
+  'oxiPNG',
+  'qoi',
+  'webP',
+];
 const svelteKitReadyWorkerMethods = [
   {
     name: 'avifDecode',
