@@ -20,18 +20,17 @@ from Preact, and proven to run under SvelteKit. The original Squoosh app (Preact
 
 ```
 main                              stable Preact + Rollup app (production, untouched)
-  └─ code/sveltekit-prototype     disposable proof: codecs run under SvelteKit   (⊂ codec-assets)
-       └─ code/sveltekit-migration-seams   framework-neutral seams for Vite/SvelteKit  (⊂ codec-assets)
-            └─ code/sveltekit-codec-assets  + codec-asset URL strategy   ← CANONICAL backend branch
-                 └─ code/sveltekit-single-image-slice   ← NEW: runnable single-image UI
+  └─ code/sveltekit-codec-assets  CANONICAL backend branch (codec-asset URL strategy + all seams + prototype)
+       └─ code/sveltekit-single-image-slice   runnable single-image UI + docs (this branch)
 ```
 
-- `code/sveltekit-codec-assets` **contains** the prototype and migration-seams
-  branches in full (verified: 0 commits of either are missing from it). It is
-  the only branch that needs to exist alongside `main`.
-- `code/sveltekit-migration-seams` and `code/sveltekit-prototype` are now
-  **redundant** (subsets of codec-assets). Safe to retire once you're happy —
-  see [HANDOFF](HANDOFF-2026-05-30.md).
+- `code/sveltekit-codec-assets` is the canonical backend branch; the slice
+  branch builds on it.
+- The redundant `code/sveltekit-migration-seams` and `code/sveltekit-prototype`
+  branches were **retired** (deleted from origin + local) after verifying they
+  were fully contained in codec-assets — nothing lost.
+- The `upstream` (GoogleChromeLabs) remote and its ~113 stale tracking branches
+  were removed; all commits remain in `main`'s ancestry.
 
 ## Done
 
@@ -81,13 +80,17 @@ conservative — tuning per-format defaults is a follow-up.)
 
 ## Next
 
-1. Verify the slice in a browser (`cd prototypes/sveltekit && npm run dev`),
-   tune defaults, polish the look gradually toward the target design.
-2. Build the **bulk UI** on top of the same engine (multi-import strip,
-   per-image overrides) — Phase 3/4 of the road map.
-3. Decide the build tool: keep Rollup for the Preact app vs. go all-in on
-   Vite/SvelteKit. (Open question — see codec-asset strategy.)
-4. Hide non-focus codecs from the UI, then prune later.
+**Decided:** go all-in on Vite/SvelteKit, **plumbing-first**, parity before any
+redesign, keep every codec for now. The sequenced plan lives in
+**[MIGRATION-PLAN.md](MIGRATION-PLAN.md)** — start there. Phase order:
+
+1. Productionize the codec-asset strategy (no duplicate WASM).
+2. Worker-bridge parity — all active codecs through one generated path.
+3. SvelteKit-native service worker (offline app shell + codec precache).
+4. SPA shell + routing (`ssr=false`, `adapter-static` fallback).
+5. Single-image editor parity (before/after slider + all option panels).
+6. Bulk UI on the existing bulk engine (the headline feature).
+7. The flip: SvelteKit becomes production; retire Preact + Rollup.
 
 ## Known risks / open questions
 
@@ -99,7 +102,9 @@ conservative — tuning per-format defaults is a follow-up.)
 
 ## Map of the docs
 
-- **road-map.md** — the phased plan (the "why/what next").
+- **MIGRATION-PLAN.md** — the active, sequenced plan to go all-in on
+  Vite/SvelteKit (plumbing → parity → bulk → flip). **Start here.**
+- **road-map.md** — the original phased product plan (the "why/what next").
 - **bulk-image-architecture.md** — the bulk data model.
 - **sveltekit-migration-seams-review.md / -exit-audit.md** — what's mergeable to
   `main` and what stays prototype-only.
