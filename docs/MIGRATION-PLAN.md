@@ -154,7 +154,7 @@ becomes a fake ~1 KB "file" and the app correctly shows "Couldn't decode image".
 
 ---
 
-### Phase 1 — Codec-asset strategy: make it production-grade
+### Phase 1 — Codec-asset strategy: make it production-grade ✅ DONE (2026-05-31)
 
 **Goal:** the generated codec-asset URL records + wrapper patching are robust,
 documented, and audited — not a prototype-only sync hack.
@@ -166,6 +166,22 @@ documented, and audited — not a prototype-only sync hack.
 - Confirm the generator is deterministic and re-runnable (`npm run sync`).
 - **Acceptance:** `audit:static-output` passes; build output has no duplicate
   WASM; records are consumed by app + worker + (later) SW from one source.
+
+**Outcome (2026-05-31):** All acceptance gates verified green. Hardening done:
+the generator's two manifests (`codec-assets/manifest.ts` + `codec-assets/precache.ts`)
+previously each carried a hand-maintained copy of the 15/14 logical records — a
+drift hazard. Both are now generated from a single source-of-truth
+`codecAssetRecords` array in the generator, with `precache.ts` a filtered
+projection (still a separate file so the runtime-only rotate WASM stays out of
+the service-worker graph). Refactor produces byte-identical output. Verified:
+`sync` deterministic (x2 identical hashes), `check` 0/0, `build` clean,
+`audit:static-output` shows all 15 logical assets at exactly 1 physical WASM,
+no threaded/parallel worker-helper duplicates. Consumption confirmed
+single-source: app re-exports the generated manifest, the worker bridge resolves
+all 15 logical keys via `getCodecAssetUrl(svelteKitCodecAssetRecords, …)`, and
+the SW pulls the derived precache URLs. A browser run was not repeated: the
+generator change is internal and emits byte-identical assets, so the
+2026-05-30 runtime verification still holds.
 
 ### Phase 2 — Worker-bridge parity (all active codecs through one path)
 

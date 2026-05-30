@@ -1,10 +1,25 @@
 # SvelteKit codec asset strategy
 
-Last updated: 2026-05-26.
+Last updated: 2026-05-31.
 
 This document records the canonical worker/WASM asset URL strategy implied by
 the SvelteKit prototype. It is a migration plan, not permission to move,
 delete, or rebuild codec artifacts.
+
+> **Phase 1 status (2026-05-31): done.** The strategy below is implemented and
+> green. The generator (`scripts/sync-sqush-prototype.mjs`) now derives both the
+> canonical manifest (`codec-assets/manifest.ts`) and the service-worker precache
+> manifest (`codec-assets/precache.ts`) from a single source-of-truth
+> `codecAssetRecords` array, so the two generated manifests can no longer drift.
+> The precache manifest stays a physically separate file (it imports only
+> `precache` codec modules, keeping the runtime-only rotate WASM out of the
+> service-worker graph) but its contents are now a filtered projection of the one
+> list. `audit:static-output` keeps an independent expected-record oracle on
+> purpose — it is the test, not a re-export of the source. Verified
+> 2026-05-31: `npm run sync` is deterministic and re-runnable, generated output
+> is byte-identical across the refactor, `npm run check`/`build` pass, and
+> `npm run audit:static-output` confirms exactly one physical WASM per logical
+> asset (all 15 logical assets = 1 copy).
 
 ## Production decision
 

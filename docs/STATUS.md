@@ -1,6 +1,6 @@
 # Sqush — Status (start here)
 
-Last updated: 2026-05-30.
+Last updated: 2026-05-31.
 
 A focused, local-first fork of Squoosh. Priorities: **WebP, AVIF, JPEG XL**;
 headline feature is **bulk image optimization**; long-term UI is **Svelte 5**.
@@ -88,8 +88,10 @@ conservative — tuning per-format defaults is a follow-up.)
 redesign, keep every codec for now. The sequenced plan lives in
 **[MIGRATION-PLAN.md](MIGRATION-PLAN.md)** — start there. Phase order:
 
-1. Productionize the codec-asset strategy (no duplicate WASM).
-2. Worker-bridge parity — all active codecs through one generated path.
+1. ✅ **DONE (2026-05-31)** — Productionize the codec-asset strategy (no
+   duplicate WASM). Generator now derives both manifests from one
+   source-of-truth array; audit confirms 1 physical WASM per logical asset.
+2. **← NEXT** Worker-bridge parity — all active codecs through one generated path.
 3. SvelteKit-native service worker (offline app shell + codec precache).
 4. SPA shell + routing (`ssr=false`, `adapter-static` fallback).
 5. Single-image editor parity (before/after slider + all option panels).
