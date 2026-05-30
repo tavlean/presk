@@ -284,7 +284,7 @@ prerender = true;`. Confirm `adapter-static` `fallback: '200.html'`.
 - **Acceptance:** `npm run build` produces a static SPA; deep links work via
   fallback; no SSR/browser-global errors.
 
-### Phase 5 — Single-image editor parity (the real Squoosh editor) ◑ IN PROGRESS
+### Phase 5 — Single-image editor parity (the real Squoosh editor) ✅ DONE (2026-05-31)
 
 **Goal:** rebuild the actual editor UI in Svelte at visual + functional parity
 with the current Preact app. This is the big UI phase.
@@ -309,10 +309,19 @@ with the current Preact app. This is the big UI phase.
 >   (single path shared with bulk); per-format option objects live on the page
 >   and feed the panels via `$bindable`/snapshot.
 >
-> **Remaining:** processor controls (resize beyond the basic toggle, quantize,
-> rotate); saved settings; and the full page reskin from the current light card
-> layout to Squoosh's full-bleed dark editor layout (header + left/right options
-> rails). All work browser-verified; `svelte-check` 0/0, build + audit green.
+> **Done (2026-05-31):** processor controls — full Resize panel (method/preset/
+> width-height with maintain-aspect/fit/premultiply/linearRGB), Quantize
+> (colors + dithering), and Rotate (toolbar button, 90° per click); saved
+> settings (encoder + per-format options persist to localStorage and restore on
+> load); and the **full-bleed dark Squoosh reskin** — header + left "Original"
+> rail (pink) + center two-up + right encoder rail (blue) with the encoder
+> `<Select>` in the title and a results footer (size / % / download). Per-image
+> processor state resets on load; resize dims + natural size seed from the first
+> result. All browser-verified; `svelte-check` 0/0, build + audit green.
+>
+> **Phase 5 complete.** The Svelte single-image editor matches the Preact one
+> feature-for-feature: all active codecs selectable with full option panels,
+> before/after slider with zoom/pan, resize/quantize/rotate, saved settings.
 
 - Two-up **before/after view with the draggable slider** + pinch/zoom/pan
   (port behavior from the Preact `Output`/pinch-zoom; reuse extracted state

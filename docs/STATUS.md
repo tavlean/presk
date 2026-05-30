@@ -103,13 +103,13 @@ redesign, keep every codec for now. The sequenced plan lives in
    `prerender=true`, `adapter-static` `fallback: 200.html`, static SPA builds
    with deep-link fallback. `+layout.svelte` shared-context provider deferred
    until shared state exists (Phases 5–6).
-5. ◑ **IN PROGRESS** Single-image editor parity. Done: Svelte option
-   primitives; all six per-encoder option panels (WebP/AVIF/JXL/MozJPEG/OxiPNG/
-   QOI) ported at parity; the two-up before/after editor (draggable split +
-   synced pinch-zoom/pan + zoom controls). Remaining: processor controls
-   (resize/quantize/rotate), saved settings, full page reskin to the Squoosh
-   editor layout.
-6. Bulk UI on the existing bulk engine (the headline feature).
+5. ✅ **DONE (2026-05-31)** Single-image editor parity. Option primitives;
+   all six per-encoder option panels (WebP/AVIF/JXL/MozJPEG/OxiPNG/QOI); two-up
+   before/after editor (draggable split + synced pinch-zoom/pan + zoom controls);
+   resize/quantize/rotate processor controls; saved settings (localStorage); and
+   the full-bleed dark Squoosh editor reskin (header + left/right rails). All
+   browser-verified. On branch `svelte-editor`.
+6. **← NEXT** Bulk UI on the existing bulk engine (the headline feature).
 7. The flip: SvelteKit becomes production; retire Preact + Rollup.
 
 ## Known risks / open questions
