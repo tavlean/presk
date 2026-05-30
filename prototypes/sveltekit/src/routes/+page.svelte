@@ -8,8 +8,16 @@
   } from '$lib/compress';
   import { registerPrototypeServiceWorker } from '$lib/service-worker-registration';
   import WebpOptions from '$lib/editor/options/WebpOptions.svelte';
+  import AvifOptions from '$lib/editor/options/AvifOptions.svelte';
+  import JxlOptions from '$lib/editor/options/JxlOptions.svelte';
+  import MozjpegOptions from '$lib/editor/options/MozjpegOptions.svelte';
+  import OxipngOptions from '$lib/editor/options/OxipngOptions.svelte';
   import Range from '$lib/editor/options/Range.svelte';
   import type { EncodeOptions as WebpEncodeOptions } from 'features/encoders/webP/shared/meta';
+  import type { EncodeOptions as AvifEncodeOptions } from 'features/encoders/avif/shared/meta';
+  import type { EncodeOptions as JxlEncodeOptions } from 'features/encoders/jxl/shared/meta';
+  import type { EncodeOptions as MozjpegEncodeOptions } from 'features/encoders/mozJPEG/shared/meta';
+  import type { EncodeOptions as OxipngEncodeOptions } from 'features/encoders/oxiPNG/shared/meta';
   import '$lib/editor/theme.css';
 
   let file = $state<File | null>(null);
@@ -216,6 +224,26 @@
               <WebpOptions
                 options={optionsByFormat[format] as unknown as WebpEncodeOptions}
               />
+            {:else if format === 'avif'}
+              <AvifOptions
+                options={optionsByFormat[format] as unknown as AvifEncodeOptions}
+              />
+            {:else if format === 'jxl'}
+              <JxlOptions
+                options={optionsByFormat[format] as unknown as JxlEncodeOptions}
+              />
+            {:else if format === 'mozJPEG'}
+              <MozjpegOptions
+                options={optionsByFormat[
+                  format
+                ] as unknown as MozjpegEncodeOptions}
+              />
+            {:else if format === 'oxiPNG'}
+              <OxipngOptions
+                options={optionsByFormat[
+                  format
+                ] as unknown as OxipngEncodeOptions}
+              />
             {:else}
               <div class="options-section">
                 {#if typeof optionsByFormat[format].quality === 'number'}
@@ -230,9 +258,7 @@
                     >
                   </div>
                 {:else}
-                  <p class="no-opts">
-                    No adjustable options for {format} yet.
-                  </p>
+                  <p class="no-opts">{format} has no adjustable options.</p>
                 {/if}
               </div>
             {/if}
