@@ -7,6 +7,7 @@
     type OutputFormat,
   } from '$lib/compress';
   import { registerPrototypeServiceWorker } from '$lib/service-worker-registration';
+  import Output from '$lib/editor/output/Output.svelte';
   import WebpOptions from '$lib/editor/options/WebpOptions.svelte';
   import AvifOptions from '$lib/editor/options/AvifOptions.svelte';
   import JxlOptions from '$lib/editor/options/JxlOptions.svelte';
@@ -32,7 +33,6 @@
   let resizeWidth = $state(1600);
   let resizeHeight = $state(1600);
 
-  let originalUrl = $state('');
   let result = $state<CompressOutcome | null>(null);
   let status = $state<'idle' | 'working' | 'done' | 'error'>('idle');
   let errorMessage = $state('');
@@ -45,18 +45,6 @@
     registerPrototypeServiceWorker().catch((error: unknown) => {
       console.error('Service worker registration failed', error);
     });
-  });
-
-  // Original-image preview lifecycle.
-  $effect(() => {
-    const current = file;
-    if (!current) {
-      originalUrl = '';
-      return;
-    }
-    const url = URL.createObjectURL(current);
-    originalUrl = url;
-    return () => URL.revokeObjectURL(url);
   });
 
   // Re-encode whenever the file or any setting changes. Debounced so dragging
@@ -164,41 +152,32 @@
     </label>
   {:else}
     <section class="workspace">
-      <div class="previews">
-        <figure>
-          <figcaption>Original</figcaption>
-          <div class="frame">
-            {#if originalUrl}<img src={originalUrl} alt="Original" />{/if}
-          </div>
-          <p class="size">{formatBytes(file.size)}</p>
-        </figure>
-
-        <figure>
-          <figcaption>{format} output</figcaption>
-          <div class="frame">
-            {#if status === 'working'}
-              <p class="hint">Compressing…</p>
-            {:else if status === 'error'}
-              <p class="hint error">{errorMessage}</p>
-            {:else if result}
-              <img src={result.outputUrl} alt="Compressed output" />
-            {/if}
-          </div>
-          <p class="size">
-            {#if result}
-              {formatBytes(result.outputSize)}
-              <span
-                class="delta"
-                class:good={result.percentChange < 0}
-                class:bad={result.percentChange > 0}
-              >
-                {result.percentChange > 0 ? '+' : ''}{result.percentChange}%
-              </span>
-            {:else}
-              &nbsp;
-            {/if}
-          </p>
-        </figure>
+      <div class="preview-column">
+        <div class="editor-frame">
+          <Output
+            source={result?.sourceImageData}
+            output={result?.outputImageData}
+          />
+          {#if status === 'working'}
+            <p class="editor-status">Compressing…</p>
+          {:else if status === 'error'}
+            <p class="editor-status error">{errorMessage}</p>
+          {/if}
+        </div>
+        <div class="sizebar">
+          <span class="size">{formatBytes(file.size)}</span>
+          <span class="arrow">→</span>
+          {#if result}
+            <span class="size">{formatBytes(result.outputSize)}</span>
+            <span
+              class="delta"
+              class:good={result.percentChange < 0}
+              class:bad={result.percentChange > 0}
+            >
+              {result.percentChange > 0 ? '+' : ''}{result.percentChange}%
+            </span>
+          {/if}
+        </div>
       </div>
 
       <aside class="controls">
@@ -357,48 +336,49 @@
     gap: 20px;
     align-items: start;
   }
-  .previews {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  figure {
-    margin: 0;
-  }
-  figcaption {
-    margin-bottom: 8px;
-    color: #666055;
-    font-size: 0.85rem;
-    text-transform: capitalize;
-  }
-  .frame {
+  .preview-column {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 280px;
-    padding: 12px;
-    border: 1px solid #d8d1c4;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .editor-frame {
+    position: relative;
+    height: 520px;
     border-radius: 10px;
-    background: #fffdfa;
+    overflow: hidden;
+    background: #1d1d1d;
   }
-  .frame img {
-    max-width: 100%;
-    max-height: 360px;
-    object-fit: contain;
+  .editor-status {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: rgba(29, 29, 29, 0.92);
+    color: #fff;
+    font-size: 0.9rem;
+    pointer-events: none;
   }
-  .hint {
-    color: #666055;
-  }
-  .hint.error {
-    color: #b91c1c;
+  .editor-status.error {
+    color: #ffb4b4;
     font-weight: 600;
   }
+  .sizebar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+  }
+  .arrow {
+    color: #666055;
+    font-weight: 400;
+  }
   .size {
-    margin: 10px 0 0;
     font-weight: 700;
   }
   .delta {
-    margin-left: 8px;
     font-weight: 700;
   }
   .delta.good {
@@ -507,8 +487,7 @@
     color: #0f766e;
   }
   @media (max-width: 760px) {
-    .workspace,
-    .previews {
+    .workspace {
       grid-template-columns: 1fr;
     }
   }

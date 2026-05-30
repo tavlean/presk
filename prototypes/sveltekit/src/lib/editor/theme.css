@@ -25,6 +25,9 @@
   --options-radius: 7px;
   --horizontal-padding: 15px;
 
+  /* Accent used by the two-up scrubber thumb. */
+  --accent-color: var(--blue);
+
   /* Output-side (blue) theme, matching Squoosh's options-2. */
   --main-theme-color: var(--blue);
   --hot-theme-color: var(--deep-blue);

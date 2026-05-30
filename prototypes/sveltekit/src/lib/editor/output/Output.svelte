@@ -1,0 +1,353 @@
+<script lang="ts">
+  // The before/after editor view, ported from
+  // src/client/lazy-app/Compress/Output/index.tsx. Two synced <pinch-zoom>
+  // elements inside a <two-up>: left draws the processed source, right draws the
+  // decoded output. Only the left pinch-zoom is driven; pointer/wheel events are
+  // retargeted to it and the right mirrors its transform.
+  import PinchZoom, { type ScaleToOpts } from './pinch-zoom';
+  import './two-up';
+  import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
+  import { isSafari } from 'client/lazy-app/util';
+
+  interface Props {
+    source?: ImageData;
+    output?: ImageData;
+  }
+
+  let { source, output }: Props = $props();
+
+  let twoUp = $state<HTMLElement>();
+  let pinchLeft = $state<PinchZoom>();
+  let pinchRight = $state<PinchZoom>();
+  let canvasLeft = $state<HTMLCanvasElement>();
+  let canvasRight = $state<HTMLCanvasElement>();
+
+  let scale = $state(1);
+  let editingScale = $state(false);
+  let pixelated = $state(false);
+  let altBackground = $state(false);
+
+  const scalePercent = $derived(Math.round(scale * 100));
+
+  const scaleToOpts = {
+    originX: '50%',
+    originY: '50%',
+    relativeTo: 'container',
+    allowChangeEvent: true,
+  } satisfies ScaleToOpts;
+
+  // Draw the pixels whenever they change.
+  $effect(() => {
+    if (canvasLeft && source) drawDataToCanvas(canvasLeft, source);
+  });
+  $effect(() => {
+    if (canvasRight && output) drawDataToCanvas(canvasRight, output);
+  });
+
+  // Fit + centre the view when the image dimensions change (new file / resize),
+  // but not on every re-encode (which keeps the same dimensions).
+  let fittedKey = '';
+  $effect(() => {
+    const s = source;
+    const pz = pinchLeft;
+    const tu = twoUp;
+    if (!s || !pz || !tu) return;
+    const key = `${s.width}x${s.height}`;
+    if (key === fittedKey) return;
+    const raf = requestAnimationFrame(() => {
+      const bounds = tu.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      fittedKey = key;
+      const fit = Math.min(bounds.width / s.width, bounds.height / s.height);
+      const fitScale = fit < 1 ? fit : 1;
+      pz.setTransform({
+        scale: fitScale,
+        x: (bounds.width - s.width * fitScale) / 2,
+        y: (bounds.height - s.height * fitScale) / 2,
+        allowChangeEvent: true,
+      });
+    });
+    return () => cancelAnimationFrame(raf);
+  });
+
+  function onLeftChange() {
+    if (!pinchLeft || !pinchRight) return;
+    scale = pinchLeft.scale;
+    pinchRight.setTransform({
+      scale: pinchLeft.scale,
+      x: pinchLeft.x,
+      y: pinchLeft.y,
+    });
+  }
+
+  // Keep the two pinch-zooms in sync by redirecting all view events to the left
+  // one. Handle drags pass through (so the two-up slider works); wheel always
+  // retargets so it zooms even over the handle.
+  $effect(() => {
+    const el = twoUp;
+    const pz = pinchLeft;
+    if (!el || !pz) return;
+    const retargeted = new WeakSet<Event>();
+    const handler = (event: Event) => {
+      if (retargeted.has(event)) return;
+      const target = event.target as HTMLElement | null;
+      const isHandle = !!target?.closest?.('.two-up-handle');
+      if (!(event.type === 'wheel' || !isHandle)) return;
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      const Ctor = event.constructor as typeof Event;
+      const cloned = new Ctor(event.type, event as EventInit);
+      retargeted.add(cloned);
+      pz.dispatchEvent(cloned);
+    };
+    const types = ['touchstart', 'touchend', 'touchmove', 'mousedown', 'wheel'];
+    if (!isSafari) types.push('pointerdown');
+    for (const type of types) {
+      el.addEventListener(type, handler, { capture: true, passive: false });
+    }
+    return () => {
+      for (const type of types) {
+        el.removeEventListener(type, handler, { capture: true });
+      }
+    };
+  });
+
+  function zoomTo(next: number) {
+    pinchLeft?.scaleTo(next, scaleToOpts);
+  }
+
+  function onScaleInput(event: Event) {
+    const percent = Number((event.currentTarget as HTMLInputElement).value);
+    if (!Number.isFinite(percent) || percent <= 0) return;
+    zoomTo(percent / 100);
+  }
+
+  function focusOnMount(node: HTMLInputElement) {
+    node.focus();
+    node.select();
+  }
+</script>
+
+<div class="editor">
+  <div class="output" class:alt-background={altBackground}>
+    <two-up class="two-up" legacy-clip-compat bind:this={twoUp}>
+      <pinch-zoom class="pinch-zoom" bind:this={pinchLeft} onchange={onLeftChange}>
+        <canvas
+          class="pinch-target"
+          class:pixelated
+          width={source?.width}
+          height={source?.height}
+          bind:this={canvasLeft}
+        ></canvas>
+      </pinch-zoom>
+      <pinch-zoom class="pinch-zoom" bind:this={pinchRight}>
+        <canvas
+          class="pinch-target"
+          class:pixelated
+          width={output?.width}
+          height={output?.height}
+          bind:this={canvasRight}
+        ></canvas>
+      </pinch-zoom>
+    </two-up>
+  </div>
+
+  <div class="controls">
+    <div class="button-group">
+      <button
+        class="button first-button"
+        onclick={() => zoomTo(scale / 1.5)}
+        title="Zoom out">−</button
+      >
+      {#if editingScale}
+        <input
+          class="zoom"
+          type="number"
+          step="1"
+          min="1"
+          max="1000000"
+          value={scalePercent}
+          oninput={onScaleInput}
+          onblur={() => (editingScale = false)}
+          use:focusOnMount
+        />
+      {:else}
+        <span
+          class="zoom"
+          role="button"
+          tabindex="0"
+          onfocus={() => (editingScale = true)}
+          onclick={() => (editingScale = true)}
+          onkeydown={(e) => {
+            if (e.key === 'Enter') editingScale = true;
+          }}
+        >
+          <span class="zoom-value">{scalePercent}</span>%
+        </span>
+      {/if}
+      <button
+        class="button last-button"
+        onclick={() => zoomTo(scale * 1.5)}
+        title="Zoom in">+</button
+      >
+    </div>
+
+    <div class="button-group">
+      <button
+        class="button first-button"
+        class:active={pixelated}
+        onclick={() => (pixelated = !pixelated)}
+        title="Toggle smoothing">⊞</button
+      >
+      <button
+        class="button last-button"
+        class:active={altBackground}
+        onclick={() => (altBackground = !altBackground)}
+        title="Toggle background">◓</button
+      >
+    </div>
+  </div>
+</div>
+
+<style>
+  .editor {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .output {
+    position: absolute;
+    inset: 0;
+  }
+
+  .output::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #000;
+    opacity: 0.8;
+    transition: opacity 500ms ease;
+  }
+
+  .output.alt-background::before {
+    opacity: 0;
+  }
+
+  .two-up,
+  .pinch-zoom {
+    position: absolute;
+    inset: 0;
+  }
+
+  .pinch-zoom {
+    outline: none;
+  }
+
+  .pinch-target {
+    will-change: auto;
+    flex-shrink: 0;
+  }
+
+  .pixelated {
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+  }
+
+  .controls {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    pointer-events: none;
+  }
+
+  .controls > * {
+    pointer-events: auto;
+  }
+
+  .button-group {
+    display: flex;
+    position: relative;
+  }
+
+  .button,
+  .zoom {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    background-color: rgba(29, 29, 29, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.67);
+    border-width: 1px 0 1px 1px;
+    line-height: 1.1;
+    white-space: nowrap;
+    height: 39px;
+    padding: 0 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  .button {
+    justify-content: center;
+    min-width: 39px;
+  }
+
+  .button:hover {
+    background: rgba(50, 50, 50, 0.92);
+  }
+
+  .button.active {
+    background: rgba(72, 72, 72, 0.92);
+  }
+
+  .first-button {
+    border-radius: 6px 0 0 6px;
+  }
+
+  .last-button {
+    border-radius: 0 6px 6px 0;
+    border-right-width: 1px;
+  }
+
+  .zoom {
+    cursor: text;
+    width: 6rem;
+    font: inherit;
+    text-align: center;
+    justify-content: center;
+  }
+
+  span.zoom {
+    color: #fff;
+  }
+
+  .zoom-value {
+    margin: 0 3px 0 0;
+    padding: 0 2px;
+    font-size: 1.2rem;
+    letter-spacing: 0.05rem;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 1px dashed #999;
+  }
+
+  input.zoom {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  input.zoom::-webkit-outer-spin-button,
+  input.zoom::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+</style>

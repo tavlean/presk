@@ -9,6 +9,7 @@
 // thread through the same map. No per-format switch.
 
 import {
+  decodeImage,
   decodeSourceImage,
   imagePipeline,
   preprocessImage,
@@ -70,6 +71,10 @@ export interface CompressOutcome {
   outputSize: number;
   originalSize: number;
   percentChange: number;
+  /** The processed source fed to the encoder (left/"before" preview). */
+  sourceImageData: ImageData;
+  /** The encoded output decoded back to pixels (right/"after" preview). */
+  outputImageData: ImageData;
 }
 
 function buildProcessorState(request: CompressRequest) {
@@ -128,6 +133,14 @@ export async function compressFile(
       file.name,
       pipelineBridge,
     );
+    // Decode the output back to pixels so the editor can show the real codec
+    // result (artifacts and all), the way Squoosh does. Same dimensions as the
+    // processed source, so the two-up before/after view aligns.
+    const outputImageData = await decodeImage(
+      signal,
+      outputFile,
+      pipelineBridge,
+    );
     const outputUrl = URL.createObjectURL(outputFile);
 
     return {
@@ -137,6 +150,8 @@ export async function compressFile(
       originalSize: file.size,
       percentChange:
         Math.round(getPercentChange(file.size, outputFile.size) * 10) / 10,
+      sourceImageData: processed,
+      outputImageData,
     };
   } finally {
     bridge.dispose();
