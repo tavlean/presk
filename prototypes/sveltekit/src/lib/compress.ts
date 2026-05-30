@@ -18,11 +18,11 @@ import {
 } from '../../../../src/client/lazy-app/image-pipeline';
 import { getPercentChange } from '../../../../src/client/lazy-app/bulk/size';
 import {
-  defaultPreprocessorState,
-  defaultProcessorState,
   encoderMap,
   type EncoderState,
   type EncoderType,
+  type PreprocessorState,
+  type ProcessorState,
 } from 'client/lazy-app/feature-meta';
 import SvelteKitWorkerBridge from './sveltekit-worker-bridge';
 
@@ -52,8 +52,10 @@ export interface CompressRequest {
   format: OutputFormat;
   /** The encoder's full option object (e.g. webP EncodeOptions). */
   options: unknown;
-  /** Optional resize. When omitted the image keeps its size. */
-  resize?: { width: number; height: number };
+  /** Resize + quantize processor state (enabled flags + options). */
+  processorState: ProcessorState;
+  /** Preprocessor state (rotate). */
+  preprocessorState: PreprocessorState;
 }
 
 /** A fresh, mutable copy of an encoder's default options (for the UI to bind). */
@@ -75,21 +77,6 @@ export interface CompressOutcome {
   sourceImageData: ImageData;
   /** The encoded output decoded back to pixels (right/"after" preview). */
   outputImageData: ImageData;
-}
-
-function buildProcessorState(request: CompressRequest) {
-  return {
-    resize: {
-      ...defaultProcessorState.resize,
-      enabled: Boolean(request.resize),
-      width: request.resize?.width ?? defaultProcessorState.resize.width,
-      height: request.resize?.height ?? defaultProcessorState.resize.height,
-    },
-    quantize: {
-      ...defaultProcessorState.quantize,
-      enabled: false,
-    },
-  };
 }
 
 /**
@@ -116,13 +103,13 @@ export async function compressFile(
     const preprocessed = await preprocessImage(
       signal,
       decodedSource.decoded,
-      defaultPreprocessorState,
+      request.preprocessorState,
       pipelineBridge,
     );
     const processed = await processImage(
       signal,
       { ...decodedSource, preprocessed },
-      buildProcessorState(request),
+      request.processorState,
       pipelineBridge,
     );
 

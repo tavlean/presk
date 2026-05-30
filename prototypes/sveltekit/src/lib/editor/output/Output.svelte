@@ -12,9 +12,10 @@
   interface Props {
     source?: ImageData;
     output?: ImageData;
+    onRotate?: () => void;
   }
 
-  let { source, output }: Props = $props();
+  let { source, output, onRotate }: Props = $props();
 
   let twoUp = $state<HTMLElement>();
   let pinchLeft = $state<PinchZoom>();
@@ -194,6 +195,11 @@
     <div class="button-group">
       <button
         class="button first-button"
+        onclick={() => onRotate?.()}
+        title="Rotate 90°">⟳</button
+      >
+      <button
+        class="button"
         class:active={pixelated}
         onclick={() => (pixelated = !pixelated)}
         title="Toggle smoothing">⊞</button

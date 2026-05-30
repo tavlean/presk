@@ -13,9 +13,19 @@
   import JxlOptions from '$lib/editor/options/JxlOptions.svelte';
   import MozjpegOptions from '$lib/editor/options/MozjpegOptions.svelte';
   import OxipngOptions from '$lib/editor/options/OxipngOptions.svelte';
+  import ResizeOptions from '$lib/editor/options/ResizeOptions.svelte';
+  import QuantizeOptions from '$lib/editor/options/QuantizeOptions.svelte';
   import Range from '$lib/editor/options/Range.svelte';
   import Select from '$lib/editor/options/Select.svelte';
   import Toggle from '$lib/editor/options/Toggle.svelte';
+  import {
+    defaultPreprocessorState,
+    defaultProcessorState,
+  } from 'client/lazy-app/feature-meta';
+  import type {
+    ResizeOptionsState,
+    QuantizeOptionsState,
+  } from '$lib/editor/options/processor-types';
   import type { EncodeOptions as WebpEncodeOptions } from 'features/encoders/webP/shared/meta';
   import type { EncodeOptions as AvifEncodeOptions } from 'features/encoders/avif/shared/meta';
   import type { EncodeOptions as JxlEncodeOptions } from 'features/encoders/jxl/shared/meta';
@@ -23,17 +33,51 @@
   import type { EncodeOptions as OxipngEncodeOptions } from 'features/encoders/oxiPNG/shared/meta';
   import '$lib/editor/theme.css';
 
+  // Saved settings: persist the chosen encoder + its options across reloads.
+  const STORAGE_KEY = 'sqush:settings:v1';
+  function readSaved(): {
+    format?: string;
+    optionsByFormat?: Record<string, Record<string, unknown>>;
+  } {
+    if (typeof localStorage === 'undefined') return {};
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') ?? {};
+    } catch {
+      return {};
+    }
+  }
+  const saved = readSaved();
+
   let file = $state<File | null>(null);
   let dragging = $state(false);
-  let format = $state<OutputFormat>('webP');
-  // One option object per format, seeded from each encoder's defaults. Panels
-  // mutate these proxies in place; the encode effect reads them via a snapshot.
-  let optionsByFormat = $state<Record<string, Record<string, unknown>>>(
-    Object.fromEntries(OUTPUT_FORMATS.map((f) => [f.id, getDefaultOptions(f.id)])),
+  let format = $state<OutputFormat>(
+    OUTPUT_FORMATS.some((f) => f.id === saved.format)
+      ? (saved.format as OutputFormat)
+      : 'webP',
   );
-  let resizeOn = $state(false);
-  let resizeWidth = $state(1600);
-  let resizeHeight = $state(1600);
+  // One option object per format, seeded from each encoder's defaults merged with
+  // any saved settings. Panels mutate these proxies in place; the encode effect
+  // reads them via a snapshot.
+  let optionsByFormat = $state<Record<string, Record<string, unknown>>>(
+    Object.fromEntries(
+      OUTPUT_FORMATS.map((f) => {
+        const defaults = getDefaultOptions(f.id);
+        const savedForFormat = saved.optionsByFormat?.[f.id];
+        return [
+          f.id,
+          savedForFormat ? { ...defaults, ...savedForFormat } : defaults,
+        ];
+      }),
+    ),
+  );
+
+  // Resize/quantize (processors) + rotate (preprocessor) are per-image — reset
+  // on each load. Natural dimensions are seeded from the first encode result.
+  let processorState = $state(structuredClone(defaultProcessorState));
+  let preprocessorState = $state(structuredClone(defaultPreprocessorState));
+  let naturalWidth = $state(0);
+  let naturalHeight = $state(0);
+  let dimsSeeded = false;
 
   let result = $state<CompressOutcome | null>(null);
   let status = $state<'idle' | 'working' | 'done' | 'error'>('idle');
@@ -58,9 +102,8 @@
     const request = {
       format,
       options: $state.snapshot(optionsByFormat[format]),
-      resize: resizeOn
-        ? { width: resizeWidth, height: resizeHeight }
-        : undefined,
+      processorState: $state.snapshot(processorState),
+      preprocessorState: $state.snapshot(preprocessorState),
     };
     if (!current) {
       status = 'idle';
@@ -100,7 +143,41 @@
     if (next && next.type.startsWith('image/')) {
       file = next;
       result = null;
+      // Per-image state resets; encoder settings (format/options) persist.
+      processorState = structuredClone(defaultProcessorState);
+      preprocessorState = structuredClone(defaultPreprocessorState);
+      dimsSeeded = false;
     }
+  }
+
+  // Seed resize width/height + the natural size from the first result per image.
+  $effect(() => {
+    const r = result;
+    if (!r || dimsSeeded) return;
+    dimsSeeded = true;
+    naturalWidth = r.sourceImageData.width;
+    naturalHeight = r.sourceImageData.height;
+    processorState.resize.width = r.sourceImageData.width;
+    processorState.resize.height = r.sourceImageData.height;
+  });
+
+  // Persist encoder settings (not the per-image processor state) for next visit.
+  $effect(() => {
+    const payload = JSON.stringify({
+      format,
+      optionsByFormat: $state.snapshot(optionsByFormat),
+    });
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem(STORAGE_KEY, payload);
+    } catch {
+      // Storage may be unavailable (private mode); ignore.
+    }
+  });
+
+  function rotate() {
+    preprocessorState.rotate.rotate = ((preprocessorState.rotate.rotate + 90) %
+      360) as 0 | 90 | 180 | 270;
   }
 
   function onInput(event: Event) {
@@ -155,7 +232,11 @@
   </main>
 {:else}
   <div class="compress sqush-editor">
-    <Output source={result?.sourceImageData} output={result?.outputImageData} />
+    <Output
+      source={result?.sourceImageData}
+      output={result?.outputImageData}
+      onRotate={rotate}
+    />
 
     {#if status === 'working'}
       <p class="status-pill">Compressing…</p>
@@ -258,22 +339,24 @@
 
         <label class="option-toggle section-enabler">
           Resize
-          <Toggle bind:checked={resizeOn} />
+          <Toggle bind:checked={processorState.resize.enabled} />
         </label>
-        {#if resizeOn}
-          <div class="option-text-first">
-            Width
-            <input class="num" type="number" min="1" bind:value={resizeWidth} />
-          </div>
-          <div class="option-text-first">
-            Height
-            <input
-              class="num"
-              type="number"
-              min="1"
-              bind:value={resizeHeight}
-            />
-          </div>
+        {#if processorState.resize.enabled}
+          <ResizeOptions
+            options={processorState.resize as unknown as ResizeOptionsState}
+            inputWidth={naturalWidth}
+            inputHeight={naturalHeight}
+          />
+        {/if}
+
+        <label class="option-toggle section-enabler">
+          Reduce palette
+          <Toggle bind:checked={processorState.quantize.enabled} />
+        </label>
+        {#if processorState.quantize.enabled}
+          <QuantizeOptions
+            options={processorState.quantize as unknown as QuantizeOptionsState}
+          />
         {/if}
       </div>
 
@@ -492,17 +575,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .num {
-    width: 100%;
-    background: var(--black);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 7px 10px;
-    font: inherit;
-    box-sizing: border-box;
   }
 
   .options-results {
