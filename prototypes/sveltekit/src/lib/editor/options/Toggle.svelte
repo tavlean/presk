@@ -38,6 +38,17 @@
     position: relative;
   }
 
+  /* Hide the real checkbox but keep it accessible; the wrapping <label>
+     forwards clicks, so pointer-events can be off. Ported from the original
+     Toggle/style.css, which the first migration pass dropped. */
+  .real-checkbox {
+    position: absolute;
+    top: 0;
+    opacity: 0;
+    pointer-events: none;
+    margin: 0;
+  }
+
   .track {
     --thumb-size: 14px;
     background: var(--black);

@@ -10,6 +10,7 @@
   import { registerPrototypeServiceWorker } from '$lib/service-worker-registration';
   import Output from '$lib/editor/output/Output.svelte';
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
+  import { fileDrop } from '$lib/editor/file-drop';
   import {
     defaultPreprocessorState,
     defaultProcessorState,
@@ -294,7 +295,10 @@
     <p class="intro-diag"><a href="/diagnostics">Pipeline diagnostics →</a></p>
   </main>
 {:else}
-  <div class="compress sqush-editor">
+  <div
+    class="compress sqush-editor"
+    {@attach fileDrop((files) => pickFiles(files))}
+  >
     <Output
       leftImage={results[0]?.outputImageData}
       rightImage={results[1]?.outputImageData}
@@ -428,6 +432,30 @@
     height: 100dvh;
     overflow: hidden;
     background: #1a1a1a;
+  }
+
+  /* Drag-to-replace feedback, ported from Squoosh's .drop-valid overlay. The
+     `drop-valid` class is toggled by the fileDrop attachment while an image is
+     dragged over the editor. */
+  .compress::after {
+    content: '';
+    position: absolute;
+    inset: 10px;
+    border: 2px dashed var(--pink);
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition:
+      opacity 200ms ease-in,
+      transform 200ms ease-in;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .compress:global(.drop-valid)::after {
+    opacity: 1;
+    transform: scale(1);
+    transition-timing-function: ease-out;
   }
 
   .status-pill {

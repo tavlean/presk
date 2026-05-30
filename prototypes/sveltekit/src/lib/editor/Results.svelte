@@ -232,7 +232,9 @@
     --padding-other-side: 0.7rem;
     padding: 0.5rem var(--padding-other-side);
     padding-left: var(--padding-arrow-side);
-    color: var(--header-text-color);
+    /* Squoosh's percent number is always white, on both the pink and blue
+       badges (not the panel's header-text colour, which is dark on blue). */
+    color: var(--white);
   }
   .results-right .percent-output {
     border-radius: var(--radius) 0 0 var(--radius);
