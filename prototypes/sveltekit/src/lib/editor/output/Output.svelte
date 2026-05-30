@@ -128,9 +128,8 @@
   }
 </script>
 
-<div class="editor">
-  <div class="output" class:alt-background={altBackground}>
-    <two-up class="two-up" legacy-clip-compat bind:this={twoUp}>
+<div class="output" class:alt-background={altBackground}>
+  <two-up class="two-up" legacy-clip-compat bind:this={twoUp}>
       <pinch-zoom class="pinch-zoom" bind:this={pinchLeft} onchange={onLeftChange}>
         <canvas
           class="pinch-target"
@@ -207,16 +206,8 @@
       >
     </div>
   </div>
-</div>
 
 <style>
-  .editor {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-
   .output {
     position: absolute;
     inset: 0;

@@ -85,6 +85,13 @@
   background-color: #fff2;
 }
 
+.sqush-editor .section-enabler {
+  background: var(--dark-gray);
+  border-top: 1px solid var(--off-black);
+  border-bottom: 1px solid var(--off-black);
+  padding: 15px var(--horizontal-padding);
+}
+
 @media (dynamic-range: high) {
   @supports (color: oklch(0% 0 0)) {
     .sqush-editor {
