@@ -90,6 +90,15 @@ const BROWSER_ENCODER_MIME: Partial<Record<OutputFormat, string>> = {
   browserGIF: 'image/gif',
 };
 
+/**
+ * Ids of the browser-native (canvas) encoders. These require runtime
+ * `canvas.toBlob` detection, so callers should not assume they're available
+ * until `getSupportedFormatIds()` has run.
+ */
+export const BROWSER_ENCODER_IDS = Object.keys(
+  BROWSER_ENCODER_MIME,
+) as OutputFormat[];
+
 async function canvasSupportsMime(mime: string): Promise<boolean> {
   if (typeof document === 'undefined') return false;
   try {

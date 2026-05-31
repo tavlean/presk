@@ -1,6 +1,7 @@
 import { untrack } from 'svelte';
 import { SvelteSet } from 'svelte/reactivity';
 import {
+  BROWSER_ENCODER_IDS,
   compressFile,
   getDefaultOptions,
   getSupportedFormatIds,
@@ -10,6 +11,7 @@ import {
   type OutputFormat,
   type SideFormat,
 } from '$lib/compress';
+import type { ResizeOptionsState } from './options/processor-types';
 import { snackbar } from './snackbar-store.svelte';
 import {
   defaultPreprocessorState,
@@ -58,8 +60,12 @@ function isValidProcessorState(value: unknown): value is ProcessorState {
     typeof state === 'object' &&
     !!state.resize &&
     typeof state.resize.enabled === 'boolean' &&
+    // Match the original: every inner value must be present (reject a partial
+    // payload like { enabled: true, width: null }).
+    Object.values(state.resize).every((v) => v != null) &&
     !!state.quantize &&
-    typeof state.quantize.enabled === 'boolean'
+    typeof state.quantize.enabled === 'boolean' &&
+    Object.values(state.quantize).every((v) => v != null)
   );
 }
 
@@ -72,8 +78,48 @@ function readSaved(): { sides?: SavedSide[] } {
   }
 }
 
+type ParsedSide = {
+  format: SideFormat;
+  optionsByFormat?: Record<string, Record<string, unknown>>;
+  processorState: ProcessorState;
+};
+
+/** Parse + validate a stored side payload; null if absent, corrupt, or invalid. */
+function parseSavedSide(raw: string | null): ParsedSide | null {
+  if (!raw) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  const data = parsed as {
+    version?: number;
+    settings?: Record<string, unknown>;
+  } & Record<string, unknown>;
+  const incoming = (data?.settings ?? data) as {
+    format?: unknown;
+    optionsByFormat?: Record<string, Record<string, unknown>>;
+    processorState?: unknown;
+  };
+  if (
+    !isValidFormat(incoming.format) ||
+    !isValidProcessorState(incoming.processorState)
+  ) {
+    return null;
+  }
+  return {
+    format: incoming.format,
+    optionsByFormat: incoming.optionsByFormat,
+    processorState: incoming.processorState,
+  };
+}
+
 function hasSavedSide(index: SideIndex): boolean {
-  return canUseLocalStorage() && !!localStorage.getItem(sideSaveKey(index));
+  // Validate the payload (not just key presence) so a corrupt entry correctly
+  // reports as not-importable and the Import button stays disabled.
+  if (!canUseLocalStorage()) return false;
+  return parseSavedSide(localStorage.getItem(sideSaveKey(index))) !== null;
 }
 
 function buildSide(
@@ -139,8 +185,16 @@ export class EditorSession {
   statuses = $state<[SideStatus, SideStatus]>(['idle', 'idle']);
   showSpinner = $state<[boolean, boolean]>([false, false]);
   errors = $state<[string, string]>(['', '']);
+  // Seed with the always-available (WASM) encoders only. The browser-native
+  // ones (canvas.toBlob — GIF is usually unsupported) are added once
+  // loadSupportedFormats() probes them, so an unsupported encoder never appears
+  // in the dropdown, even briefly. Matches the original's "show only supported".
   supportedFormatIds = $state(
-    new SvelteSet<OutputFormat>(OUTPUT_FORMATS.map((format) => format.id)),
+    new SvelteSet<OutputFormat>(
+      OUTPUT_FORMATS.filter(
+        (format) => !BROWSER_ENCODER_IDS.includes(format.id),
+      ).map((format) => format.id),
+    ),
   );
   canImport = $state<[boolean, boolean]>([hasSavedSide(0), hasSavedSide(1)]);
 
@@ -304,8 +358,15 @@ export class EditorSession {
     this.preprocessorState = structuredClone(defaultPreprocessorState);
     this.dimsSeeded = false;
 
+    const isVector = next.type === 'image/svg+xml';
     for (const side of this.sides) {
       side.processorState = structuredClone(defaultProcessorState);
+      // Match the original: vector (SVG) sources default the resize method to
+      // "vector" so re-rasterising at a new size stays crisp.
+      if (isVector) {
+        (side.processorState.resize as unknown as ResizeOptionsState).method =
+          'vector';
+      }
     }
 
     if (opening) pushEditorHistory();
@@ -328,10 +389,21 @@ export class EditorSession {
   }
 
   rotate(): void {
-    this.preprocessorState.rotate.rotate = ((this.preprocessorState.rotate
-      .rotate +
-      90) %
-      360) as 0 | 90 | 180 | 270;
+    const previous = this.preprocessorState.rotate.rotate;
+    const next = ((previous + 90) % 360) as 0 | 90 | 180 | 270;
+    this.preprocessorState.rotate.rotate = next;
+
+    // Match the original: on an orientation-changing rotate (90/270), swap each
+    // side's resize width/height so the Resize fields + preset stay aligned with
+    // the now-rotated source. Done for both sides regardless of resize.enabled.
+    if (previous % 180 !== next % 180) {
+      for (const side of this.sides) {
+        const resize = side.processorState.resize;
+        const { width, height } = resize;
+        resize.width = height;
+        resize.height = width;
+      }
+    }
   }
 
   setFormat(index: SideIndex, format: SideFormat): void {
@@ -366,7 +438,7 @@ export class EditorSession {
         }),
       );
       this.canImport[index] = true;
-      snackbar.show(`${label} side settings saved`, { timeout: 3000 });
+      snackbar.show(`${label} side settings saved`, { timeout: 1500 });
     } catch {
       snackbar.show(`${label} side settings could not be saved`, {
         timeout: 3000,
@@ -380,28 +452,10 @@ export class EditorSession {
     const raw = localStorage.getItem(sideSaveKey(index));
     if (!raw) return;
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      snackbar.show(`${label} side settings are invalid`, { timeout: 3000 });
-      return;
-    }
-
-    const data = parsed as {
-      version?: number;
-      settings?: Record<string, unknown>;
-    } & Record<string, unknown>;
-    const incoming = (data?.settings ?? data) as {
-      format?: unknown;
-      optionsByFormat?: Record<string, Record<string, unknown>>;
-      processorState?: unknown;
-    };
-
-    if (
-      !isValidFormat(incoming.format) ||
-      !isValidProcessorState(incoming.processorState)
-    ) {
+    // Same parse + validation the Import button's enabled state uses, so the
+    // two cannot drift.
+    const incoming = parseSavedSide(raw);
+    if (!incoming) {
       snackbar.show(`${label} side settings are invalid`, { timeout: 3000 });
       return;
     }
