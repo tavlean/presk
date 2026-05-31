@@ -20,6 +20,9 @@ Use this checklist before releases and after changes touching build tooling, wor
 
 - Open a JPEG file.
 - Open a PNG file.
+- Open a large photo and confirm fit, pan, and download still work.
+- Open an SVG file and confirm it encodes/downloads through the selected output
+  format.
 - Open a WebP file.
 - Open an AVIF file if one is available.
 - Verify the editor opens for each file.
@@ -81,15 +84,16 @@ playwright-cli -s=sqush-smoke close
 
 Expected result: the upload navigates to `/editor`, the title becomes `icon-large.png - Sqush`, the output side can be changed to `WebP`, a blob download named `icon-large.webp` is present, and `console error` reports zero errors.
 
-## Bulk foundation checks
+## Bulk roadmap checks
 
-Bulk UI is not implemented yet. For now, verify the backend helpers through:
+Bulk UI is roadmap work and is not part of migration closeout. Until
+implementation starts, verify only the backend helpers through:
 
 ```sh
 npm run test:helpers
 ```
 
-Before implementing the bulk UI, add browser checks for:
+When roadmap implementation starts, add browser checks for:
 
 - multiple file import;
 - per-image status display;

@@ -4,10 +4,10 @@ Last updated: 2026-05-31.
 
 A focused, local-first fork of Google's abandoned Squoosh. Priorities: **WebP,
 AVIF, JPEG XL**, with **WebP 2 kept as experimental parity** until usage or
-runtime evidence says otherwise. The headline new feature is **bulk image
-optimization**, but bulk UI is intentionally frozen while the SvelteKit
-foundation is hardened. The app is being rebuilt on **Svelte 5 / SvelteKit +
-Vite**. This file is the single entry point — read it first, then
+runtime evidence says otherwise. The current work is the **Svelte 5 / SvelteKit
+and Vite migration** for the existing single-image editor. Bulk optimization and
+other new product work now live in [road-map.md](road-map.md), not in the
+migration scope. This file is the single entry point — read it first, then
 [MIGRATION-PLAN.md](MIGRATION-PLAN.md).
 
 ## TL;DR (current state)
@@ -17,16 +17,17 @@ Vite**. This file is the single entry point — read it first, then
 - **Phases 1–5 are DONE** on the `svelte` branch. The foundation-hardening pass
   has tightened editor state ownership, mobile layout, WebP 2 parity,
   generated-file policy, service-worker caching, favicon/logo assets, and docs
-  before Phase 6. The SvelteKit app in
+  before migration closeout. The SvelteKit app in
   `prototypes/sveltekit/` is now a working, full-bleed dark **single-image editor
   at Squoosh parity**: drop an image → before/after two-up with zoom/pan → pick
   any active codec with full option panels → resize / quantize / rotate →
   download. Settings persist across reloads. Offline-capable.
-- **Current focus: foundation hardening / QA the single-image editor** before
-  adding features (the user's explicit choice). After this pass: **Phase 6 —
-  Bulk UI**, then **Phase 7 — the flip**.
+- **Current focus: migration closeout / cutover decision**, not feature work.
+  Acceptance QA has covered large images, SVG input, downloads, saved/imported
+  settings, responsive layout, WebP 2, and offline service-worker behavior.
 - `main` (Preact + Rollup) is the **untouched production app**, kept as a safety
-  net until the SvelteKit app reaches full parity, then retired in Phase 7.
+  net until the SvelteKit app reaches full parity, then retired during migration
+  closeout.
 
 ## Branches (two — clean)
 
@@ -37,9 +38,9 @@ svelte    migration trunk — Phases 1–5 complete; worktree at ../Sqush-svelte
 
 Per-phase branches are cut off `svelte`, fast-forward-merged back, then deleted
 (`svelte-plumbing` covered Phases 1–4 and `svelte-editor` covered Phase 5 — both
-merged and deleted). The next would be `svelte-bulk` for Phase 6. The user
-prefers short branch names. `main` is the default branch but is NOT where
-migration work goes.
+merged and deleted). New feature branches should start only after migration
+closeout. The user prefers short branch names. `main` is the default branch but
+is NOT where migration work goes.
 
 ## What's done
 
@@ -153,6 +154,11 @@ The editor has been driven end-to-end on the `svelte` branch:
   offline encode after reload, zero console errors, and a controlled service
   worker cache containing `/`, `/diagnostics`, `/logo.webp`, and the WebP 2
   encoder/decoder WASM.
+- Migration acceptance QA on a production preview verified a large 3872×2592
+  JPEG import/encode/download, SVG import/encode/download, output format
+  downloads with correct bytes/extensions, saved settings import/export, and the
+  responsive editor. This pass also fixed a stale-download race when switching
+  encoders before a debounced re-encode started.
 - Current static audit verifies 17 logical codec assets and one physical WASM per
   logical asset, including WebP 2 encoder/decoder. `npm run check`,
   `npm run build`, `npm run audit:static-output`, `npm audit --audit-level=low`,
@@ -160,14 +166,15 @@ The editor has been driven end-to-end on the `svelte` branch:
 
 ## Next
 
-1. **Do a short maintainer acceptance pass** before any new feature work: large
-   images, SVG input, downloads, and settings import/save on the production
-   preview.
-2. **Phase 6 — Bulk UI** on the existing 16-module bulk engine (multi-file
-   import, image strip, global settings + per-image overrides, batch processing,
-   export). See [bulk-image-architecture.md](bulk-image-architecture.md).
-3. **Phase 7 — The flip**: promote `prototypes/sveltekit/` to production, retire
-   Preact + Rollup.
+1. **Close the migration loop:** maintainer review of the accepted SvelteKit
+   single-image editor, then decide the final app location (repo root vs
+   `/app`).
+2. **Cut over:** tag the pre-flip state, promote `prototypes/sveltekit/` to the
+   production app location, rewire scripts/deploy, and retire Preact + Rollup
+   only after parity/build/offline checks pass.
+3. **Start roadmap work after migration:** bulk optimization, threaded-codec
+   performance, PWA/share-target work, and other product changes are tracked in
+   [road-map.md](road-map.md).
 
 ## Known risks / gotchas (carry forward)
 
@@ -192,11 +199,13 @@ feature-meta/*` are produced by the root build. A fresh worktree needs
 
 ## Map of the docs
 
-- **MIGRATION-PLAN.md** — the active sequenced plan (phases 1–7 + the Phase 5
-  polish backlog). **Read after this file.**
-- **bulk-image-architecture.md** — the bulk data model (Phase 6 reference).
+- **MIGRATION-PLAN.md** — the active migration closeout plan. **Read after this
+  file.**
+- **road-map.md** — post-migration product roadmap: bulk, codec strategy,
+  platform polish, and deferred feature work.
+- **bulk-image-architecture.md** — the future bulk data model and helper
+  reference.
 - **sveltekit-codec-asset-strategy.md** — how codec WASM URLs are generated.
 - **codec-provenance.md** — where the codecs come from; rules for touching them.
-- **road-map.md** — the original product roadmap (the "why").
 - **HANDOFF-2026-05-30.md**, **sveltekit-migration-seams-\*.md**, **history/** —
   point-in-time records, superseded by this STATUS for live state.

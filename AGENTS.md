@@ -13,14 +13,15 @@ The launch path is the `svelte` branch and its worktree at
 under `prototypes/sveltekit/`, with the existing Preact/Rollup app on `main`
 kept only as a safety net until the flip.
 
-The immediate focus is a short **maintainer acceptance pass before new
-features**: spot-check single-image editor parity, worker/WASM/static-output/
-service-worker reliability, responsive layout, large/SVG inputs, downloads, and
-settings. Do not start the bulk UI until this foundation is accepted.
+The immediate focus is migration closeout: spot-check single-image editor
+parity, worker/WASM/static-output/service-worker reliability, responsive layout,
+large/SVG inputs, downloads, settings, and the final cutover path. Bulk UI and
+other new product work are roadmap items, not migration scope.
 
 ## Boundaries
 
 - Do not implement production bulk UI without maintainer/design discussion.
+- Do not treat new product features as part of the Svelte migration.
 - Do not replace the current app shell as part of the prototype.
 - Do not introduce server-side image processing or upload paths.
 - Do not delete or move codecs, generated metadata, workers, or WASM assets
@@ -47,6 +48,7 @@ settings. Do not start the bulk UI until this foundation is accepted.
 
 - [Current status](docs/STATUS.md)
 - [Migration plan](docs/MIGRATION-PLAN.md)
+- [Product roadmap](docs/road-map.md)
 - [Phase 1 readiness audit](docs/phase-1-readiness-audit.md)
 - [Svelte migration context](docs/svelte-migration-context.md)
 - [Bulk image architecture](docs/bulk-image-architecture.md)

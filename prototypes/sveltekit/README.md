@@ -8,8 +8,8 @@ Read `../../docs/STATUS.md` first, then `../../docs/MIGRATION-PLAN.md`.
 
 ## Scope
 
-- Single-image editor parity is the current foundation target.
-- Bulk UI is intentionally not started here yet.
+- Single-image editor parity and migration closeout are the current targets.
+- Bulk UI and other new product work are roadmap items, not migration scope.
 - The app must stay local-first: no uploads, no server processing, reliable
   offline behavior after load.
 - WebP, AVIF, JPEG XL, QOI, MozJPEG, OxiPNG, browser encoders, and experimental

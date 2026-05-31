@@ -186,6 +186,9 @@ export class EditorSession {
       return;
     }
 
+    this.statuses[index] = 'working';
+    this.errors[index] = '';
+
     const controller = new AbortController();
     const run = () => {
       this.statuses[index] = 'working';

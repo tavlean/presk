@@ -300,10 +300,11 @@
         <h1>Sqush — Project Status</h1>
         <p>
           A modern, focused fork of Squoosh: local-first image optimization
-          (WebP · AVIF · JPEG XL) with bulk editing as the headline feature.
+          (WebP · AVIF · JPEG XL) with SvelteKit migration closeout first and
+          bulk editing on the product roadmap.
         </p>
         <div class="meta">
-          Snapshot: 2026-05-30 · Hand-written, not auto-generated · Replaces the
+          Snapshot: 2026-05-31 · Hand-written, not auto-generated · Replaces the
           old <code>progress-dashboard.html</code>
         </div>
       </header>
@@ -335,27 +336,27 @@
         <div class="card">
           <h3><span class="dot d-now"></span>In progress</h3>
           <ul>
-            <li>This pass: branch consolidation + doc cleanup</li>
-            <li>This pass: clearer status &amp; dashboard</li>
-            <li>Next build: runnable single-image Svelte UI</li>
+            <li>Migration closeout on the Svelte trunk</li>
+            <li>Maintainer acceptance and cutover decision</li>
+            <li>Docs separating migration from roadmap work</li>
           </ul>
         </div>
         <div class="card">
           <h3><span class="dot d-next"></span>Next</h3>
           <ul>
-            <li>Single-image slice: real file → encode → download</li>
-            <li>Then: bulk UI on the Svelte trunk</li>
-            <li>Decide build tool (keep Rollup vs go Vite)</li>
-            <li>Hide non-focus codecs from UI</li>
+            <li>Tag the pre-flip state</li>
+            <li>Promote SvelteKit to production</li>
+            <li>Retire Preact/Rollup after parity checks</li>
+            <li>Start roadmap feature work after migration</li>
           </ul>
         </div>
         <div class="card">
           <h3><span class="dot d-block"></span>Open risks</h3>
           <ul>
             <li>Threaded AVIF/JXL/OxiPNG (COOP/COEP) unproven</li>
-            <li>Build-tool decision not made</li>
-            <li>UI not started (intentional — yours/mine)</li>
-            <li>Codec deletion deferred (build coupling)</li>
+            <li>Final app location decision: root vs /app</li>
+            <li>Bulk UI intentionally deferred to roadmap</li>
+            <li>Codec deletion deferred; WebP2 kept as parity</li>
           </ul>
         </div>
       </div>
@@ -437,7 +438,7 @@
           <div class="n">3</div>
           <div class="t">
             <b>Minimum useful bulk feature</b>
-            <span>multi-import, strip, batch, export — needs UI</span>
+            <span>roadmap: multi-import, strip, batch, export</span>
           </div>
           <div class="st next">Next</div>
         </div>
@@ -453,7 +454,7 @@
           <div class="n">5</div>
           <div class="t">
             <b>Focused codec strategy</b>
-            <span>hide non-target formats, then prune</span>
+            <span>roadmap: hide before pruning; keep WebP2 parity</span>
           </div>
           <div class="st hold">Later</div>
         </div>
@@ -467,10 +468,10 @@
         <div class="phase">
           <div class="n">7</div>
           <div class="t">
-            <b>Svelte migration decision</b>
-            <span>promote SvelteKit to the trunk</span>
+            <b>Svelte migration closeout</b>
+            <span>promote SvelteKit after acceptance</span>
           </div>
-          <div class="st now">Underway (prototype proven)</div>
+          <div class="st now">Underway</div>
         </div>
       </div>
 
@@ -484,9 +485,8 @@
         </div>
         <div class="note">
           <b>The UI (this track)</b> turns that engine into a usable app —
-          starting with a runnable single-image compressor that keeps the
-          current Squoosh look, then evolving the design gradually and adding
-          the bulk interface without a disruptive redesign.
+          preserving the current single-image compressor first. Bulk interface
+          work starts later from the roadmap, after migration is closed.
         </div>
       </div>
 

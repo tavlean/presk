@@ -1,315 +1,172 @@
-# Road map
+# Sqush Product Roadmap
 
-This road map is written for the Sqush fork, with bulk image optimization as the main reason for the project.
+Last updated: 2026-05-31.
 
-## Guiding direction
+This roadmap starts **after** the SvelteKit migration is closed out. It is not a
+migration phase list. Migration work is limited to preserving the existing
+single-image optimizer in SvelteKit/Vite with static output, worker/WASM assets,
+downloads, settings, and offline behavior intact. See
+[STATUS.md](STATUS.md) and [MIGRATION-PLAN.md](MIGRATION-PLAN.md) for that
+track.
+
+Sqush remains local-first: no uploads, no server processing, and dependable
+browser/offline behavior after the app loads. New features must protect the
+single-image optimizer before expanding the surface area.
+
+## Roadmap Principles
+
+1. Preserve the single-image workflow before adding modes.
+2. Prefer framework-neutral helpers and measured browser behavior over UI-only
+   prototypes.
+3. Keep heavy browser objects (`File`, `Blob`, `ImageData`, workers, WASM,
+   object URLs) out of broad app state unless there is a measured reason.
+4. Hide or de-emphasize product surface before deleting codec/runtime code.
+5. Treat large features as design + prototype + verification work, not as
+   migration cleanup.
+
+## Cutover Aftermath
+
+These are allowed immediately after migration if they are needed to stabilize
+the launch:
+
+- maintainer acceptance notes from real daily use;
+- browser support QA on the chosen release browsers;
+- build/dependency modernization that reduces launch risk;
+- documentation cleanup for the new production app layout;
+- small editor fixes discovered during launch validation.
 
-The project should become a focused, practical image optimizer for modern web formats. The most important promise is that image optimization works reliably on the user's machine: no upload requirement, no server dependency, and no internet dependency for the actual optimization work after the app is available.
+Do not use this bucket to smuggle in bulk UI, codec pruning, or new workflows.
+
+## Bulk Optimization
+
+Bulk optimization is a product milestone, not part of the Svelte migration. The
+existing framework-neutral helper surface lives under
+`src/client/lazy-app/bulk/`; [bulk-image-architecture.md](bulk-image-architecture.md)
+is the technical reference.
 
-Bulk image optimization exists because the single-image optimizer is useful enough that people want to use it repeatedly. Bulk must be built on top of that reliability, not at the cost of it.
+### Design First
 
-The first new product milestone is to make a reliable bulk workflow:
+Resolve the product shape before implementation:
 
-- import many images;
-- apply global optimization settings;
-- show before/after size changes per image;
-- allow per-image overrides;
-- export all optimized images safely.
+- whether bulk is a separate screen, a mode inside the editor, or a route that
+  shares the same editor core;
+- how the bottom image strip, selected-image preview, global settings, and
+  per-image overrides fit on desktop and mobile;
+- which formats appear in the first bulk release;
+- how much per-image review is required before "export all";
+- how errors, warnings, and stale outputs are communicated.
 
-Everything else should support that goal while protecting the proven single-image workflow.
+### Minimum Useful Bulk
 
-## Phase 1: stabilize the baseline
-
-Do this before large feature work.
-
-1. Document the supported local environment.
-
-   - Confirm Node and npm versions.
-   - Update the README with install, build, dev, and troubleshooting notes.
-
-2. Add basic project checks.
-
-   - Add a typecheck script.
-   - Add a formatting or linting script.
-   - Keep `npm run build` as the release check.
-
-3. Add a manual QA checklist.
-
-   - App loads.
-   - Single-image compression works.
-   - Optimization still runs locally without server processing.
-   - WebP export works.
-   - AVIF export works if enabled.
-   - Download works.
-   - Saved side settings work.
-   - Production build works after clearing service-worker data.
-
-4. Triage dependency risk.
-
-   - The project has many audit findings because the build stack is old.
-   - Upgrade carefully, one area at a time.
-   - Do not do a full framework migration in this phase.
-
-5. Completed: remove inherited analytics.
-   - The old upstream Google Analytics setup has been removed.
-   - Do not add analytics back without a separate privacy and consent decision.
-
-## Phase 2: design the bulk-processing core
-
-Status: mostly complete. See
-[Phase 1 readiness audit](phase-1-readiness-audit.md) for the current handoff
-from cleanup into larger product/platform tracks.
-
-Build the feature as framework-neutral TypeScript first. The UI can stay in Preact initially.
-
-1. Define the bulk job model.
-
-   - `ImageJob`: one input file and its state.
-   - `GlobalSettings`: the settings applied to all images by default.
-   - `ImageOverrides`: only settings changed for a specific image.
-   - `EffectiveSettings`: global settings plus that image's overrides.
-   - `OutputResult`: output file, output size, percent saved, warnings, and errors.
-
-2. Define processing states.
-
-   - queued;
-   - decoding;
-   - processing;
-   - encoded;
-   - failed;
-   - skipped;
-   - exported.
-
-3. Define memory rules.
-
-   - Do not keep every full-resolution decoded image in memory forever.
-   - Keep thumbnails/previews separately from full image data.
-   - Revoke object URLs when no longer needed.
-   - Limit concurrent processing.
-
-4. Define override behavior.
-
-   - Global settings affect every image that has not overridden that setting.
-   - Per-image overrides survive later global setting changes.
-   - The UI must clearly show which images have overrides.
-   - The UI must allow clearing overrides for one image.
-
-5. Define export behavior.
-   - Export all outputs.
-   - Export selected outputs.
-   - Decide whether multi-file export uses individual downloads first or ZIP later.
-
-See [Bulk image architecture](bulk-image-architecture.md) for the current first-pass model.
-
-## Phase 3: minimum useful bulk feature
-
-This is the first product milestone.
-
-Status: do not implement this phase yet. The bulk editor UI should go through design discussion, idea iteration, and prototypes before production implementation.
-
-1. Allow multiple image import.
-
-   - File picker should accept multiple images.
-   - Drag and drop should accept multiple images.
-   - Keep the current single-image path working if possible.
-
-2. Add a bottom image strip.
-
-   - Show thumbnail.
-   - Show file name or shortened file name.
-   - Show status.
-   - Show percent reduction after encoding.
-   - Show an override indicator when applicable.
-
-3. Add global settings.
-
-   - Start with one target format.
-   - Recommended first target: WebP.
-   - Include quality and resize only if stable.
-
-4. Add batch processing.
-
-   - Process images with a small concurrency limit.
-   - Show progress.
-   - Allow cancel/retry.
-   - Store errors per image instead of failing the whole batch.
-
-5. Add bulk export.
-   - First implementation can download files one by one.
-   - ZIP export can come later if it adds too much complexity.
-
-## Phase 4: per-image review and overrides
-
-This is where the app becomes more powerful than a simple batch converter.
-
-1. Selecting an image in the strip opens that image in the main comparison area.
-
-2. The selected image shows before/after comparison.
-
-   - Keep the existing two-up/slider behavior if it can be reused.
-   - Show original size, output size, and percent saved.
-
-3. Per-image settings override global settings.
-
-   - Changing a setting while an image is selected creates an override only for that image.
-   - Highlight overridden controls.
-   - Add "reset this image to global settings".
-
-4. Reprocess only affected images.
-
-   - Changing global settings reprocesses images without overrides.
-   - Changing one image override reprocesses only that image.
-
-5. Persist bulk-session settings.
-   - Save global settings.
-   - Consider saving recent presets.
-   - Do not persist huge image data in local storage.
-
-## Phase 5: focused codec strategy
-
-The current app supports many formats. For this fork, a smaller codec surface probably helps, but it should be done carefully.
-
-### Recommended product formats
-
-Keep WebP 2 available as experimental parity while the SvelteKit app is matching
-the inherited editor. Do not make it a primary product promise unless browser and
-runtime testing proves it is useful.
-
-1. WebP 1
-
-   - Keep as the default first-class output.
-   - It is widely supported and practical for current web work.
-   - This should be the first bulk-export target.
-
-2. AVIF
-
-   - Keep as a first-class modern output.
-   - It has broad modern browser support, but encoding can be slower than WebP.
-   - Add after WebP bulk flow is stable.
-
-3. JPEG XL
-
-   - Keep as an experimental or advanced output at first.
-   - JPEG XL support has improved recently, including renewed Chromium work, but support and default enablement still need careful tracking.
-   - Good candidate for power users and future-proof workflows.
-
-### Formats to consider hiding or removing from the main UI
-
-- WebP 2: experimental parity; keep testable for now, then decide whether to
-  hide or remove it after usage/runtime evidence
-- Browser JPEG
-- Browser PNG
-- Browser GIF
-- MozJPEG
-- OxiPNG
-- QOI
-- any non-target legacy formats after the focused workflow is stable
-
-Removing them from the visible product will simplify user decisions. Removing the code entirely is a separate technical decision.
-
-### Should we remove codec code?
-
-Short answer: not immediately.
-
-Hiding codecs from the UI is low risk and gives quick product focus. Deleting codec code may reduce maintenance later, but it can also break build assumptions because codecs are tied into generated feature metadata, workers, WASM assets, service-worker caching, and tests we do not have yet.
-
-Recommended sequence:
-
-1. First hide non-target formats from the UI.
-2. Verify the build and single-image workflow.
-3. Verify the bulk workflow.
-4. Remove unused codec files only after the focused product works.
-5. Keep a branch or tag before deleting codecs.
-
-## Phase 6: better exports and production workflows
-
-Add after the basic bulk workflow is reliable.
-
-1. ZIP export.
-
-   - Export all optimized images as one archive.
-   - Preserve names safely.
-   - Avoid loading the whole archive into memory if possible.
-
-2. Naming templates.
-
-   - Preserve original names.
-   - Add suffixes such as `-optimized`.
-   - Change extensions based on output format.
-
-3. Presets.
-
-   - WebP balanced.
-   - WebP small.
-   - AVIF balanced.
-   - AVIF high quality.
-   - Custom saved presets.
-
-4. Warnings.
-
-   - Output is larger than input.
-   - Format may not be supported everywhere.
-   - Image failed to decode.
-   - Image too large for current memory limits.
-
-5. Summary view.
-   - Total original size.
-   - Total optimized size.
-   - Total bytes saved.
-   - Failed/skipped count.
-
-## Phase 7: migration decision
-
-Do not migrate the whole app before the bulk model exists.
-
-After Phase 3 or Phase 4, decide whether to migrate the UI to Svelte.
-
-Recommended migration approach:
-
-1. Keep processing logic framework-neutral.
-2. Use [Svelte migration context](svelte-migration-context.md) as the working guide for Svelte 5 and SvelteKit decisions.
-3. Move the app shell and bulk UI to Svelte or SvelteKit only after the workflow is proven.
-4. Prefer a static/offline SvelteKit build unless a concrete blocker is proven.
-5. Preserve worker/WASM/service-worker behavior before rewriting every component.
-
-Svelte will likely help future feature development, but a migration should not block the main bulk feature.
-
-## Phase 8: pull request mining
-
-The upstream Squoosh repository has many abandoned pull requests. Review them after the first bulk milestone is working.
-
-Look for:
-
-- codec fixes;
-- browser compatibility fixes;
-- service-worker fixes;
-- dependency/build updates;
-- UI improvements that support bulk workflows;
-- performance improvements;
-- bug reports with reproduction cases.
-
-Avoid merging large stale PRs blindly. Extract small patches that still apply cleanly and test them.
-
-## Future ideas
-
-- Side-by-side visual difference metrics.
-- Target file size mode.
-- Folder import where browser support allows it.
-- Image dimension constraints for common platforms.
-- Metadata stripping options.
-- Lossless mode for selected formats.
-- CLI or desktop wrapper later, if browser limitations become painful.
-- Project files for saving a batch session.
-
-## Current external format notes
-
-These notes should be rechecked periodically because format support changes.
-
-- WebP 1 is mature and widely supported.
-- AVIF is broadly supported in current major browsers.
-- JPEG XL has improved momentum in 2026, including Chromium work, but exact default browser support should be checked before making it the default output.
-
-References:
-
-- AVIF browser support: https://caniuse.com/avif
-- JPEG XL software support: https://jpegxl.info/resources/supported-software.html
+First implementation target:
+
+- multi-file picker and drag/drop import;
+- bottom strip with thumbnail, file name, status, output size change, and
+  override badge;
+- global settings, starting with WebP and a small stable option set;
+- batch processing with bounded concurrency, progress, cancel/retry, and
+  per-image errors;
+- selected-image preview using the existing before/after comparison where
+  practical;
+- individual downloads for ready outputs.
+
+### Overrides And Review
+
+Second layer:
+
+- selecting an image opens it for detailed comparison;
+- editing a control while an image is selected creates a per-image override;
+- overridden controls are highlighted;
+- "reset to global" is available per image;
+- global changes reprocess only images without relevant overrides;
+- per-image changes reprocess only that image.
+
+### Export Evolution
+
+Later bulk export work:
+
+- ZIP export when memory behavior is understood;
+- duplicate-safe naming templates;
+- suffix and extension rules;
+- presets for common WebP/AVIF workflows;
+- warnings for larger output, unsupported formats, decode failures, and
+  memory-heavy batches;
+- summary totals for original size, output size, bytes saved, failed/skipped
+  count, and pending work.
+
+## Codec Strategy
+
+Keep the SvelteKit parity surface broad until usage/runtime evidence supports a
+change:
+
+- **WebP**: first production codec focus and first bulk target.
+- **AVIF**: second production codec focus after WebP bulk is stable.
+- **JPEG XL**: advanced/power-user format; support should be rechecked before
+  making it prominent.
+- **WebP 2**: keep included as experimental parity. Do not promote it as a
+  primary format until maintainer testing proves it is useful.
+- Browser JPEG/PNG/GIF, MozJPEG, OxiPNG, and QOI: keep available while parity is
+  being validated; decide later whether they are visible, advanced, or hidden.
+
+Deletion is a separate engineering decision. If the product hides codecs, leave
+runtime code intact until build output, generated metadata, workers, WASM
+assets, service-worker caching, and browser QA prove removal is safe. Follow
+[codec-provenance.md](codec-provenance.md) before touching `codecs/`.
+
+## Performance And Platform
+
+Possible post-launch tracks:
+
+- shared decode between the two comparison sides for large-image performance;
+- threaded AVIF/JXL/OxiPNG with COOP/COEP, nested-worker, helper-asset, and
+  service-worker proof;
+- static-host header strategy if threaded codecs become important;
+- browser support matrix refresh before changing runtime assumptions;
+- build/dependency modernization now that Vite/SvelteKit owns production.
+
+Single-thread codecs are the launch baseline. Threaded codecs are performance
+work, not a migration blocker.
+
+## PWA, Import, And Persistence
+
+Future workflow ideas:
+
+- installable PWA polish;
+- share target for images from the OS/browser;
+- folder import where browser support allows it;
+- target file-size mode;
+- metadata stripping controls;
+- project/session files for saving a batch plan;
+- IndexedDB-backed restore only if the product needs persisted source blobs.
+
+Do not store live image blobs or object URLs in `localStorage`.
+
+## UI And Product Polish
+
+Deferred polish/features:
+
+- intro or marketing route redesign;
+- mobile multi-panel accordion decision if the current responsive editor is not
+  sufficient;
+- visual difference metrics;
+- stronger preset and warning language;
+- keyboard shortcut discoverability;
+- advanced codec grouping once product format focus is decided.
+
+## Upstream Mining
+
+The upstream Squoosh repository has many abandoned pull requests. Mine them
+after migration and launch stabilization, especially for codec fixes, browser
+compatibility fixes, service-worker fixes, build updates, and small UI
+improvements. Avoid merging stale PRs wholesale; extract small patches with
+tests or focused browser verification.
+
+## Reference Docs
+
+- [bulk-image-architecture.md](bulk-image-architecture.md) — bulk model,
+  helpers, snapshots, queue/export behavior.
+- [manual-qa.md](manual-qa.md) — release and browser QA checklist.
+- [codec-provenance.md](codec-provenance.md) — codec origin and safety rules.
+- [browser-support.md](browser-support.md) — browser support assumptions.
+- [parity-audit.md](parity-audit.md) — Svelte editor parity decisions and
+  deferred items.

@@ -3,14 +3,19 @@
 This document records the SvelteKit migration guidance for Sqush. It is based on
 Svelte MCP documentation passes on 2026-05-24 and 2026-05-25.
 
-Use this as alignment before doing work that affects the SvelteKit prototype or a
-future production migration.
+Use this as Svelte/SvelteKit guidance, not as the live scope tracker. The live
+scope is in [STATUS.md](STATUS.md) and [MIGRATION-PLAN.md](MIGRATION-PLAN.md):
+the migration is now single-image parity plus cutover, while bulk and other new
+product work are tracked in [road-map.md](road-map.md).
 
 ## Main principle
 
 Do not migrate the UI just to migrate it. Sqush is valuable because local image optimization works reliably: import, decode, process, encode, preview, export, and offline use must remain dependable.
 
-The Svelte migration should make the app easier to maintain and extend without weakening the proven single-image optimizer. Bulk image optimization is the first major product milestone, but it should reuse the same reliable processing path.
+The Svelte migration should make the app easier to maintain and extend without
+weakening the proven single-image optimizer. Bulk image optimization is a
+post-migration product milestone and should reuse the same reliable processing
+path when roadmap work begins.
 
 ## Recommended target
 

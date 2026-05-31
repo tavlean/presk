@@ -67,13 +67,14 @@ Deliberate deviations (my call — re-open if you disagree):
    offline `.wp2` encode; keep it experimental until maintainer/product testing
    says it is worth promoting.
 
-Deferred to later phases (infra, not feature/bug parity):
+Deferred to the post-migration roadmap (infra/product work, not migration
+feature/bug parity):
 
 3. **Shared decode.** Dual-side runs the full `compressFile` (incl. decode) per
-   side — redundant on large images when comparing two encoders. Foundations
-   phase.
+   side — redundant on large images when comparing two encoders. Treat this as
+   post-launch performance work.
 4. **Share-target (PWA).** Needs an installable PWA + `share_target` manifest +
-   a SW POST handler. Defer until PWA work.
+   a SW POST handler. Defer until the roadmap PWA track.
 5. **`$app/*` type shim.** `src/sveltekit-app.d.ts` shims `$app/navigation` /
    `$app/state` for `svelte-check` (the prototype's generated tsconfig only maps
    `$app/types`). Delete once the tsconfig matches a standard SvelteKit setup.
@@ -107,7 +108,7 @@ alignment · history via SvelteKit shallow routing. (See §B "Resolved".)
 ### Deliberate deviations / deferred (see §B)
 
 Pinch-zoom re-fits on dimension change · WebP 2 threaded/prominence decisions ·
-shared decode (perf, foundations phase) · share-target (PWA).
+shared decode (post-launch performance) · share-target (PWA).
 
 ### Deferred / N-A (see §D)
 

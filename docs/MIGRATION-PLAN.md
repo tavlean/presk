@@ -6,8 +6,9 @@ Last updated: 2026-05-31. Author: Claude (UI/architecture colleague pass).
 > plan. This is the working plan for moving Sqush from the inherited Preact +
 > Rollup app to an all-in Svelte 5 + SvelteKit + Vite app, **without changing
 > what the user sees** until parity is reached. **Phases 1–5 are done**; the
-> foundation-hardening checkpoint is complete enough for a short maintainer
-> acceptance pass before Phase 6.
+> foundation-hardening and acceptance checkpoint is complete enough for
+> migration closeout/cutover. Bulk optimization and other new product work are
+> not migration phases; they live in [road-map.md](road-map.md).
 > ([HANDOFF-2026-05-30.md](HANDOFF-2026-05-30.md) is an older point-in-time
 > record, superseded by STATUS.)
 
@@ -56,14 +57,14 @@ single-image slice proved it (engine called from Svelte, encoded WebP/AVIF/JXL).
 
 - **Phases 1–5 are DONE** (see each phase below). `prototypes/sveltekit/` is now
   a full **single-image editor at Squoosh parity**, not just a slice. The
-  foundation-hardening checkpoint before Phase 6 now covers state extraction,
-  WebP 2 parity, mobile layout, service-worker polish, generated-file hygiene,
-  favicon/logo assets, and docs.
+  foundation-hardening checkpoint now covers state extraction, WebP 2 parity,
+  mobile layout, service-worker polish, generated-file hygiene, favicon/logo
+  assets, and docs.
 - **Branches (two — clean):** `main` (Preact+Rollup, untouched production) and
   **`svelte`** (the migration trunk carrying Phases 1–5; worktree at
   `../Sqush-svelte`). Per-phase branches (`svelte-plumbing`, `svelte-editor`)
-  were fast-forward-merged into `svelte` and deleted. Next would be
-  `svelte-bulk` for Phase 6.
+  were fast-forward-merged into `svelte` and deleted. New feature branches should
+  wait until migration closeout.
 - **The SvelteKit app** (Svelte 5.55, SvelteKit 2.61, Vite 8, adapter-static)
   lives in `prototypes/sveltekit/`. Editor file map + how-to-run are in
   [STATUS.md](STATUS.md). Headlines:
@@ -84,7 +85,7 @@ single-image slice proved it (engine called from Svelte, encoded WebP/AVIF/JXL).
 - **Repo hygiene (done earlier):** `upstream` (GoogleChromeLabs) remote + ~113
   stale branches removed (commits preserved in `main`'s ancestry); `SquooshPlus`
   symlink + orphaned codex worktree removed.
-- **Verified (2026-05-31):** all six codecs encode through the unified path;
+- **Verified (2026-05-31):** all active codecs encode through the unified path;
   every panel re-encodes live; two-up + zoom/pan + slider; rotate/resize/quantize;
   saved settings round-trip; offline SW on production preview. `npm run check`
   0/0, `build` + `audit:static-output` green.
@@ -113,8 +114,8 @@ like a photo editor" as the SPA case). Concretely:
 ### Where the app should live
 
 Today it's `prototypes/sveltekit/`. **Recommendation:** keep building there
-through parity (avoids churn + keeps the proven config), then in the flip phase
-(§Phase 7) promote it to the repo root (or `/app`) and delete the Preact tree.
+through parity (avoids churn + keeps the proven config), then in migration
+closeout promote it to the repo root (or `/app`) and delete the Preact tree.
 Don't rename mid-migration — it invalidates the worktree/aliases for no benefit.
 
 ---
@@ -156,8 +157,8 @@ Grounded in the official docs (fetched 2026-05-31). Apply these everywhere:
 ## 5. The plan — phases (plumbing-first)
 
 Work on the `svelte` trunk, or cut a short per-phase branch off it
-(`svelte-plumbing`, then `svelte-editor`, then `svelte-bulk`) and merge back.
-Keep `main` (Preact) working at all times. Each phase
+(`svelte-plumbing`, then `svelte-editor`) and merge back. Keep `main` (Preact)
+working at all times. Each phase
 ends green: `npm run check` + `npm run build` in `prototypes/sveltekit`, plus a
 browser check for anything touching runtime/worker/codec/SW behavior.
 
@@ -282,9 +283,9 @@ present and cache-served) plus the live SW-served encode is equivalent.
 > `fallback: '200.html'`, and `npm run build` emits a static SPA (`index.html`,
 > `200.html` deep-link fallback, `diagnostics.html`) with no SSR/browser-global
 > errors. Routes `/` and `/diagnostics` exist. **Deferred:** the `+layout.svelte`
-> shared-context provider — there is no app-wide reactive state to host yet
-> (theme + the bulk store land in Phases 5–6), so it is created alongside that
-> state rather than as an empty shell now. The intro/marketing-route decision
+> shared-context provider — there is no app-wide reactive state to host yet, so
+> it is created alongside that state rather than as an empty shell now. The
+> intro/marketing-route decision
 > stays an open product question (see §8).
 
 **Goal:** the SvelteKit app is a proper SPA shell with the right routes.
@@ -354,8 +355,8 @@ with the current Preact app. This is the big UI phase.
 ### Foundation hardening checkpoint (2026-05-31)
 
 The editor is functionally complete; the user wants to **stabilize and simplify
-the foundation before starting Phase 6**. Verify each in the browser and keep
-`npm run check`, `npm run build`, and `npm run audit:static-output` green:
+the foundation before any new feature work**. Verify each in the browser and
+keep `npm run check`, `npm run build`, and `npm run audit:static-output` green:
 
 - **Responsive editor QA.** The SvelteKit editor now reserves a lower mobile
   options area and switches `<two-up>` to a vertical split on narrow screens. A
@@ -380,31 +381,11 @@ the foundation before starting Phase 6**. Verify each in the browser and keep
   input, re-encode debounce feel, switching encoders mid-encode (abort), download
   filename per format, keyboard split (1/2/3) discoverability.
 
-Not in scope for polish (deferred): threaded codecs; the intro/marketing screen
-redesign; codec pruning.
+Not in scope for migration polish (deferred to the product roadmap): bulk UI,
+threaded codecs, the intro/marketing screen redesign, PWA/share target, codec
+pruning, and other new feature work.
 
-### Phase 6 — Bulk UI (the headline feature)
-
-**Goal:** the bulk-edit interface, built on the existing 16-module bulk engine
-(`src/client/lazy-app/bulk/`). The engine already does sessions, queue,
-concurrency, per-image overrides, snapshots, export — this phase is the skin.
-
-- Multi-file import (picker + drag-drop of many).
-- Bottom **image strip**: thumbnail, name, status, % reduction, override badge.
-- Global settings panel; selecting an image opens it in the main editor; editing
-  a setting while one image is selected creates a per-image **override**
-  (highlight overridden controls; "reset to global").
-- Batch processing with small concurrency, progress, cancel/retry, per-image
-  errors (don't fail the whole batch).
-- Bulk **export** (individual downloads first; ZIP later).
-- Reactive bulk store in `bulk-session.svelte.ts`, provided via context;
-  `$derived` view-models for strip/summary; `$effect` only for object-URL
-  lifecycle.
-- **Acceptance:** import many → process with global settings → override one →
-  reprocess only affected → export all. Matches
-  [bulk-image-architecture.md](bulk-image-architecture.md).
-
-### Phase 7 — The flip (SvelteKit becomes production)
+### Migration closeout — The flip (SvelteKit becomes production)
 
 **Goal:** retire Preact + Rollup; SvelteKit is the app.
 
@@ -420,7 +401,25 @@ concurrency, per-image overrides, snapshots, export — this phase is the skin.
 
 ---
 
-## 6. Parallel/optional track — threaded codecs (defer if it stalls)
+## 6. Post-migration roadmap boundary
+
+The migration is complete when the SvelteKit single-image editor is the
+production app with parity, static output, worker/WASM behavior, downloads,
+settings, and offline behavior intact. Do not expand migration scope to include
+bulk UI or other new product features.
+
+Moved to [road-map.md](road-map.md):
+
+- bulk optimization UI on the existing 16-module bulk engine;
+- threaded-codec performance work for AVIF/JXL/OxiPNG and any COOP/COEP
+  hosting changes;
+- PWA/share-target work;
+- intro/marketing route redesign;
+- codec hiding/pruning or product prominence changes;
+- shared-decode performance optimization;
+- future export formats, ZIP, naming templates, presets, and warnings.
+
+## 7. Parallel/optional track — threaded codecs (defer if it stalls)
 
 Multi-threaded AVIF/JXL/OxiPNG need **cross-origin isolation** (COOP/COEP
 headers: `Cross-Origin-Opener-Policy: same-origin`,
@@ -431,7 +430,7 @@ first; treat threaded as a perf enhancement on its own branch.
 
 ---
 
-## 7. Known gotchas (carry these forward)
+## 8. Known gotchas (carry these forward)
 
 - **Generated files aren't committed.** `src/client/lazy-app/feature-meta/*`,
   `worker-bridge/{surface,active-meta,meta}.ts`, `src/features-worker/active.ts`
@@ -451,14 +450,17 @@ first; treat threaded as a perf enhancement on its own branch.
   single-thread SvelteKit path is proven in this migration. Treat threaded WebP
   2, product prominence, or removal as separate decisions after QA.
 
-## 8. Open decisions for the user (not blockers)
+## 9. Open decisions for the user (not blockers)
 
 - App home after the flip: repo root vs `/app`.
-- Intro screen: keep as-is, or redesign as a separate prerendered route.
-- Threaded codecs: pursue, or accept single-thread for v1.
-- Codec pruning: deferred — keep everything until there's usage evidence.
+- Intro screen: keep as-is, or redesign as a separate prerendered route after
+  migration.
+- Threaded codecs: pursue as a separate performance track, or accept
+  single-thread for v1.
+- Codec pruning: roadmap decision — keep everything until there's usage
+  evidence. WebP 2 stays included as experimental parity for now.
 
-## 9. Quick reference
+## 10. Quick reference
 
 ```sh
 # run the SvelteKit app
