@@ -43,37 +43,37 @@ behavior parity is preserved.
 
 ---
 
-## B. Needs the user's input / discussion (NOT acted on)
+## B. Resolved decisions + still-open items
 
-1. **Browser-native encoders (Browser JPEG / PNG / GIF) + dynamic
-   feature-detection.** The original lists every supported encoder (filtered by
-   async `featureTest`); the Svelte `OUTPUT_FORMATS` is a static list that
-   **intentionally omits** the browser encoders (per the comment in
-   `compress.ts`). Strictly this is a parity gap, but it was a deliberate scope
-   call. Decision needed: restore them (add to `OUTPUT_FORMATS` + a
-   feature-detection pass), or confirm they stay cut?
-2. **`wp2` (WebP v2, "unstable").** Blocked at the shared-engine level, not just
-   the UI. Stays out until the engine unblocks it. Confirm that's intended.
-3. **Canvas `object-fit: contain` for the `contain` resize fitMethod.** When a
-   side uses resize → fitMethod "contain", the original letterboxes the output
-   inside the source footprint and keeps it pixel-aligned at the two-up split.
-   Svelte draws at the output dims, so a contain side can look mis-sized. Edge
-   case; worth fixing if contain is commonly used.
-4. **Pinch-zoom pan-compensation on rotate/resize.** The original _preserves_
-   the user's zoom/pan and merely shifts the pan when content dims change; our
-   version re-fits (resets zoom) on a dimension change. Re-fit is arguably nicer
-   — confirm which behavior you want.
-5. **History integration uses the raw `history` API.** Works (Back returns to
-   the intro, verified), but SvelteKit warns it can conflict with its router and
-   recommends `pushState`/`page.state` from `$app/navigation` (shallow routing).
-   Left as-is to avoid risk; should migrate to the SvelteKit idiom.
-6. **Shared decode.** The original decodes+preprocesses the source once and forks
-   per side; our dual-side runs the full `compressFile` (incl. decode) per side
-   — redundant work on large images when comparing two encoders. For the later
-   foundations-cleanup phase.
-7. **Share-target (PWA).** The original accepts an OS-shared image via
-   `?share-target` + a SW POST handler. Absent here; the prototype isn't an
-   installable PWA with a `share_target` manifest yet. Defer until PWA work.
+Resolved 2026-05-31 (user: "restore them; for the rest, make the best call"):
+
+- **DONE — Browser-native encoders (Browser JPEG / PNG / GIF) restored** with
+  runtime feature-detection (`getSupportedFormatIds()`); Browser GIF self-hides
+  where canvas can't encode it. Browser JPEG got a 0–1 quality panel.
+- **DONE — `contain` resize fitMethod** now letterboxes inside the original
+  footprint (canvas object-fit), aligned at the two-up split.
+- **DONE — History → SvelteKit shallow routing** (`pushState`/`page.state` from
+  `$app/navigation`), replacing the raw `history` API (no more router warning).
+
+Deliberate deviations (my call — re-open if you disagree):
+
+1. **Pinch-zoom re-fits on a dimension change (rotate/resize)** rather than
+   preserving the user's zoom/pan with the original's pan-compensation math.
+   Re-fit is simpler and arguably nicer (re-centres the new framing); the
+   compensation is risky for marginal benefit.
+2. **`wp2` (WebP v2, "unstable") stays out** — blocked at the shared-engine
+   level, not just the UI, so it can't be offered without engine support.
+
+Deferred to later phases (infra, not feature/bug parity):
+
+3. **Shared decode.** Dual-side runs the full `compressFile` (incl. decode) per
+   side — redundant on large images when comparing two encoders. Foundations
+   phase.
+4. **Share-target (PWA).** Needs an installable PWA + `share_target` manifest +
+   a SW POST handler. Defer until PWA work.
+5. **`$app/*` type shim.** `src/sveltekit-app.d.ts` shims `$app/navigation` /
+   `$app/state` for `svelte-check` (the prototype's generated tsconfig only maps
+   `$app/types`). Delete once the tsconfig matches a standard SvelteKit setup.
 
 ---
 
@@ -96,10 +96,15 @@ settings · 300ms reveal animations · zoom step 1.25 · download-icon rotate
 animation · zoom readout width 7rem / grey · JXL "(beta)" label · 100ms debounce
 · reset view on a new same-size file.
 
-### Flagged (see §B) — not yet implemented
+### Also fixed (second pass)
 
-Browser encoders + dynamic feature-detection (B-1) · wp2 (B-2) · contain
-object-fit (B-3) · pinch pan-compensation (B-4).
+Browser JPEG/PNG/GIF encoders + feature-detection · `contain` fitMethod
+alignment · history via SvelteKit shallow routing. (See §B "Resolved".)
+
+### Deliberate deviations / deferred (see §B)
+
+Pinch-zoom re-fits on dimension change · `wp2` (engine-blocked) · shared decode
+(perf, foundations phase) · share-target (PWA).
 
 ### Deferred / N-A (see §D)
 
