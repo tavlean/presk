@@ -430,11 +430,11 @@
         <h1>Sqush</h1>
         <p>Local-first image compression. Nothing leaves your device.</p>
       </header>
-      <label class="dropzone">
+      <label class="select-button">
         <input type="file" accept="image/*" onchange={onInput} />
-        <strong>Drop an image here</strong>
-        <span>or click to choose a file</span>
+        Select an image
       </label>
+      <p class="intro-hint">…or drop an image anywhere on the page</p>
       <p class="intro-diag">
         <a href="/diagnostics">Pipeline diagnostics →</a>
       </p>
@@ -533,11 +533,20 @@
       'Segoe UI', sans-serif;
   }
 
-  /* Intro / drop screen */
+  /* Intro / landing screen. The whole viewport is the drop target (see the
+     fileDrop attachment on .app-root) with the pink dashed drop overlay for
+     feedback, so there is no separate drop rectangle — just a click-to-select
+     button. */
   .intro {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 64px 24px;
+    min-height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
   }
   .intro-head h1 {
     margin: 0 0 4px;
@@ -545,33 +554,32 @@
     letter-spacing: -0.02em;
   }
   .intro-head p {
-    margin: 0 0 28px;
+    margin: 0;
     color: #bcbcbc;
   }
-  .dropzone {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: center;
-    justify-content: center;
-    min-height: 340px;
-    border: 2px dashed #444;
-    border-radius: 14px;
-    background: #222;
+  .select-button {
+    display: inline-block;
     cursor: pointer;
-    text-align: center;
+    background: #ff3385;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 14px 28px;
+    border-radius: 8px;
+    margin-top: 8px;
   }
-  .dropzone strong {
-    font-size: 1.2rem;
+  .select-button:hover {
+    background: #ff0066;
   }
-  .dropzone span {
-    color: #bcbcbc;
-  }
-  .dropzone input {
+  .select-button input {
     display: none;
   }
+  .intro-hint {
+    margin: 0;
+    color: #bcbcbc;
+  }
   .intro-diag {
-    margin-top: 16px;
+    margin-top: 8px;
   }
   .intro-diag a {
     color: #5fb4e4;

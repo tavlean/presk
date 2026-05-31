@@ -321,7 +321,10 @@
   }
 
   .options-results {
-    padding: 14px var(--horizontal-padding) 0;
+    /* No horizontal padding: the results span the full panel so the download
+       blob hugs the outer bottom corner (its negative margins overflow the
+       edge), matching the original. */
+    padding: 14px 0 0;
     flex: none;
   }
 </style>

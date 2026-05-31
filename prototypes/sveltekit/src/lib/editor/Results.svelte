@@ -133,7 +133,7 @@
   }
 
   .results {
-    --download-overflow-size: 18px;
+    --download-overflow-size: 30px;
     display: grid;
     grid-template-columns: [download] auto [bubble] 1fr;
     align-items: center;
@@ -172,10 +172,10 @@
     grid-template-columns: [size-info] 1fr [percent-info] auto;
     position: relative;
     --main-padding: 1px;
-    --speech-padding: 1.4rem;
+    --speech-padding: 2.1rem;
     padding: var(--main-padding) var(--main-padding) var(--main-padding)
       var(--speech-padding);
-    gap: 0.5rem;
+    gap: 0.9rem;
   }
   .results-right .bubble-inner {
     padding: var(--main-padding) var(--speech-padding) var(--main-padding)
@@ -236,9 +236,9 @@
     background: var(--main-theme-color);
     --radius: 4px;
     border-radius: 0 var(--radius) var(--radius) 0;
-    --padding-arrow-side: 0.4rem;
-    --padding-other-side: 0.7rem;
-    padding: 0.5rem var(--padding-other-side);
+    --padding-arrow-side: 0.6rem;
+    --padding-other-side: 1.1rem;
+    padding: 0.7rem var(--padding-other-side);
     padding-left: var(--padding-arrow-side);
     /* Squoosh's percent number is always white, on both the pink and blue
        badges (not the panel's header-text colour, which is dark on blue). */
@@ -256,13 +256,13 @@
     font-family: sans-serif;
     opacity: 0.76;
     text-shadow: 0 2px rgba(0, 0, 0, 0.3);
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     position: relative;
-    top: 2px;
+    top: 3px;
   }
   .size-value {
     font-family: 'Roboto Mono Numbers';
-    font-size: 2.1rem;
+    font-size: 2.6rem;
     text-shadow: 0 2px rgba(0, 0, 0, 0.3);
   }
   .percent-char {
@@ -274,7 +274,7 @@
   }
 
   .download {
-    --size: 56px;
+    --size: 63px;
     width: calc(var(--size) + var(--download-overflow-size));
     height: calc(var(--size) + var(--download-overflow-size));
     position: relative;
@@ -307,7 +307,7 @@
     grid-area: 1 / 1;
   }
   .download-icon svg {
-    --size: 23px;
+    --size: 27px;
     width: var(--size);
     height: var(--size);
     fill: var(--white);
