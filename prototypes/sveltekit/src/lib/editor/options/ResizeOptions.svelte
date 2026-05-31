@@ -17,9 +17,11 @@
     options: ResizeOptionsState;
     inputWidth: number;
     inputHeight: number;
+    /** When true (SVG source), offer the "Vector" rasterise-at-size method. */
+    isVector?: boolean;
   }
 
-  let { options, inputWidth, inputHeight }: Props = $props();
+  let { options, inputWidth, inputHeight, isVector = false }: Props = $props();
 
   let maintainAspect = $state(true);
 
@@ -67,6 +69,9 @@
       value={options.method}
       onchange={(e) => (options.method = selVal(e) as ResizeMethod)}
     >
+      {#if isVector}
+        <option value="vector">Vector</option>
+      {/if}
       <option value="lanczos3">Lanczos3</option>
       <option value="mitchell">Mitchell</option>
       <option value="catrom">Catmull-Rom</option>

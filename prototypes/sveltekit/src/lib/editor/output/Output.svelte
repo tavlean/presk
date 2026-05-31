@@ -14,10 +14,12 @@
     leftImage?: ImageData;
     /** Pixels drawn on the right ("after") side — side 1's output. */
     rightImage?: ImageData;
+    /** Identity of the loaded source; changes force a re-fit even at same dims. */
+    fileId?: string | number;
     onRotate?: () => void;
   }
 
-  let { leftImage, rightImage, onRotate }: Props = $props();
+  let { leftImage, rightImage, fileId, onRotate }: Props = $props();
 
   let twoUp = $state<HTMLElement>();
   let pinchLeft = $state<PinchZoom>();
@@ -55,7 +57,7 @@
     const pz = pinchLeft;
     const tu = twoUp;
     if (!s || !pz || !tu) return;
-    const key = `${s.width}x${s.height}`;
+    const key = `${fileId}:${s.width}x${s.height}`;
     if (key === fittedKey) return;
     const raf = requestAnimationFrame(() => {
       const bounds = tu.getBoundingClientRect();
@@ -158,7 +160,7 @@
     <div class="button-group">
       <button
         class="button first-button"
-        onclick={() => zoomTo(scale / 1.5)}
+        onclick={() => zoomTo(scale / 1.25)}
         title="Zoom out"
         aria-label="Zoom out"
       >
@@ -194,7 +196,7 @@
       {/if}
       <button
         class="button last-button"
-        onclick={() => zoomTo(scale * 1.5)}
+        onclick={() => zoomTo(scale * 1.25)}
         title="Zoom in"
         aria-label="Zoom in"
       >
@@ -381,14 +383,16 @@
 
   .zoom {
     cursor: text;
-    width: 6rem;
+    width: 7rem;
     font: inherit;
     text-align: center;
     justify-content: center;
   }
 
   span.zoom {
-    color: #fff;
+    color: #939393;
+    font-size: 0.8rem;
+    font-weight: 100;
   }
 
   .zoom-value {

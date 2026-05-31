@@ -51,7 +51,12 @@ export const OUTPUT_FORMATS: {
 }[] = [
   { id: 'webP', label: 'WebP', ext: encoderMap.webP.meta.extension },
   { id: 'avif', label: 'AVIF', ext: encoderMap.avif.meta.extension },
-  { id: 'jxl', label: 'JPEG XL', ext: encoderMap.jxl.meta.extension },
+  // Use the engine's own label so it stays in sync (e.g. "JPEG XL (beta)").
+  {
+    id: 'jxl',
+    label: encoderMap.jxl.meta.label,
+    ext: encoderMap.jxl.meta.extension,
+  },
   { id: 'mozJPEG', label: 'MozJPEG', ext: encoderMap.mozJPEG.meta.extension },
   { id: 'oxiPNG', label: 'OxiPNG', ext: encoderMap.oxiPNG.meta.extension },
   { id: 'qoi', label: 'QOI', ext: encoderMap.qoi.meta.extension },
@@ -88,6 +93,14 @@ export interface CompressOutcome {
   outputImageData: ImageData;
   /** True for the Original/identity side (no encoding happened). */
   isOriginal: boolean;
+  /**
+   * Dimensions of the preprocessed (rotated, pre-resize) source. Unlike
+   * `sourceImageData` — which is the resized/processed input for an encoder
+   * side — these always reflect the true post-rotation source size, so the UI
+   * can seed resize inputs / compute aspect ratio correctly even after a rotate.
+   */
+  preprocessedWidth: number;
+  preprocessedHeight: number;
 }
 
 /**
@@ -136,6 +149,8 @@ export async function compressFile(
         sourceImageData: preprocessed,
         outputImageData: preprocessed,
         isOriginal: true,
+        preprocessedWidth: preprocessed.width,
+        preprocessedHeight: preprocessed.height,
       };
     }
 
@@ -173,6 +188,8 @@ export async function compressFile(
       sourceImageData: processed,
       outputImageData,
       isOriginal: false,
+      preprocessedWidth: preprocessed.width,
+      preprocessedHeight: preprocessed.height,
     };
   } finally {
     bridge.dispose();

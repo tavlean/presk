@@ -33,11 +33,19 @@
     disabled,
   }: Props = $props();
 
+  // Decimal (SI, base-1000) units with 3 significant figures, matching the
+  // original's Results/pretty-bytes.ts (so displayed sizes are identical).
+  const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   function prettySize(bytes: number): { value: string; unit: string } {
-    if (bytes < 1024) return { value: String(bytes), unit: 'B' };
-    if (bytes < 1024 * 1024)
-      return { value: (bytes / 1024).toFixed(1), unit: 'KB' };
-    return { value: (bytes / (1024 * 1024)).toFixed(2), unit: 'MB' };
+    if (bytes < 1) return { value: '0', unit: 'B' };
+    const exponent = Math.min(
+      Math.floor(Math.log10(bytes) / 3),
+      SIZE_UNITS.length - 1,
+    );
+    return {
+      value: (bytes / 1000 ** exponent).toPrecision(3),
+      unit: SIZE_UNITS[exponent],
+    };
   }
 
   const pretty = $derived(size === null ? null : prettySize(size));
@@ -306,6 +314,22 @@
     position: relative;
     top: 2px;
     left: 2px;
+    animation: action-enter 0.2s;
+  }
+
+  @keyframes action-enter {
+    from {
+      transform: rotate(-90deg);
+      opacity: 0;
+      animation-timing-function: ease-out;
+    }
+  }
+  @keyframes action-leave {
+    from {
+      transform: rotate(0deg);
+      opacity: 1;
+      animation-timing-function: ease-out;
+    }
   }
 
   .download-disable {
@@ -313,6 +337,8 @@
   }
   .download-disable .download-icon svg {
     opacity: 0;
+    transform: rotate(90deg);
+    animation: action-leave 0.2s;
   }
 
   .is-original .big-arrow {

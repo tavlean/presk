@@ -40,6 +40,10 @@
     processorState: ProcessorState;
     naturalWidth: number;
     naturalHeight: number;
+    /** Source filename, shown on the "Original Image (…)" option. */
+    sourceName?: string;
+    /** True when the source is a vector (SVG) — enables the Vector resize method. */
+    isVector?: boolean;
     result: CompressOutcome | null;
     working: boolean;
     canImport: boolean;
@@ -57,6 +61,8 @@
     processorState,
     naturalWidth,
     naturalHeight,
+    sourceName,
+    isVector = false,
     result,
     working,
     canImport,
@@ -75,7 +81,7 @@
 
 <div class="options-scroller" class:original-image={isOriginal}>
   {#if !isOriginal}
-    <div transition:slide={{ duration: 250 }}>
+    <div transition:slide={{ duration: 300 }}>
       <h3 class="options-title">
         <div class="title-and-buttons">
           Edit
@@ -141,11 +147,12 @@
         <Toggle bind:checked={processorState.resize.enabled} />
       </label>
       {#if processorState.resize.enabled}
-        <div transition:slide={{ duration: 250 }}>
+        <div transition:slide={{ duration: 300 }}>
           <ResizeOptions
             options={processorState.resize as unknown as ResizeOptionsState}
             inputWidth={naturalWidth}
             inputHeight={naturalHeight}
+            {isVector}
           />
         </div>
       {/if}
@@ -155,7 +162,7 @@
         <Toggle bind:checked={processorState.quantize.enabled} />
       </label>
       {#if processorState.quantize.enabled}
-        <div transition:slide={{ duration: 250 }}>
+        <div transition:slide={{ duration: 300 }}>
           <QuantizeOptions
             options={processorState.quantize as unknown as QuantizeOptionsState}
           />
@@ -172,7 +179,9 @@
       onchange={(e) =>
         onFormatChange((e.currentTarget as HTMLSelectElement).value as SideFormat)}
     >
-      <option value="identity">Original</option>
+      <option value="identity"
+        >{sourceName ? `Original Image (${sourceName})` : 'Original Image'}</option
+      >
       {#each OUTPUT_FORMATS as option (option.id)}
         <option value={option.id}>{option.label}</option>
       {/each}
@@ -180,9 +189,14 @@
   </section>
 
   {#if !isOriginal}
-    <div class="options-section" transition:slide={{ duration: 250 }}>
-      {#if format === 'webP'}
-        <WebpOptions options={options as unknown as WebpEncodeOptions} />
+    <div class="options-section" transition:slide={{ duration: 300 }}>
+      <!-- Re-key on the options object identity so a panel that seeds its UI
+           state once (AVIF/JXL etc.) remounts and re-derives when copy/import
+           replaces the options object. In-place edits keep the same identity,
+           so this does not disrupt normal slider dragging. -->
+      {#key options}
+        {#if format === 'webP'}
+          <WebpOptions options={options as unknown as WebpEncodeOptions} />
       {:else if format === 'avif'}
         <AvifOptions options={options as unknown as AvifEncodeOptions} />
       {:else if format === 'jxl'}
@@ -201,9 +215,10 @@
             oninput={(v) => (options.quality = v)}>Quality:</Range
           >
         </div>
-      {:else}
-        <p class="no-opts">{typeLabel} has no adjustable options.</p>
-      {/if}
+        {:else}
+          <p class="no-opts">{typeLabel} has no adjustable options.</p>
+        {/if}
+      {/key}
     </div>
   {/if}
 </div>

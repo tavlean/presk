@@ -10,6 +10,8 @@
   import { registerPrototypeServiceWorker } from '$lib/service-worker-registration';
   import Output from '$lib/editor/output/Output.svelte';
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
+  import Snackbar from '$lib/editor/Snackbar.svelte';
+  import { snackbar } from '$lib/editor/snackbar-store.svelte';
   import { fileDrop } from '$lib/editor/file-drop';
   import {
     defaultPreprocessorState,
@@ -34,11 +36,27 @@
   };
 
   const STORAGE_KEY = 'sqush:settings:v2';
+  const SAVE_VERSION = 1;
   const sideSaveKey = (i: 0 | 1) =>
     `sqush:side-settings:${i === 0 ? 'left' : 'right'}`;
+  const sideLabel = (i: 0 | 1) => (i === 0 ? 'Left' : 'Right');
 
   function isValidFormat(f: unknown): f is SideFormat {
     return f === IDENTITY || OUTPUT_FORMATS.some((o) => o.id === f);
+  }
+
+  // Light structural guard for imported processor state (the original validates
+  // saved settings before applying so a corrupt blob can't half-apply).
+  function isValidProcessorState(p: unknown): p is ProcessorState {
+    const s = p as ProcessorState | undefined;
+    return (
+      !!s &&
+      typeof s === 'object' &&
+      !!s.resize &&
+      typeof s.resize.enabled === 'boolean' &&
+      !!s.quantize &&
+      typeof s.quantize.enabled === 'boolean'
+    );
   }
 
   function readSaved(): { sides?: SavedSide[] } {
@@ -77,12 +95,12 @@
 
   // Shared, per-image state (reset on each new file).
   let preprocessorState = $state(structuredClone(defaultPreprocessorState));
-  let naturalWidth = $state(0);
-  let naturalHeight = $state(0);
   let dimsSeeded = false;
 
   let file = $state<File | null>(null);
-  let dragging = $state(false);
+  // Bumped on every load so the Output re-fits even when the new image shares
+  // the previous one's dimensions.
+  let loadId = $state(0);
 
   let results = $state<[CompressOutcome | null, CompressOutcome | null]>([
     null,
@@ -92,9 +110,26 @@
     'idle',
     'idle',
   ]);
+  // Spinner/download-disabled is gated behind a 500ms delay (per side) so fast
+  // re-encodes don't flash it — matching Squoosh's loadingReactionDelay.
+  let showSpinner = $state<[boolean, boolean]>([false, false]);
   let errors = $state<string[]>(['', '']);
   // Non-reactive: revoking the previous URL must not re-trigger the encode.
   const lastUrls: (string | null)[] = [null, null];
+  // Non-reactive per-side record of the last source file, to run the first
+  // encode of a new file immediately (no debounce).
+  const prevFiles: (File | null)[] = [null, null];
+
+  // Post-rotation source dimensions, derived from the latest result (identical
+  // on both sides since rotation is shared). Reactive — so rotating refreshes
+  // the resize panel's aspect/preset math instead of using stale latched dims.
+  const naturalWidth = $derived(
+    results[0]?.preprocessedWidth ?? results[1]?.preprocessedWidth ?? 0,
+  );
+  const naturalHeight = $derived(
+    results[0]?.preprocessedHeight ?? results[1]?.preprocessedHeight ?? 0,
+  );
+  const isVectorSource = $derived(file?.type === 'image/svg+xml');
 
   let canImport = $state<[boolean, boolean]>([
     typeof localStorage !== 'undefined' &&
@@ -109,8 +144,11 @@
     });
   });
 
-  // One debounced encode effect per side. Re-runs when that side's format /
-  // options / processing change, or when the file or shared rotation changes.
+  // One encode effect per side. Re-runs when that side's format / options /
+  // processing change, or when the file or shared rotation changes. The first
+  // encode of a new file runs immediately; option tweaks are debounced 100ms
+  // (matching the original's update scheduler).
+  const IMAGE_UPDATE_DELAY = 100;
   for (const index of [0, 1] as const) {
     $effect(() => {
       const current = file;
@@ -121,13 +159,15 @@
         processorState: $state.snapshot(side.processorState),
         preprocessorState: $state.snapshot(preprocessorState),
       };
+      const fileChanged = current !== prevFiles[index];
+      prevFiles[index] = current;
       if (!current) {
         statuses[index] = 'idle';
         return;
       }
 
       const controller = new AbortController();
-      const timer = setTimeout(() => {
+      const run = () => {
         statuses[index] = 'working';
         errors[index] = '';
         compressFile(current, request, controller.signal)
@@ -147,25 +187,50 @@
               error instanceof Error ? error.message : String(error);
             statuses[index] = 'error';
           });
-      }, 200);
+      };
 
+      if (fileChanged) {
+        run();
+        return () => controller.abort();
+      }
+      const timer = setTimeout(run, IMAGE_UPDATE_DELAY);
       return () => {
         clearTimeout(timer);
         controller.abort();
       };
     });
+
+    // Delay showing the spinner / disabling download by 500ms so quick
+    // re-encodes don't flash it.
+    $effect(() => {
+      if (statuses[index] !== 'working') {
+        showSpinner[index] = false;
+        return;
+      }
+      const t = setTimeout(() => (showSpinner[index] = true), 500);
+      return () => clearTimeout(t);
+    });
   }
 
-  // Seed natural dimensions + each side's resize inputs from the first result.
+  // Restore the editor → intro on browser Back (we push a history entry when a
+  // file opens, below in pickFiles).
+  $effect(() => {
+    const onPop = () => {
+      file = null;
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  });
+
+  // Seed each side's resize inputs once per file from the post-rotation source
+  // dims. (naturalWidth/Height themselves are derived above and stay live.)
   $effect(() => {
     const r = results[0] ?? results[1];
     if (!r || dimsSeeded) return;
     dimsSeeded = true;
-    naturalWidth = r.sourceImageData.width;
-    naturalHeight = r.sourceImageData.height;
     for (const s of sides) {
-      s.processorState.resize.width = r.sourceImageData.width;
-      s.processorState.resize.height = r.sourceImageData.height;
+      s.processorState.resize.width = r.preprocessedWidth;
+      s.processorState.resize.height = r.preprocessedHeight;
     }
   });
 
@@ -187,23 +252,34 @@
 
   function pickFiles(list: FileList | null | undefined) {
     const next = list?.[0];
-    if (next && next.type.startsWith('image/')) {
-      file = next;
-      results = [null, null];
-      for (const s of sides) {
-        s.processorState = structuredClone(defaultProcessorState);
-      }
-      preprocessorState = structuredClone(defaultPreprocessorState);
-      dimsSeeded = false;
+    if (!next) return;
+    if (!next.type.startsWith('image/')) {
+      snackbar.show(`"${next.name}" doesn't look like an image.`);
+      return;
+    }
+    const opening = !file;
+    file = next;
+    loadId += 1;
+    results = [null, null];
+    for (const s of sides) {
+      s.processorState = structuredClone(defaultProcessorState);
+    }
+    preprocessorState = structuredClone(defaultPreprocessorState);
+    dimsSeeded = false;
+    // Push a history entry on open so browser/in-app Back returns to the intro
+    // (the popstate listener resets `file`). Replacing an image while already
+    // editing doesn't push another entry.
+    if (opening && typeof history !== 'undefined') {
+      history.pushState({ squshEditor: true }, '');
     }
   }
   function onInput(event: Event) {
     pickFiles((event.currentTarget as HTMLInputElement).files);
   }
-  function onDrop(event: DragEvent) {
-    event.preventDefault();
-    dragging = false;
-    pickFiles(event.dataTransfer?.files);
+
+  function back() {
+    if (typeof history !== 'undefined') history.back();
+    else file = null;
   }
 
   function rotate() {
@@ -215,46 +291,92 @@
     sides[index].format = format;
   }
 
+  function applySide(index: 0 | 1, snap: SideState) {
+    sides[index].format = snap.format;
+    sides[index].optionsByFormat = structuredClone(snap.optionsByFormat);
+    sides[index].processorState = structuredClone(snap.processorState);
+  }
+
   function copyToOther(from: 0 | 1) {
     const to: 0 | 1 = from === 0 ? 1 : 0;
-    sides[to].format = sides[from].format;
-    sides[to].optionsByFormat = structuredClone(
-      $state.snapshot(sides[from].optionsByFormat),
-    );
-    sides[to].processorState = structuredClone(
-      $state.snapshot(sides[from].processorState),
-    );
+    const prev = $state.snapshot(sides[to]) as SideState;
+    applySide(to, $state.snapshot(sides[from]) as SideState);
+    snackbar
+      .show('Settings copied across', { actions: ['undo'], timeout: 5000 })
+      .then((action) => {
+        if (action === 'undo') applySide(to, prev);
+      });
   }
 
   function saveSide(index: 0 | 1) {
     if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(
-      sideSaveKey(index),
-      JSON.stringify({
-        format: sides[index].format,
-        optionsByFormat: $state.snapshot(sides[index].optionsByFormat),
-        processorState: $state.snapshot(sides[index].processorState),
-      }),
-    );
-    canImport[index] = true;
+    const label = sideLabel(index);
+    try {
+      localStorage.setItem(
+        sideSaveKey(index),
+        JSON.stringify({
+          version: SAVE_VERSION,
+          settings: {
+            format: sides[index].format,
+            optionsByFormat: $state.snapshot(sides[index].optionsByFormat),
+            processorState: $state.snapshot(sides[index].processorState),
+          },
+        }),
+      );
+      canImport[index] = true;
+      snackbar.show(`${label} side settings saved`, { timeout: 3000 });
+    } catch {
+      snackbar.show(`${label} side settings could not be saved`, {
+        timeout: 3000,
+      });
+    }
   }
   function importSide(index: 0 | 1) {
     if (typeof localStorage === 'undefined') return;
+    const label = sideLabel(index);
     const raw = localStorage.getItem(sideSaveKey(index));
     if (!raw) return;
+    let parsed: unknown;
     try {
-      const data = JSON.parse(raw);
-      if (isValidFormat(data.format)) sides[index].format = data.format;
-      if (data.optionsByFormat) {
-        sides[index].optionsByFormat = {
-          ...sides[index].optionsByFormat,
-          ...data.optionsByFormat,
-        };
-      }
-      if (data.processorState) sides[index].processorState = data.processorState;
+      parsed = JSON.parse(raw);
     } catch {
-      // Corrupt saved blob; ignore.
+      snackbar.show(`${label} side settings are invalid`, { timeout: 3000 });
+      return;
     }
+    // Accept the versioned shape and the legacy bare shape.
+    const data = parsed as {
+      version?: number;
+      settings?: Record<string, unknown>;
+    } & Record<string, unknown>;
+    const incoming = (data?.settings ?? data) as {
+      format?: unknown;
+      optionsByFormat?: Record<string, Record<string, unknown>>;
+      processorState?: unknown;
+    };
+    if (
+      !isValidFormat(incoming.format) ||
+      !isValidProcessorState(incoming.processorState)
+    ) {
+      snackbar.show(`${label} side settings are invalid`, { timeout: 3000 });
+      return;
+    }
+    const prev = $state.snapshot(sides[index]) as SideState;
+    sides[index].format = incoming.format;
+    if (incoming.optionsByFormat) {
+      sides[index].optionsByFormat = {
+        ...sides[index].optionsByFormat,
+        ...structuredClone(incoming.optionsByFormat),
+      };
+    }
+    sides[index].processorState = structuredClone(incoming.processorState);
+    snackbar
+      .show(`${label} side settings imported`, {
+        actions: ['undo'],
+        timeout: 5000,
+      })
+      .then((action) => {
+        if (action === 'undo') applySide(index, prev);
+      });
   }
 
   function downloadName(index: 0 | 1): string {
@@ -266,50 +388,53 @@
   }
 
   const firstError = $derived(errors.find((e) => e) ?? '');
+
+  // Tab title: hourglass while encoding + the loaded filename, matching the
+  // original's getDocumentTitle. Driven reactively via <svelte:head>.
+  const docTitle = $derived(
+    (statuses.some((s) => s === 'working') ? '⏳ ' : '') +
+      (file ? `${file.name} - ` : '') +
+      'Sqush — Compress an image',
+  );
 </script>
 
 <svelte:head>
-  <title>Sqush — Compress an image</title>
+  <title>{docTitle}</title>
 </svelte:head>
 
-{#if !file}
-  <main class="intro">
-    <header class="intro-head">
-      <h1>Sqush</h1>
-      <p>Local-first image compression. Nothing leaves your device.</p>
-    </header>
-    <label
-      class="dropzone"
-      class:dragging
-      ondragover={(e) => {
-        e.preventDefault();
-        dragging = true;
-      }}
-      ondragleave={() => (dragging = false)}
-      ondrop={onDrop}
-    >
-      <input type="file" accept="image/*" onchange={onInput} />
-      <strong>Drop an image here</strong>
-      <span>or click to choose a file</span>
-    </label>
-    <p class="intro-diag"><a href="/diagnostics">Pipeline diagnostics →</a></p>
-  </main>
-{:else}
-  <div
-    class="compress sqush-editor"
-    {@attach fileDrop((files) => pickFiles(files))}
-  >
-    <Output
-      leftImage={results[0]?.outputImageData}
-      rightImage={results[1]?.outputImageData}
-      onRotate={rotate}
-    />
+<!-- The whole app is a drop target so an image dropped ANYWHERE (intro padding,
+     or over the open editor) loads/replaces it instead of the browser opening
+     the file — Squoosh wraps everything in <file-drop> the same way. -->
+<div class="app-root" {@attach fileDrop((files) => pickFiles(files))}>
+  {#if !file}
+    <main class="intro">
+      <header class="intro-head">
+        <h1>Sqush</h1>
+        <p>Local-first image compression. Nothing leaves your device.</p>
+      </header>
+      <label class="dropzone">
+        <input type="file" accept="image/*" onchange={onInput} />
+        <strong>Drop an image here</strong>
+        <span>or click to choose a file</span>
+      </label>
+      <p class="intro-diag">
+        <a href="/diagnostics">Pipeline diagnostics →</a>
+      </p>
+    </main>
+  {:else}
+    <div class="compress sqush-editor">
+      <Output
+        leftImage={results[0]?.outputImageData}
+        rightImage={results[1]?.outputImageData}
+        fileId={loadId}
+        onRotate={rotate}
+      />
 
-    {#if firstError}
-      <p class="status-pill error">{firstError}</p>
-    {/if}
+      {#if firstError}
+        <p class="status-pill error">{firstError}</p>
+      {/if}
 
-    <button class="back" onclick={() => (file = null)} title="Back" aria-label="Back">
+      <button class="back" onclick={back} title="Back" aria-label="Back">
       <svg viewBox="0 0 61 53.3">
         <title>Back</title>
         <path
@@ -323,45 +448,52 @@
       </svg>
     </button>
 
-    <aside class="options options-1">
-      <OptionsPanel
-        side="left"
-        format={sides[0].format}
-        options={sides[0].optionsByFormat[sides[0].format] ?? {}}
-        processorState={sides[0].processorState}
-        {naturalWidth}
-        {naturalHeight}
-        result={results[0]}
-        working={statuses[0] === 'working'}
-        canImport={canImport[0]}
-        downloadName={downloadName(0)}
-        onFormatChange={(f) => setFormat(0, f)}
-        onCopy={() => copyToOther(0)}
-        onSave={() => saveSide(0)}
-        onImport={() => importSide(0)}
-      />
-    </aside>
+      <aside class="options options-1">
+        <OptionsPanel
+          side="left"
+          format={sides[0].format}
+          options={sides[0].optionsByFormat[sides[0].format] ?? {}}
+          processorState={sides[0].processorState}
+          {naturalWidth}
+          {naturalHeight}
+          sourceName={file.name}
+          isVector={isVectorSource}
+          result={results[0]}
+          working={showSpinner[0]}
+          canImport={canImport[0]}
+          downloadName={downloadName(0)}
+          onFormatChange={(f) => setFormat(0, f)}
+          onCopy={() => copyToOther(0)}
+          onSave={() => saveSide(0)}
+          onImport={() => importSide(0)}
+        />
+      </aside>
 
-    <aside class="options options-2">
-      <OptionsPanel
-        side="right"
-        format={sides[1].format}
-        options={sides[1].optionsByFormat[sides[1].format] ?? {}}
-        processorState={sides[1].processorState}
-        {naturalWidth}
-        {naturalHeight}
-        result={results[1]}
-        working={statuses[1] === 'working'}
-        canImport={canImport[1]}
-        downloadName={downloadName(1)}
-        onFormatChange={(f) => setFormat(1, f)}
-        onCopy={() => copyToOther(1)}
-        onSave={() => saveSide(1)}
-        onImport={() => importSide(1)}
-      />
-    </aside>
-  </div>
-{/if}
+      <aside class="options options-2">
+        <OptionsPanel
+          side="right"
+          format={sides[1].format}
+          options={sides[1].optionsByFormat[sides[1].format] ?? {}}
+          processorState={sides[1].processorState}
+          {naturalWidth}
+          {naturalHeight}
+          sourceName={file.name}
+          isVector={isVectorSource}
+          result={results[1]}
+          working={showSpinner[1]}
+          canImport={canImport[1]}
+          downloadName={downloadName(1)}
+          onFormatChange={(f) => setFormat(1, f)}
+          onCopy={() => copyToOther(1)}
+          onSave={() => saveSide(1)}
+          onImport={() => importSide(1)}
+        />
+      </aside>
+    </div>
+  {/if}
+
+  <Snackbar />
+</div>
 
 <style>
   :global(html),
@@ -405,10 +537,6 @@
     cursor: pointer;
     text-align: center;
   }
-  .dropzone.dragging {
-    border-color: #5fb4e4;
-    background: #20303a;
-  }
   .dropzone strong {
     font-size: 1.2rem;
   }
@@ -425,6 +553,11 @@
     color: #5fb4e4;
   }
 
+  /* App wrapper — the drop target spanning both intro and editor. */
+  .app-root {
+    position: relative;
+  }
+
   /* Full-bleed editor */
   .compress {
     position: relative;
@@ -436,12 +569,12 @@
 
   /* Drag-to-replace feedback, ported from Squoosh's .drop-valid overlay. The
      `drop-valid` class is toggled by the fileDrop attachment while an image is
-     dragged over the editor. */
-  .compress::after {
+     dragged anywhere over the app. */
+  .app-root::after {
     content: '';
-    position: absolute;
+    position: fixed;
     inset: 10px;
-    border: 2px dashed var(--pink);
+    border: 2px dashed var(--pink, #ff3385);
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     opacity: 0;
@@ -450,9 +583,9 @@
       opacity 200ms ease-in,
       transform 200ms ease-in;
     pointer-events: none;
-    z-index: 20;
+    z-index: 40;
   }
-  .compress:global(.drop-valid)::after {
+  .app-root:global(.drop-valid)::after {
     opacity: 1;
     transform: scale(1);
     transition-timing-function: ease-out;
