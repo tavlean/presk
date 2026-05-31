@@ -8,6 +8,13 @@
 // app tsconfig is reconciled with a standard SvelteKit setup, delete
 // this file.
 
+declare module '$app/environment' {
+  export const browser: boolean;
+  export const building: boolean;
+  export const dev: boolean;
+  export const version: string;
+}
+
 declare module '$app/navigation' {
   export function pushState(url: string | URL, state: App.PageState): void;
   export function replaceState(url: string | URL, state: App.PageState): void;

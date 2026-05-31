@@ -341,6 +341,13 @@
   }
 
   @media (max-width: 760px) {
+    .options-scroller {
+      /* Grow to fill the fixed-height mobile card (set on .options in the page)
+         so both sides match height and the panel scrolls internally rather than
+         letting tall content clip behind the results bubble. */
+      flex: 1 1 auto;
+    }
+
     .options-title {
       padding: 8px 10px;
       font-size: 1rem;

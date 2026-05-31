@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { dev } from '$app/environment';
   import { pushState } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
@@ -12,6 +13,7 @@
   import '$lib/editor/theme.css';
 
   const session = new EditorSession();
+  const sideIndexes = [0, 1] as const;
 
   onMount(() => {
     registerSqushServiceWorker().catch((error: unknown) => {
@@ -25,7 +27,7 @@
     return () => session.dispose();
   });
 
-  for (const index of [0, 1] as const) {
+  for (const index of sideIndexes) {
     $effect(() => session.encodeSide(index));
     $effect(() => session.updateSpinner(index));
   }
@@ -75,9 +77,11 @@
         Select an image
       </label>
       <p class="intro-hint">…or drop an image anywhere on the page</p>
-      <p class="intro-diag">
-        <a href={resolve('/diagnostics')}>Pipeline diagnostics →</a>
-      </p>
+      {#if dev}
+        <p class="intro-diag">
+          <a href={resolve('/diagnostics')}>Pipeline diagnostics →</a>
+        </p>
+      {/if}
     </main>
   {:else}
     <div class="compress sqush-editor">
@@ -110,51 +114,31 @@
         </svg>
       </button>
 
-      <aside class="options options-1">
-        <OptionsPanel
-          side="left"
-          format={session.sides[0].format}
-          formats={session.availableFormats}
-          options={session.sides[0].optionsByFormat[session.sides[0].format] ??
-            {}}
-          processorState={session.sides[0].processorState}
-          naturalWidth={session.naturalWidth}
-          naturalHeight={session.naturalHeight}
-          sourceName={session.file.name}
-          isVector={session.isVectorSource}
-          result={session.results[0]}
-          working={session.showSpinner[0]}
-          canImport={session.canImport[0]}
-          downloadName={session.downloadName(0)}
-          onFormatChange={(f) => session.setFormat(0, f)}
-          onCopy={() => session.copyToOther(0)}
-          onSave={() => session.saveSide(0)}
-          onImport={() => session.importSide(0)}
-        />
-      </aside>
-
-      <aside class="options options-2">
-        <OptionsPanel
-          side="right"
-          format={session.sides[1].format}
-          formats={session.availableFormats}
-          options={session.sides[1].optionsByFormat[session.sides[1].format] ??
-            {}}
-          processorState={session.sides[1].processorState}
-          naturalWidth={session.naturalWidth}
-          naturalHeight={session.naturalHeight}
-          sourceName={session.file.name}
-          isVector={session.isVectorSource}
-          result={session.results[1]}
-          working={session.showSpinner[1]}
-          canImport={session.canImport[1]}
-          downloadName={session.downloadName(1)}
-          onFormatChange={(f) => session.setFormat(1, f)}
-          onCopy={() => session.copyToOther(1)}
-          onSave={() => session.saveSide(1)}
-          onImport={() => session.importSide(1)}
-        />
-      </aside>
+      {#each sideIndexes as index (index)}
+        <aside class="options options-{index + 1}">
+          <OptionsPanel
+            side={index === 0 ? 'left' : 'right'}
+            format={session.sides[index].format}
+            formats={session.availableFormats}
+            options={session.sides[index].optionsByFormat[
+              session.sides[index].format
+            ] ?? {}}
+            processorState={session.sides[index].processorState}
+            naturalWidth={session.naturalWidth}
+            naturalHeight={session.naturalHeight}
+            sourceName={session.file.name}
+            isVector={session.isVectorSource}
+            result={session.results[index]}
+            working={session.showSpinner[index]}
+            canImport={session.canImport[index]}
+            downloadName={session.downloadName(index)}
+            onFormatChange={(f) => session.setFormat(index, f)}
+            onCopy={() => session.copyToOther(index)}
+            onSave={() => session.saveSide(index)}
+            onImport={() => session.importSide(index)}
+          />
+        </aside>
+      {/each}
     </div>
   {/if}
 
@@ -378,6 +362,12 @@
 
     .options {
       width: 50vw;
+      /* Fixed (not just max) height so both bottom cards are the SAME height —
+         otherwise the short "Original" side and the tall encoder side bottom-
+         align at different heights and read as broken. The inner scroller grows
+         to fill and scrolls (see OptionsPanel), keeping the download bubble
+         pinned at the bottom of each card. */
+      height: var(--mobile-options-height);
       max-height: var(--mobile-options-height);
       font-size: 0.95rem;
     }
