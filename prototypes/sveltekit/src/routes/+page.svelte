@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { pushState } from '$app/navigation';
+  import { page } from '$app/state';
   import {
     compressFile,
     getDefaultOptions,
@@ -225,14 +227,12 @@
     });
   }
 
-  // Restore the editor → intro on browser Back (we push a history entry when a
-  // file opens, below in pickFiles).
+  // Shallow routing: opening the editor pushes a history entry tagged
+  // `page.state.editor` (in pickFiles). When that entry is popped — browser
+  // Back, or the in-app Back button's history.back() — the tag disappears and
+  // we return to the intro. Router-safe, unlike a raw history.pushState.
   $effect(() => {
-    const onPop = () => {
-      file = null;
-    };
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
+    if (file && !page.state.editor) file = null;
   });
 
   // Seed each side's resize inputs once per file from the post-rotation source
@@ -279,12 +279,9 @@
     }
     preprocessorState = structuredClone(defaultPreprocessorState);
     dimsSeeded = false;
-    // Push a history entry on open so browser/in-app Back returns to the intro
-    // (the popstate listener resets `file`). Replacing an image while already
-    // editing doesn't push another entry.
-    if (opening && typeof history !== 'undefined') {
-      history.pushState({ squshEditor: true }, '');
-    }
+    // Push a history entry on open so browser/in-app Back returns to the intro.
+    // Replacing an image while already editing doesn't push another entry.
+    if (opening) pushState('', { editor: true });
   }
   function onInput(event: Event) {
     pickFiles((event.currentTarget as HTMLInputElement).files);
