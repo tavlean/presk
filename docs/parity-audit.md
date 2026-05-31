@@ -1,6 +1,6 @@
 # Editor parity audit & deviation log
 
-Last updated: 2026-05-31.
+Last updated: 2026-06-01.
 
 Goal: the Svelte editor must not **lose** any feature or gain any bug relative
 to the original Preact Squoosh editor. This doc tracks (a) deliberate deviations
@@ -13,6 +13,30 @@ original editor's behaviors area-by-area, classifies each against the Svelte
 source, then adversarially re-verifies every flagged gap to drop false
 positives. Last run 2026-05-31: **107 behaviors audited, 41 confirmed gaps**
 (9 major, 24 minor, 8 trivial). Re-run after significant editor changes.
+
+**Re-run 2026-06-01** — regression-focused pass after the `EditorSession`
+refactor (editor logic extracted from `+page.svelte`) and the repo "flip" to
+root. Scoped to only the changed surfaces (4 finder agents + adversarial
+verify; the byte-identical ~90% of the editor was skipped). **61 behaviors
+verified, ZERO major regressions.** 8 minor/trivial gaps found and ALL FIXED
+(commits "Fix editor-state parity regressions…" + "Restore Output touch/focus
+workarounds…"); 1 dismissed:
+
+- FIXED (minor): rotate 90/270 now swaps the Resize width/height (had left the
+  fields + preset stale vs the rotated source); SVG sources default the resize
+  method to "vector" again (had reverted to lanczos3); the encoder dropdown no
+  longer momentarily lists unsupported browser encoders before `canvas.toBlob`
+  detection; the Import button now validates the stored payload (was
+  key-presence only); processor-state import validation rejects partial/null
+  inner values, matching the original.
+- FIXED (trivial): "settings saved" snackbar back to 1500ms; Android-Chrome
+  `touchend` active-element blur restored; Firefox focus-reflow before the
+  zoom-edit input restored.
+- DISMISSED: the tab-title hourglass starts ~100ms earlier on option changes —
+  cosmetic, sub-perceptible, clears correctly. Not a regression.
+
+Rotate-swap and SVG-vector were browser-verified; the rest are code-level
+parity restorations (svelte-check 0/0, build green).
 
 ---
 
