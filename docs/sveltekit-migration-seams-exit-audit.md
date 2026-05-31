@@ -2,6 +2,11 @@
 
 Last updated: 2026-05-26.
 
+> Historical exit audit. The migration-seams track is no longer the active
+> branch; the root SvelteKit app now lives on `svelte`. Use
+> [STATUS.md](STATUS.md), [MIGRATION-PLAN.md](MIGRATION-PLAN.md), and
+> [road-map.md](road-map.md) for current state and next actions.
+
 This audit summarizes whether `code/sveltekit-migration-seams` has done enough
 to stop broadening this branch and move remaining work to focused follow-up
 branches. It does not replace the detailed file inventory in
@@ -26,7 +31,6 @@ branch for behavior-preserving shared seams plus disposable prototype evidence.
    prototype.
 
    Evidence:
-
    - Generated `feature-meta/shared`, `feature-meta/encoders`,
      `feature-meta/processors`, and `feature-meta/preprocessors` keep
      SvelteKit-safe metadata and runtime maps away from Preact option entries.
@@ -34,7 +38,6 @@ branch for behavior-preserving shared seams plus disposable prototype evidence.
      entrypoints remain UI-free.
 
    Remaining:
-
    - UI option entry generation itself is not solved. Keep that out of this
      branch unless a future production Svelte UI branch needs it.
 
@@ -44,7 +47,6 @@ branch for behavior-preserving shared seams plus disposable prototype evidence.
    Status: proven as reusable boundaries, not as a full build replacement.
 
    Evidence:
-
    - `omt:` is isolated behind shared worker-bridge factories and active bridge
      metadata.
    - `url:` has injectable runtime seams for rotate and codec WASM paths.
@@ -53,7 +55,6 @@ deps }` records.
    - `service-worker:` registration behavior lives in a shared runtime helper.
 
    Remaining:
-
    - A production SvelteKit adapter for the full active worker/cache surface is
      still a follow-up, because threaded runtime behavior and generated Vite
      asset records must be resolved together.
@@ -64,7 +65,6 @@ deps }` records.
    needs a follow-up branch.
 
    Evidence:
-
    - `src/shared/codec-assets.ts` defines the build-tool-neutral
      `CodecAssetRecord` contract and precache helpers.
    - The prototype generator emits logical codec asset records and a
@@ -74,7 +74,6 @@ deps }` records.
      active single-thread asset.
 
    Remaining:
-
    - Production still needs a decision between post-generation wrapper patching,
      rebuild options, or checked-in wrapper patches.
    - Threaded assets should remain separate until COOP/COEP, nested workers,
@@ -85,7 +84,6 @@ deps }` records.
    Status: proven for the WebP path and the extracted update orchestration.
 
    Evidence:
-
    - The prototype imports production `imagePipeline`, `processBulkImageJob`,
      and `runCompressionUpdateWorkflow`.
    - Browser verification shows the rendered prototype reaches `RIFF/WEBP` and
@@ -95,7 +93,6 @@ deps }` records.
      shared `imagePipeline` bundle.
 
    Remaining:
-
    - Real user-selected file UI is intentionally not implemented on this
      branch.
    - AVIF, JPEG XL, and OxiPNG threaded runtime parity remain separate risks.
@@ -105,12 +102,10 @@ deps }` records.
    Status: documented.
 
    Evidence:
-
    - `docs/sveltekit-migration-seams-review.md` lists source-safe merge slices,
      prototype-only evidence, verification gates, and follow-up tracks.
 
    Remaining:
-
    - Actual merge/cherry-pick review still needs maintainer approval and CI on
      the selected subset.
 
@@ -121,7 +116,6 @@ deps }` records.
    scoped.
 
    Recommended order:
-
    1. `code/sveltekit-codec-assets`: productionize the canonical codec
       worker/WASM asset URL strategy.
    2. `code/sveltekit-threaded-codecs`: prove or document threaded AVIF,

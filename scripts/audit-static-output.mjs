@@ -1,0 +1,821 @@
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = fileURLToPath(new URL('..', import.meta.url));
+const buildDir = join(root, 'build');
+
+async function listFiles(dir, prefix = '') {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      files.push(...(await listFiles(join(dir, entry.name), relativePath)));
+    } else {
+      files.push(relativePath);
+    }
+  }
+
+  return files;
+}
+
+function assert(condition, message) {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
+function assertDeepEqual(actual, expected, message) {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error(
+      `${message}\nExpected: ${JSON.stringify(
+        expected,
+      )}\nActual: ${JSON.stringify(actual)}`,
+    );
+  }
+}
+
+function parseGeneratedCodecAssetRecords(source, exportName) {
+  const arrayMatch = source.match(
+    new RegExp(
+      `export const ${exportName} = \\[([\\s\\S]*?)\\] satisfies readonly CodecAssetRecord\\[];`,
+    ),
+  );
+  assert(arrayMatch, `Could not find generated ${exportName} records.`);
+
+  const objectMatches = [
+    ...arrayMatch[1].matchAll(
+      /\{\s*logicalKey:\s*'([^']+)',\s*codec:\s*'([^']+)',\s*role:\s*'([^']+)',\s*variant:\s*'([^']+)',\s*url:\s*([A-Za-z0-9_$]+),\s*cache:\s*'([^']+)'\s*\}/g,
+    ),
+  ];
+
+  return objectMatches.map((match) => ({
+    logicalKey: match[1],
+    codec: match[2],
+    role: match[3],
+    variant: match[4],
+    urlBinding: match[5],
+    cache: match[6],
+  }));
+}
+
+function assertUnique(values, label) {
+  const duplicates = values.filter(
+    (value, index) => values.indexOf(value) !== index,
+  );
+  assert(
+    duplicates.length === 0,
+    `Duplicate ${label}: ${duplicates.join(', ')}.`,
+  );
+}
+
+const files = await listFiles(buildDir);
+const serviceWorker = await readFile(
+  join(buildDir, 'service-worker.js'),
+  'utf8',
+);
+const generatedCodecAssetManifest = await readFile(
+  join(root, '.svelte-kit', 'sqush-generated', 'codec-assets', 'manifest.ts'),
+  'utf8',
+);
+const generatedCodecAssetPrecacheManifest = await readFile(
+  join(root, '.svelte-kit', 'sqush-generated', 'codec-assets', 'precache.ts'),
+  'utf8',
+);
+
+const appEntryAsset = files.find(
+  (file) => file.includes('_app/immutable/entry/app.') && file.endsWith('.js'),
+);
+const startEntryAsset = files.find(
+  (file) =>
+    file.includes('_app/immutable/entry/start.') && file.endsWith('.js'),
+);
+const routeNodeAssets = files.filter(
+  (file) => file.includes('_app/immutable/nodes/') && file.endsWith('.js'),
+);
+const pageCssAsset = files.find(
+  (file) =>
+    file.includes('_app/immutable/assets/') &&
+    file.endsWith('.css') &&
+    !file.includes('/webp_'),
+);
+const baselineWasmAssets = files
+  .filter(
+    (file) =>
+      file.includes('webp_enc') &&
+      !file.includes('webp_enc_simd') &&
+      file.endsWith('.wasm'),
+  )
+  .sort();
+const simdWasmAssets = files
+  .filter((file) => file.includes('webp_enc_simd') && file.endsWith('.wasm'))
+  .sort();
+const webpDecoderWasmAssets = files
+  .filter((file) => file.includes('webp_dec') && file.endsWith('.wasm'))
+  .sort();
+const wp2EncoderWasmAssets = files
+  .filter((file) => file.includes('wp2_enc') && file.endsWith('.wasm'))
+  .sort();
+const wp2DecoderWasmAssets = files
+  .filter((file) => file.includes('wp2_dec') && file.endsWith('.wasm'))
+  .sort();
+const avifDecoderWasmAssets = files
+  .filter((file) => file.includes('avif_dec') && file.endsWith('.wasm'))
+  .sort();
+const avifEncoderWasmAssets = files
+  .filter((file) => file.includes('avif_enc') && file.endsWith('.wasm'))
+  .sort();
+const avifThreadedWorkerAssets = files
+  .filter((file) => file.includes('avif_enc_mt.worker') && file.endsWith('.js'))
+  .sort();
+const rotateWasmAssets = files
+  .filter((file) => file.includes('rotate') && file.endsWith('.wasm'))
+  .sort();
+const qoiEncoderWasmAssets = files
+  .filter((file) => file.includes('qoi_enc') && file.endsWith('.wasm'))
+  .sort();
+const qoiDecoderWasmAssets = files
+  .filter((file) => file.includes('qoi_dec') && file.endsWith('.wasm'))
+  .sort();
+const jxlEncoderWasmAssets = files
+  .filter((file) => file.includes('jxl_enc') && file.endsWith('.wasm'))
+  .sort();
+const jxlDecoderWasmAssets = files
+  .filter((file) => file.includes('jxl_dec') && file.endsWith('.wasm'))
+  .sort();
+const jxlThreadedWorkerAssets = files
+  .filter(
+    (file) =>
+      file.includes('jxl_enc_mt') &&
+      file.includes('.worker') &&
+      file.endsWith('.js'),
+  )
+  .sort();
+const mozjpegEncoderWasmAssets = files
+  .filter((file) => file.includes('mozjpeg_enc') && file.endsWith('.wasm'))
+  .sort();
+const oxipngWasmAssets = files
+  .filter(
+    (file) => file.includes('squoosh_oxipng_bg') && file.endsWith('.wasm'),
+  )
+  .sort();
+const imagequantWasmAssets = files
+  .filter((file) => file.includes('imagequant') && file.endsWith('.wasm'))
+  .sort();
+const resizeWasmAssets = files
+  .filter(
+    (file) => file.includes('squoosh_resize_bg') && file.endsWith('.wasm'),
+  )
+  .sort();
+const hqxWasmAssets = files
+  .filter((file) => file.includes('squooshhqx_bg') && file.endsWith('.wasm'))
+  .sort();
+const wasmAsset = files.find(
+  (file) =>
+    file.includes('/webp_enc.') &&
+    !file.includes('webp_enc_simd') &&
+    file.endsWith('.wasm'),
+);
+const simdWasmAsset = files.find(
+  (file) => file.includes('webp_enc_simd') && file.endsWith('.wasm'),
+);
+const webpDecoderWasmAsset = files.find(
+  (file) => file.includes('/webp_dec.') && file.endsWith('.wasm'),
+);
+const wp2EncoderWasmAsset = files.find(
+  (file) => file.includes('/wp2_enc.') && file.endsWith('.wasm'),
+);
+const wp2DecoderWasmAsset = files.find(
+  (file) => file.includes('/wp2_dec.') && file.endsWith('.wasm'),
+);
+const avifDecoderWasmAsset = files.find(
+  (file) => file.includes('/avif_dec.') && file.endsWith('.wasm'),
+);
+const avifEncoderWasmAsset = files.find(
+  (file) => file.includes('/avif_enc.') && file.endsWith('.wasm'),
+);
+const rotateWasmAsset = files.find(
+  (file) =>
+    file.includes('/rotate.') &&
+    !file.includes('/workers/assets/') &&
+    file.endsWith('.wasm'),
+);
+const qoiEncoderWasmAsset = files.find(
+  (file) => file.includes('/qoi_enc.') && file.endsWith('.wasm'),
+);
+const qoiDecoderWasmAsset = files.find(
+  (file) => file.includes('/qoi_dec.') && file.endsWith('.wasm'),
+);
+const jxlEncoderWasmAsset = files.find(
+  (file) => file.includes('/jxl_enc.') && file.endsWith('.wasm'),
+);
+const jxlDecoderWasmAsset = files.find(
+  (file) => file.includes('/jxl_dec.') && file.endsWith('.wasm'),
+);
+const mozjpegEncoderWasmAsset = files.find(
+  (file) => file.includes('/mozjpeg_enc.') && file.endsWith('.wasm'),
+);
+const oxipngWasmAsset = files.find(
+  (file) => file.includes('/squoosh_oxipng_bg.') && file.endsWith('.wasm'),
+);
+const imagequantWasmAsset = files.find(
+  (file) => file.includes('/imagequant.') && file.endsWith('.wasm'),
+);
+const resizeWasmAsset = files.find(
+  (file) => file.includes('/squoosh_resize_bg.') && file.endsWith('.wasm'),
+);
+const hqxWasmAsset = files.find(
+  (file) => file.includes('/squooshhqx_bg.') && file.endsWith('.wasm'),
+);
+const serviceWorkerImportedWorkerAsset = files.find(
+  (file) =>
+    file.includes('assets/codec-asset-probe.worker') && file.endsWith('.js'),
+);
+const serviceWorkerImportedEncodeWorkerAsset = files.find(
+  (file) =>
+    file.includes('assets/webp-encode-probe.worker') && file.endsWith('.js'),
+);
+const serviceWorkerImportedFeaturesWorkerAsset = files.find(
+  (file) =>
+    /^assets\/webp-[A-Za-z0-9_-]+\.js$/.test(file) && file.endsWith('.js'),
+);
+const workerHelperAssets = files
+  .filter((file) => file.includes('workerHelpers') && file.endsWith('.js'))
+  .sort();
+const immutableWorkerAsset = files.find(
+  (file) =>
+    file.includes('_app/immutable/workers/codec-asset-probe.worker') &&
+    file.endsWith('.js'),
+);
+const immutableEncodeWorkerAsset = files.find(
+  (file) =>
+    file.includes('_app/immutable/workers/webp-encode-probe.worker') &&
+    file.endsWith('.js'),
+);
+const immutableFeaturesWorkerAsset = files.find(
+  (file) =>
+    /^_app\/immutable\/workers\/webp-[A-Za-z0-9_-]+\.js$/.test(file) &&
+    file.endsWith('.js'),
+);
+const expectedLogicalAssetRecords = [
+  {
+    logicalKey: 'avif:decoder:default',
+    codec: 'avif',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'avif:encoder:single-thread',
+    codec: 'avif',
+    role: 'encoder',
+    variant: 'single-thread',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'webp:decoder:default',
+    codec: 'webp',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'webp:encoder:baseline',
+    codec: 'webp',
+    role: 'encoder',
+    variant: 'baseline',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'webp:encoder:simd',
+    codec: 'webp',
+    role: 'encoder',
+    variant: 'simd',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'wp2:decoder:default',
+    codec: 'wp2',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'wp2:encoder:baseline',
+    codec: 'wp2',
+    role: 'encoder',
+    variant: 'baseline',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'qoi:decoder:default',
+    codec: 'qoi',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'qoi:encoder:default',
+    codec: 'qoi',
+    role: 'encoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'jxl:decoder:default',
+    codec: 'jxl',
+    role: 'decoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'jxl:encoder:single-thread',
+    codec: 'jxl',
+    role: 'encoder',
+    variant: 'single-thread',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'mozjpeg:encoder:default',
+    codec: 'mozjpeg',
+    role: 'encoder',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'oxipng:encoder:single-thread',
+    codec: 'oxipng',
+    role: 'encoder',
+    variant: 'single-thread',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'imagequant:processor:default',
+    codec: 'imagequant',
+    role: 'processor',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'resize:processor:default',
+    codec: 'resize',
+    role: 'processor',
+    variant: 'default',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'hqx:processor:hqx',
+    codec: 'hqx',
+    role: 'processor',
+    variant: 'hqx',
+    cache: 'precache',
+  },
+  {
+    logicalKey: 'rotate:preprocessor:default',
+    codec: 'rotate',
+    role: 'preprocessor',
+    variant: 'default',
+    cache: 'runtime',
+  },
+];
+const expectedLogicalAssetKeys = expectedLogicalAssetRecords.map(
+  (record) => record.logicalKey,
+);
+const expectedPrecacheLogicalAssetKeys = expectedLogicalAssetRecords
+  .filter((record) => record.cache === 'precache')
+  .map((record) => record.logicalKey);
+const physicalWasmGroups = [
+  ['webp:encoder:baseline', baselineWasmAssets],
+  ['webp:encoder:simd', simdWasmAssets],
+  ['webp:decoder:default', webpDecoderWasmAssets],
+  ['wp2:encoder:baseline', wp2EncoderWasmAssets],
+  ['wp2:decoder:default', wp2DecoderWasmAssets],
+  ['avif:decoder:default', avifDecoderWasmAssets],
+  ['avif:encoder:single-thread', avifEncoderWasmAssets],
+  ['rotate:preprocessor:default', rotateWasmAssets],
+  ['qoi:encoder:default', qoiEncoderWasmAssets],
+  ['qoi:decoder:default', qoiDecoderWasmAssets],
+  ['jxl:encoder:single-thread', jxlEncoderWasmAssets],
+  ['jxl:decoder:default', jxlDecoderWasmAssets],
+  ['mozjpeg:encoder:default', mozjpegEncoderWasmAssets],
+  ['oxipng:encoder:single-thread', oxipngWasmAssets],
+  ['imagequant:processor:default', imagequantWasmAssets],
+  ['resize:processor:default', resizeWasmAssets],
+  ['hqx:processor:hqx', hqxWasmAssets],
+];
+
+assert(files.includes('index.html'), 'Missing static index.html output.');
+assert(files.includes('200.html'), 'Missing static fallback output.');
+assert(
+  files.includes('service-worker.js'),
+  'Missing SvelteKit service-worker output.',
+);
+assert(appEntryAsset, 'Missing emitted SvelteKit app entry asset.');
+assert(startEntryAsset, 'Missing emitted SvelteKit start entry asset.');
+assert(
+  routeNodeAssets.length > 0,
+  'Missing emitted SvelteKit route node assets.',
+);
+assert(pageCssAsset, 'Missing emitted SvelteKit page CSS asset.');
+assert(wasmAsset, 'Missing emitted WebP WASM asset from the worker probe.');
+assert(simdWasmAsset, 'Missing emitted SIMD WebP WASM asset.');
+assert(webpDecoderWasmAsset, 'Missing emitted WebP decoder WASM asset.');
+assert(wp2EncoderWasmAsset, 'Missing emitted WebP 2 encoder WASM asset.');
+assert(wp2DecoderWasmAsset, 'Missing emitted WebP 2 decoder WASM asset.');
+assert(avifDecoderWasmAsset, 'Missing emitted AVIF decoder WASM asset.');
+assert(avifEncoderWasmAsset, 'Missing emitted AVIF encoder WASM asset.');
+assert(rotateWasmAsset, 'Missing emitted rotate WASM asset.');
+assert(qoiEncoderWasmAsset, 'Missing emitted QOI encoder WASM asset.');
+assert(qoiDecoderWasmAsset, 'Missing emitted QOI decoder WASM asset.');
+assert(jxlEncoderWasmAsset, 'Missing emitted JPEG XL encoder WASM asset.');
+assert(jxlDecoderWasmAsset, 'Missing emitted JPEG XL decoder WASM asset.');
+assert(mozjpegEncoderWasmAsset, 'Missing emitted MozJPEG encoder WASM asset.');
+assert(oxipngWasmAsset, 'Missing emitted OxiPNG WASM asset.');
+assert(imagequantWasmAsset, 'Missing emitted ImageQuant WASM asset.');
+assert(resizeWasmAsset, 'Missing emitted resize WASM asset.');
+assert(hqxWasmAsset, 'Missing emitted HQX WASM asset.');
+assert(
+  baselineWasmAssets.length === 1,
+  `Expected exactly one baseline WebP WASM asset after the generated wrapper patch, found ${baselineWasmAssets.length}.`,
+);
+assert(
+  simdWasmAssets.length === 1,
+  `Expected exactly one SIMD WebP WASM asset after the generated wrapper patch, found ${simdWasmAssets.length}.`,
+);
+assert(
+  webpDecoderWasmAssets.length === 1,
+  `Expected exactly one WebP decoder WASM asset after the generated wrapper patch, found ${webpDecoderWasmAssets.length}.`,
+);
+assert(
+  wp2EncoderWasmAssets.length === 1,
+  `Expected exactly one WebP 2 encoder WASM asset after the generated wrapper patch, found ${wp2EncoderWasmAssets.length}.`,
+);
+assert(
+  wp2DecoderWasmAssets.length === 1,
+  `Expected exactly one WebP 2 decoder WASM asset after the generated wrapper patch, found ${wp2DecoderWasmAssets.length}.`,
+);
+assert(
+  avifDecoderWasmAssets.length === 1,
+  `Expected exactly one AVIF decoder WASM asset after the generated wrapper patch, found ${avifDecoderWasmAssets.length}.`,
+);
+assert(
+  avifEncoderWasmAssets.length === 1,
+  `Expected exactly one AVIF encoder WASM asset after the generated wrapper patch, found ${avifEncoderWasmAssets.length}.`,
+);
+assert(
+  avifThreadedWorkerAssets.length === 0,
+  `Expected no AVIF threaded worker helper assets when the SvelteKit app injects the single-thread runtime, found ${avifThreadedWorkerAssets.length}.`,
+);
+assert(
+  rotateWasmAssets.length === 1,
+  `Expected exactly one rotate WASM asset after passing the canonical URL through the worker bridge, found ${rotateWasmAssets.length}.`,
+);
+assert(
+  qoiEncoderWasmAssets.length === 1,
+  `Expected exactly one QOI encoder WASM asset after the generated wrapper patch, found ${qoiEncoderWasmAssets.length}.`,
+);
+assert(
+  qoiDecoderWasmAssets.length === 1,
+  `Expected exactly one QOI decoder WASM asset after the generated wrapper patch, found ${qoiDecoderWasmAssets.length}.`,
+);
+assert(
+  jxlEncoderWasmAssets.length === 1,
+  `Expected exactly one JPEG XL encoder WASM asset after the generated wrapper patch, found ${jxlEncoderWasmAssets.length}.`,
+);
+assert(
+  jxlDecoderWasmAssets.length === 1,
+  `Expected exactly one JPEG XL decoder WASM asset after the generated wrapper patch, found ${jxlDecoderWasmAssets.length}.`,
+);
+assert(
+  jxlThreadedWorkerAssets.length === 0,
+  `Expected no JPEG XL threaded worker helper assets when the SvelteKit app injects the single-thread runtime, found ${jxlThreadedWorkerAssets.length}.`,
+);
+assert(
+  mozjpegEncoderWasmAssets.length === 1,
+  `Expected exactly one MozJPEG encoder WASM asset after the generated wrapper patch, found ${mozjpegEncoderWasmAssets.length}.`,
+);
+assert(
+  oxipngWasmAssets.length === 1,
+  `Expected exactly one OxiPNG WASM asset after the generated wrapper patch, found ${oxipngWasmAssets.length}.`,
+);
+assert(
+  imagequantWasmAssets.length === 1,
+  `Expected exactly one ImageQuant WASM asset after the generated wrapper patch, found ${imagequantWasmAssets.length}.`,
+);
+assert(
+  resizeWasmAssets.length === 1,
+  `Expected exactly one resize WASM asset after the generated wrapper patch, found ${resizeWasmAssets.length}.`,
+);
+assert(
+  hqxWasmAssets.length === 1,
+  `Expected exactly one HQX WASM asset after the generated wrapper patch, found ${hqxWasmAssets.length}.`,
+);
+assert(
+  serviceWorkerImportedWorkerAsset,
+  'Missing emitted module worker asset from the worker probe.',
+);
+assert(
+  serviceWorkerImportedEncodeWorkerAsset,
+  'Missing emitted module worker asset from the WebP encode probe.',
+);
+assert(
+  serviceWorkerImportedFeaturesWorkerAsset,
+  'Missing emitted generated WebP features-worker asset.',
+);
+assert(
+  workerHelperAssets.length === 0,
+  `Expected no OxiPNG parallel worker helper assets when the SvelteKit app injects the single-thread runtime, found ${workerHelperAssets.length}.`,
+);
+assert(
+  immutableWorkerAsset,
+  'Missing app-emitted immutable module worker asset from the worker probe.',
+);
+assert(
+  immutableEncodeWorkerAsset,
+  'Missing app-emitted immutable module worker asset from the WebP encode probe.',
+);
+assert(
+  immutableFeaturesWorkerAsset,
+  'Missing app-emitted immutable generated WebP features-worker asset.',
+);
+assert(
+  generatedCodecAssetManifest.includes('svelteKitCodecAssetRecords'),
+  'Generated codec asset manifest does not expose logical asset records.',
+);
+assert(
+  generatedCodecAssetManifest.includes("from 'shared/codec-assets'"),
+  'Generated codec asset manifest does not consume the shared codec asset contract.',
+);
+assert(
+  generatedCodecAssetManifest.includes('getPrecacheCodecAssetRecords'),
+  'Generated codec asset manifest does not use the shared precache record helper.',
+);
+assert(
+  generatedCodecAssetManifest.includes('precacheCodecAssetUrls'),
+  'Generated codec asset manifest does not expose derived precache URLs.',
+);
+assert(
+  generatedCodecAssetPrecacheManifest.includes('precacheCodecAssetUrls'),
+  'Generated codec asset precache manifest does not expose precache URLs.',
+);
+assert(
+  generatedCodecAssetPrecacheManifest.includes("from 'shared/codec-assets'"),
+  'Generated codec asset precache manifest does not consume the shared codec asset contract.',
+);
+assert(
+  !generatedCodecAssetPrecacheManifest.includes('rotate:preprocessor:default'),
+  'Generated codec asset precache manifest should not import runtime-only rotate WASM.',
+);
+const generatedLogicalAssetRecords = parseGeneratedCodecAssetRecords(
+  generatedCodecAssetManifest,
+  'svelteKitCodecAssetRecords',
+);
+const generatedPrecacheAssetRecords = parseGeneratedCodecAssetRecords(
+  generatedCodecAssetPrecacheManifest,
+  'precacheCodecAssetRecords',
+);
+assertDeepEqual(
+  generatedLogicalAssetRecords.map((record) => record.logicalKey),
+  expectedLogicalAssetKeys,
+  'Generated codec asset manifest has an unexpected logical record order or key set.',
+);
+assertDeepEqual(
+  generatedPrecacheAssetRecords.map((record) => record.logicalKey),
+  expectedPrecacheLogicalAssetKeys,
+  'Generated codec asset precache manifest has an unexpected logical record order or key set.',
+);
+assertUnique(
+  generatedLogicalAssetRecords.map((record) => record.logicalKey),
+  'codec asset logical keys',
+);
+assertUnique(
+  generatedLogicalAssetRecords.map((record) => record.urlBinding),
+  'codec asset URL bindings',
+);
+for (const expectedRecord of expectedLogicalAssetRecords) {
+  const generatedRecord = generatedLogicalAssetRecords.find(
+    (record) => record.logicalKey === expectedRecord.logicalKey,
+  );
+  assert(
+    generatedRecord,
+    `Generated codec asset manifest is missing ${expectedRecord.logicalKey}.`,
+  );
+  assertDeepEqual(
+    {
+      logicalKey: generatedRecord.logicalKey,
+      codec: generatedRecord.codec,
+      role: generatedRecord.role,
+      variant: generatedRecord.variant,
+      cache: generatedRecord.cache,
+    },
+    expectedRecord,
+    `Generated codec asset manifest has an unexpected record for ${expectedRecord.logicalKey}.`,
+  );
+}
+for (const precacheRecord of generatedPrecacheAssetRecords) {
+  assert(
+    precacheRecord.cache === 'precache',
+    `Generated codec asset precache manifest contains non-precache record ${precacheRecord.logicalKey}.`,
+  );
+}
+assert(
+  serviceWorker.includes(wasmAsset),
+  `Service-worker build manifest does not include ${wasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(simdWasmAsset),
+  `Service-worker build manifest does not include ${simdWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(webpDecoderWasmAsset),
+  `Service-worker build manifest does not include ${webpDecoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(wp2EncoderWasmAsset),
+  `Service-worker build manifest does not include ${wp2EncoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(wp2DecoderWasmAsset),
+  `Service-worker build manifest does not include ${wp2DecoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(avifDecoderWasmAsset),
+  `Service-worker build manifest does not include ${avifDecoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(avifEncoderWasmAsset),
+  `Service-worker build manifest does not include ${avifEncoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(rotateWasmAsset),
+  `Service-worker build manifest does not include ${rotateWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(qoiEncoderWasmAsset),
+  `Service-worker build manifest does not include ${qoiEncoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(qoiDecoderWasmAsset),
+  `Service-worker build manifest does not include ${qoiDecoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(jxlEncoderWasmAsset),
+  `Service-worker build manifest does not include ${jxlEncoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(jxlDecoderWasmAsset),
+  `Service-worker build manifest does not include ${jxlDecoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(mozjpegEncoderWasmAsset),
+  `Service-worker build manifest does not include ${mozjpegEncoderWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(oxipngWasmAsset),
+  `Service-worker build manifest does not include ${oxipngWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(imagequantWasmAsset),
+  `Service-worker build manifest does not include ${imagequantWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(resizeWasmAsset),
+  `Service-worker build manifest does not include ${resizeWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(hqxWasmAsset),
+  `Service-worker build manifest does not include ${hqxWasmAsset}.`,
+);
+assert(
+  serviceWorker.includes(serviceWorkerImportedWorkerAsset),
+  `Service-worker build manifest does not include ${serviceWorkerImportedWorkerAsset}.`,
+);
+assert(
+  serviceWorker.includes(serviceWorkerImportedEncodeWorkerAsset),
+  `Service-worker build manifest does not include ${serviceWorkerImportedEncodeWorkerAsset}.`,
+);
+assert(
+  serviceWorker.includes(serviceWorkerImportedFeaturesWorkerAsset),
+  `Service-worker build manifest does not include ${serviceWorkerImportedFeaturesWorkerAsset}.`,
+);
+assert(
+  serviceWorker.includes(appEntryAsset),
+  `Service-worker build manifest does not include ${appEntryAsset}.`,
+);
+assert(
+  serviceWorker.includes(startEntryAsset),
+  `Service-worker build manifest does not include ${startEntryAsset}.`,
+);
+for (const routeNodeAsset of routeNodeAssets) {
+  assert(
+    serviceWorker.includes(routeNodeAsset),
+    `Service-worker build manifest does not include ${routeNodeAsset}.`,
+  );
+}
+assert(
+  serviceWorker.includes(pageCssAsset),
+  `Service-worker build manifest does not include ${pageCssAsset}.`,
+);
+assert(
+  serviceWorker.includes('/diagnostics'),
+  'Service worker does not pre-cache prerendered route HTML.',
+);
+assert(
+  /\.addAll\(/.test(serviceWorker),
+  'Service worker does not pre-cache its build manifest.',
+);
+assert(
+  serviceWorker.includes('.match('),
+  'Service worker does not read from Cache Storage for GET requests.',
+);
+assert(
+  /\.put\(/.test(serviceWorker),
+  'Service worker does not runtime-cache fetched GET assets.',
+);
+assert(
+  serviceWorker.includes('.claim('),
+  'Service worker does not claim uncontrolled clients after activation.',
+);
+assert(
+  !serviceWorker.includes('data:application/wasm'),
+  'Service worker should not pre-cache inlined WASM data URLs.',
+);
+
+console.log(
+  [
+    'Static output audit passed.',
+    `App entry asset: ${appEntryAsset}`,
+    `Start entry asset: ${startEntryAsset}`,
+    `Route node assets: ${routeNodeAssets.length}`,
+    `Page CSS asset: ${pageCssAsset}`,
+    `WASM asset: ${wasmAsset}`,
+    `SIMD WASM asset: ${simdWasmAsset}`,
+    `WebP decoder WASM asset: ${webpDecoderWasmAsset}`,
+    `WebP 2 encoder WASM asset: ${wp2EncoderWasmAsset}`,
+    `WebP 2 decoder WASM asset: ${wp2DecoderWasmAsset}`,
+    `AVIF decoder WASM asset: ${avifDecoderWasmAsset}`,
+    `AVIF encoder WASM asset: ${avifEncoderWasmAsset}`,
+    `Rotate WASM asset: ${rotateWasmAsset}`,
+    `QOI encoder WASM asset: ${qoiEncoderWasmAsset}`,
+    `QOI decoder WASM asset: ${qoiDecoderWasmAsset}`,
+    `JPEG XL encoder WASM asset: ${jxlEncoderWasmAsset}`,
+    `JPEG XL decoder WASM asset: ${jxlDecoderWasmAsset}`,
+    `MozJPEG encoder WASM asset: ${mozjpegEncoderWasmAsset}`,
+    `OxiPNG WASM asset: ${oxipngWasmAsset}`,
+    `ImageQuant WASM asset: ${imagequantWasmAsset}`,
+    `Resize WASM asset: ${resizeWasmAsset}`,
+    `HQX WASM asset: ${hqxWasmAsset}`,
+    `Generated logical codec asset records: ${expectedLogicalAssetKeys.length}`,
+    `Physical WASM groups: ${physicalWasmGroups
+      .map(([logicalKey, assets]) => `${logicalKey}=${assets.length}`)
+      .join(', ')}`,
+    `Baseline WebP WASM copies: ${baselineWasmAssets.length}`,
+    ...baselineWasmAssets.map((asset) => `  - ${asset}`),
+    `SIMD WebP WASM copies: ${simdWasmAssets.length}`,
+    ...simdWasmAssets.map((asset) => `  - ${asset}`),
+    `WebP decoder WASM copies: ${webpDecoderWasmAssets.length}`,
+    ...webpDecoderWasmAssets.map((asset) => `  - ${asset}`),
+    `WebP 2 encoder WASM copies: ${wp2EncoderWasmAssets.length}`,
+    ...wp2EncoderWasmAssets.map((asset) => `  - ${asset}`),
+    `WebP 2 decoder WASM copies: ${wp2DecoderWasmAssets.length}`,
+    ...wp2DecoderWasmAssets.map((asset) => `  - ${asset}`),
+    `AVIF decoder WASM copies: ${avifDecoderWasmAssets.length}`,
+    ...avifDecoderWasmAssets.map((asset) => `  - ${asset}`),
+    `AVIF encoder WASM copies: ${avifEncoderWasmAssets.length}`,
+    ...avifEncoderWasmAssets.map((asset) => `  - ${asset}`),
+    `AVIF threaded worker helper assets: ${avifThreadedWorkerAssets.length}`,
+    ...avifThreadedWorkerAssets.map((asset) => `  - ${asset}`),
+    `Rotate WASM copies: ${rotateWasmAssets.length}`,
+    ...rotateWasmAssets.map((asset) => `  - ${asset}`),
+    `QOI encoder WASM copies: ${qoiEncoderWasmAssets.length}`,
+    ...qoiEncoderWasmAssets.map((asset) => `  - ${asset}`),
+    `QOI decoder WASM copies: ${qoiDecoderWasmAssets.length}`,
+    ...qoiDecoderWasmAssets.map((asset) => `  - ${asset}`),
+    `JPEG XL encoder WASM copies: ${jxlEncoderWasmAssets.length}`,
+    ...jxlEncoderWasmAssets.map((asset) => `  - ${asset}`),
+    `JPEG XL decoder WASM copies: ${jxlDecoderWasmAssets.length}`,
+    ...jxlDecoderWasmAssets.map((asset) => `  - ${asset}`),
+    `JPEG XL threaded worker helper assets: ${jxlThreadedWorkerAssets.length}`,
+    ...jxlThreadedWorkerAssets.map((asset) => `  - ${asset}`),
+    `MozJPEG encoder WASM copies: ${mozjpegEncoderWasmAssets.length}`,
+    ...mozjpegEncoderWasmAssets.map((asset) => `  - ${asset}`),
+    `OxiPNG WASM copies: ${oxipngWasmAssets.length}`,
+    ...oxipngWasmAssets.map((asset) => `  - ${asset}`),
+    `ImageQuant WASM copies: ${imagequantWasmAssets.length}`,
+    ...imagequantWasmAssets.map((asset) => `  - ${asset}`),
+    `Resize WASM copies: ${resizeWasmAssets.length}`,
+    ...resizeWasmAssets.map((asset) => `  - ${asset}`),
+    `HQX WASM copies: ${hqxWasmAssets.length}`,
+    ...hqxWasmAssets.map((asset) => `  - ${asset}`),
+    `Worker asset: ${serviceWorkerImportedWorkerAsset}`,
+    `Encode worker asset: ${serviceWorkerImportedEncodeWorkerAsset}`,
+    `Generated WebP features-worker asset: ${serviceWorkerImportedFeaturesWorkerAsset}`,
+    `OxiPNG parallel worker helper assets: ${workerHelperAssets.length}`,
+    ...workerHelperAssets.map((asset) => `  - ${asset}`),
+    `App worker asset: ${immutableWorkerAsset}`,
+    `App encode worker asset: ${immutableEncodeWorkerAsset}`,
+    `App generated WebP features-worker asset: ${immutableFeaturesWorkerAsset}`,
+  ].join('\n'),
+);

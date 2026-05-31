@@ -5,7 +5,6 @@ This list is ordered by priority. Do the high-priority items before building new
 ## Priority 0: protect the working baseline
 
 1. Completed: decide the supported Node version.
-
    - `.nvmrc` says `24.12.0`.
    - `package.json` declares Node `>=24.12.0 <25` and npm `>=11`.
    - `@types/node` is pinned to the newest release compatible with the current TypeScript 4.9 toolchain; exact Node 24 typings should wait for the TypeScript migration.
@@ -13,7 +12,6 @@ This list is ordered by priority. Do the high-priority items before building new
    - Keep the required Node/npm versions documented in `README.md`.
 
 2. Completed: add basic project scripts.
-
    - Add `npm run typecheck`.
    - Add `npm run format` or `npm run lint`.
    - Add a minimal smoke test script for build output.
@@ -21,30 +19,25 @@ This list is ordered by priority. Do the high-priority items before building new
    - Keep `npm run build` as the final release check.
 
 3. Completed: add a manual QA checklist.
-
    - Checklist lives in [Manual QA checklist](manual-qa.md).
 
 ## Priority 1: dependency and security cleanup
 
 4. Completed: triage `npm audit`.
-
    - `npm audit --audit-level=low` now reports 0 vulnerabilities.
    - CI runs `npm run audit` before the build checks.
    - Keep this check active when dependencies are changed.
 
 5. Completed: upgrade or replace the stale local server.
-
    - `serve` has been upgraded from the stale inherited version.
    - Keep watching this dependency during audit cleanup.
 
 6. Partially completed: upgrade Rollup and custom build plugins carefully.
-
    - The project uses Rollup 2 and custom plugins under `lib/`.
    - Compatible Rollup 2 plugins have been refreshed.
    - A larger Rollup or bundler migration should wait until the baseline remains stable.
 
 7. Completed: replace deprecated build patterns.
-
    - `lib/simple-ts.js` now spawns Node with the TypeScript CLI path directly.
    - This also fixed the Windows CI `spawn EINVAL` failure.
 
@@ -53,11 +46,9 @@ This list is ordered by priority. Do the high-priority items before building new
 ## Priority 2: project clarity and maintainability
 
 9. Completed: update the root README for this fork.
-
    - The README now explains Sqush, links the docs, and documents the baseline commands.
 
 10. Completed: keep generated feature files untracked and verify generation remains reliable.
-
     - `src/client/lazy-app/feature-meta/index.ts`
     - `src/client/lazy-app/feature-meta/shared.ts`
     - `src/client/lazy-app/feature-meta/encoders.ts`
@@ -74,7 +65,6 @@ This list is ordered by priority. Do the high-priority items before building new
     - If feature generation breaks, fix the build rather than committing generated output.
 
 11. Completed: clean up analytics and privacy.
-
     - The inherited upstream Google Analytics integration has been removed.
     - Do not add analytics back without a privacy and consent decision.
 
@@ -89,7 +79,6 @@ This list is ordered by priority. Do the high-priority items before building new
 - Browser storage access failures do not break editor startup or falsely report a successful save.
 
 13. Fix small code quality issues while touching nearby code.
-
     - Completed: replace the remaining `Boolean` prop type with primitive `boolean`.
     - Static build file writing now returns a promise from the utility and keeps process-exit handling in the build entry point.
     - Single-image image-work job-state derivation now lives in pure helpers instead of inline Preact component logic.
@@ -180,7 +169,6 @@ This list is ordered by priority. Do the high-priority items before building new
 ## Priority 3: tests and release confidence
 
 14. Add browser smoke tests.
-
     - Use Playwright or another browser runner.
     - Start with: app loads, file can be selected, editor opens, an output is generated.
     - Started: `npm run smoke:browser` automates the local production-build Chromium/WebP smoke through the system `playwright-cli`.
@@ -194,7 +182,6 @@ This list is ordered by priority. Do the high-priority items before building new
     - Started: shared-image service-worker handling now rejects cleanly if no controller is available.
 
 15. Add small unit tests for pure utilities.
-
     - Bulk helper tests now cover settings merge/hash behavior, session changes, queue stale detection, and export summaries.
     - Bulk action-state tests now cover process, retry, cancel, queued, active, and incomplete command flags.
     - Bulk session mutation tests now cover drift-tolerant remove/export counter normalization.
@@ -292,13 +279,11 @@ This list is ordered by priority. Do the high-priority items before building new
     - `npm run test:unit` runs the current pure-helper test suite.
 
 16. Completed: add CI for the real supported platform matrix.
-
     - CI targets Ubuntu, Windows, and macOS.
     - GitHub Actions checkout/setup-node actions are on current major versions.
     - CI cancels superseded runs, has read-only repository permissions, and has a 15-minute job timeout.
 
 17. Partially completed: track codec provenance.
-
     - Initial inventory lives in [Codec provenance](codec-provenance.md).
     - Local codec package names and build entry points are documented so future cleanup can distinguish folder paths from inherited package metadata.
     - Local Makefile and Rust manifest source refs are documented separately from generated `.wasm` provenance.
@@ -308,20 +293,17 @@ This list is ordered by priority. Do the high-priority items before building new
 ## Priority 4: later modernization
 
 18. Consider replacing the custom build with a maintained tool only after the baseline is stable.
-
     - Vite or another modern bundler may reduce custom code.
     - This is a larger migration because of Web Workers, WASM, generated feature metadata, static prerendering, and service-worker output.
     - Svelte migration guidance is now tracked in [Svelte migration context](svelte-migration-context.md).
     - Any Svelte-adjacent extraction should keep logic framework-neutral and avoid adding UI framework assumptions.
 
 19. Completed: review browser support.
-
     - Initial policy note lives in [Browser support policy](browser-support.md).
     - Current policy was reviewed again on 2026-05-24 against MDN image format guidance and Svelte migration constraints.
     - Re-check before public release or before changing codec visibility, because browser support can change quickly.
 
 20. Completed: create an issue list from this todo.
-
     - Initial backlog seed lives in [Issue list](issue-list.md).
     - Convert items to GitHub issues when the project workflow is ready.
 

@@ -19,9 +19,10 @@ path when roadmap work begins.
 
 ## Recommended target
 
-The target is Svelte 5 with SvelteKit 2 using static output. Do not broaden the
-prototype to any non-SvelteKit build path unless SvelteKit produces a concrete
-blocker that is documented with a minimal reproduction.
+The target is Svelte 5 with SvelteKit 2 using static output. The technical
+prototype has been promoted to the repo root on the `svelte` branch; do not
+broaden the app to any non-SvelteKit build path unless SvelteKit produces a
+concrete blocker that is documented with a minimal reproduction.
 
 SvelteKit is still a good candidate because it supports:
 
@@ -157,18 +158,23 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
 - `kit/service-workers`
 - `kit/$app-environment`
 
-## Open decisions
+## Historical decision log
 
-- Keep SvelteKit static output as the prototype target and measure build complexity there first.
-- Continue the first prototype under `prototypes/sveltekit/` on the `code/sveltekit-prototype` branch; do not turn it into a production migration by default.
-- Keep WebP 2 in the SvelteKit prototype as experimental parity until direct
-  maintainer testing proves it should be removed. Do not promote it as a primary
-  product codec or spend threaded-runtime/product-positioning effort on it
-  without a fresh decision.
-- Continue migration seam work on `code/sveltekit-migration-seams`. The first
-  seam is a generated `client/lazy-app/feature-meta/shared` module that keeps
+This section records the migration evidence that led to the root SvelteKit app.
+It is not the live task list. The live task list is in
+[STATUS.md](STATUS.md), [MIGRATION-PLAN.md](MIGRATION-PLAN.md), and
+[road-map.md](road-map.md).
+
+- SvelteKit static output remains the migration target. The prototype has been
+  promoted to the repo root on the `svelte` branch.
+- WebP 2 stays included as experimental parity until direct maintainer testing
+  proves it should be hidden or removed. Do not promote it as a primary product
+  codec or spend threaded-runtime/product-positioning effort on it without a
+  fresh decision.
+- Migration seam work has been folded into the root app. The first seam was a
+  generated `client/lazy-app/feature-meta/shared` module that kept
   framework-neutral codec/processor/preprocessor metadata separate from the
-  Preact encoder client entries exposed by the existing `feature-meta` index.
+  Preact encoder client entries exposed by the inherited `feature-meta` index.
 - The first production `url:` replacement shape is now proven for the rotate
   preprocessor: keep the current Rollup adapter in production, split reusable
   worker logic into a runtime that accepts a WASM URL, and let the SvelteKit
@@ -263,29 +269,14 @@ When Svelte components are added, use Svelte's recommended testing path: Vitest 
   future single-image slice risk to UI/control integration, full codec/threaded
   runtime parity, and static asset/service-worker strategy rather than the core
   update orchestration itself.
-- Treat `code/sveltekit-migration-seams` as a review branch with two distinct
-  outputs. Production-safe, behavior-preserving seams can merge or be
-  cherry-picked to `main` after root checks and production smoke coverage stay
-  green. Disposable prototype evidence under `prototypes/sveltekit/`, generated
-  SvelteKit manifests, diagnostic route UI, static-output audit scripts, and
-  prototype package dependencies should stay out of `main` unless explicitly
-  accepted. Use
-  [SvelteKit migration seams review](sveltekit-migration-seams-review.md) as the
-  file-level inventory for that split and
-  [SvelteKit migration seams exit audit](sveltekit-migration-seams-exit-audit.md)
-  as the roadmap-level status check.
-- After the safe seams land, branch the next focused track from updated `main`.
-  If review is still in progress, branch from `code/sveltekit-migration-seams`
-  and rebase or cherry-pick later. The next track should be either threaded
-  codec runtime proof, canonical codec worker/WASM asset URLs, or the minimal
-  SvelteKit single-image slice once those risks are understood. Use
-  [SvelteKit codec asset strategy](sveltekit-codec-asset-strategy.md) for the
-  canonical asset branch.
-- Do not start `code/sveltekit-single-image-slice` as a full app migration. Its
-  target is one real user-selected file path that proves import, decode,
-  process, encode, preview, export, and offline behavior. Start with WebP, add
-  AVIF next, keep JPEG XL advanced, and keep WebP 2 only as experimental parity
-  until maintainer testing says otherwise.
+- `code/sveltekit-migration-seams`, `code/sveltekit-codec-assets`, and the
+  single-image slice are historical inputs to the current `svelte` branch. Do
+  not restart work from those branch names unless investigating history.
+- The single-image slice target has been absorbed by the root app: import,
+  decode, process, encode, preview, export, and offline behavior are the
+  migration parity baseline.
 - Decide final codec surface before deleting codec code.
-- Use [Phase 1 readiness audit](phase-1-readiness-audit.md) as the current rationale for starting a small technical prototype instead of continuing tiny Preact cleanup.
+- Use [Phase 1 readiness audit](phase-1-readiness-audit.md) only as historical
+  rationale for why the SvelteKit spike started instead of continuing tiny
+  Preact cleanup.
 - Current browser support targets were reviewed on 2026-05-24. Re-check before production migration, but do not lower the modern evergreen baseline or remove WebAssembly, worker, service-worker, Canvas/ImageData, File/Blob, object URL, or dynamic import assumptions without measured evidence.

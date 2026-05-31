@@ -2,6 +2,11 @@
 
 Last updated: 2026-05-26.
 
+> Historical review inventory. The reusable seams from this branch have been
+> carried into the root SvelteKit app on the `svelte` branch. Use
+> [STATUS.md](STATUS.md) and [MIGRATION-PLAN.md](MIGRATION-PLAN.md) for current
+> migration instructions.
+
 This file packages the `code/sveltekit-migration-seams` branch for review. It
 separates the source changes that can plausibly move toward `main` from the
 prototype evidence that should stay disposable unless explicitly accepted.
@@ -133,7 +138,6 @@ on its own after conflict resolution. Run production browser smoke for slices
 that touch runtime, worker, codec, or service-worker behavior.
 
 1. Generated metadata seams
-
    - `lib/feature-plugin.js`
    - `.gitignore`
    - `.prettierignore`
@@ -146,7 +150,6 @@ that touch runtime, worker, codec, or service-worker behavior.
    support outputs ignored.
 
 2. Shared image-pipeline helpers
-
    - `src/client/lazy-app/abort.ts`
    - `src/client/lazy-app/image-decode.ts`
    - `src/client/lazy-app/image-pipeline-shared.ts`
@@ -162,7 +165,6 @@ also proves the extracted compression update workflow can consume this
 injected `imagePipeline` shape for the WebP side.
 
 3. Worker bridge and active worker boundaries
-
    - `src/client/lazy-app/worker-bridge/runtime.ts`
    - `src/client/lazy-app/worker-bridge/bridge.ts`
    - `src/client/lazy-app/worker-bridge/active-bridge.ts`
@@ -176,7 +178,6 @@ injected `imagePipeline` shape for the WebP side.
    Vite/SvelteKit-compatible bridge shape for later adapters.
 
 4. Service-worker cache boundaries
-
    - `src/shared/codec-assets.ts`
    - `src/client/lazy-app/sw-bridge/runtime.ts`
    - `src/client/lazy-app/sw-bridge/index.ts`
@@ -190,7 +191,6 @@ injected `imagePipeline` shape for the WebP side.
    cache planning from Rollup `entry-data:` and `service-worker:` assumptions.
 
 5. Codec client/runtime splits
-
    - `src/features/**/client/runtime.ts`
    - corresponding `src/features/**/client/index.*` re-exports
    - `src/features/**/shared/meta.ts` importability updates

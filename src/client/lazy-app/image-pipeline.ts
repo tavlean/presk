@@ -1,5 +1,5 @@
-import type { EncoderState } from './feature-meta/shared';
-import { encoderMap } from './feature-meta/encoders';
+import type { EncoderState } from 'client/lazy-app/feature-meta/shared';
+import { encoderMap } from 'client/lazy-app/feature-meta/encoders';
 import {
   compressImageWithEncoder,
   decodeImage,
@@ -31,9 +31,7 @@ export type {
 } from './image-pipeline-shared';
 
 export interface ImagePipelineWorkerBridge
-  extends DecodeWorkerBridge,
-    PreprocessWorkerBridge,
-    ProcessWorkerBridge {
+  extends DecodeWorkerBridge, PreprocessWorkerBridge, ProcessWorkerBridge {
   avifEncode(
     signal: AbortSignal,
     imageData: ImageData,

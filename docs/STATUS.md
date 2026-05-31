@@ -1,211 +1,120 @@
-# Sqush — Status (start here)
+# Sqush Status
 
 Last updated: 2026-05-31.
 
-A focused, local-first fork of Google's abandoned Squoosh. Priorities: **WebP,
-AVIF, JPEG XL**, with **WebP 2 kept as experimental parity** until usage or
-runtime evidence says otherwise. The current work is the **Svelte 5 / SvelteKit
-and Vite migration** for the existing single-image editor. Bulk optimization and
-other new product work now live in [road-map.md](road-map.md), not in the
-migration scope. This file is the single entry point — read it first, then
-[MIGRATION-PLAN.md](MIGRATION-PLAN.md).
+Read this first. Sqush is a local-first image optimizer: image work stays in the
+browser, the build is static, and offline reload must work after load.
 
-## TL;DR (current state)
+## Current State
 
-- The migration is **all-in on Vite/SvelteKit, plumbing-first** (decided
-  2026-05-31). The sequenced plan is [MIGRATION-PLAN.md](MIGRATION-PLAN.md).
-- **Phases 1–5 are DONE** on the `svelte` branch. The foundation-hardening pass
-  has tightened editor state ownership, mobile layout, WebP 2 parity,
-  generated-file policy, service-worker caching, favicon/logo assets, and docs
-  before migration closeout. The SvelteKit app in
-  `prototypes/sveltekit/` is now a working, full-bleed dark **single-image editor
-  at Squoosh parity**: drop an image → before/after two-up with zoom/pan → pick
-  any active codec with full option panels → resize / quantize / rotate →
-  download. Settings persist across reloads. Offline-capable.
-- **Current focus: migration closeout / cutover decision**, not feature work.
-  Acceptance QA has covered large images, SVG input, downloads, saved/imported
-  settings, responsive layout, WebP 2, and offline service-worker behavior.
-- `main` (Preact + Rollup) is the **untouched production app**, kept as a safety
-  net until the SvelteKit app reaches full parity, then retired during migration
-  closeout.
+- The launch candidate is the `svelte` branch in `../Sqush-svelte`.
+- The SvelteKit 2 / Svelte 5 app now lives at the repo root, not in
+  `prototypes/sveltekit/`.
+- The old Preact/Rollup app shell, Rollup build helpers, old service-worker
+  adapters, and Preact option UI have been removed from this branch.
+- `main` remains the historical Preact/Rollup safety net until the Svelte branch
+  is accepted and merged.
+- Bulk UI is not part of migration closeout. Bulk and other product additions
+  are tracked in [road-map.md](road-map.md).
 
-## Branches (two — clean)
+## Product Scope For Launch
 
-```
-main      untouched Preact + Rollup production app (safety net)
-svelte    migration trunk — Phases 1–5 complete; worktree at ../Sqush-svelte
-```
+The root app preserves the existing single-image optimizer:
 
-Per-phase branches are cut off `svelte`, fast-forward-merged back, then deleted
-(`svelte-plumbing` covered Phases 1–4 and `svelte-editor` covered Phase 5 — both
-merged and deleted). New feature branches should start only after migration
-closeout. The user prefers short branch names. `main` is the default branch but
-is NOT where migration work goes.
+- import by file picker or drag/drop;
+- local decode, preprocess, resize, quantize, encode, preview, and download;
+- two-up before/after output with zoom, pan, split, backgrounds, and rotate;
+- per-side output format and option panels;
+- saved per-side encoder settings;
+- static output through SvelteKit adapter-static;
+- SvelteKit-native service worker and codec/WASM precache;
+- WebP, WebP 2, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI, and browser encoders.
 
-## What's done
+WebP remains the first production focus, AVIF second, JPEG XL advanced, and WebP
+2 experimental but included for parity until maintainer testing proves whether
+it should stay.
 
-**Plumbing (Phases 1–3):**
+## Active Architecture
 
-- **Phase 1 — codec-asset strategy.** The generator
-  (`scripts/sync-sqush-prototype.mjs`) derives both the canonical manifest and
-  the service-worker precache manifest from one source-of-truth array. Audit
-  (`npm run audit:static-output`) confirms exactly one physical WASM per logical
-  asset.
-- **Phase 2 — worker-bridge parity.** The generated encoder surface covers all
-  ten output formats, including experimental WebP 2. `src/lib/compress.ts`
-  drives `imagePipeline.compressImage` — the **same path the bulk engine uses**.
-- **Phase 3 — SvelteKit-native service worker.** `src/service-worker.ts` uses
-  `$service-worker` (build/files/prerendered/version) + the generated codec
-  precache; verified offline-capable on a production preview.
+- `src/routes/+page.svelte` — single-image optimizer route.
+- `src/routes/diagnostics/+page.svelte` — runtime diagnostics for generated
+  workers, WASM assets, pipeline probes, and shared helpers.
+- `src/lib/editor/editor-session.svelte.ts` — rune-backed editor state and
+  encode orchestration.
+- `src/lib/editor/options/` — Svelte option controls and per-format panels.
+- `src/lib/editor/output/` — two-up output view and local pointer/zoom helpers.
+- `src/lib/compress.ts` — Svelte adapter over the shared image pipeline.
+- `src/lib/sveltekit-worker-bridge.ts` — SvelteKit worker bridge over generated
+  worker metadata.
+- `src/client/lazy-app/image-pipeline*` — framework-neutral single-image engine.
+- `src/client/lazy-app/bulk/` — framework-neutral bulk helpers for future work.
+- `src/features/**` — codec metadata, client runtimes, and worker runtimes.
+- `src/shared/codec-assets.ts` — build-tool-neutral codec asset records.
+- `scripts/sync-sveltekit-app.mjs` — generates
+  `.svelte-kit/sqush-generated/*`.
+- `scripts/audit-static-output.mjs` — verifies emitted worker/WASM output.
+- `src/service-worker.ts` — SvelteKit service worker.
 
-**SPA + editor (Phases 4–5):**
+Generated files live under `.svelte-kit/sqush-generated/` and are not
+committed. Run `npm run sync` or `npm run check` to regenerate them.
 
-- **Phase 4 — SPA shell.** `ssr=false` + `prerender=true`, `adapter-static` with
-  `fallback: 200.html`; builds a static SPA with deep-link fallback.
-- **Phase 5 — single-image editor parity (the big UI phase):**
-  - Reusable option primitives (Range with drag value-bubble, Checkbox, Toggle,
-    Revealer, Select) + `theme.css` (Squoosh palette + tokens).
-  - **Per-encoder option panels** ported at parity from the Preact components:
-    WebP, WebP 2, AVIF, JXL, MozJPEG, OxiPNG, and Browser JPEG. QOI, Browser
-    PNG, and Browser GIF have no adjustable options.
-  - **Two-up before/after editor**: draggable split (TwoUp) + synced
-    pinch-zoom/pan (PinchZoom), both ported as local custom elements; viewport
-    controls (zoom −/%/+, pixelated, background, rotate).
-  - **Processor controls**: full Resize panel (method/preset/width-height with
-    maintain-aspect/fit/premultiply/linearRGB), Quantize (colors + dithering),
-    Rotate (90°/click).
-  - **Saved settings**: chosen encoder + per-format options persist to
-    localStorage and restore on load (per-image processor state is not
-    persisted).
-  - **Full-bleed dark Squoosh reskin**: top bar + left "Original" rail (pink) +
-    center two-up + right encoder rail (blue, encoder `<Select>` in the title) +
-    results footer (size / % / Download).
+## Commands
 
-## Editor architecture (file map of the new UI)
-
-All paths under `prototypes/sveltekit/`:
-
-- `src/routes/+page.svelte` — the editor page. Intro/drop screen + the
-  `.compress` full-bleed layout.
-- `src/lib/editor/editor-session.svelte.ts` — the Svelte 5 rune-backed editor
-  session. Owns side settings, per-format `optionsByFormat`, processor state,
-  preprocessor state, debounced encode orchestration, object URL cleanup,
-  dimension seeding, saved settings, and download names.
-- `src/lib/compress.ts` — adapter. `compressFile(file, request, signal)`:
-  decode → preprocess → process → `imagePipeline.compressImage`; returns the
-  output File + the decoded **before/after** ImageData for the two-up.
-  `getDefaultOptions(format)`. `CompressRequest` carries `options`,
-  `processorState`, `preprocessorState`.
-- `src/lib/sveltekit-worker-bridge.ts` — codec worker bridge (all active codecs).
-- `src/lib/editor/theme.css` — palette, theme tokens, and option-panel layout
-  classes (`.options-*`, `.option-toggle/-one-cell/-text-first/-reveal`,
-  `.section-enabler`, `.text-field`), scoped under `.sqush-editor`.
-- `src/lib/editor/options/` — primitives (Range, Checkbox, Toggle, Revealer,
-  Select) + panels (Webp/Wp2/Avif/Jxl/Mozjpeg/Oxipng/BrowserJpeg/Resize/
-  Quantize Options) + `processor-types.ts` (flat resize/quantize shapes for the
-  UI).
-- `src/lib/editor/output/` — `Output.svelte` (two-up editor + viewport
-  controls), plus `pinch-zoom.ts`/`.css` and `two-up.ts`/`.css` (ported custom
-  elements).
-- `src/pointer-tracker.d.ts` — ambient types for the `pointer-tracker` package.
-- `src/service-worker.ts`, `src/lib/service-worker-registration.ts`,
-  `src/lib/service-worker-codec-assets.ts` — offline.
-- `src/routes/diagnostics/+page.svelte` — the original engine probe page.
-- `scripts/sync-sqush-prototype.mjs` (generator) + `scripts/audit-static-output.mjs`.
-
-The framework-neutral **engine** is reused as-is via path aliases (`client`,
-`features`, `shared`, `sqush-generated`): `src/client/lazy-app/image-pipeline*`,
-the 16-module bulk engine in `src/client/lazy-app/bulk/`, `src/features/**`,
-`codecs/**`. We repaint the UI; we don't rewrite the engine.
-
-## How to run / test / verify
-
-From `prototypes/sveltekit/` (also run `npm install` at the **repo root** once,
-so engine imports type-resolve):
+From the repo root:
 
 ```sh
 npm install
-npm run dev      # the editor (dev). With the launch config below: http://localhost:5188
-npm run check    # svelte-check  (currently 0 errors / 0 warnings)
-npm run build    # vite build + adapter-static  → build/
-npm run preview  # serve the production build (needed to test the service worker)
-npm run sync     # regenerate .svelte-kit/sqush-generated/*
-npm run audit:static-output   # one physical WASM per logical asset
+npm run dev
+npm run build
+npm run preview
+npm run check
+npm run audit
 ```
 
-`.claude/launch.json` (untracked — it carries an absolute worktree path) defines
-two Preview-MCP servers: `sqush-prototype` (dev, `--port 5188 --strictPort`) and
-`sqush-preview` (`vite preview`, `--port 5189 --strictPort`). Use the **preview**
-(5189) to test the service worker — it only registers in production builds.
+`npm run check` is the standard gate: formatting check, generator sync,
+SvelteKit sync, `svelte-check`, production build, and static-output audit.
 
-Every Svelte component is validated with the Svelte MCP autofixer; re-run
-`npm run check` after edits.
+## Verification State
 
-## Browser-verified (2026-05-31)
+Current local verification:
 
-The editor has been driven end-to-end on the `svelte` branch:
+- `npm install` pruned the old Rollup/Preact graph and produced a clean audit.
+- `npm run sync` regenerates the SvelteKit metadata and codec wrapper copies.
+- `svelte-check --tsconfig ./tsconfig.json` is green after the root move.
+- `npm run check` passes: formatting, generator sync, SvelteKit sync,
+  `svelte-check`, production build, and static-output audit.
+- `npm run audit` reports 0 vulnerabilities.
+- Production preview smoke on `http://127.0.0.1:5189/` passes with Playwright:
+  PNG to WebP, PNG to WebP 2, JPEG/SVG/WebP inputs to WebP, desktop load,
+  `390 x 844` mobile viewport with no horizontal overflow, controlled service
+  worker, offline reload, and no console/page errors.
+- Svelte MCP docs were consulted for project structure, adapter-static,
+  service workers, `$service-worker`, config, `.svelte.ts` modules, and Svelte 5
+  best practices.
+- Svelte MCP autofixer reports no hard issues for the edited route/editor
+  components. Remaining suggestions are DOM/canvas effects that are intentional
+  side effects.
 
-- Earlier full-editor QA verified all then-active codec formats through the unified
-  `compressImage` path, option panels, two-up zoom/pan/split, rotate, resize,
-  quantize, saved settings, and offline service-worker behavior.
-- Current hardening QA on a production preview (`127.0.0.1:5189`) verified the
-  new logo asset, desktop two-up horizontal layout, mobile vertical layout at
-  390×844 with no horizontal overflow, WebP 2 online encode to `.wp2`, WebP 2
-  offline encode after reload, zero console errors, and a controlled service
-  worker cache containing `/`, `/diagnostics`, `/logo.webp`, and the WebP 2
-  encoder/decoder WASM.
-- Migration acceptance QA on a production preview verified a large 3872×2592
-  JPEG import/encode/download, SVG import/encode/download, output format
-  downloads with correct bytes/extensions, saved settings import/export, and the
-  responsive editor. This pass also fixed a stale-download race when switching
-  encoders before a debounced re-encode started.
-- Current static audit verifies 17 logical codec assets and one physical WASM per
-  logical asset, including WebP 2 encoder/decoder. `npm run check`,
-  `npm run build`, `npm run audit:static-output`, `npm audit --audit-level=low`,
-  and root `npm run check` are green.
+Still required before launch acceptance:
 
-## Next
+- maintainer acceptance with real daily-use images, especially large photos and
+  any edge formats they care about;
+- targeted fixes for regressions found during that acceptance pass;
+- final merge/ship decision for the `svelte` branch.
 
-1. **Close the migration loop:** maintainer review of the accepted SvelteKit
-   single-image editor, then decide the final app location (repo root vs
-   `/app`).
-2. **Cut over:** tag the pre-flip state, promote `prototypes/sveltekit/` to the
-   production app location, rewire scripts/deploy, and retire Preact + Rollup
-   only after parity/build/offline checks pass.
-3. **Start roadmap work after migration:** bulk optimization, threaded-codec
-   performance, PWA/share-target work, and other product changes are tracked in
-   [road-map.md](road-map.md).
+## Next Actions
 
-## Known risks / gotchas (carry forward)
+1. Have the maintainer do real-use acceptance on the Svelte branch.
+2. Fix only migration regressions found by that acceptance pass.
+3. Merge/ship the Svelte branch when accepted.
+4. Start roadmap work after migration is closed, beginning with design decisions
+   for bulk optimization.
 
-- **Threaded codecs** (AVIF/JXL/OxiPNG multi-thread, COOP/COEP) are **not**
-  proven — single-thread is the parity baseline; threaded is an optional perf
-  track.
-- **Generated files aren't committed.** `npm run sync` regenerates the
-  prototype's `.svelte-kit/sqush-generated/*`; the root `src/client/lazy-app/
-feature-meta/*` are produced by the root build. A fresh worktree needs
-  `npm install` at the repo root.
-- **Preview / service-worker gotcha**: the Claude preview browser persists
-  service workers across runs; a stale SW can mask dev edits (curl shows new code
-  while the browser shows old). Dev now auto-unregisters SWs + clears caches on
-  load; ports are pinned (5188 dev / 5189 preview). When verifying, the editor's
-  option controls only render after a file is loaded.
-- **WebP 2 is experimental parity.** It is included in the SvelteKit active
-  surface now, using single-thread encode/decode assets. Chromium preview QA
-  covers online and offline encode, but do not promote it as a primary production
-  codec until maintainer/product testing says it is worth keeping.
-- **Don't touch `codecs/`** without the provenance/build/SW/browser checks in
-  [codec-provenance.md](codec-provenance.md).
+## Gotchas
 
-## Map of the docs
-
-- **MIGRATION-PLAN.md** — the active migration closeout plan. **Read after this
-  file.**
-- **road-map.md** — post-migration product roadmap: bulk, codec strategy,
-  platform polish, and deferred feature work.
-- **bulk-image-architecture.md** — the future bulk data model and helper
-  reference.
-- **sveltekit-codec-asset-strategy.md** — how codec WASM URLs are generated.
-- **codec-provenance.md** — where the codecs come from; rules for touching them.
-- **HANDOFF-2026-05-30.md**, **sveltekit-migration-seams-\*.md**, **history/** —
-  point-in-time records, superseded by this STATUS for live state.
+- Do not add bulk UI as part of migration cleanup.
+- Do not prune WebP 2 yet; it remains included as experimental parity.
+- Do not touch `codecs/**` without codec provenance, build, service-worker, and
+  browser verification.
+- Preview browsers can keep old service workers. If behavior looks stale, clear
+  site data or use a fresh context.

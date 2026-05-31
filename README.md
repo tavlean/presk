@@ -1,107 +1,85 @@
 # Sqush
 
-Sqush is a practical image optimization web app derived from [Squoosh]. It is focused on maintainability, bulk image optimization workflows, and a smaller set of modern web image formats.
+Sqush is a local-first image optimizer derived from [Squoosh]. Images are
+decoded, processed, encoded, previewed, and exported in the browser. There is no
+upload path and no server-side image processing.
 
 Website: [sqush.app](https://sqush.app)
 
-## Project docs
+## Current App
 
-- [Agent guide](AGENTS.md)
-- [Project overview](docs/overview.md)
-- [Build and runtime map](docs/build-and-runtime.md)
-- [Browser support policy](docs/browser-support.md)
-- [Bulk image architecture](docs/bulk-image-architecture.md)
-- [Codec provenance](docs/codec-provenance.md)
-- [Dependency modernization](docs/dependency-modernization.md)
-- [Manual QA checklist](docs/manual-qa.md)
-- [Progress dashboard](docs/progress-dashboard.md)
-- [Road map](docs/road-map.md)
-- [Cleanup todo](docs/todo.md)
-- [Issue list](docs/issue-list.md)
-- [Upstream PR notes](docs/upstream-pr-notes.md)
-- [Maintenance status](docs/maintenance-status.md)
+The `svelte` branch is now the launch candidate. The app lives at the repo root
+as a SvelteKit 2 / Svelte 5 static SPA:
 
-# Privacy
+- `src/routes/+page.svelte` is the single-image optimizer.
+- `src/lib/editor/` contains the Svelte editor shell, controls, output view, and
+  rune-backed editor session.
+- `src/lib/compress.ts` adapts the Svelte editor to the shared image pipeline.
+- `src/client/lazy-app/image-pipeline*` and `src/client/lazy-app/bulk/` remain
+  framework-neutral engine code.
+- `src/features/**`, `src/shared/codec-assets.ts`, and `codecs/**` remain the
+  codec/runtime foundation.
+- `src/service-worker.ts` is the SvelteKit-native offline service worker.
 
-Sqush does not send your image to a server. Image compression runs locally in your browser.
+The old Preact/Rollup app has been removed from this branch. Use `main` only as
+the historical safety net until the Svelte branch is accepted and merged.
 
-Sqush does not include the inherited Google Analytics integration from upstream Squoosh.
+## Developing
 
-## Local-first contract
+Use the Node version in [.nvmrc](.nvmrc). The package metadata expects Node
+`>=24.12.0 <25` and npm `>=11`.
 
-The core product promise is local image optimization. A working build must keep these guarantees:
-
-- image files are decoded, processed, encoded, previewed, and exported in the browser;
-- no upload or application server is required for optimization;
-- a production build can reload the app shell offline after the service worker has installed;
-- single-image import, WebP export, resize, saved side settings, and downloads remain dependable while bulk foundations are added.
-
-Treat regressions in single-image optimization, offline behavior, or export reliability as release blockers.
-
-# Developing
-
-Use the Node version in [.nvmrc](.nvmrc). The package metadata expects Node `>=24.12.0 <25` and npm `>=11`.
-
-1. Install Node dependencies:
-   ```sh
-   npm install
-   ```
-1. Build the app:
-   ```sh
-   npm run build
-   ```
-1. Start the development server:
-   ```sh
-   npm run dev
-   ```
+```sh
+npm install
+npm run dev
+npm run build
+npm run preview
+npm run check
+```
 
 Useful maintenance commands:
 
 ```sh
-npm run check
-npm test
-npm run audit
-npm run dashboard
-npm run smoke:browser
-npm run test:unit
-npm run typecheck
+npm run sync                 # regenerate .svelte-kit/sqush-generated/*
+npm run audit:static-output  # verify emitted worker/WASM assets
+npm run audit                # npm audit --audit-level=low
 npm run format:check
 ```
 
-Run `npm run build` before `npm run typecheck` on a fresh checkout so generated feature files exist.
+`npm run check` is the normal local gate. It runs formatting, generator sync,
+SvelteKit sync, `svelte-check`, production build, and the static-output audit.
 
-## Verification guide
+## Local-First Contract
 
-Use `npm run check` as the normal local gate. It runs formatting, production build, build-output smoke, helper tests, and TypeScript checks in the correct order.
+A working build must preserve:
 
-Use `npm run smoke:browser` when touching runtime image behavior: import/export, object URLs, resize/processing/encoding, service-worker/offline behavior, saved settings, output previews, or anything users experience in the editor. It builds the production app and drives the current browser smoke flow through Chromium.
+- local import, decode, process, encode, preview, and export;
+- WebP, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI, browser encoders, and experimental
+  WebP 2 parity unless a later product decision removes a format deliberately;
+- object URL cleanup and downloadable outputs;
+- static output with no image-processing server;
+- service-worker/offline reload after the app has loaded.
 
-Use `npm run audit` after dependency changes. The project currently expects `npm audit --audit-level=low` to stay clean.
+Regressions in single-image optimization, codec workers/WASM, exports, or
+offline behavior are release blockers.
 
-## Progress dashboard
+## Docs
 
-Run:
+- [Agent guide](AGENTS.md)
+- [Current status](docs/STATUS.md)
+- [Migration plan](docs/MIGRATION-PLAN.md)
+- [Build and runtime map](docs/build-and-runtime.md)
+- [Project overview](docs/overview.md)
+- [Manual QA checklist](docs/manual-qa.md)
+- [Product roadmap](docs/road-map.md)
+- [Bulk image architecture](docs/bulk-image-architecture.md)
+- [Codec asset strategy](docs/sveltekit-codec-asset-strategy.md)
+- [Codec provenance](docs/codec-provenance.md)
+- [Browser support policy](docs/browser-support.md)
 
-```sh
-npm run dashboard
-```
+## Attribution
 
-The command prints the local dashboard URL, usually `http://localhost:4177`. If the dashboard is already running, the command reports that URL instead of crashing. Keep both [docs/progress-dashboard.html](docs/progress-dashboard.html) and [docs/progress-dashboard.md](docs/progress-dashboard.md) honest after meaningful checkpoints.
-
-The top dashboard cards show rough planning progress. When a checkpoint changes a top-card percentage, show only that checkpoint's green delta next to the changed card and remove stale deltas from other top cards.
-
-## Bulk and Svelte boundaries
-
-Bulk image optimization should continue through framework-neutral models, helpers, tests, and architecture notes until the production UI design has been discussed. Do not add production bulk UI in routine cleanup commits.
-
-Svelte/SvelteKit migration work should start from tested framework-neutral modules and small prototypes. Do not rewrite the current production UI just to migrate frameworks.
-
-# Attribution
-
-Sqush is derived from GoogleChromeLabs' Squoosh project and continues under the Apache 2.0 license.
-
-# Contributing
-
-Contributions should follow the [contribute guide](/CONTRIBUTING.md) until this fork has its own project-specific guide.
+Sqush is derived from GoogleChromeLabs' Squoosh project and continues under the
+Apache 2.0 license.
 
 [squoosh]: https://github.com/GoogleChromeLabs/squoosh

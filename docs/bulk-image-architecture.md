@@ -272,42 +272,35 @@ Later implementation:
 ## Suggested implementation order
 
 1. Extract pure settings helpers.
-
    - `getEffectiveSettings`
    - settings hashing
    - override detection
    - Initial module: `src/client/lazy-app/bulk/settings.ts`
 
 2. Add bulk session state types.
-
    - Keep them framework-neutral.
    - Do not bind them to Preact lifecycle.
    - Initial module: `src/client/lazy-app/bulk/session.ts`
    - Session helper can create a batch, append imported jobs, select an image, and report progress.
 
 3. Add multi-file import.
-
    - Accept multiple files from file input and drag/drop.
    - Keep single-image behavior working.
    - Initial helper module: `src/client/lazy-app/bulk/import.ts`
 
 4. Add basic queue processing.
-
    - Process WebP output for every imported image.
    - Store output size and percent change.
    - Initial queue helper module: `src/client/lazy-app/bulk/queue.ts`
    - Queue helper can detect stale outputs from effective settings hashes.
 
 5. Add image strip.
-
    - Display thumbnails and batch status.
 
 6. Add selected-image review.
-
    - Reuse the existing comparison component where possible.
 
 7. Add per-image overrides.
-
    - Highlight overridden settings.
    - Add reset-to-global.
 
@@ -326,7 +319,6 @@ Do not implement the production bulk UI yet. The workflow needs design discussio
 When implementation resumes, the safest technical path is:
 
 1. Extract the existing single-image processing pipeline from `Compress/index.tsx` into a shared non-UI module.
-
    - Keep the current single-image editor importing the same functions back.
    - Preserve one-file behavior before adding any bulk screen.
    - Shared module: `src/client/lazy-app/image-pipeline.ts`
@@ -336,7 +328,6 @@ When implementation resumes, the safest technical path is:
    - Current status: decode/preprocess/process/encode functions, work-start abort/controller cycling, source decode/preprocess execution, single-side execution, and runnable side-job loop orchestration are extracted without changing the UI route.
 
 2. Add a bulk processor module separate from the current `Compress` component.
-
    - It should consume `ImageJob`, effective settings, `WorkerBridge`, and `AbortSignal`.
    - It should produce `ImageOutput`.
    - It should not call or fork `Compress.updateImage()` because that method is tied to the two-side UI state machine.
@@ -344,19 +335,16 @@ When implementation resumes, the safest technical path is:
    - Current status: processor orchestration exists and is covered with injected-pipeline tests.
 
 3. Keep worker usage bounded.
-
    - `WorkerBridge` queues work per bridge.
    - Bulk mode should use a small pool aligned with `defaultBulkConcurrency`.
    - Initial runner module: `src/client/lazy-app/bulk/runner.ts`
    - Current status: runner processes queued jobs up to the concurrency limit, stores per-job failures, and propagates aborts.
 
 4. Detect multi-file import at the app boundary later.
-
    - A one-file import should keep using the current single-image `Compress` path.
    - A multi-file import can route to a separate lazy bulk component after the design is agreed.
 
 5. Treat the existing `Options`, `Output`, and `Results` components as reference material, not as a direct bulk UI.
-
    - They are built around two comparison sides.
    - Bulk settings need global defaults, selected-image overrides, and clear override indicators.
 

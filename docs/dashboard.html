@@ -316,7 +316,7 @@
           <b>16</b><span>bulk-engine modules (no UI yet)</span>
         </div>
         <div class="k"><b>105</b><span>codec .wasm present</span></div>
-        <div class="k"><b>1</b><span>canonical branch + main</span></div>
+        <div class="k"><b>1</b><span>Svelte launch branch + main</span></div>
       </div>
 
       <h2>Where things stand</h2>
@@ -328,8 +328,8 @@
             <li>Logic decoupled from Preact (67 TS modules)</li>
             <li>Bulk engine built (framework-neutral)</li>
             <li>Codec focus encoded: WebP2 experimental</li>
-            <li>SvelteKit seams proven &amp; reviewed</li>
-            <li>Prototype: WebP/AVIF/JXL encode in a worker</li>
+            <li>SvelteKit seams proven &amp; folded into root app</li>
+            <li>Root Svelte editor covers parity codecs</li>
             <li>Codec-asset URL strategy documented</li>
           </ul>
         </div>
@@ -344,9 +344,9 @@
         <div class="card">
           <h3><span class="dot d-next"></span>Next</h3>
           <ul>
-            <li>Tag the pre-flip state</li>
-            <li>Promote SvelteKit to production</li>
-            <li>Retire Preact/Rollup after parity checks</li>
+            <li>Finish full check/audit/browser smoke</li>
+            <li>Maintainer acceptance on the Svelte branch</li>
+            <li>Merge/ship after parity checks</li>
             <li>Start roadmap feature work after migration</li>
           </ul>
         </div>
@@ -354,64 +354,39 @@
           <h3><span class="dot d-block"></span>Open risks</h3>
           <ul>
             <li>Threaded AVIF/JXL/OxiPNG (COOP/COEP) unproven</li>
-            <li>Final app location decision: root vs /app</li>
+            <li>Maintainer acceptance on real image workflows</li>
             <li>Bulk UI intentionally deferred to roadmap</li>
             <li>Codec deletion deferred; WebP2 kept as parity</li>
           </ul>
         </div>
       </div>
 
-      <h2>Branch map — a clean linear stack, not 3 rival efforts</h2>
+      <h2>Branch map — current launch branch plus history</h2>
       <div class="card branches">
         <div class="brow">
           <div class="bname">main<span class="sub">stable trunk</span></div>
           <div class="bbody">
-            The original Squoosh app (Preact + Rollup), still the working
-            product. Untouched by the migration.
-            <span class="pill">production</span>
+            Historical Preact + Rollup safety net until the Svelte branch is
+            accepted and merged.
+            <span class="pill">safety net</span>
+          </div>
+        </div>
+        <div class="brow">
+          <div class="bname">svelte<span class="sub">launch candidate</span></div>
+          <div class="bbody">
+            Root SvelteKit 2 / Svelte 5 app with the single-image optimizer,
+            generated codec assets, worker bridge, and service worker.
+            <span class="pill">verify here</span>
           </div>
         </div>
         <div class="brow">
           <div class="bname">
-            code/sveltekit-prototype<span class="sub">⊂ codec-assets</span>
+            code/sveltekit-*<span class="sub">historical inputs</span>
           </div>
           <div class="bbody">
-            Disposable proof: a real SvelteKit (Svelte 5) app that loads the
-            WASM codecs and encodes WebP in a worker. Evidence, not product.
-            <span class="pill">contained in codec-assets</span>
-          </div>
-        </div>
-        <div class="brow">
-          <div class="bname">
-            code/sveltekit-migration-seams<span class="sub"
-              >⊂ codec-assets</span
-            >
-          </div>
-          <div class="bbody">
-            The framework-neutral “seam” refactors that make Squoosh’s pipeline
-            importable from Vite/SvelteKit.
-            <span class="pill">redundant — subset of codec-assets</span>
-          </div>
-        </div>
-        <div class="brow">
-          <div class="bname">
-            code/sveltekit-codec-assets<span class="sub">canonical</span>
-          </div>
-          <div class="bbody">
-            <b>The one branch that matters.</b> Contains everything above + the
-            codec-asset URL strategy. This is the base for new work.
-            <span class="pill">build here next</span>
-          </div>
-        </div>
-        <div class="brow">
-          <div class="bname">
-            code/sveltekit-single-image-slice<span class="sub"
-              >new (this pass)</span
-            >
-          </div>
-          <div class="bbody">
-            Branched from codec-assets to build the runnable single-image UI.
-            <span class="pill">in progress</span>
+            Prototype, seams, codec-assets, and single-image slice branches are
+            useful history. Do not restart current work there by default.
+            <span class="pill">archaeology</span>
           </div>
         </div>
       </div>

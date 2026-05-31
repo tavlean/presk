@@ -1,16 +1,16 @@
-import type WorkerBridge from '../worker-bridge';
 import { isAbortError } from '../abort';
+import type { ImagePipelineWorkerBridge } from '../image-pipeline';
 import type { BulkSession, ImageJob, ImageOutput } from './session';
 import { completeJob, failJob, getRunnableJobs, startJob } from './queue';
 import { processBulkImageJob } from './processor';
 
 export interface BulkRunnerOptions {
   signal: AbortSignal;
-  workerBridges: WorkerBridge[];
+  workerBridges: ImagePipelineWorkerBridge[];
   concurrency?: number;
   processJob?: (
     job: ImageJob,
-    workerBridge: WorkerBridge,
+    workerBridge: ImagePipelineWorkerBridge,
   ) => Promise<ImageOutput>;
 }
 

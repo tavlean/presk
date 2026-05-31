@@ -1,104 +1,112 @@
-# Manual QA checklist
+# Manual QA Checklist
 
-Use this checklist before releases and after changes touching build tooling, workers, codecs, service workers, image processing, or editor behavior.
+Use this before releases and after changes touching build tooling, workers,
+codecs, service workers, image processing, or editor behavior.
 
 ## Setup
 
-1. Run `npm run check`.
-2. Run `npm run preview`.
-3. Open the preview URL in a browser.
-4. Hard refresh once.
+```sh
+npm run check
+npm run preview -- --host 127.0.0.1 --port 5189 --strictPort
+```
 
-## App shell
+Open `http://127.0.0.1:5189` in a fresh browser context when possible.
 
-- Page title is `Sqush`.
-- Logo and drop target render.
-- No visible error overlay appears.
+## App Shell
+
+- Logo renders on the intro screen.
+- File picker is available.
+- Drag/drop overlay appears when dragging an image.
+- `/diagnostics` loads.
 - Browser console has no unexpected errors.
 
-## Single-image workflow
+## Single-Image Workflow
 
-- Open a JPEG file.
-- Open a PNG file.
-- Open a large photo and confirm fit, pan, and download still work.
-- Open an SVG file and confirm it encodes/downloads through the selected output
+- Open a JPEG or PNG.
+- Open a large photo and confirm fit, pan, zoom, and download still work.
+- Open an SVG and confirm it encodes/downloads through the selected output
   format.
-- Open a WebP file.
-- Open an AVIF file if one is available.
-- Verify the editor opens for each file.
-- Verify the before/after comparison renders.
+- Open WebP if a sample is available.
 - Change the output encoder.
-- Change quality or another encoder option.
+- Change encoder options.
 - Enable resize and change dimensions.
-- Enable quantize if available.
+- Enable quantize where available.
 - Rotate the input.
-- Verify output size updates.
-- Download the generated output.
+- Download the generated output and verify the extension/bytes are plausible.
 - Use the back button and confirm the app returns to the import screen.
 
-## Saved settings
+## Format Spot Checks
 
-- Change left and right side settings.
+At minimum before launch:
+
+- WebP encode/download.
+- WebP 2 encode/download while it remains visible.
+- AVIF encode/download.
+- JPEG XL encode/download if browser/runtime permits the preview.
+- MozJPEG and OxiPNG encode/download.
+- QOI encode/download.
+- Browser JPEG/PNG feature detection and encode.
+
+## Saved Settings
+
+- Change both side formats/options.
 - Refresh the app.
 - Reopen an image.
 - Confirm saved settings are restored.
-- Clear browser site data.
-- Reopen the app and confirm invalid or missing saved settings do not break startup.
+- Clear site data.
+- Reopen the app and confirm missing settings do not break startup.
 
-## Production-build behavior
+## Mobile Layout
 
-- Run `npm run build`.
-- Run `npm run preview`.
-- Open the preview URL.
-- Hard refresh.
-- Confirm the app still loads.
-- Confirm the drop target still works.
-- Confirm the service worker does not serve stale broken assets.
+Check at roughly `390 x 844`:
 
-## Playwright CLI smoke
+- intro text and buttons fit;
+- editor has no horizontal overflow;
+- output controls remain reachable;
+- bottom option panels are usable;
+- text does not overlap controls.
 
-Use the system `playwright-cli` setup documented at `/Users/tav/Development/docs/playwright-cli-system-setup.md`. Do not add Playwright packages to this repo just to run this local smoke flow.
+## Offline
 
-Automated path:
+Use a production preview.
 
-```sh
-npm run smoke:browser
-```
+1. Load the app online.
+2. Open an image and perform one encode.
+3. Confirm the service worker controls the page.
+4. Switch the browser context offline.
+5. Reload `/`.
+6. Confirm the app shell loads and a cached codec path still works.
 
-This command builds the app, starts a production preview server, opens the app with `playwright-cli`, imports `src/static-build/assets/icon-large.png`, switches the output side to WebP, checks for an `icon-large.webp` blob download, enables resize, verifies a generated WebP blob is resized to `64x64`, verifies the output side can save versioned WebP settings, imports an extensionless PNG copy, verifies that it also exports as `icon-large.webp`, reloads the app shell while the browser context is offline, and fails if console errors are emitted during the flow.
+## Playwright Smoke Shape
 
-Manual fallback:
+The repo does not currently ship a Playwright dependency. On 2026-05-31 the
+local browser smoke used the Codex Playwright CLI wrapper against the production
+preview on `127.0.0.1:5189`.
 
-1. Run `npm run build`.
-2. Run `PREVIEW_PORT=5001 npm run preview`.
-3. In another terminal, run:
+Current smoke coverage:
 
-```sh
-playwright-cli -s=sqush-smoke open http://127.0.0.1:5001
-playwright-cli -s=sqush-smoke snapshot
-playwright-cli -s=sqush-smoke run-code "async page => { const file = process.cwd() + '/src/static-build/assets/icon-large.png'; const input = page.locator('input[type=file]').first(); await input.setInputFiles(file); await page.waitForURL('**/editor', { timeout: 15000 }); await page.waitForFunction(() => document.title.includes('icon-large.png'), null, { timeout: 20000 }); await page.waitForFunction(() => !document.title.startsWith('⏳'), null, { timeout: 30000 }); return { url: page.url(), title: await page.title() }; }"
-playwright-cli -s=sqush-smoke run-code "async page => { const selects = page.locator('select'); await selects.nth(1).selectOption({ label: 'WebP' }); await page.waitForFunction(() => !document.title.startsWith('⏳'), null, { timeout: 30000 }); const selected = await selects.nth(1).evaluate(el => el.options[el.selectedIndex].text); const links = await page.locator('a[download], a[href^=blob]').evaluateAll(els => els.map(a => ({ href: a.href, download: a.getAttribute('download') }))); const bodyText = await page.locator('body').innerText(); return { selected, links, outputMentioned: /\\.webp|WebP|kB/.test(bodyText) }; }"
-playwright-cli -s=sqush-smoke console error
-playwright-cli -s=sqush-smoke close
-```
+- PNG to WebP and WebP 2 download links;
+- JPEG, SVG, and WebP inputs to WebP download links;
+- desktop editor load;
+- `390 x 844` mobile viewport with no horizontal overflow;
+- service-worker-controlled offline reload;
+- no unexpected console or page errors.
 
-Expected result: the upload navigates to `/editor`, the title becomes `icon-large.png - Sqush`, the output side can be changed to `WebP`, a blob download named `icon-large.webp` is present, and `console error` reports zero errors.
+Suggested future smoke:
 
-## Bulk roadmap checks
+1. Start preview on `127.0.0.1:5189`.
+2. Upload a local PNG or JPEG.
+3. Wait for the editor title to include the file name.
+4. Switch one side to WebP and WebP 2.
+5. Wait until the title is no longer in a working state.
+6. Assert an `a[download]` or blob URL exists for the output.
+7. Check console errors.
 
-Bulk UI is roadmap work and is not part of migration closeout. Until
-implementation starts, verify only the backend helpers through:
+Prefer a real photo for release QA; `static/logo.webp` is only a lightweight
+smoke asset.
 
-```sh
-npm run test:helpers
-```
+## Bulk
 
-When roadmap implementation starts, add browser checks for:
-
-- multiple file import;
-- per-image status display;
-- global settings changes;
-- per-image overrides;
-- failed image handling;
-- export-all behavior;
-- object URL cleanup.
+Bulk UI is roadmap work and is not part of migration closeout. When bulk work
+starts, add QA for multi-file import, queue progress, per-image status,
+overrides, retry/cancel, export-all, and object URL cleanup.

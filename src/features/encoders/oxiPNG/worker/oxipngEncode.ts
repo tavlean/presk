@@ -29,9 +29,8 @@ export default createOxiPngEncoderRuntime({
     return optimise;
   },
   async loadSingleThread(wasmUrl) {
-    const { default: init, optimise } = await import(
-      'codecs/oxipng/pkg/squoosh_oxipng'
-    );
+    const { default: init, optimise } =
+      await import('codecs/oxipng/pkg/squoosh_oxipng');
     await init(wasmUrl);
 
     return optimise;

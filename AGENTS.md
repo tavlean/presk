@@ -1,28 +1,26 @@
 # Agent guide
 
-Sqush is a local-first image optimizer. Its core promise is reliable single-image
-optimization in the browser: no uploads, no server processing, and dependable
-offline behavior after load. Any cleanup, prototype, migration, or feature work
-must protect import, decode, process, encode, preview, export, and service-worker
-behavior.
+Sqush is a local-first image optimizer. Its core promise is reliable
+single-image optimization in the browser: no uploads, no server processing, and
+dependable offline behavior after load. Any cleanup, migration, or feature work
+must protect import, decode, process, encode, preview, export, and
+service-worker behavior.
 
 ## Current stage
 
-The launch path is the `svelte` branch and its worktree at
-`../Sqush-svelte`. Sqush is now all-in on a SvelteKit 2 / Svelte 5 static app
-under `prototypes/sveltekit/`, with the existing Preact/Rollup app on `main`
-kept only as a safety net until the flip.
+The launch path is the `svelte` branch and its worktree at `../Sqush-svelte`.
+The app has been promoted out of `prototypes/sveltekit/` and now lives at the
+repo root as a SvelteKit 2 / Svelte 5 static app.
 
-The immediate focus is migration closeout: spot-check single-image editor
-parity, worker/WASM/static-output/service-worker reliability, responsive layout,
-large/SVG inputs, downloads, settings, and the final cutover path. Bulk UI and
-other new product work are roadmap items, not migration scope.
+The immediate focus is migration closeout: verify the root SvelteKit app,
+service worker, worker/WASM assets, downloads, settings, responsive layout,
+large/SVG inputs, and docs. Bulk UI and other new product work are roadmap
+items, not migration scope.
 
 ## Boundaries
 
 - Do not implement production bulk UI without maintainer/design discussion.
 - Do not treat new product features as part of the Svelte migration.
-- Do not replace the current app shell as part of the prototype.
 - Do not introduce server-side image processing or upload paths.
 - Do not delete or move codecs, generated metadata, workers, or WASM assets
   unless the build and runtime consequences are proven.
@@ -37,10 +35,10 @@ other new product work are roadmap items, not migration scope.
 - Keep browser objects such as `File`, `Blob`, `ImageData`, workers, WASM
   modules, and object URLs out of broad reactive state unless measured.
 - Run focused tests for pure helper changes.
-- Run `npm run check` for production app build/tooling/runtime changes.
-- In `prototypes/sveltekit`, run its local `check`, `build`, and audit scripts
-  for meaningful prototype changes.
-- Use Svelte MCP/docs when creating, editing, or analyzing Svelte code.
+- Run `npm run check` for app, build/tooling, runtime, service-worker, or docs
+  changes.
+- Use Svelte MCP/docs when creating, editing, or analyzing Svelte code. Run the
+  Svelte autofixer after meaningful Svelte edits.
 - Commit meaningful checkpoints. Push when CI feedback is useful or the
   maintainer asks.
 
@@ -48,9 +46,8 @@ other new product work are roadmap items, not migration scope.
 
 - [Current status](docs/STATUS.md)
 - [Migration plan](docs/MIGRATION-PLAN.md)
+- [Build and runtime map](docs/build-and-runtime.md)
 - [Product roadmap](docs/road-map.md)
-- [Phase 1 readiness audit](docs/phase-1-readiness-audit.md)
 - [Svelte migration context](docs/svelte-migration-context.md)
 - [Bulk image architecture](docs/bulk-image-architecture.md)
-- [Progress dashboard](docs/progress-dashboard.md)
-- [Maintenance status](docs/maintenance-status.md)
+- [Manual QA checklist](docs/manual-qa.md)

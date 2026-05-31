@@ -165,9 +165,8 @@ export function createServiceWorkerBridge(options: ServiceWorkerBridgeOptions) {
       const userInteracted = await options.getUserInteracted?.();
       if (userInteracted) return;
       options.setUserInteracted?.(true);
-      const activeServiceWorker = await getMostActiveServiceWorker(
-        serviceWorker,
-      );
+      const activeServiceWorker =
+        await getMostActiveServiceWorker(serviceWorker);
       if (!activeServiceWorker) return; // Service worker not installing yet.
       activeServiceWorker.postMessage('cache-all');
     },

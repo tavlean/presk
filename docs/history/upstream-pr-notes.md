@@ -9,41 +9,34 @@ GitHub reported 89 open PRs at audit time. All 89 were inspected through the Git
 ## Highest-value references
 
 1. `GoogleChromeLabs/squoosh#1428`: bulk processing support.
-
    - Most relevant reference for Sqush's main product direction.
    - Use it to compare multi-file import, processing order, preview selection, and export behavior.
    - Do not merge blindly because Sqush already has separate framework-neutral bulk helpers and the bulk UI is on design hold.
 
 2. `GoogleChromeLabs/squoosh#1470`: SVG `viewBox` comma parsing.
-
    - Small import compatibility fix.
    - Worth cherry-picking manually after testing comma-separated and whitespace-separated `viewBox` values.
    - Current status: implemented in Sqush with a tested `parseSvgViewBoxSize` helper.
 
 3. `GoogleChromeLabs/squoosh#1339`: copy settings as JSON.
-
    - Useful concept for presets and sharing compression settings.
    - Redesign as explicit preset import/export before implementing.
 
 4. `GoogleChromeLabs/squoosh#918`: drag output files to the desktop.
-
    - Useful export UX idea.
    - Browser support needs testing before relying on it.
 
 ## Codec references
 
 1. `GoogleChromeLabs/squoosh#1413`: zopfli options for oxipng.
-
    - Useful only if PNG remains a serious supported output.
    - Requires Rust/WASM output review and slow-compression UX decisions.
 
 2. `GoogleChromeLabs/squoosh#1398`: TIFF decoding.
-
    - Potentially useful for bulk input support.
    - High complexity because it adds another WASM codec/toolchain path.
 
 3. `GoogleChromeLabs/squoosh#1378` and `#1379`: JPEG XL update attempts.
-
    - Useful as historical context.
    - Do a fresh JXL update rather than applying these old failing branches.
 

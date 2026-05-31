@@ -26,7 +26,7 @@ Sqush depends on these capabilities:
 - service workers and Cache Storage for offline/PWA behavior;
 - Canvas and ImageData for preview, resize, and browser encoders;
 - Blob, File, object URLs, local file input, paste, drag/drop, and downloads;
-- dynamic module loading for the current Rollup output;
+- dynamic module loading for the current SvelteKit/Vite output;
 - optional WebAssembly SIMD and threads for faster codec paths.
 
 WebAssembly SIMD and threads are optimization paths, not the minimum product contract. The app should fall back to non-SIMD or single-threaded codec builds when possible.
@@ -46,9 +46,12 @@ Product priority:
 
 MDN also lists BMP as broadly browser-supported and TIFF as Safari-only, which is why extension acceptance and actual decode success must remain separate.
 
-## Svelte migration baseline
+## SvelteKit baseline
 
-The future Svelte or SvelteKit build should keep the same browser promise unless a measured prototype proves a reason to change it. A Svelte migration should not add support for older browsers by accident or drop currently supported evergreen browsers without an explicit decision.
+The root SvelteKit build should keep the same browser promise unless measured
+QA proves a reason to change it. The migration should not add support for older
+browsers by accident or drop currently supported evergreen browsers without an
+explicit decision.
 
 For Svelte/SvelteKit planning:
 
