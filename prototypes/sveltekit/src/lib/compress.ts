@@ -60,7 +60,63 @@ export const OUTPUT_FORMATS: {
   { id: 'mozJPEG', label: 'MozJPEG', ext: encoderMap.mozJPEG.meta.extension },
   { id: 'oxiPNG', label: 'OxiPNG', ext: encoderMap.oxiPNG.meta.extension },
   { id: 'qoi', label: 'QOI', ext: encoderMap.qoi.meta.extension },
+  // Browser-native encoders (canvas-based, main thread). Offered like the
+  // original; feature-detected at runtime via getSupportedFormatIds() since
+  // canvas.toBlob support varies (notably GIF is usually unavailable).
+  {
+    id: 'browserJPEG',
+    label: encoderMap.browserJPEG.meta.label,
+    ext: encoderMap.browserJPEG.meta.extension,
+  },
+  {
+    id: 'browserPNG',
+    label: encoderMap.browserPNG.meta.label,
+    ext: encoderMap.browserPNG.meta.extension,
+  },
+  {
+    id: 'browserGIF',
+    label: encoderMap.browserGIF.meta.label,
+    ext: encoderMap.browserGIF.meta.extension,
+  },
 ];
+
+/** Canvas MIME types for the browser-native encoders (for feature detection). */
+const BROWSER_ENCODER_MIME: Partial<Record<OutputFormat, string>> = {
+  browserJPEG: 'image/jpeg',
+  browserPNG: 'image/png',
+  browserGIF: 'image/gif',
+};
+
+async function canvasSupportsMime(mime: string): Promise<boolean> {
+  if (typeof document === 'undefined') return false;
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, mime),
+    );
+    // Browsers that don't support the type fall back to PNG, so check the type.
+    return !!blob && blob.type === mime;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The encoders that actually work in this browser. WASM codecs are always
+ * supported; the browser-native encoders are probed via canvas.toBlob (the
+ * Svelte equivalent of Squoosh's getSupportedEncoderMap featureTest pass).
+ */
+export async function getSupportedFormatIds(): Promise<Set<OutputFormat>> {
+  const ids = new Set<OutputFormat>();
+  await Promise.all(
+    OUTPUT_FORMATS.map(async ({ id }) => {
+      const mime = BROWSER_ENCODER_MIME[id];
+      if (!mime || (await canvasSupportsMime(mime))) ids.add(id);
+    }),
+  );
+  return ids;
+}
 
 export interface CompressRequest {
   format: SideFormat;

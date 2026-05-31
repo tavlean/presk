@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import {
     compressFile,
     getDefaultOptions,
+    getSupportedFormatIds,
     OUTPUT_FORMATS,
     IDENTITY,
     type CompressOutcome,
@@ -130,6 +132,17 @@
     results[0]?.preprocessedHeight ?? results[1]?.preprocessedHeight ?? 0,
   );
   const isVectorSource = $derived(file?.type === 'image/svg+xml');
+
+  // Encoder choices, narrowed to those this browser can actually run (the
+  // browser-native encoders are feature-detected; GIF in particular usually
+  // isn't supported by canvas.toBlob).
+  let supportedFormatIds = $state(new Set(OUTPUT_FORMATS.map((f) => f.id)));
+  onMount(async () => {
+    supportedFormatIds = await getSupportedFormatIds();
+  });
+  const availableFormats = $derived(
+    OUTPUT_FORMATS.filter((f) => supportedFormatIds.has(f.id)),
+  );
 
   let canImport = $state<[boolean, boolean]>([
     typeof localStorage !== 'undefined' &&
@@ -452,6 +465,7 @@
         <OptionsPanel
           side="left"
           format={sides[0].format}
+          formats={availableFormats}
           options={sides[0].optionsByFormat[sides[0].format] ?? {}}
           processorState={sides[0].processorState}
           {naturalWidth}
@@ -473,6 +487,7 @@
         <OptionsPanel
           side="right"
           format={sides[1].format}
+          formats={availableFormats}
           options={sides[1].optionsByFormat[sides[1].format] ?? {}}
           processorState={sides[1].processorState}
           {naturalWidth}

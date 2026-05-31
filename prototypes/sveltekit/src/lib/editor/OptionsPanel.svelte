@@ -13,6 +13,7 @@
   import JxlOptions from './options/JxlOptions.svelte';
   import MozjpegOptions from './options/MozjpegOptions.svelte';
   import OxipngOptions from './options/OxipngOptions.svelte';
+  import BrowserJpegOptions from './options/BrowserJpegOptions.svelte';
   import ResizeOptions from './options/ResizeOptions.svelte';
   import QuantizeOptions from './options/QuantizeOptions.svelte';
   import Results from './Results.svelte';
@@ -35,6 +36,8 @@
   interface Props {
     side: 'left' | 'right';
     format: SideFormat;
+    /** Encoder choices to list (already filtered to those the browser supports). */
+    formats?: { id: string; label: string; ext: string }[];
     /** The current format's option object (live $state proxy from the parent). */
     options: Record<string, unknown>;
     processorState: ProcessorState;
@@ -57,6 +60,7 @@
   let {
     side,
     format,
+    formats = OUTPUT_FORMATS,
     options,
     processorState,
     naturalWidth,
@@ -74,9 +78,7 @@
   }: Props = $props();
 
   const isOriginal = $derived(format === 'identity');
-  const typeLabel = $derived(
-    OUTPUT_FORMATS.find((f) => f.id === format)?.label ?? '',
-  );
+  const typeLabel = $derived(formats.find((f) => f.id === format)?.label ?? '');
 </script>
 
 <div class="options-scroller" class:original-image={isOriginal}>
@@ -182,7 +184,7 @@
       <option value="identity"
         >{sourceName ? `Original Image (${sourceName})` : 'Original Image'}</option
       >
-      {#each OUTPUT_FORMATS as option (option.id)}
+      {#each formats as option (option.id)}
         <option value={option.id}>{option.label}</option>
       {/each}
     </Select>
@@ -205,6 +207,8 @@
         <MozjpegOptions options={options as unknown as MozjpegEncodeOptions} />
       {:else if format === 'oxiPNG'}
         <OxipngOptions options={options as unknown as OxipngEncodeOptions} />
+      {:else if format === 'browserJPEG'}
+        <BrowserJpegOptions options={options as unknown as { quality: number }} />
       {:else if typeof options.quality === 'number'}
         <div class="option-one-cell">
           <Range
