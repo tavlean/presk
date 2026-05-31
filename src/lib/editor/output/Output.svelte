@@ -160,6 +160,15 @@
       const cloned = new Ctor(event.type, event as EventInit);
       retargeted.add(cloned);
       pz.dispatchEvent(cloned);
+      // On touchend, unfocus any active element so Android Chrome doesn't
+      // re-show the software keyboard after interacting with the output.
+      // Ported from the original shouldBlurActiveElementAfterOutputRetarget.
+      if (
+        event.type === 'touchend' &&
+        document.activeElement instanceof HTMLElement
+      ) {
+        document.activeElement.blur();
+      }
     };
     const types = ['touchstart', 'touchend', 'touchmove', 'mousedown', 'wheel'];
     if (!isSafari) types.push('pointerdown');
@@ -184,6 +193,9 @@
   }
 
   function focusOnMount(node: HTMLInputElement) {
+    // Force a style calc before focus() — Firefox otherwise drops focus on a
+    // just-inserted input. Parity with the original onScaleValueFocus.
+    void getComputedStyle(node).transform;
     node.focus();
     node.select();
   }
