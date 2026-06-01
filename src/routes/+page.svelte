@@ -204,12 +204,29 @@
     padding: 14px 28px;
     border-radius: 8px;
     margin-top: 8px;
+    transition: background 150ms ease;
   }
   .select-button:hover {
     background: #ff0066;
   }
+  /* Keyboard focus ring — the file input is visually hidden but still focusable
+     (see below), so reflect its focus on the visible button. */
+  .select-button:focus-within {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+  /* Visually hide the file input WITHOUT removing it from the tab order, so the
+     button is reachable and operable by keyboard (display:none would drop it). */
   .select-button input {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
   .intro-hint {
     margin: 0;
