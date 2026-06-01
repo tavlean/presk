@@ -191,10 +191,10 @@ Highest leverage — one change at the primitives ripples through every panel.
 
 ## Wave 6 — Structural simplification (readability ROI)
 
-- [ ] Extract a shared "Advanced settings" snippet/component — the
-      `<Revealer> + {#if showAdvanced}<div transition:slide>` scaffold is duplicated
-      verbatim across AVIF/WebP/WP2/MozJPEG, each re-declaring `showAdvanced`.
-      _Source: Claude. Best bang-for-buck simplification._
+- [x] Extract a shared "Advanced settings" component
+      (`options/AdvancedSection.svelte`, owns `open`, renders a children snippet) —
+      replaced the scaffold duplicated across AVIF/WebP/WP2/MozJPEG. **Done**
+      (`fc03306b`); browser-verified in all four panels. _Source: Claude._
 - [ ] Extract `OptionRow` / `ToggleRow` snippets to replace the ~87 repeated
       `<div class="option-one-cell">` / `<label class="option-toggle">` wrappers
       across the nine panels. _Source: Claude._
