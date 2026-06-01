@@ -188,7 +188,15 @@ export class EditorSession {
     null,
   ]);
   statuses = $state<[SideStatus, SideStatus]>(['idle', 'idle']);
-  showSpinner = $state<[boolean, boolean]>([false, false]);
+  // The 500ms delayed loading spinner. `spinnerDelayPassed` is flipped true by
+  // the updateSpinner effect once a side has been working for 500ms; showSpinner
+  // AND-gates it with the live status so the spinner can never show outside a
+  // 'working' spell and hides the instant a side stops working.
+  spinnerDelayPassed = $state<[boolean, boolean]>([false, false]);
+  showSpinner = $derived([
+    this.statuses[0] === 'working' && this.spinnerDelayPassed[0],
+    this.statuses[1] === 'working' && this.spinnerDelayPassed[1],
+  ] as [boolean, boolean]);
   errors = $state<[string, string]>(['', '']);
   // Seed with the always-available (WASM) encoders only. The browser-native
   // ones (canvas.toBlob — GIF is usually unsupported) are added once
@@ -203,9 +211,17 @@ export class EditorSession {
   );
   canImport = $state<[boolean, boolean]>([hasSavedSide(0), hasSavedSide(1)]);
 
-  private dimsSeeded = false;
   private lastUrls: [string | null, string | null] = [null, null];
-  private prevFiles: [File | null, File | null] = [null, null];
+  // Bookkeeping keyed to `loadId` (bumped on every new file). Comparing against
+  // the live loadId replaces the old mutable prevFiles/dimsSeeded guards, so a
+  // new file is detected automatically with no hand-reset in pickFiles/clearFile:
+  //  - encodedLoadId: loadId each side last (re)started an encode at — a new
+  //    file therefore encodes immediately, while option tweaks stay debounced.
+  //  - seededLoadId: loadId the resize dims were last seeded at (one-shot/file).
+  private encodedLoadId: [number, number] = [-1, -1];
+  private seededLoadId = -1;
+  // Disposes the per-side encode/spinner effects this instance owns (constructor).
+  private stopEffects: (() => void) | null = null;
   // Debounced localStorage write for persistSettings (see flushSettings).
   private settingsTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingSettings: string | null = null;
@@ -238,6 +254,19 @@ export class EditorSession {
       'Sqush — Compress an image',
   );
 
+  constructor() {
+    // The class owns its per-side encode + spinner reactivity rather than having
+    // +page.svelte create these effects and forward their cleanup-returning
+    // methods. A component-detached $effect.root lets the instance set them up
+    // here and tear them down in dispose().
+    this.stopEffects = $effect.root(() => {
+      for (const index of [0, 1] as const) {
+        $effect(() => this.encodeSide(index));
+        $effect(() => this.updateSpinner(index));
+      }
+    });
+  }
+
   async loadSupportedFormats(): Promise<void> {
     this.supportedFormatIds = new SvelteSet(await getSupportedFormatIds());
   }
@@ -251,8 +280,10 @@ export class EditorSession {
       processorState: snapshotProcessorStateForEncode(side.processorState),
       preprocessorState: $state.snapshot(this.preprocessorState),
     };
-    const fileChanged = current !== this.prevFiles[index];
-    this.prevFiles[index] = current;
+    // A new file bumps loadId; compare against the loadId this side last encoded
+    // at, so a fresh image encodes immediately and option tweaks stay debounced.
+    const fileChanged = this.loadId !== this.encodedLoadId[index];
+    this.encodedLoadId[index] = this.loadId;
 
     if (!current) {
       this.statuses[index] = 'idle';
@@ -303,13 +334,14 @@ export class EditorSession {
   }
 
   updateSpinner(index: SideIndex): (() => void) | void {
+    // Manages only the 500ms delay; showSpinner is the $derived AND-gate above.
     if (this.statuses[index] !== 'working') {
-      this.showSpinner[index] = false;
+      this.spinnerDelayPassed[index] = false;
       return;
     }
 
     const timer = setTimeout(() => {
-      this.showSpinner[index] = true;
+      this.spinnerDelayPassed[index] = true;
     }, SPINNER_DELAY);
 
     return () => clearTimeout(timer);
@@ -321,9 +353,9 @@ export class EditorSession {
 
   seedResizeDimensions(): void {
     const result = this.results[0] ?? this.results[1];
-    if (!result || this.dimsSeeded) return;
+    if (!result || this.seededLoadId === this.loadId) return;
 
-    this.dimsSeeded = true;
+    this.seededLoadId = this.loadId;
     for (const side of this.sides) {
       if (side.processorState.resize.enabled) continue;
       side.processorState.resize.width = result.preprocessedWidth;
@@ -386,10 +418,10 @@ export class EditorSession {
     this.results = [null, null];
     this.errors = ['', ''];
     this.statuses = ['idle', 'idle'];
-    this.showSpinner = [false, false];
-    this.prevFiles = [null, null];
+    // Reset the spinner delay so the new file re-earns the 500ms grace; loadId
+    // (bumped above) re-arms the encode + seed bookkeeping with no manual reset.
+    this.spinnerDelayPassed = [false, false];
     this.preprocessorState = structuredClone(defaultPreprocessorState);
-    this.dimsSeeded = false;
 
     const isVector = next.type === 'image/svg+xml';
     for (const side of this.sides) {
@@ -410,14 +442,16 @@ export class EditorSession {
     this.results = [null, null];
     this.errors = ['', ''];
     this.statuses = ['idle', 'idle'];
-    this.showSpinner = [false, false];
-    this.prevFiles = [null, null];
+    this.spinnerDelayPassed = [false, false];
     this.preprocessorState = structuredClone(defaultPreprocessorState);
-    this.dimsSeeded = false;
     this.revokeAllUrls();
   }
 
   dispose(): void {
+    // Tear down the encode/spinner effects this instance set up in its
+    // constructor.
+    this.stopEffects?.();
+    this.stopEffects = null;
     // Persist any pending settings change before teardown so the debounce never
     // drops the user's last edit.
     this.flushSettings();

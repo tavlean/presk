@@ -27,11 +27,9 @@
     return () => session.dispose();
   });
 
-  for (const index of sideIndexes) {
-    $effect(() => session.encodeSide(index));
-    $effect(() => session.updateSpinner(index));
-  }
-
+  // The per-side encode + spinner effects now live inside EditorSession (set up
+  // in its constructor, disposed in dispose()); the page keeps only the effects
+  // that depend on page/route state or write back to shared session state.
   $effect(() => session.syncRouteState(!!page.state.editor));
   $effect(() => session.seedResizeDimensions());
   $effect(() => session.persistSettings());
