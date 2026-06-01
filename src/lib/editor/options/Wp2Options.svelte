@@ -8,14 +8,13 @@
   } from 'features/encoders/wp2/shared/meta';
   import Checkbox from './Checkbox.svelte';
   import Range from './Range.svelte';
-  import Revealer from './Revealer.svelte';
+  import AdvancedSection from './AdvancedSection.svelte';
   import Select from './Select.svelte';
 
   let { options }: { options: EncodeOptions } = $props();
 
   const initialOptions = untrack(() => $state.snapshot(options));
 
-  let showAdvanced = $state(false);
   let lossless = $state(initialOptions.quality > 95);
   let separateAlpha = $state(
     initialOptions.quality !== initialOptions.alpha_quality,
@@ -80,48 +79,42 @@
         </div>
       {/if}
 
-      <label class="option-reveal">
-        <Revealer bind:checked={showAdvanced} />
-        Advanced settings
-      </label>
-      {#if showAdvanced}
-        <div transition:slide={{ duration: 300 }}>
-          <div class="option-one-cell">
-            <Range min={1} max={10} bind:value={options.pass}>Passes:</Range>
-          </div>
-          <div class="option-one-cell">
-            <Range min={0} max={100} bind:value={options.sns}
-              >Spatial noise shaping:</Range
-            >
-          </div>
-          <div class="option-one-cell">
-            <Range min={0} max={100} bind:value={options.error_diffusion}
-              >Error diffusion:</Range
-            >
-          </div>
-          <label class="option-text-first">
-            Subsample chroma:
-            <Select bind:value={options.uv_mode}>
-              <option value={UVMode.UVModeAuto}>Auto</option>
-              <option value={UVMode.UVModeAdapt}>Vary</option>
-              <option value={UVMode.UVMode420}>Half</option>
-              <option value={UVMode.UVMode444}>Off</option>
-            </Select>
-          </label>
-          <label class="option-text-first">
-            Color space:
-            <Select bind:value={options.csp_type}>
-              <option value={Csp.kYCoCg}>YCoCg</option>
-              <option value={Csp.kYCbCr}>YCbCr</option>
-              <option value={Csp.kYIQ}>YIQ</option>
-            </Select>
-          </label>
-          <label class="option-toggle">
-            Random matrix
-            <Checkbox bind:checked={options.use_random_matrix} />
-          </label>
+      <AdvancedSection>
+        <div class="option-one-cell">
+          <Range min={1} max={10} bind:value={options.pass}>Passes:</Range>
         </div>
-      {/if}
+        <div class="option-one-cell">
+          <Range min={0} max={100} bind:value={options.sns}
+            >Spatial noise shaping:</Range
+          >
+        </div>
+        <div class="option-one-cell">
+          <Range min={0} max={100} bind:value={options.error_diffusion}
+            >Error diffusion:</Range
+          >
+        </div>
+        <label class="option-text-first">
+          Subsample chroma:
+          <Select bind:value={options.uv_mode}>
+            <option value={UVMode.UVModeAuto}>Auto</option>
+            <option value={UVMode.UVModeAdapt}>Vary</option>
+            <option value={UVMode.UVMode420}>Half</option>
+            <option value={UVMode.UVMode444}>Off</option>
+          </Select>
+        </label>
+        <label class="option-text-first">
+          Color space:
+          <Select bind:value={options.csp_type}>
+            <option value={Csp.kYCoCg}>YCoCg</option>
+            <option value={Csp.kYCbCr}>YCbCr</option>
+            <option value={Csp.kYIQ}>YIQ</option>
+          </Select>
+        </label>
+        <label class="option-toggle">
+          Random matrix
+          <Checkbox bind:checked={options.use_random_matrix} />
+        </label>
+      </AdvancedSection>
     </div>
   {/if}
 

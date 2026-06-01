@@ -12,7 +12,7 @@
   } from 'features/encoders/avif/shared/meta';
   import Range from './Range.svelte';
   import Checkbox from './Checkbox.svelte';
-  import Revealer from './Revealer.svelte';
+  import AdvancedSection from './AdvancedSection.svelte';
   import Select from './Select.svelte';
 
   let { options }: { options: EncodeOptions } = $props();
@@ -43,7 +43,6 @@
   let denoiseLevel = $state(o.denoiseLevel);
   let tune = $state(o.tune);
   let enableSharpYUV = $state(o.enableSharpYUV);
-  let showAdvanced = $state(false);
 
   function apply() {
     options.quality = lossless ? MAX_QUALITY : quality;
@@ -86,137 +85,130 @@
     </div>
   {/if}
 
-  <label class="option-reveal">
-    <Revealer bind:checked={showAdvanced} />
-    Advanced settings
-  </label>
-
-  {#if showAdvanced}
-    <div transition:slide={{ duration: 300 }}>
-      {#if !lossless}
-        <div>
-          <label class="option-text-first">
-            Subsample chroma:
-            <Select
-              value={String(subsample)}
-              onchange={(v) => {
-                subsample = Number(v);
-                apply();
-              }}
-            >
-              <option value="0">4:0:0</option>
-              <option value="1">4:2:0</option>
-              <option value="2">4:2:2</option>
-              <option value="3">4:4:4</option>
-            </Select>
-          </label>
-          {#if subsample === 1}
-            <label class="option-toggle" transition:slide={{ duration: 300 }}>
-              Sharp YUV Downsampling
-              <Checkbox
-                checked={enableSharpYUV}
-                onchange={(value) => {
-                  enableSharpYUV = value;
-                  apply();
-                }}
-              />
-            </label>
-          {/if}
-          <label class="option-toggle">
-            Separate alpha quality
+  <AdvancedSection>
+    {#if !lossless}
+      <div>
+        <label class="option-text-first">
+          Subsample chroma:
+          <Select
+            value={String(subsample)}
+            onchange={(v) => {
+              subsample = Number(v);
+              apply();
+            }}
+          >
+            <option value="0">4:0:0</option>
+            <option value="1">4:2:0</option>
+            <option value="2">4:2:2</option>
+            <option value="3">4:4:4</option>
+          </Select>
+        </label>
+        {#if subsample === 1}
+          <label class="option-toggle" transition:slide={{ duration: 300 }}>
+            Sharp YUV Downsampling
             <Checkbox
-              checked={separateAlpha}
+              checked={enableSharpYUV}
               onchange={(value) => {
-                separateAlpha = value;
+                enableSharpYUV = value;
                 apply();
               }}
             />
           </label>
-          {#if separateAlpha}
-            <div class="option-one-cell" transition:slide={{ duration: 300 }}>
-              <Range
-                min={0}
-                max={MAX_QUALITY - 1}
-                value={alphaQuality}
-                oninput={(v) => {
-                  alphaQuality = v;
-                  apply();
-                }}>Alpha quality:</Range
-              >
-            </div>
-          {/if}
-          <label class="option-toggle">
-            Extra chroma compression
-            <Checkbox
-              checked={chromaDeltaQ}
-              onchange={(value) => {
-                chromaDeltaQ = value;
-                apply();
-              }}
-            />
-          </label>
-          <div class="option-one-cell">
+        {/if}
+        <label class="option-toggle">
+          Separate alpha quality
+          <Checkbox
+            checked={separateAlpha}
+            onchange={(value) => {
+              separateAlpha = value;
+              apply();
+            }}
+          />
+        </label>
+        {#if separateAlpha}
+          <div class="option-one-cell" transition:slide={{ duration: 300 }}>
             <Range
               min={0}
-              max={7}
-              value={sharpness}
+              max={MAX_QUALITY - 1}
+              value={alphaQuality}
               oninput={(v) => {
-                sharpness = v;
+                alphaQuality = v;
                 apply();
-              }}>Sharpness:</Range
+              }}>Alpha quality:</Range
             >
           </div>
-          <div class="option-one-cell">
-            <Range
-              min={0}
-              max={50}
-              value={denoiseLevel}
-              oninput={(v) => {
-                denoiseLevel = v;
-                apply();
-              }}>Noise synthesis:</Range
-            >
-          </div>
-          <label class="option-text-first">
-            Tuning:
-            <Select
-              value={String(tune)}
-              onchange={(v) => {
-                tune = Number(v);
-                apply();
-              }}
-            >
-              <option value={String(AVIFTune.auto)}>Auto</option>
-              <option value={String(AVIFTune.psnr)}>PSNR</option>
-              <option value={String(AVIFTune.ssim)}>SSIM</option>
-            </Select>
-          </label>
+        {/if}
+        <label class="option-toggle">
+          Extra chroma compression
+          <Checkbox
+            checked={chromaDeltaQ}
+            onchange={(value) => {
+              chromaDeltaQ = value;
+              apply();
+            }}
+          />
+        </label>
+        <div class="option-one-cell">
+          <Range
+            min={0}
+            max={7}
+            value={sharpness}
+            oninput={(v) => {
+              sharpness = v;
+              apply();
+            }}>Sharpness:</Range
+          >
         </div>
-      {/if}
-      <div class="option-one-cell">
-        <Range
-          min={0}
-          max={6}
-          value={tileRows}
-          oninput={(v) => {
-            tileRows = v;
-            apply();
-          }}>Log2 of tile rows:</Range
-        >
+        <div class="option-one-cell">
+          <Range
+            min={0}
+            max={50}
+            value={denoiseLevel}
+            oninput={(v) => {
+              denoiseLevel = v;
+              apply();
+            }}>Noise synthesis:</Range
+          >
+        </div>
+        <label class="option-text-first">
+          Tuning:
+          <Select
+            value={String(tune)}
+            onchange={(v) => {
+              tune = Number(v);
+              apply();
+            }}
+          >
+            <option value={String(AVIFTune.auto)}>Auto</option>
+            <option value={String(AVIFTune.psnr)}>PSNR</option>
+            <option value={String(AVIFTune.ssim)}>SSIM</option>
+          </Select>
+        </label>
       </div>
-      <div class="option-one-cell">
-        <Range
-          min={0}
-          max={6}
-          value={tileCols}
-          oninput={(v) => {
-            tileCols = v;
-            apply();
-          }}>Log2 of tile cols:</Range
-        >
-      </div>
+    {/if}
+    <div class="option-one-cell">
+      <Range
+        min={0}
+        max={6}
+        value={tileRows}
+        oninput={(v) => {
+          tileRows = v;
+          apply();
+        }}>Log2 of tile rows:</Range
+      >
     </div>
-  {/if}
+    <div class="option-one-cell">
+      <Range
+        min={0}
+        max={6}
+        value={tileCols}
+        oninput={(v) => {
+          tileCols = v;
+          apply();
+        }}>Log2 of tile cols:</Range
+      >
+    </div>
+  </AdvancedSection>
 
   <div class="option-one-cell">
     <Range

@@ -6,7 +6,7 @@
   import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
   import Range from './Range.svelte';
   import Checkbox from './Checkbox.svelte';
-  import Revealer from './Revealer.svelte';
+  import AdvancedSection from './AdvancedSection.svelte';
   import Select from './Select.svelte';
 
   interface Props {
@@ -14,8 +14,6 @@
   }
 
   let { options }: Props = $props();
-
-  let showAdvanced = $state(false);
 
   // WEBP_HINT_DEFAULT = 0, WEBP_HINT_GRAPH = 3 (the only hint webp acts on).
   const HINT_DEFAULT = 0;
@@ -95,100 +93,93 @@
         >Quality:</Range
       >
     </div>
-    <label class="option-reveal">
-      <Revealer bind:checked={showAdvanced} />
-      Advanced settings
-    </label>
-    {#if showAdvanced}
-      <div transition:slide={{ duration: 300 }}>
-        <label class="option-toggle">
-          Compress alpha
-          <Checkbox
-            bind:checked={
-              () => !!options.alpha_compression,
-              (v) => (options.alpha_compression = v ? 1 : 0)
-            }
-          />
-        </label>
-        <div class="option-one-cell">
-          <Range min={0} max={100} bind:value={options.alpha_quality}
-            >Alpha quality:</Range
-          >
-        </div>
-        <div class="option-one-cell">
-          <Range min={0} max={2} bind:value={options.alpha_filtering}
-            >Alpha filter quality:</Range
-          >
-        </div>
-        <label class="option-toggle">
-          Auto adjust filter strength
-          <Checkbox
-            bind:checked={
-              () => !!options.autofilter,
-              (v) => (options.autofilter = v ? 1 : 0)
-            }
-          />
-        </label>
-        {#if !options.autofilter}
-          <div class="option-one-cell" transition:slide={{ duration: 300 }}>
-            <Range min={0} max={100} bind:value={options.filter_strength}
-              >Filter strength:</Range
-            >
-          </div>
-        {/if}
-        <label class="option-toggle">
-          Strong filter
-          <Checkbox
-            bind:checked={
-              () => !!options.filter_type,
-              (v) => (options.filter_type = v ? 1 : 0)
-            }
-          />
-        </label>
-        <div class="option-one-cell">
-          <Range
-            min={0}
-            max={7}
-            value={7 - options.filter_sharpness}
-            oninput={(v) => (options.filter_sharpness = 7 - v)}
-            >Filter sharpness:</Range
-          >
-        </div>
-        <label class="option-toggle">
-          Sharp RGB→YUV conversion
-          <Checkbox
-            bind:checked={
-              () => !!options.use_sharp_yuv,
-              (v) => (options.use_sharp_yuv = v ? 1 : 0)
-            }
-          />
-        </label>
-        <div class="option-one-cell">
-          <Range min={1} max={10} bind:value={options.pass}>Passes:</Range>
-        </div>
-        <div class="option-one-cell">
-          <Range min={0} max={100} bind:value={options.sns_strength}
-            >Spatial noise shaping:</Range
-          >
-        </div>
-        <label class="option-text-first">
-          Preprocess:
-          <Select bind:value={options.preprocessing}>
-            <option value={0}>None</option>
-            <option value={1}>Segment smooth</option>
-            <option value={2}>Pseudo-random dithering</option>
-          </Select>
-        </label>
-        <div class="option-one-cell">
-          <Range min={1} max={4} bind:value={options.segments}>Segments:</Range>
-        </div>
-        <div class="option-one-cell">
-          <Range min={0} max={3} bind:value={options.partitions}
-            >Partitions:</Range
-          >
-        </div>
+    <AdvancedSection>
+      <label class="option-toggle">
+        Compress alpha
+        <Checkbox
+          bind:checked={
+            () => !!options.alpha_compression,
+            (v) => (options.alpha_compression = v ? 1 : 0)
+          }
+        />
+      </label>
+      <div class="option-one-cell">
+        <Range min={0} max={100} bind:value={options.alpha_quality}
+          >Alpha quality:</Range
+        >
       </div>
-    {/if}
+      <div class="option-one-cell">
+        <Range min={0} max={2} bind:value={options.alpha_filtering}
+          >Alpha filter quality:</Range
+        >
+      </div>
+      <label class="option-toggle">
+        Auto adjust filter strength
+        <Checkbox
+          bind:checked={
+            () => !!options.autofilter, (v) => (options.autofilter = v ? 1 : 0)
+          }
+        />
+      </label>
+      {#if !options.autofilter}
+        <div class="option-one-cell" transition:slide={{ duration: 300 }}>
+          <Range min={0} max={100} bind:value={options.filter_strength}
+            >Filter strength:</Range
+          >
+        </div>
+      {/if}
+      <label class="option-toggle">
+        Strong filter
+        <Checkbox
+          bind:checked={
+            () => !!options.filter_type,
+            (v) => (options.filter_type = v ? 1 : 0)
+          }
+        />
+      </label>
+      <div class="option-one-cell">
+        <Range
+          min={0}
+          max={7}
+          value={7 - options.filter_sharpness}
+          oninput={(v) => (options.filter_sharpness = 7 - v)}
+          >Filter sharpness:</Range
+        >
+      </div>
+      <label class="option-toggle">
+        Sharp RGB→YUV conversion
+        <Checkbox
+          bind:checked={
+            () => !!options.use_sharp_yuv,
+            (v) => (options.use_sharp_yuv = v ? 1 : 0)
+          }
+        />
+      </label>
+      <div class="option-one-cell">
+        <Range min={1} max={10} bind:value={options.pass}>Passes:</Range>
+      </div>
+      <div class="option-one-cell">
+        <Range min={0} max={100} bind:value={options.sns_strength}
+          >Spatial noise shaping:</Range
+        >
+      </div>
+      <label class="option-text-first">
+        Preprocess:
+        <Select bind:value={options.preprocessing}>
+          <option value={0}>None</option>
+          <option value={1}>Segment smooth</option>
+          <option value={2}>Pseudo-random dithering</option>
+        </Select>
+      </label>
+      <div class="option-one-cell">
+        <Range min={1} max={4} bind:value={options.segments}>Segments:</Range>
+      </div>
+      <div class="option-one-cell">
+        <Range min={0} max={3} bind:value={options.partitions}
+          >Partitions:</Range
+        >
+      </div>
+    </AdvancedSection>
   {/if}
 
   <label class="option-toggle">
