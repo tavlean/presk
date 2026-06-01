@@ -38,6 +38,14 @@ workarounds…"); 1 dismissed:
 Rotate-swap and SVG-vector were browser-verified; the rest are code-level
 parity restorations (svelte-check 0/0, build green).
 
+**Follow-up 2026-06-01 (Svelte-hardening Wave 4, commit `d943b611`).** The
+`EditorSession` reactivity was refactored (loadId-scoped guards replacing
+prevFiles/dimsSeeded; `showSpinner` as a `$derived` AND-gate; encode/spinner
+`$effect`s moved into the class via `$effect.root`). Behavior-preserving and
+browser-verified that these four expectations still hold: immediate first
+encode, 100ms-debounced option change, 500ms delayed spinner (seen appearing
+mid-encode and clearing on done), and reset-view-on-a-new-file. No regressions.
+
 ---
 
 ## A. Deliberate deviations (done, no input needed)

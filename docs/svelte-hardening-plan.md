@@ -145,22 +145,27 @@ Highest leverage — one change at the primitives ripples through every panel.
 
 ## Wave 4 — Reactivity-model cleanups (retire React-style guards)
 
-- [ ] Replace the `prevFiles` mutable "previous value" ref
-      ([editor-session.svelte.ts:203](../src/lib/editor/editor-session.svelte.ts:203))
-      and the `dimsSeeded` one-shot boolean
-      ([editor-session.svelte.ts:201](../src/lib/editor/editor-session.svelte.ts:201))
-      with `loadId`-scoped reactivity (capture `loadId` in the effect closure).
-      These currently must be hand-reset in `pickFiles`/`clearFile`. _Source: both._
-- [ ] `showSpinner`: keep only the 500 ms delayed flip as an effect and expose
-      the value as `$derived` AND-gated with status
-      ([editor-session.svelte.ts:292](../src/lib/editor/editor-session.svelte.ts:292)).
+> **Done 2026-06-01** (commit `d943b611`). Core/parity-sensitive — gate green
+> and browser-verified end to end (immediate first encode, 100ms-debounced
+> option change, format switch, resize-dims seed + re-seed on a new file,
+> new-file reset + view re-fit, the 500ms spinner appearing mid-encode and
+> clearing on done, clear→reopen) with no console errors. The
+> [parity-audit.md](parity-audit.md) expectations hold.
+
+- [x] Replace the `prevFiles` mutable "previous value" ref and the `dimsSeeded`
+      one-shot boolean with `loadId`-scoped comparisons
+      ([editor-session.svelte.ts](../src/lib/editor/editor-session.svelte.ts)).
+      encodeSide compares the live `loadId` to a per-side `encodedLoadId` (new
+      file → immediate encode, option tweaks → debounced); seedResizeDimensions
+      compares `seededLoadId`. Both auto-reset on the next file, so
+      `pickFiles`/`clearFile` no longer hand-reset them. _Source: both._
+- [x] `showSpinner`: now a `$derived` AND-gate of (`status === 'working'`) and a
+      new `spinnerDelayPassed` flag; `updateSpinner` keeps only the 500ms delayed
+      flip. The gate guarantees the spinner can't show outside a working spell.
       _Source: Claude._
-- [ ] Move the encode/spinner `$effect`s into `EditorSession` (via
-      `$effect.root()` or a constructor setup) so the class owns its reactive
-      lifecycle, instead of `+page.svelte` forwarding cleanup-returning methods
-      ([+page.svelte:30](../src/routes/+page.svelte:30),
-      [editor-session.svelte.ts:237](../src/lib/editor/editor-session.svelte.ts:237)).
-      _Source: both. Effort: medium._
+- [x] Move the encode/spinner `$effect`s into `EditorSession` via an
+      `$effect.root()` in the constructor (torn down in `dispose()`); `+page.svelte`
+      keeps only the route-coupled `syncRouteState` effect. _Source: both._
 - [x] Diagnostics page: convert the `onMount` probes + manual `cancelled` guard
       to per-probe `$effect`s with cleanup
       ([diagnostics/+page.svelte](../src/routes/diagnostics/+page.svelte)).
