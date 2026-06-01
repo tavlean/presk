@@ -42,13 +42,17 @@
   const exportSummary = model.summary.export;
 
   onMount(() => {
-    const controller = new AbortController();
-    let cancelled = false;
-
     registerSqushServiceWorker().catch((error: unknown) => {
       console.error('SvelteKit service-worker registration failed', error);
     });
+  });
 
+  // Each probe runs once on mount in its own effect (no reactive reads), with a
+  // per-probe cancel guard + cleanup so a late resolution after navigating away
+  // can't write stale state. Replaces the single onMount that shared one
+  // `cancelled` flag across all three.
+  $effect(() => {
+    let cancelled = false;
     runCodecAssetProbe()
       .then((result) => {
         if (!cancelled) codecProbe = { status: 'ready', result };
@@ -61,7 +65,13 @@
           };
         }
       });
+    return () => {
+      cancelled = true;
+    };
+  });
 
+  $effect(() => {
+    let cancelled = false;
     runWebpEncodeProbe()
       .then((result) => {
         if (!cancelled) encodeProbe = { status: 'ready', result };
@@ -74,7 +84,14 @@
           };
         }
       });
+    return () => {
+      cancelled = true;
+    };
+  });
 
+  $effect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
     runWebpPipelineProbe(controller.signal)
       .then((result) => {
         if (!cancelled) pipelineProbe = { status: 'ready', result };
@@ -87,7 +104,6 @@
           };
         }
       });
-
     return () => {
       cancelled = true;
       controller.abort();
