@@ -37,6 +37,7 @@ const STORAGE_KEY = 'sqush:settings:v2';
 const SAVE_VERSION = 1;
 const IMAGE_UPDATE_DELAY = 100;
 const SPINNER_DELAY = 500;
+const SETTINGS_PERSIST_DELAY = 200;
 
 const sideSaveKey = (index: SideIndex) =>
   `sqush:side-settings:${index === 0 ? 'left' : 'right'}`;
@@ -178,7 +179,11 @@ export class EditorSession {
   preprocessorState = $state(structuredClone(defaultPreprocessorState));
   file = $state<File | null>(null);
   loadId = $state(0);
-  results = $state<[CompressOutcome | null, CompressOutcome | null]>([
+  // Raw, not deeply proxied: each CompressOutcome holds heavy browser host
+  // objects (File, ImageData, and a Blob object URL) that must stay out of
+  // reactive state. Updates trigger by reassigning the array (see encodeSide),
+  // not by mutating an element in place.
+  results = $state.raw<[CompressOutcome | null, CompressOutcome | null]>([
     null,
     null,
   ]);
@@ -201,6 +206,9 @@ export class EditorSession {
   private dimsSeeded = false;
   private lastUrls: [string | null, string | null] = [null, null];
   private prevFiles: [File | null, File | null] = [null, null];
+  // Debounced localStorage write for persistSettings (see flushSettings).
+  private settingsTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingSettings: string | null = null;
 
   naturalWidth = $derived(
     this.results[0]?.preprocessedWidth ??
@@ -266,7 +274,12 @@ export class EditorSession {
           }
           this.revokeSideUrl(index);
           this.lastUrls[index] = outcome.outputUrl;
-          this.results[index] = outcome;
+          // results is $state.raw, so reassign the array rather than mutating an
+          // element in place — only reassignment triggers reactive updates.
+          const nextResults: [CompressOutcome | null, CompressOutcome | null] =
+            [this.results[0], this.results[1]];
+          nextResults[index] = outcome;
+          this.results = nextResults;
           this.statuses[index] = 'done';
         })
         .catch((error: unknown) => {
@@ -320,13 +333,33 @@ export class EditorSession {
 
   persistSettings(): void {
     if (!canUseLocalStorage()) return;
-    const payload = JSON.stringify({
+    // Serialise synchronously so the calling $effect tracks `format` and
+    // `optionsByFormat` as dependencies (reads inside the deferred timer would
+    // not be tracked)...
+    this.pendingSettings = JSON.stringify({
       sides: this.sides.map((side) => ({
         format: side.format,
         optionsByFormat: $state.snapshot(side.optionsByFormat),
       })),
     });
 
+    // ...but coalesce the actual write: dragging a slider would otherwise
+    // serialise and hit localStorage on every reactive tick (~60×/s).
+    if (this.settingsTimer !== null) clearTimeout(this.settingsTimer);
+    this.settingsTimer = setTimeout(
+      () => this.flushSettings(),
+      SETTINGS_PERSIST_DELAY,
+    );
+  }
+
+  private flushSettings(): void {
+    if (this.settingsTimer !== null) {
+      clearTimeout(this.settingsTimer);
+      this.settingsTimer = null;
+    }
+    if (this.pendingSettings === null) return;
+    const payload = this.pendingSettings;
+    this.pendingSettings = null;
     try {
       localStorage.setItem(STORAGE_KEY, payload);
     } catch {
@@ -385,6 +418,9 @@ export class EditorSession {
   }
 
   dispose(): void {
+    // Persist any pending settings change before teardown so the debounce never
+    // drops the user's last edit.
+    this.flushSettings();
     this.revokeAllUrls();
   }
 
