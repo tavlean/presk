@@ -36,8 +36,6 @@
     options.photonNoiseIso = photonNoiseIso;
     options.lossyModular = quality < 7 ? true : alternativeLossy;
   }
-
-  const checked = (e: Event) => (e.currentTarget as HTMLInputElement).checked;
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
@@ -45,8 +43,8 @@
     Lossless
     <Checkbox
       checked={lossless}
-      onchange={(e) => {
-        lossless = checked(e);
+      onchange={(value) => {
+        lossless = value;
         apply();
       }}
     />
@@ -57,8 +55,8 @@
       Slight loss
       <Checkbox
         checked={slightLoss}
-        onchange={(e) => {
-          slightLoss = checked(e);
+        onchange={(value) => {
+          slightLoss = value;
           apply();
         }}
       />
@@ -82,8 +80,8 @@
         <Checkbox
           checked={quality < 7 ? true : alternativeLossy}
           disabled={quality < 7}
-          onchange={(e) => {
-            alternativeLossy = checked(e);
+          onchange={(value) => {
+            alternativeLossy = value;
             apply();
           }}
         />
@@ -92,8 +90,8 @@
         Auto edge filter
         <Checkbox
           checked={autoEdgePreservingFilter}
-          onchange={(e) => {
-            autoEdgePreservingFilter = checked(e);
+          onchange={(value) => {
+            autoEdgePreservingFilter = value;
             apply();
           }}
         />
@@ -141,8 +139,8 @@
     Progressive rendering
     <Checkbox
       checked={progressive}
-      onchange={(e) => {
-        progressive = checked(e);
+      onchange={(value) => {
+        progressive = value;
         apply();
       }}
     />

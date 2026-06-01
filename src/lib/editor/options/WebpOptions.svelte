@@ -47,17 +47,15 @@
     options.method = losslessPresets[preset][0];
     options.quality = losslessPresets[preset][1];
   }
-
-  const checked = (event: Event) =>
-    (event.currentTarget as HTMLInputElement).checked;
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
   <label class="option-toggle">
     Lossless
     <Checkbox
-      checked={!!options.lossless}
-      onchange={(e) => (options.lossless = checked(e) ? 1 : 0)}
+      bind:checked={
+        () => !!options.lossless, (v) => (options.lossless = v ? 1 : 0)
+      }
     />
   </label>
 
@@ -81,9 +79,10 @@
     <label class="option-toggle">
       Discrete tone image
       <Checkbox
-        checked={options.image_hint === HINT_GRAPH}
-        onchange={(e) =>
-          (options.image_hint = checked(e) ? HINT_GRAPH : HINT_DEFAULT)}
+        bind:checked={
+          () => options.image_hint === HINT_GRAPH,
+          (v) => (options.image_hint = v ? HINT_GRAPH : HINT_DEFAULT)
+        }
       />
     </label>
   {:else}
@@ -104,8 +103,10 @@
         <label class="option-toggle">
           Compress alpha
           <Checkbox
-            checked={!!options.alpha_compression}
-            onchange={(e) => (options.alpha_compression = checked(e) ? 1 : 0)}
+            bind:checked={
+              () => !!options.alpha_compression,
+              (v) => (options.alpha_compression = v ? 1 : 0)
+            }
           />
         </label>
         <div class="option-one-cell">
@@ -121,8 +122,10 @@
         <label class="option-toggle">
           Auto adjust filter strength
           <Checkbox
-            checked={!!options.autofilter}
-            onchange={(e) => (options.autofilter = checked(e) ? 1 : 0)}
+            bind:checked={
+              () => !!options.autofilter,
+              (v) => (options.autofilter = v ? 1 : 0)
+            }
           />
         </label>
         {#if !options.autofilter}
@@ -135,8 +138,10 @@
         <label class="option-toggle">
           Strong filter
           <Checkbox
-            checked={!!options.filter_type}
-            onchange={(e) => (options.filter_type = checked(e) ? 1 : 0)}
+            bind:checked={
+              () => !!options.filter_type,
+              (v) => (options.filter_type = v ? 1 : 0)
+            }
           />
         </label>
         <div class="option-one-cell">
@@ -151,8 +156,10 @@
         <label class="option-toggle">
           Sharp RGB→YUV conversion
           <Checkbox
-            checked={!!options.use_sharp_yuv}
-            onchange={(e) => (options.use_sharp_yuv = checked(e) ? 1 : 0)}
+            bind:checked={
+              () => !!options.use_sharp_yuv,
+              (v) => (options.use_sharp_yuv = v ? 1 : 0)
+            }
           />
         </label>
         <div class="option-one-cell">
@@ -192,8 +199,7 @@
   <label class="option-toggle">
     Preserve transparent data
     <Checkbox
-      checked={!!options.exact}
-      onchange={(e) => (options.exact = checked(e) ? 1 : 0)}
+      bind:checked={() => !!options.exact, (v) => (options.exact = v ? 1 : 0)}
     />
   </label>
 </form>

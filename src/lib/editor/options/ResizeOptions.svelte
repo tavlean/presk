@@ -60,7 +60,6 @@
   const selVal = (e: Event) => (e.currentTarget as HTMLSelectElement).value;
   const numVal = (e: Event) =>
     Number((e.currentTarget as HTMLInputElement).value);
-  const checked = (e: Event) => (e.currentTarget as HTMLInputElement).checked;
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
@@ -117,26 +116,17 @@
     <div transition:slide={{ duration: 300 }}>
       <label class="option-toggle">
         Premultiply alpha channel
-        <Checkbox
-          checked={options.premultiply}
-          onchange={(e) => (options.premultiply = checked(e))}
-        />
+        <Checkbox bind:checked={options.premultiply} />
       </label>
       <label class="option-toggle">
         Linear RGB
-        <Checkbox
-          checked={options.linearRGB}
-          onchange={(e) => (options.linearRGB = checked(e))}
-        />
+        <Checkbox bind:checked={options.linearRGB} />
       </label>
     </div>
   {/if}
   <label class="option-toggle">
     Maintain aspect ratio
-    <Checkbox
-      checked={maintainAspect}
-      onchange={(e) => setMaintainAspect(checked(e))}
-    />
+    <Checkbox checked={maintainAspect} onchange={setMaintainAspect} />
   </label>
   {#if !maintainAspect}
     <label class="option-text-first" transition:slide={{ duration: 300 }}>

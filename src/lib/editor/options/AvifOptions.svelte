@@ -59,7 +59,6 @@
     options.enableSharpYUV = enableSharpYUV;
   }
 
-  const checked = (e: Event) => (e.currentTarget as HTMLInputElement).checked;
   const numValue = (e: Event) =>
     Number((e.currentTarget as HTMLSelectElement).value);
 </script>
@@ -69,8 +68,8 @@
     Lossless
     <Checkbox
       checked={lossless}
-      onchange={(e) => {
-        lossless = checked(e);
+      onchange={(value) => {
+        lossless = value;
         apply();
       }}
     />
@@ -119,8 +118,8 @@
               Sharp YUV Downsampling
               <Checkbox
                 checked={enableSharpYUV}
-                onchange={(e) => {
-                  enableSharpYUV = checked(e);
+                onchange={(value) => {
+                  enableSharpYUV = value;
                   apply();
                 }}
               />
@@ -130,8 +129,8 @@
             Separate alpha quality
             <Checkbox
               checked={separateAlpha}
-              onchange={(e) => {
-                separateAlpha = checked(e);
+              onchange={(value) => {
+                separateAlpha = value;
                 apply();
               }}
             />
@@ -153,8 +152,8 @@
             Extra chroma compression
             <Checkbox
               checked={chromaDeltaQ}
-              onchange={(e) => {
-                chromaDeltaQ = checked(e);
+              onchange={(value) => {
+                chromaDeltaQ = value;
                 apply();
               }}
             />

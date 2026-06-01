@@ -21,10 +21,6 @@
     initialOptions.quality !== initialOptions.alpha_quality,
   );
 
-  function checked(event: Event): boolean {
-    return (event.currentTarget as HTMLInputElement).checked;
-  }
-
   function setLossless(next: boolean): void {
     lossless = next;
     options.quality = next ? 100 : Math.min(options.quality, 95);
@@ -45,10 +41,7 @@
 <form class="options-section" onsubmit={(event) => event.preventDefault()}>
   <label class="option-toggle">
     Lossless
-    <Checkbox
-      checked={lossless}
-      onchange={(event) => setLossless(checked(event))}
-    />
+    <Checkbox checked={lossless} onchange={setLossless} />
   </label>
 
   {#if lossless}
@@ -77,10 +70,7 @@
       </div>
       <label class="option-toggle">
         Separate alpha quality
-        <Checkbox
-          checked={separateAlpha}
-          onchange={(event) => setSeparateAlpha(checked(event))}
-        />
+        <Checkbox checked={separateAlpha} onchange={setSeparateAlpha} />
       </label>
       {#if separateAlpha}
         <div class="option-one-cell" transition:slide={{ duration: 300 }}>

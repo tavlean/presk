@@ -5,7 +5,7 @@
     checked?: boolean;
     disabled?: boolean;
     name?: string;
-    onchange?: (event: Event) => void;
+    onchange?: (checked: boolean) => void;
   }
 
   let {
@@ -23,7 +23,7 @@
     {name}
     {disabled}
     bind:checked
-    {onchange}
+    onchange={(e) => onchange?.(e.currentTarget.checked)}
   />
   <div class="track">
     <div class="thumb-track">
