@@ -8,6 +8,7 @@
   import './two-up';
   import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
   import { isSafari } from 'client/lazy-app/util';
+  import { retargetViewEvents } from './retarget-events';
 
   interface Props {
     /** Pixels drawn on the left ("before") side — side 0's output. */
@@ -141,46 +142,8 @@
     });
   }
 
-  // Keep the two pinch-zooms in sync by redirecting all view events to the left
-  // one. Handle drags pass through (so the two-up slider works); wheel always
-  // retargets so it zooms even over the handle.
-  $effect(() => {
-    const el = twoUp;
-    const pz = pinchLeft;
-    if (!el || !pz) return;
-    const retargeted = new WeakSet<Event>();
-    const handler = (event: Event) => {
-      if (retargeted.has(event)) return;
-      const target = event.target as HTMLElement | null;
-      const isHandle = !!target?.closest?.('.two-up-handle');
-      if (!(event.type === 'wheel' || !isHandle)) return;
-      event.stopImmediatePropagation();
-      event.preventDefault();
-      const Ctor = event.constructor as typeof Event;
-      const cloned = new Ctor(event.type, event as EventInit);
-      retargeted.add(cloned);
-      pz.dispatchEvent(cloned);
-      // On touchend, unfocus any active element so Android Chrome doesn't
-      // re-show the software keyboard after interacting with the output.
-      // Ported from the original shouldBlurActiveElementAfterOutputRetarget.
-      if (
-        event.type === 'touchend' &&
-        document.activeElement instanceof HTMLElement
-      ) {
-        document.activeElement.blur();
-      }
-    };
-    const types = ['touchstart', 'touchend', 'touchmove', 'mousedown', 'wheel'];
-    if (!isSafari) types.push('pointerdown');
-    for (const type of types) {
-      el.addEventListener(type, handler, { capture: true, passive: false });
-    }
-    return () => {
-      for (const type of types) {
-        el.removeEventListener(type, handler, { capture: true });
-      }
-    };
-  });
+  // The pinch-zoom event sync is an attachment on <two-up> (see retarget-events
+  // and the {@attach} below): it redirects view gestures to the left pinch-zoom.
 
   function zoomTo(next: number) {
     pinchLeft?.scaleTo(next, scaleToOpts);
@@ -207,7 +170,13 @@
 />
 
 <div class="output" class:alt-background={altBackground}>
-  <two-up class="two-up" legacy-clip-compat {orientation} bind:this={twoUp}>
+  <two-up
+    class="two-up"
+    legacy-clip-compat
+    {orientation}
+    bind:this={twoUp}
+    {@attach retargetViewEvents(() => pinchLeft)}
+  >
     <pinch-zoom
       class="pinch-zoom"
       bind:this={pinchLeft}
@@ -255,7 +224,7 @@
         value={scalePercent}
         oninput={onScaleInput}
         onblur={() => (editingScale = false)}
-        use:focusOnMount
+        {@attach focusOnMount}
       />
     {:else}
       <span
