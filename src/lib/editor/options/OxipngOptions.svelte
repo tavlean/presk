@@ -3,16 +3,17 @@
   import type { EncodeOptions } from 'features/encoders/oxiPNG/shared/meta';
   import Range from './Range.svelte';
   import Checkbox from './Checkbox.svelte';
+  import OptionRow from './OptionRow.svelte';
+  import ToggleRow from './ToggleRow.svelte';
 
   let { options }: { options: EncodeOptions } = $props();
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
-  <label class="option-toggle">
-    Interlace
+  <ToggleRow label="Interlace">
     <Checkbox bind:checked={options.interlace} />
-  </label>
-  <div class="option-one-cell">
+  </ToggleRow>
+  <OptionRow>
     <Range min={0} max={6} step={1} bind:value={options.level}>Effort:</Range>
-  </div>
+  </OptionRow>
 </form>

@@ -9,6 +9,7 @@
   } from 'features/processors/resize/client/preset-state';
   import Select from './Select.svelte';
   import Checkbox from './Checkbox.svelte';
+  import ToggleRow from './ToggleRow.svelte';
   import type { ResizeOptionsState } from './processor-types';
 
   type ResizeMethod = ResizeOptionsState['method'];
@@ -108,20 +109,17 @@
   </label>
   {#if isWorker}
     <div transition:slide={{ duration: 300 }}>
-      <label class="option-toggle">
-        Premultiply alpha channel
+      <ToggleRow label="Premultiply alpha channel">
         <Checkbox bind:checked={options.premultiply} />
-      </label>
-      <label class="option-toggle">
-        Linear RGB
+      </ToggleRow>
+      <ToggleRow label="Linear RGB">
         <Checkbox bind:checked={options.linearRGB} />
-      </label>
+      </ToggleRow>
     </div>
   {/if}
-  <label class="option-toggle">
-    Maintain aspect ratio
+  <ToggleRow label="Maintain aspect ratio">
     <Checkbox checked={maintainAspect} onchange={setMaintainAspect} />
-  </label>
+  </ToggleRow>
   {#if !maintainAspect}
     <label class="option-text-first" transition:slide={{ duration: 300 }}>
       Fit method:

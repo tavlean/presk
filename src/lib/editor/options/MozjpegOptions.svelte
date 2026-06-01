@@ -10,14 +10,16 @@
   import Checkbox from './Checkbox.svelte';
   import AdvancedSection from './AdvancedSection.svelte';
   import Select from './Select.svelte';
+  import OptionRow from './OptionRow.svelte';
+  import ToggleRow from './ToggleRow.svelte';
 
   let { options }: { options: EncodeOptions } = $props();
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
-  <div class="option-one-cell">
+  <OptionRow>
     <Range min={0} max={100} bind:value={options.quality}>Quality:</Range>
-  </div>
+  </OptionRow>
 
   <AdvancedSection>
     <label class="option-text-first">
@@ -31,50 +33,45 @@
 
     {#if options.color_space === MozJpegColorSpace.YCbCr}
       <div transition:slide={{ duration: 300 }}>
-        <label class="option-toggle">
-          Auto subsample chroma
+        <ToggleRow label="Auto subsample chroma">
           <Checkbox bind:checked={options.auto_subsample} />
-        </label>
+        </ToggleRow>
         {#if !options.auto_subsample}
-          <div class="option-one-cell" transition:slide={{ duration: 300 }}>
+          <OptionRow slide>
             <Range min={1} max={4} bind:value={options.chroma_subsample}
               >Subsample chroma by:</Range
             >
-          </div>
+          </OptionRow>
         {/if}
-        <label class="option-toggle">
-          Separate chroma quality
+        <ToggleRow label="Separate chroma quality">
           <Checkbox bind:checked={options.separate_chroma_quality} />
-        </label>
+        </ToggleRow>
         {#if options.separate_chroma_quality}
-          <div class="option-one-cell" transition:slide={{ duration: 300 }}>
+          <OptionRow slide>
             <Range min={0} max={100} bind:value={options.chroma_quality}
               >Chroma quality:</Range
             >
-          </div>
+          </OptionRow>
         {/if}
       </div>
     {/if}
 
-    <label class="option-toggle">
-      Pointless spec compliance
+    <ToggleRow label="Pointless spec compliance">
       <Checkbox bind:checked={options.baseline} />
-    </label>
+    </ToggleRow>
     {#if !options.baseline}
-      <label class="option-toggle" transition:slide={{ duration: 300 }}>
-        Progressive rendering
+      <ToggleRow label="Progressive rendering" slide>
         <Checkbox bind:checked={options.progressive} />
-      </label>
+      </ToggleRow>
     {:else}
-      <label class="option-toggle" transition:slide={{ duration: 300 }}>
-        Optimize Huffman table
+      <ToggleRow label="Optimize Huffman table" slide>
         <Checkbox bind:checked={options.optimize_coding} />
-      </label>
+      </ToggleRow>
     {/if}
 
-    <div class="option-one-cell">
+    <OptionRow>
       <Range min={0} max={100} bind:value={options.smoothing}>Smoothing:</Range>
-    </div>
+    </OptionRow>
 
     <label class="option-text-first">
       Quantization:
@@ -91,24 +88,21 @@
       </Select>
     </label>
 
-    <label class="option-toggle">
-      Trellis multipass
+    <ToggleRow label="Trellis multipass">
       <Checkbox bind:checked={options.trellis_multipass} />
-    </label>
+    </ToggleRow>
     {#if options.trellis_multipass}
-      <label class="option-toggle" transition:slide={{ duration: 300 }}>
-        Optimize zero block runs
+      <ToggleRow label="Optimize zero block runs" slide>
         <Checkbox bind:checked={options.trellis_opt_zero} />
-      </label>
+      </ToggleRow>
     {/if}
-    <label class="option-toggle">
-      Optimize after trellis quantization
+    <ToggleRow label="Optimize after trellis quantization">
       <Checkbox bind:checked={options.trellis_opt_table} />
-    </label>
-    <div class="option-one-cell">
+    </ToggleRow>
+    <OptionRow>
       <Range min={1} max={50} bind:value={options.trellis_loops}
         >Trellis quantization passes:</Range
       >
-    </div>
+    </OptionRow>
   </AdvancedSection>
 </form>

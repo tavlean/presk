@@ -2,12 +2,13 @@
   // Ported from src/features/encoders/webP/client/index.tsx at parity.
   // Mutates the encoder's option object in place (a shared $state proxy from the
   // page), so changes flow back and re-trigger encoding.
-  import { slide } from 'svelte/transition';
   import type { EncodeOptions } from 'features/encoders/webP/shared/meta';
   import Range from './Range.svelte';
   import Checkbox from './Checkbox.svelte';
   import AdvancedSection from './AdvancedSection.svelte';
   import Select from './Select.svelte';
+  import OptionRow from './OptionRow.svelte';
+  import ToggleRow from './ToggleRow.svelte';
 
   interface Props {
     options: EncodeOptions;
@@ -52,92 +53,87 @@
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
-  <label class="option-toggle">
-    Lossless
+  <ToggleRow label="Lossless">
     <Checkbox
       bind:checked={
         () => !!options.lossless, (v) => (options.lossless = v ? 1 : 0)
       }
     />
-  </label>
+  </ToggleRow>
 
   {#if options.lossless}
-    <div class="option-one-cell">
+    <OptionRow>
       <Range min={0} max={9} value={losslessQuality} oninput={setLosslessPreset}
         >Effort:</Range
       >
-    </div>
-    <div class="option-one-cell">
+    </OptionRow>
+    <OptionRow>
       <Range
         min={0}
         max={100}
         value={100 - options.near_lossless}
         oninput={(v) => (options.near_lossless = 100 - v)}>Slight loss:</Range
       >
-    </div>
-    <label class="option-toggle">
-      Discrete tone image
+    </OptionRow>
+    <ToggleRow label="Discrete tone image">
       <Checkbox
         bind:checked={
           () => options.image_hint === HINT_GRAPH,
           (v) => (options.image_hint = v ? HINT_GRAPH : HINT_DEFAULT)
         }
       />
-    </label>
+    </ToggleRow>
   {:else}
-    <div class="option-one-cell">
+    <OptionRow>
       <Range min={0} max={6} bind:value={options.method}>Effort:</Range>
-    </div>
-    <div class="option-one-cell">
+    </OptionRow>
+    <OptionRow>
       <Range min={0} max={100} step={0.1} bind:value={options.quality}
         >Quality:</Range
       >
-    </div>
+    </OptionRow>
     <AdvancedSection>
-      <label class="option-toggle">
-        Compress alpha
+      <ToggleRow label="Compress alpha">
         <Checkbox
           bind:checked={
             () => !!options.alpha_compression,
             (v) => (options.alpha_compression = v ? 1 : 0)
           }
         />
-      </label>
-      <div class="option-one-cell">
+      </ToggleRow>
+      <OptionRow>
         <Range min={0} max={100} bind:value={options.alpha_quality}
           >Alpha quality:</Range
         >
-      </div>
-      <div class="option-one-cell">
+      </OptionRow>
+      <OptionRow>
         <Range min={0} max={2} bind:value={options.alpha_filtering}
           >Alpha filter quality:</Range
         >
-      </div>
-      <label class="option-toggle">
-        Auto adjust filter strength
+      </OptionRow>
+      <ToggleRow label="Auto adjust filter strength">
         <Checkbox
           bind:checked={
             () => !!options.autofilter, (v) => (options.autofilter = v ? 1 : 0)
           }
         />
-      </label>
+      </ToggleRow>
       {#if !options.autofilter}
-        <div class="option-one-cell" transition:slide={{ duration: 300 }}>
+        <OptionRow slide>
           <Range min={0} max={100} bind:value={options.filter_strength}
             >Filter strength:</Range
           >
-        </div>
+        </OptionRow>
       {/if}
-      <label class="option-toggle">
-        Strong filter
+      <ToggleRow label="Strong filter">
         <Checkbox
           bind:checked={
             () => !!options.filter_type,
             (v) => (options.filter_type = v ? 1 : 0)
           }
         />
-      </label>
-      <div class="option-one-cell">
+      </ToggleRow>
+      <OptionRow>
         <Range
           min={0}
           max={7}
@@ -145,24 +141,23 @@
           oninput={(v) => (options.filter_sharpness = 7 - v)}
           >Filter sharpness:</Range
         >
-      </div>
-      <label class="option-toggle">
-        Sharp RGB→YUV conversion
+      </OptionRow>
+      <ToggleRow label="Sharp RGB→YUV conversion">
         <Checkbox
           bind:checked={
             () => !!options.use_sharp_yuv,
             (v) => (options.use_sharp_yuv = v ? 1 : 0)
           }
         />
-      </label>
-      <div class="option-one-cell">
+      </ToggleRow>
+      <OptionRow>
         <Range min={1} max={10} bind:value={options.pass}>Passes:</Range>
-      </div>
-      <div class="option-one-cell">
+      </OptionRow>
+      <OptionRow>
         <Range min={0} max={100} bind:value={options.sns_strength}
           >Spatial noise shaping:</Range
         >
-      </div>
+      </OptionRow>
       <label class="option-text-first">
         Preprocess:
         <Select bind:value={options.preprocessing}>
@@ -171,21 +166,20 @@
           <option value={2}>Pseudo-random dithering</option>
         </Select>
       </label>
-      <div class="option-one-cell">
+      <OptionRow>
         <Range min={1} max={4} bind:value={options.segments}>Segments:</Range>
-      </div>
-      <div class="option-one-cell">
+      </OptionRow>
+      <OptionRow>
         <Range min={0} max={3} bind:value={options.partitions}
           >Partitions:</Range
         >
-      </div>
+      </OptionRow>
     </AdvancedSection>
   {/if}
 
-  <label class="option-toggle">
-    Preserve transparent data
+  <ToggleRow label="Preserve transparent data">
     <Checkbox
       bind:checked={() => !!options.exact, (v) => (options.exact = v ? 1 : 0)}
     />
-  </label>
+  </ToggleRow>
 </form>

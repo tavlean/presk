@@ -8,6 +8,8 @@
   import Select from './options/Select.svelte';
   import Toggle from './options/Toggle.svelte';
   import Range from './options/Range.svelte';
+  import OptionRow from './options/OptionRow.svelte';
+  import ToggleRow from './options/ToggleRow.svelte';
   import WebpOptions from './options/WebpOptions.svelte';
   import Wp2Options from './options/Wp2Options.svelte';
   import AvifOptions from './options/AvifOptions.svelte';
@@ -146,10 +148,9 @@
         </div>
       </h3>
 
-      <label class="option-toggle section-enabler">
-        Resize
+      <ToggleRow class="section-enabler" label="Resize">
         <Toggle bind:checked={processorState.resize.enabled} />
-      </label>
+      </ToggleRow>
       {#if processorState.resize.enabled}
         <div transition:slide={{ duration: 300 }}>
           <ResizeOptions
@@ -161,10 +162,9 @@
         </div>
       {/if}
 
-      <label class="option-toggle section-enabler">
-        Reduce palette
+      <ToggleRow class="section-enabler" label="Reduce palette">
         <Toggle bind:checked={processorState.quantize.enabled} />
-      </label>
+      </ToggleRow>
       {#if processorState.quantize.enabled}
         <div transition:slide={{ duration: 300 }}>
           <QuantizeOptions
@@ -219,7 +219,7 @@
             options={options as unknown as { quality: number }}
           />
         {:else if typeof options.quality === 'number'}
-          <div class="option-one-cell">
+          <OptionRow>
             <Range
               min={0}
               max={100}
@@ -227,7 +227,7 @@
               value={Number(options.quality)}
               oninput={(v) => (options.quality = v)}>Quality:</Range
             >
-          </div>
+          </OptionRow>
         {:else}
           <p class="no-opts">{typeLabel} has no adjustable options.</p>
         {/if}

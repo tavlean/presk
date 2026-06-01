@@ -3,18 +3,19 @@
   // controls; the konami "ZX" easter-egg type is omitted). Mutates the quantize
   // processor options in place.
   import Range from './Range.svelte';
+  import OptionRow from './OptionRow.svelte';
   import type { QuantizeOptionsState } from './processor-types';
 
   let { options }: { options: QuantizeOptionsState } = $props();
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
-  <div class="option-one-cell">
+  <OptionRow>
     <Range min={2} max={256} bind:value={options.maxNumColors}>Colors:</Range>
-  </div>
-  <div class="option-one-cell">
+  </OptionRow>
+  <OptionRow>
     <Range min={0} max={1} step={0.01} bind:value={options.dither}
       >Dithering:</Range
     >
-  </div>
+  </OptionRow>
 </form>
