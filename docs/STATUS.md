@@ -1,6 +1,6 @@
 # Sqush Status
 
-Last updated: 2026-05-31.
+Last updated: 2026-06-01.
 
 Read this first. Sqush is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
@@ -16,6 +16,13 @@ browser, the build is static, and offline reload must work after load.
   is accepted and merged.
 - Bulk UI is not part of migration closeout. Bulk and other product additions
   are tracked in [road-map.md](road-map.md).
+- Repo hygiene (2026-06-01): the ambient Emscripten type declaration now lives
+  at `src/emscripten-types.d.ts`, alongside the other `src/*.d.ts` ambient
+  files, instead of sitting loose at the repo root (its `///` reference in
+  `src/app.d.ts` was updated to match). Disposable local scratch
+  (`.playwright-cli/`, `.tmp/`, stray `.DS_Store`) was also cleared. The type
+  move is compile-time only, so build output is unchanged and `npm run check`
+  stays green.
 
 ## Product Scope For Launch
 

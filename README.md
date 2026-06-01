@@ -70,6 +70,7 @@ offline behavior are release blockers.
 - [Migration plan](docs/MIGRATION-PLAN.md)
 - [Build and runtime map](docs/build-and-runtime.md)
 - [Project overview](docs/overview.md)
+- [User guide](docs/user-guide/index.md)
 - [Manual QA checklist](docs/manual-qa.md)
 - [Product roadmap](docs/road-map.md)
 - [Bulk image architecture](docs/bulk-image-architecture.md)

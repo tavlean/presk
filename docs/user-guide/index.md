@@ -51,9 +51,9 @@ Adjustments you can apply to either side _before_ compression (shown in the "Edi
 
 ## Under the hood
 
-| Page                                      | What it covers                                                                                                 |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [Engine & codecs](./engine-and-codecs.md) | How Sqush runs everything in WebAssembly Web Workers, the codecs it uses, and how offline (PWA) support works. |
+| Page                                      | What it covers                                                                                                        |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [Engine & codecs](./engine-and-codecs.md) | How Sqush runs local WebAssembly/worker processing, the codecs it uses, and how service-worker offline support works. |
 
 ---
 

@@ -4,13 +4,13 @@
 
 ## Overview / When to use it
 
-A **codec** (short for _coder–decoder_) is the piece of software that knows how to read one image format and write another — for example, turning a big PNG into a small WebP. In most online compressors, that work happens on a faraway server, which means your image leaves your device. Sqush is different: every codec is compiled to **WebAssembly** (WASM) — a fast, portable format that runs inside the web page — so all decoding, resizing, and re-encoding happen _locally_ in your browser. You don't need to understand any of this to use Sqush; it just means your photos stay private, the app keeps working offline, and you get desktop-app speed without installing anything.
+A **codec** (short for _coder–decoder_) is the piece of software that knows how to read one image format and write another — for example, turning a big PNG into a small WebP. In most online compressors, that work happens on a faraway server, which means your image leaves your device. Sqush is different: its core codecs and processors run locally in your browser, mostly through **WebAssembly** (WASM) workers; the few "Browser" encoders use your browser's own canvas encoder instead. You don't need to understand any of this to use Sqush; it just means your photos stay private, the app keeps working offline after it has cached itself, and there is no upload step.
 
 ## How the engine works
 
 ### Everything runs on your device
 
-When you drop an image into Sqush, it travels through a four-step pipeline — **decode → preprocess → process → encode** — and every step runs client-side inside background threads called **Web Workers** (so the interface stays responsive while the heavy lifting happens). No server is involved and no image data is sent over the network. This is what "local-first" means in practice: the picture you compress never leaves the computer or phone you're using.
+When you drop an image into Sqush, it travels through a four-step pipeline — **decode → preprocess → process → encode** — and the heavy WASM work runs client-side inside a background **Web Worker** so the interface can stay responsive. Browser-native JPEG / PNG / GIF encoders are the exception: they use `canvas.toBlob()` on the page's main thread because that is the browser API. No server is involved and no image data is sent over the network. This is what "local-first" means in practice: the picture you compress never leaves the computer or phone you're using.
 
 (Source of truth: `src/lib/compress.ts`, which drives `decode → preprocess → process → compressImage`; engine notes in `docs/user-guide/reference/engine-and-codecs.md`.)
 
@@ -21,11 +21,9 @@ Modern browsers can run WebAssembly faster when they support two optional featur
 - **Threads** — letting a codec use several CPU cores at once.
 - **SIMD** — a CPU trick that processes several pixels in a single instruction.
 
-Sqush checks for both at runtime (using the `wasm-feature-detect` library) and automatically loads the best build each codec offers. If your browser supports threads and the codec has a threaded build, you get it; otherwise Sqush quietly falls back to the **single-thread baseline** build, which works everywhere. You never have to choose — the speed-up is opt-in by your browser, and correctness never depends on it.
+The committed codec set includes baseline, SIMD, and threaded artifacts, but the current SvelteKit launch path is conservative: single-thread WASM is the baseline for AVIF, JPEG XL, WebP 2, and OxiPNG, while WebP also has a generated SIMD asset path. Threaded codec work is being kept as post-launch performance/platform work, not a launch promise. Correctness does not depend on threads.
 
-There's one safety note baked in: Safari 16 shipped thread support but couldn't run workers-inside-workers the way Sqush needs, so the engine explicitly guards against that case and falls back to single-thread there (`src/worker-shared/supports-wasm-threads.ts`).
-
-> **Single-thread is the floor, not the ceiling.** Every codec is guaranteed to run single-threaded on any browser. Threads and SIMD are bonuses layered on top when your browser can handle them.
+> **Single-thread is the launch floor.** Threaded artifacts remain in the repository for future work, but the migration-closeout target is reliable single-image optimization through the proven single-thread paths.
 
 ## The codecs
 
@@ -64,9 +62,9 @@ These are documented in their own guides; they're listed here so you can see the
 
 ## What "offline" means in practice
 
-Sqush is a **Progressive Web App (PWA)** — a website that can install and run like a native app, including when you have no internet. A background **service worker** (`src/service-worker.ts`) makes this possible:
+Sqush uses a background **service worker** (`src/service-worker.ts`) so the deployed site can reload and keep working offline after the first successful load:
 
-- The first time you visit the deployed site, it quietly **caches** the app and all the codec files your browser needs.
+- The first time you visit the deployed site, it quietly **caches** the app shell and codec files your browser needs.
 - After that, the app loads from that cache, so it opens fast and **keeps working with no connection**. Because the codecs are stored locally too, you can compress images on a plane or in a tunnel with no loss of capability.
 - The cache is versioned (named `sqush-${version}`), so when a new release ships, stale files are cleaned up automatically.
 
@@ -78,8 +76,8 @@ The service worker only activates on the **real deployed site**. During developm
 - **Encoding speed depends on your browser and CPU, not on Sqush settings alone.** A browser without thread/SIMD support will still produce identical output; it just takes longer. AVIF and JPEG XL are the most compute-heavy, so they feel slowest on older machines.
 - **"Browser GIF" may be missing.** Many browsers don't let the canvas write GIFs, so that menu entry can be absent. That's expected — use a WASM format instead.
 - **Beta and unstable labels mean what they say.** JPEG XL is marked **(beta)** and WebP v2 **(unstable)**. They work, but they're newer and less universally supported by other apps and browsers, so prefer WebP or AVIF for files you need to share widely.
-- **First offline use requires one online visit.** The PWA can only work offline _after_ it has cached itself, so open Sqush online once before relying on it without a connection.
+- **First offline use requires one online visit.** Offline reload can only work _after_ the service worker has cached the app, so open Sqush online once before relying on it without a connection.
 
 ## Under the hood
 
-Sqush is a maintained Svelte fork of Google's Squoosh, and it reuses Squoosh's committed codec artifacts under `codecs/` rather than rebuilding them on every install — the project even records that there are roughly 80 committed JS/WASM artifacts, including baseline, threaded, SIMD, and Node-targeted builds (`docs/codec-provenance.md`). The single-image editor and the bulk workflow share one framework-neutral pipeline so both paths produce the same results, with heavy work dispatched to a codec worker (`src/lib/compress.ts`). The recorded versions above are the _rebuild recipe inputs_; the provenance doc is candid that they document how each codec would be rebuilt rather than proving every shipped `.wasm` was generated from exactly those inputs.
+Sqush is a maintained Svelte fork of Google's Squoosh, and it reuses Squoosh's committed codec artifacts under `codecs/` rather than rebuilding them on every install — the project even records that there are roughly 80 committed JS/WASM artifacts, including baseline, threaded, SIMD, and Node-targeted builds (`docs/codec-provenance.md`). The single-image editor and future bulk helpers share one framework-neutral pipeline so both paths can produce the same results, with heavy work dispatched to a codec worker (`src/lib/compress.ts`). The recorded versions above are the _rebuild recipe inputs_; the provenance doc is candid that they document how each codec would be rebuilt rather than proving every shipped `.wasm` was generated from exactly those inputs.

@@ -6,15 +6,15 @@ and provenance come from `docs/codec-provenance.md` and the codec build recipes.
 
 ## Engine model
 
-- **All processing is WASM running locally in the browser.** No server, no
-  upload. Decode -> preprocess -> process -> encode all happen client-side in
-  Web Workers.
-- **Single-thread vs threaded/SIMD is auto-detected per codec at runtime.**
-  - Threads: `worker-shared/supports-wasm-threads` -> `threads()` from
-    `wasm-feature-detect`, plus a Safari-16 nested-worker guard
-    (`'Worker' in self`).
-  - SIMD: `simd()` from `wasm-feature-detect`.
-  - Codecs pick the best available build, falling back to baseline/single-thread.
+- **The image pipeline runs locally in the browser.** No server, no upload.
+  The WASM decode/preprocess/process/encode paths run through the generated
+  SvelteKit worker surface. Browser-native JPEG / PNG / GIF encode through
+  `canvas.toBlob()` on the main thread because they use browser APIs.
+- **Single-thread is the SvelteKit launch baseline.** The generated worker
+  surface currently forces single-thread encode for AVIF, JPEG XL, WebP 2, and
+  OxiPNG. WebP has a generated SIMD asset path. Threaded artifacts still exist
+  under `codecs/`, but threaded runtime enablement is post-launch
+  performance/platform work, not current launch behavior.
 
 ## Processors & preprocessors
 
@@ -72,19 +72,19 @@ Shape: `rotate/shared/meta.ts`. Runs **before** processing.
 WASM/JS artifacts live under `codecs/` (inherited from Squoosh; ~80 committed
 JS/WASM artifacts). Each codec is wired through `src/features/{encoders,decoders}`.
 
-| Codec / role           | Library (upstream)               | Version / commit (recorded locally)                                 | Threads               | SIMD                    | App wiring                                                                                     |
-| ---------------------- | -------------------------------- | ------------------------------------------------------------------- | --------------------- | ----------------------- | ---------------------------------------------------------------------------------------------- |
-| WebP enc/dec           | libwebp (webmproject/libwebp)    | commit `d2e245ea9e959a5a79e1db0ed2085206947e98f2`                   | no                    | yes (`webp_enc_simd`)   | enc+dec, `image/webp`                                                                          |
-| WebP 2 enc/dec         | libwebp2 (Chromium)              | commit `413df7caeca5013fa9a51401660f7efd8572e0ae`                   | yes (`wp2_enc_mt`)    | yes (`wp2_enc_mt_simd`) | enc+dec, experimental ("WebP v2 (unstable)"), `image/webp2`; dec uses single-thread asset path |
-| AVIF enc/dec           | libavif + libaom (+ libsharpyuv) | libavif `v1.0.1`, libaom `v3.7.0`, libwebp `e2c85878...` (sharpyuv) | yes (`avif_enc_mt`)   | no                      | enc+dec, `image/avif`                                                                          |
-| JPEG XL enc/dec        | libjxl                           | commit `9f544641ec83f6abd9da598bdd08178ee8a003e0`                   | yes (`jxl_enc_mt`)    | yes (`jxl_enc_mt_simd`) | enc+dec, "JPEG XL (beta)", `image/jxl`                                                         |
-| MozJPEG enc            | mozilla/mozjpeg                  | `v3.3.1` (built `--with-build-date=squoosh`)                        | no                    | no                      | enc, `image/jpeg`                                                                              |
-| OxiPNG enc             | oxipng (crates.io)               | `9.0` (normal + parallel wasm-pack)                                 | parallel build exists | no                      | enc, `image/png`                                                                               |
-| imagequant (quantize)  | libimagequant (ImageOptim)       | `2.12.1` (`--disable-sse`)                                          | no                    | no                      | quantize processor                                                                             |
-| resize (worker resize) | `resize` crate (crates.io)       | `0.5.5` (wrapper `squoosh-resize` 0.1.0)                            | no                    | no                      | resize processor                                                                               |
-| hqx (pixel-art resize) | CryZe/wasmboy-rs `hqx` crate     | git tag `v0.1.3` (wrapper `squooshhqx` 0.1.0)                       | no                    | no                      | resize processor (`hqx` method)                                                                |
-| QOI enc/dec            | phoboslab/qoi                    | commit `8d35d93cdca85d2868246c2a8a80a1e2c16ba2a8`                   | no                    | no                      | enc+dec, `image/qoi`                                                                           |
-| rotate (preprocessor)  | local Rust (`squoosh-rotate`)    | local `0.1.0` (WABT `1.0.11` + `wasm-opt`)                          | no                    | no                      | rotate preprocessor                                                                            |
+| Codec / role           | Library (upstream)               | Version / commit (recorded locally)                                 | Threads               | SIMD                    | App wiring                                                                                                     |
+| ---------------------- | -------------------------------- | ------------------------------------------------------------------- | --------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------- |
+| WebP enc/dec           | libwebp (webmproject/libwebp)    | commit `d2e245ea9e959a5a79e1db0ed2085206947e98f2`                   | no                    | yes (`webp_enc_simd`)   | enc+dec, `image/webp`                                                                                          |
+| WebP 2 enc/dec         | libwebp2 (Chromium)              | commit `413df7caeca5013fa9a51401660f7efd8572e0ae`                   | yes (`wp2_enc_mt`)    | yes (`wp2_enc_mt_simd`) | enc+dec, experimental ("WebP v2 (unstable)"), `image/webp2`; SvelteKit uses baseline/single-thread asset paths |
+| AVIF enc/dec           | libavif + libaom (+ libsharpyuv) | libavif `v1.0.1`, libaom `v3.7.0`, libwebp `e2c85878...` (sharpyuv) | yes (`avif_enc_mt`)   | no                      | enc+dec, `image/avif`; SvelteKit uses single-thread encode                                                     |
+| JPEG XL enc/dec        | libjxl                           | commit `9f544641ec83f6abd9da598bdd08178ee8a003e0`                   | yes (`jxl_enc_mt`)    | yes (`jxl_enc_mt_simd`) | enc+dec, "JPEG XL (beta)", `image/jxl`; SvelteKit uses single-thread encode                                    |
+| MozJPEG enc            | mozilla/mozjpeg                  | `v3.3.1` (built `--with-build-date=squoosh`)                        | no                    | no                      | enc, `image/jpeg`                                                                                              |
+| OxiPNG enc             | oxipng (crates.io)               | `9.0` (normal + parallel wasm-pack)                                 | parallel build exists | no                      | enc, `image/png`; SvelteKit uses single-thread encode                                                          |
+| imagequant (quantize)  | libimagequant (ImageOptim)       | `2.12.1` (`--disable-sse`)                                          | no                    | no                      | quantize processor                                                                                             |
+| resize (worker resize) | `resize` crate (crates.io)       | `0.5.5` (wrapper `squoosh-resize` 0.1.0)                            | no                    | no                      | resize processor                                                                                               |
+| hqx (pixel-art resize) | CryZe/wasmboy-rs `hqx` crate     | git tag `v0.1.3` (wrapper `squooshhqx` 0.1.0)                       | no                    | no                      | resize processor (`hqx` method)                                                                                |
+| QOI enc/dec            | phoboslab/qoi                    | commit `8d35d93cdca85d2868246c2a8a80a1e2c16ba2a8`                   | no                    | no                      | enc+dec, `image/qoi`                                                                                           |
+| rotate (preprocessor)  | local Rust (`squoosh-rotate`)    | local `0.1.0` (WABT `1.0.11` + `wasm-opt`)                          | no                    | no                      | rotate preprocessor                                                                                            |
 
 ### Browser-native (no WASM) encoders
 
@@ -104,7 +104,7 @@ Focused codec list under consideration: **WebP 1, AVIF, JPEG XL**. WebP 2 is kep
 as experimental parity. Nothing deleted yet; codecs to be hidden in UI before any
 removal.
 
-## Offline / Service Worker / PWA
+## Offline / Service Worker
 
 - **Service worker** (`src/service-worker.ts`): SvelteKit-native. Cache name
   `sqush-${version}`. On `install` it precaches `build + files + prerendered +
@@ -113,7 +113,7 @@ serviceWorkerCodecAssetUrls` (codec WASM/JS via
   `sqush-generated/service-worker/cache-plan` + local probe workers). Strategy:
   **cache-first for known asset pathnames, network-first (with cache fallback)**
   for everything else. On `activate` it deletes stale caches and claims clients.
-  Result: full offline PWA on the deployed origin once cached.
+  Result: offline reload on the deployed origin once cached.
 - **Registration** (`src/lib/service-worker-registration.ts`): registers the SW
   **only on the real deployed origin**. In dev, and on any
   loopback/localhost-style origin running a production build, it instead
