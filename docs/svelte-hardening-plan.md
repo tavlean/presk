@@ -179,14 +179,14 @@ Highest leverage — one change at the primitives ripples through every panel.
       `{@attach}` attachment ([Output.svelte:147](../src/lib/editor/output/Output.svelte:147));
       optionally the canvas-draw/fit setup too. Localizes setup/teardown. _Source:
       both._
-- [ ] Replace the `downloadAttributes` `$derived`-object spread on `<a>` with
+- [x] Replace the `downloadAttributes` `$derived`-object spread on `<a>` with
       conditional attributes (`href={disabled ? undefined : …}`)
-      ([Results.svelte:62](../src/lib/editor/Results.svelte:62)).
-- [ ] Wrap the inline `determineLosslessQuality(...)` template call in a
-      `$derived` ([WebpOptions.svelte:69](../src/lib/editor/options/WebpOptions.svelte:69)).
-- [ ] Drop the shallow `$derived` aliases over the non-reactive diagnostics model
-      ([diagnostics/+page.svelte:39](../src/routes/diagnostics/+page.svelte:39)) and
-      the `onInput` wrapper ([+page.svelte:43](../src/routes/+page.svelte:43)).
+      ([Results.svelte](../src/lib/editor/Results.svelte)). **Done** (`780ad8af`).
+- [x] Wrap the inline `determineLosslessQuality(...)` template call in a
+      `$derived` ([WebpOptions.svelte](../src/lib/editor/options/WebpOptions.svelte)).
+      **Done** (`780ad8af`).
+- [x] Drop the shallow `$derived` aliases over the non-reactive diagnostics model
+      and the `onInput` wrapper. **Done** (`780ad8af`).
 - [x] Guard `customElements.define` with `if (!customElements.get(name))`
       ([pinch-zoom.ts](../src/lib/editor/output/pinch-zoom.ts),
       [two-up.ts](../src/lib/editor/output/two-up.ts)) to avoid HMR / double-eval
