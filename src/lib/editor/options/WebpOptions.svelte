@@ -172,16 +172,10 @@
         </div>
         <label class="option-text-first">
           Preprocess:
-          <Select
-            value={String(options.preprocessing)}
-            onchange={(e) =>
-              (options.preprocessing = Number(
-                (e.currentTarget as HTMLSelectElement).value,
-              ))}
-          >
-            <option value="0">None</option>
-            <option value="1">Segment smooth</option>
-            <option value="2">Pseudo-random dithering</option>
+          <Select bind:value={options.preprocessing}>
+            <option value={0}>None</option>
+            <option value={1}>Segment smooth</option>
+            <option value={2}>Pseudo-random dithering</option>
           </Select>
         </label>
         <div class="option-one-cell">

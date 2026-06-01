@@ -58,9 +58,6 @@
     options.tune = tune;
     options.enableSharpYUV = enableSharpYUV;
   }
-
-  const numValue = (e: Event) =>
-    Number((e.currentTarget as HTMLSelectElement).value);
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
@@ -102,8 +99,8 @@
             Subsample chroma:
             <Select
               value={String(subsample)}
-              onchange={(e) => {
-                subsample = numValue(e);
+              onchange={(v) => {
+                subsample = Number(v);
                 apply();
               }}
             >
@@ -184,8 +181,8 @@
             Tuning:
             <Select
               value={String(tune)}
-              onchange={(e) => {
-                tune = numValue(e);
+              onchange={(v) => {
+                tune = Number(v);
                 apply();
               }}
             >

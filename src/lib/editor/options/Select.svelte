@@ -8,7 +8,7 @@
     name?: string;
     large?: boolean;
     disabled?: boolean;
-    onchange?: (event: Event) => void;
+    onchange?: (value: string) => void;
     children: Snippet;
   }
 
@@ -29,7 +29,7 @@
     {name}
     {disabled}
     bind:value
-    {onchange}
+    onchange={(e) => onchange?.(e.currentTarget.value)}
   >
     {@render children()}
   </select>

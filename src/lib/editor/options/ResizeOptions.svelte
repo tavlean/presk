@@ -57,7 +57,6 @@
     if (value) options.height = Math.round(options.width / aspect);
   }
 
-  const selVal = (e: Event) => (e.currentTarget as HTMLSelectElement).value;
   const numVal = (e: Event) =>
     Number((e.currentTarget as HTMLInputElement).value);
 </script>
@@ -67,7 +66,7 @@
     Method:
     <Select
       value={options.method}
-      onchange={(e) => (options.method = selVal(e) as ResizeMethod)}
+      onchange={(v) => (options.method = v as ResizeMethod)}
     >
       {#if isVector}
         <option value="vector">Vector</option>
@@ -85,7 +84,7 @@
   </label>
   <label class="option-text-first">
     Preset:
-    <Select value={String(preset)} onchange={(e) => onPreset(selVal(e))}>
+    <Select value={String(preset)} onchange={onPreset}>
       {#each sizePresets as p (p)}
         <option value={String(p)}>{Math.round(p * 100)}%</option>
       {/each}
@@ -133,8 +132,7 @@
       Fit method:
       <Select
         value={options.fitMethod}
-        onchange={(e) =>
-          (options.fitMethod = selVal(e) as 'stretch' | 'contain')}
+        onchange={(v) => (options.fitMethod = v as 'stretch' | 'contain')}
       >
         <option value="stretch">Stretch</option>
         <option value="contain">Contain</option>

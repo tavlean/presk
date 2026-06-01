@@ -30,16 +30,10 @@
     <div transition:slide={{ duration: 300 }}>
       <label class="option-text-first">
         Channels:
-        <Select
-          value={String(options.color_space)}
-          onchange={(e) =>
-            (options.color_space = Number(
-              (e.currentTarget as HTMLSelectElement).value,
-            ) as MozJpegColorSpace)}
-        >
-          <option value={String(MozJpegColorSpace.GRAYSCALE)}>Grayscale</option>
-          <option value={String(MozJpegColorSpace.RGB)}>RGB</option>
-          <option value={String(MozJpegColorSpace.YCbCr)}>YCbCr</option>
+        <Select bind:value={options.color_space}>
+          <option value={MozJpegColorSpace.GRAYSCALE}>Grayscale</option>
+          <option value={MozJpegColorSpace.RGB}>RGB</option>
+          <option value={MozJpegColorSpace.YCbCr}>YCbCr</option>
         </Select>
       </label>
 
@@ -94,22 +88,16 @@
 
       <label class="option-text-first">
         Quantization:
-        <Select
-          value={String(options.quant_table)}
-          onchange={(e) =>
-            (options.quant_table = Number(
-              (e.currentTarget as HTMLSelectElement).value,
-            ))}
-        >
-          <option value="0">JPEG Annex K</option>
-          <option value="1">Flat</option>
-          <option value="2">MSSIM-tuned Kodak</option>
-          <option value="3">ImageMagick</option>
-          <option value="4">PSNR-HVS-M-tuned Kodak</option>
-          <option value="5">Klein et al</option>
-          <option value="6">Watson et al</option>
-          <option value="7">Ahumada et al</option>
-          <option value="8">Peterson et al</option>
+        <Select bind:value={options.quant_table}>
+          <option value={0}>JPEG Annex K</option>
+          <option value={1}>Flat</option>
+          <option value={2}>MSSIM-tuned Kodak</option>
+          <option value={3}>ImageMagick</option>
+          <option value={4}>PSNR-HVS-M-tuned Kodak</option>
+          <option value={5}>Klein et al</option>
+          <option value={6}>Watson et al</option>
+          <option value={7}>Ahumada et al</option>
+          <option value={8}>Peterson et al</option>
         </Select>
       </label>
 

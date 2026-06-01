@@ -180,10 +180,7 @@
     <Select
       large
       value={format}
-      onchange={(e) =>
-        onFormatChange(
-          (e.currentTarget as HTMLSelectElement).value as SideFormat,
-        )}
+      onchange={(v) => onFormatChange(v as SideFormat)}
     >
       <option value="identity"
         >{sourceName
