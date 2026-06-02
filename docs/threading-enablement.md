@@ -148,9 +148,16 @@ work is:
 
 ## Risks / watch-list
 
-- **Nested workers + Safari** — the make-or-break unknown, and unverifiable in
-  this environment (no Safari). Needs a human cross-browser pass (Chromium /
-  Safari / Firefox). Keep single-thread as the automatic fallback.
+- **Nested workers + Safari — RESOLVED (2026-06-02).** This was THE make-or-break
+  unknown and the reason the runtime was deferred. It is now **verified false**:
+  `tests/e2e/threads-support.spec.ts` runs against **Playwright WebKit (Safari's
+  exact engine, JavaScriptCore) as well as Chromium** and confirms that, inside a
+  worker in the app's cross-origin-isolated context, both engines support
+  `SharedArrayBuffer` + spawning a **nested** `Worker` + sharing that SAB via
+  `Atomics` — exactly what wasm-bindgen-rayon / Emscripten pthreads need. (The
+  historical Safari-16 nested-worker gap is gone in current Safari/WebKit.) So the
+  engine capability is no longer a blocker; the remaining risk is purely the Vite
+  pthread-URL resolution below. Still keep single-thread as the automatic fallback.
 - **Emscripten pthread URL resolution under Vite static output** — the empirical
   hard part; expect iteration on the `.worker.js` / wasm URLs.
 - `COEP: require-corp` rejects cross-origin subresources without CORP. Sqush is
@@ -158,12 +165,15 @@ work is:
 
 ## Effort
 
-**Large, and deliberately deferred by the migration team — not a quick "seam".**
-The isolation foundation is done, verified, and test-protected (the safe, shipped
-half). The threaded-runtime re-enablement above is a focused subsystem task whose
-make-or-break step (nested-worker pthreads under Vite + Safari) needs in-browser
-cross-browser verification a headless CI/agent can't fully provide. Recommend
-tackling it as its own session, guarded by the new e2e suite.
+**Medium now — the scary part is gone.** The isolation foundation is done,
+verified, and test-protected; and the **nested-worker-in-Safari make-or-break is
+now verified working** (via Playwright WebKit — see Risks above), which was the
+reason this was sized "Large / its own session." What remains is the mechanical
+multi-file wiring (generator worker + asset records + `OxipngWasmUrls.multiThread`
+in the bridge + audit flip + SW cache) and the one empirical unknown left: whether
+wasm-bindgen-rayon's `new Worker(new URL('./workerHelpers.js', import.meta.url))`
+resolves correctly under Vite's static output — testable in CI now that WebKit is
+in the e2e matrix. Keep single-thread as the automatic fallback throughout.
 
 ## Related
 
