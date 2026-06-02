@@ -94,17 +94,19 @@ browser, the build is static, and offline reload must work after load.
   researched-but-not-added shortlist (SVGO first, HEIC-decode later, jpegli /
   JPEG→JXL skip). Full docs map: [README.md](README.md).
 
-- MT threading POC (2026-06-02): **the deferral reason is gone, and the wiring is
-  built.** Using Playwright's WebKit (Safari's engine), `tests/e2e/threads-support.spec.ts`
-  proves modern Safari supports nested workers + SharedArrayBuffer (the *one*
-  reason this was parked). The full oxipng threaded-runtime wiring is built and
-  structurally works (Vite bundles the nested rayon worker; both engines encode) —
-  preserved on branch **`oxipng-threading-wip`**. **Blocked on one thing:** the
-  threaded `pkg-parallel` wasm ships a non-shared `WebAssembly.Memory` → rayon's
-  `postMessage(memory)` throws `DataCloneError` → single-thread fallback. `codec-rebuilds`
-  stays on clean single-thread. Exact diagnosis + next steps:
-  [threading-enablement.md](threading-enablement.md) → "POC status". **This is the
-  active next item.**
+- MT threading (2026-06-03): **oxipng now threads multi-core — LANDED & VERIFIED
+  on `codec-rebuilds`.** The shared-memory blocker is solved: the threaded
+  `pkg-parallel` wasm now ships a shared+imported `WebAssembly.Memory`
+  (`flags=0x03`), so rayon's worker pool builds instead of throwing
+  `DataCloneError`. The fix was the full explicit linker set
+  (`--shared-memory`/`--max-memory`/`--import-memory` + TLS exports + `__heap_base`)
+  — current nightlies no longer auto-emit shared memory from `+atomics` alone.
+  Verified by `tests/e2e/oxipng-threads.spec.ts`: **11 rayon workers in Chromium,
+  an 8-thread pool in WebKit**, no single-thread fallback, ST fallback intact
+  (full e2e green in both engines). Diagnosis + recipe:
+  [threading-enablement.md](threading-enablement.md) → "POC status";
+  [codec-build-notes.md](codec-build-notes.md). **Remaining: AVIF + JXL** (their
+  `_mt` variants are Emscripten pthreads — a different mechanism, JS-wiring only).
 
 - **Writing the articles** (migration + codec sweep): the task/problem/solution
   source material is in [journey-and-article-notes.md](journey-and-article-notes.md).
@@ -216,10 +218,11 @@ in-browser verification is still open.
 
 What's next, in short:
 
-1. **Finish multithreading** — the headers are set; do the in-browser
-   verification (crossOriginIsolated, the three seams, per-codec `_mt` loading,
-   cross-browser). The `_mt` variants are built but unused
-   (`supportsThreads()` returns false) — needs Safari testing.
+1. **Finish multithreading** — **oxipng DONE** (threads multi-core in Chromium +
+   WebKit, verified). **Remaining: AVIF + JXL** — their `_mt`/`_mt_simd` variants
+   are Emscripten pthreads (already built on the secure versions), so the work is
+   JS-side wiring only: flip the generator `supportsThreads`/`loadMultiThread`
+   stubs + asset records + audit asserts, then re-verify cross-browser.
    [threading-enablement.md](threading-enablement.md).
 2. ✅ **Codec security rebuilds + gradual upgrades — DONE** (all 7 codecs landed
    on `codec-rebuilds`; see the Current State entry above). Build details:

@@ -192,6 +192,7 @@ const mozjpegWasmUrls = {
 
 const oxipngWasmUrls = {
   singleThread: codecAssetUrl('oxipng:encoder:single-thread'),
+  multiThread: codecAssetUrl('oxipng:encoder:multi-thread'),
 } satisfies OxipngWasmUrls;
 
 const imagequantWasmUrls = {

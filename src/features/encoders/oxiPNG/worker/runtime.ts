@@ -44,11 +44,23 @@ export function createOxiPngEncoderRuntime({
       const detectThreads = runtimeOptions.supportsThreads ?? supportsThreads;
       const { wasmUrls } = runtimeOptions;
 
-      wasmReady = detectThreads().then((hasThreads: boolean) =>
-        hasThreads
-          ? loadMT(wasmUrls?.multiThread)
-          : loadSingleThread(wasmUrls?.singleThread),
-      );
+      wasmReady = detectThreads().then(async (hasThreads: boolean) => {
+        if (hasThreads && loadMultiThread) {
+          try {
+            return await loadMT(wasmUrls?.multiThread);
+          } catch (err) {
+            // Multithread setup can fail (e.g. nested-worker / pthread URL
+            // resolution under the bundler). Fall back to the single-thread
+            // build so encoding still works rather than hard-failing.
+            // eslint-disable-next-line no-console
+            console.warn(
+              'OxiPNG multithread load failed; using single-thread.',
+              err,
+            );
+          }
+        }
+        return loadSingleThread(wasmUrls?.singleThread);
+      });
     }
 
     const optimise = await wasmReady;

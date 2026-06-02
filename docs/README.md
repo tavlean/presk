@@ -34,7 +34,7 @@ time-pressure (security); everything else is value/effort.
 
 | # | Track | Plan | Status | Why |
 |---|-------|------|--------|-----|
-| 1 | **Wire threaded MT runtime (oxipng first)** | [threading-enablement.md](threading-enablement.md) | 🟡 **Active / blocked** | The make-or-break Safari nested-worker unknown is now **proven solvable** (WebKit e2e). The full oxipng wiring is **built and structurally working** on branch `oxipng-threading-wip`; blocked on ONE thing — the threaded wasm ships a non-shared `WebAssembly.Memory`. This is the next focused session. |
+| 1 | **Wire threaded MT runtime (AVIF + JXL left)** | [threading-enablement.md](threading-enablement.md) | 🟢 **oxipng DONE; AVIF/JXL next** | **oxipng threads multi-core** — 11 rayon workers in Chromium, 8-thread pool in WebKit, verified, ST fallback intact (the non-shared-memory blocker is solved — full explicit linker set incl. TLS + `__heap_base` exports). **Remaining: AVIF + JXL** — Emscripten-pthreads `_mt` variants, JS-wiring only. |
 | 2 | **Investigate new codecs** | [new-codec-investigation.md](new-codec-investigation.md) | ⚪ Investigate | Researched, **not added**: SVGO for vector (do first), HEIC decode-in (later), jpegli / JPEG→JXL transcode (skip). Decide later. |
 | 3 | **Product features** | [road-map.md](road-map.md) | ⚪ Later | Multi-Format Compare (now unblocked — codecs done; benefits from threading), then bulk optimization. |
 | ✓ | **Codec security rebuilds** | [codec-build-notes.md](codec-build-notes.md) · [codec-upgrade-audit.md](codec-upgrade-audit.md) | **✅ DONE** | All 7 codecs upgraded natively on `codec-rebuilds` (CVEs fixed; some faster). The engineering record is `codec-build-notes.md`; the planning docs (handoff/runbooks/audit) are now historical. |

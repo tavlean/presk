@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -294,6 +294,35 @@ const patchedOxipngShimOutputPath = join(
   patchedOxipngWrapperOutputDir,
   'squoosh_oxipng.d.ts',
 );
+// Threaded (wasm-bindgen-rayon) build: the parallel wrapper + its snippets
+// (workerHelpers.js — the nested-worker entry rayon self-spawns).
+const patchedOxipngMtWrapperOutputDir = join(
+  appRoot,
+  '.svelte-kit',
+  'sqush-generated',
+  'codecs',
+  'oxipng',
+  'pkg-parallel',
+);
+const patchedOxipngMtOutputPath = join(
+  patchedOxipngMtWrapperOutputDir,
+  'squoosh_oxipng.js',
+);
+const patchedOxipngMtShimOutputPath = join(
+  patchedOxipngMtWrapperOutputDir,
+  'squoosh_oxipng.d.ts',
+);
+const oxipngMtSnippetsSourceDir = join(
+  repoRoot,
+  'codecs',
+  'oxipng',
+  'pkg-parallel',
+  'snippets',
+);
+const oxipngMtSnippetsOutputDir = join(
+  patchedOxipngMtWrapperOutputDir,
+  'snippets',
+);
 const serviceWorkerOutputDir = join(
   appRoot,
   '.svelte-kit',
@@ -505,6 +534,15 @@ const codecAssetRecords = [
     cache: 'precache',
     module: './oxipng',
     urlBinding: 'oxipngWasmUrl',
+  },
+  {
+    logicalKey: 'oxipng:encoder:multi-thread',
+    codec: 'oxipng',
+    role: 'encoder',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+    module: './oxipng',
+    urlBinding: 'oxipngMtWasmUrl',
   },
   {
     logicalKey: 'imagequant:processor:default',
@@ -769,6 +807,7 @@ function generateWebpWorkerEntry() {
     "import { createOxiPngEncoderRuntime } from 'features/encoders/oxiPNG/worker/runtime';",
     "import type { EncodeOptions as OxipngEncodeOptions } from 'features/encoders/oxiPNG/shared/meta';",
     "import initOxipngWasm, { optimise as optimiseOxipng } from 'sqush-generated/codecs/oxipng/pkg/squoosh_oxipng';",
+    "import checkThreadsSupport from 'worker-shared/supports-wasm-threads';",
     "import { createQuantizeRuntime } from 'features/processors/quantize/worker/runtime';",
     "import type { Options as QuantizeOptions } from 'features/processors/quantize/shared/meta';",
     "import imagequant from 'sqush-generated/codecs/imagequant/imagequant';",
@@ -806,6 +845,7 @@ function generateWebpWorkerEntry() {
     '',
     'export interface OxipngWasmUrls {',
     '  singleThread: string;',
+    '  multiThread: string;',
     '}',
     '',
     'export interface ImagequantWasmUrls {',
@@ -891,7 +931,15 @@ function generateWebpWorkerEntry() {
     '  loadEncoder: async () => mozjpegEncoder,',
     '});',
     'const encodeOxipng = createOxiPngEncoderRuntime({',
-    '  supportsThreads: async () => false,',
+    '  supportsThreads: checkThreadsSupport,',
+    '  async loadMultiThread(wasmUrl) {',
+    "    const { default: initOxipngMtWasm, initThreadPool, optimise: optimiseOxipngMt } = await import(",
+    "      'sqush-generated/codecs/oxipng/pkg-parallel/squoosh_oxipng',",
+    '    );',
+    '    await initOxipngMtWasm(wasmUrl);',
+    '    await initThreadPool(navigator.hardwareConcurrency);',
+    '    return optimiseOxipngMt;',
+    '  },',
     '  async loadSingleThread(wasmUrl) {',
     '    await initOxipngWasm(wasmUrl);',
     '    return optimiseOxipng;',
@@ -980,7 +1028,6 @@ function generateWebpWorkerEntry() {
     '    wasmUrls: OxipngWasmUrls,',
     '  ): Promise<ArrayBuffer> {',
     '    return encodeOxipng(imageData, options, {',
-    '      supportsThreads: async () => false,',
     '      wasmUrls,',
     '    });',
     '  },',
@@ -1168,10 +1215,11 @@ function generateOxipngCodecAssets() {
     '// It is the SvelteKit app canonical asset manifest for OxiPNG encoder WASM URLs.',
     '',
     "import oxipngWasmUrl from 'codecs/oxipng/pkg/squoosh_oxipng_bg.wasm?url';",
+    "import oxipngMtWasmUrl from 'codecs/oxipng/pkg-parallel/squoosh_oxipng_bg.wasm?url';",
     '',
-    'export { oxipngWasmUrl };',
+    'export { oxipngWasmUrl, oxipngMtWasmUrl };',
     '',
-    'export const oxipngCodecAssetUrls = [oxipngWasmUrl] as const;',
+    'export const oxipngCodecAssetUrls = [oxipngWasmUrl, oxipngMtWasmUrl] as const;',
     '',
   ].join('\n');
 }
@@ -1506,6 +1554,7 @@ await Promise.all([
   mkdir(patchedResizeWrapperOutputDir, { recursive: true }),
   mkdir(patchedHqxWrapperOutputDir, { recursive: true }),
   mkdir(patchedOxipngWrapperOutputDir, { recursive: true }),
+  mkdir(patchedOxipngMtWrapperOutputDir, { recursive: true }),
   mkdir(serviceWorkerOutputDir, { recursive: true }),
 ]);
 await Promise.all([
@@ -1745,6 +1794,42 @@ await Promise.all([
         'squoosh_oxipng.d.ts',
       ),
     }),
+  ),
+  // Threaded oxipng (pkg-parallel): patched wrapper + shim + the rayon snippets
+  // dir (workerHelpers.js is statically imported by the wrapper and self-spawns
+  // a nested module Worker via `new Worker(new URL('./workerHelpers.js', …))`).
+  writeFile(
+    patchedOxipngMtOutputPath,
+    await patchWasmBindgenWrapperFallbackUrl({
+      sourcePath: join(
+        repoRoot,
+        'codecs',
+        'oxipng',
+        'pkg-parallel',
+        'squoosh_oxipng.js',
+      ),
+      assetName: 'squoosh_oxipng_bg.wasm',
+    }),
+  ),
+  writeFile(
+    patchedOxipngMtShimOutputPath,
+    await generatePatchedWasmBindgenWrapperShim({
+      sourcePath: join(
+        repoRoot,
+        'codecs',
+        'oxipng',
+        'pkg-parallel',
+        'squoosh_oxipng.d.ts',
+      ),
+    }),
+  ),
+  cp(oxipngMtSnippetsSourceDir, oxipngMtSnippetsOutputDir, { recursive: true }),
+  // workerHelpers.js re-imports the main module via `import('../../..')`, which
+  // resolves through the package's `"main"` field — so the package.json must be
+  // present alongside the patched wrapper.
+  cp(
+    join(repoRoot, 'codecs', 'oxipng', 'pkg-parallel', 'package.json'),
+    join(patchedOxipngMtWrapperOutputDir, 'package.json'),
   ),
   writeFile(serviceWorkerCachePlanOutputPath, generateServiceWorkerCachePlan()),
 ]);

@@ -268,6 +268,28 @@ value is robustness + fast-mode/ICC fixes). Wrapper: `Options.interlace`
   the `new URL('<asset>', import.meta.url)` expression (variable-name-agnostic),
   same approach as the emscripten patch.
 
+**oxipng threaded build (`pkg-parallel`, wasm-bindgen-rayon) — shared memory
+(2026-06-03).** The `parallel` feature build must ship a **shared + imported**
+`WebAssembly.Memory` (`flags=0x03`) so rayon's `startWorkers` can `postMessage`
+it to the worker pool; a non-shared memory (`flags=0x0`) throws `DataCloneError:
+#<Memory> could not be cloned` and silently falls back to single-thread. On the
+**old** toolchains (jSquash's oxipng-parallel: wasm-bindgen-rayon 1.2.1 /
+wasm-bindgen 0.2.92) bare `-C target-feature=+atomics,+bulk-memory` +
+`-Z build-std` auto-emitted a shared+imported memory. On the **current nightly**
+(1.98, 2026-06) that implicit behavior is **gone** — `+atomics` alone emits a
+*non-shared* memory and you must pass the full linker set explicitly. The working
+`pkg-parallel` `RUSTFLAGS` (see `codecs/oxipng/build.sh`):
+`+atomics,+bulk-memory` + `--shared-memory` + `--max-memory=1073741824` (a shared
+memory MUST declare a max) + `--import-memory` + the five exports
+`--export=__wasm_init_tls,__tls_size,__tls_align,__tls_base,__heap_base`. The
+exports are load-bearing for wasm-bindgen's threading pass — **dead-ends not to
+retry:** `--shared-memory --max-memory` *without* the TLS exports → wasm-bindgen
+errors `failed to prepare module for threading`; *without* `__heap_base` →
+`failed to find __heap_base for injecting thread id`. `+mutable-globals` is no
+longer needed. Keep `wasm-opt = ["-O", "--no-validation"]` (it preserves the
+shared memory). Verified threading engages multi-core in Chromium + WebKit; the
+full threading story is in [threading-enablement.md](threading-enablement.md).
+
 **resize 0.5.5 → 0.8.9 — done. We're AHEAD of both upstreams (Squoosh + jSquash
 pin 0.5.5), so there's no reference build — verify it directly.** Pure Rust (no C
 dep, so no emsdk clang needed); reuses oxipng's toolchain notes (rustup nightly,

@@ -203,14 +203,56 @@ worker-in-worker). Two findings, both committed/documented:
    engine), `tests/e2e/threads-support.spec.ts` proves modern Safari supports
    nested workers + SharedArrayBuffer + Atomics. The reason for the deferral is
    gone.
-2. **The full oxipng threaded wiring was built** (branch `oxipng-threading-wip`) and
-   structurally works — Vite even bundles the nested rayon worker — but it's blocked
-   on one thing: the threaded `pkg-parallel` wasm ships a **non-shared**
-   `WebAssembly.Memory`, so rayon's `postMessage(memory)` throws `DataCloneError` and
-   it falls back to single-thread. Precisely diagnosed (not a wasm-opt issue; a
-   wasm-bindgen-rayon/nightly version-matching problem). See
-   [threading-enablement.md](threading-enablement.md). This is the natural "to be
-   continued" for the article.
+2. **The full oxipng threaded wiring was built** (Vite bundles the nested rayon
+   worker; the generator emits the threaded assets) but was blocked on one thing:
+   the threaded `pkg-parallel` wasm shipped a **non-shared** `WebAssembly.Memory`,
+   so rayon's `postMessage(memory)` threw `DataCloneError` and it fell back to
+   single-thread. **Resolved 2026-06-03** — see below.
+
+### The threading resolution — "the recipe rotted out from under the docs"
+
+> **What we set out to do.** Ship the already-built threaded oxipng so it uses
+> all cores. **The problem.** The threaded wasm's memory was non-shared
+> (`flags=0x0`); rayon couldn't `postMessage` it. The previous session had tried
+> the *canonical* wasm-bindgen-rayon recipe (`-C target-feature=+atomics,+bulk-memory,+mutable-globals`
+> + `-Z build-std`) and it *still* came out non-shared — and forcing
+> `--shared-memory --max-memory` made **wasm-bindgen** error `failed to prepare
+> module for threading`. A genuine dead-end on the surface.
+
+**How we actually solved it.** Two sub-agents researched in parallel: one read
+**jSquash's** working oxipng-parallel build, the other read the **current**
+wasm-bindgen-rayon README + issue tracker. The two sources *disagreed*, and the
+disagreement WAS the answer:
+
+- jSquash (wasm-bindgen-rayon **1.2.1**, wasm-bindgen **0.2.92**) gets shared
+  memory from bare `+atomics,+bulk-memory` — on that toolchain `+atomics`
+  auto-emitted a shared+imported memory at link.
+- The current README (tested on a late-2025 nightly, even older than our
+  2026-06 nightly) now documents the **full explicit linker set** — because that
+  implicit behavior was removed. `+atomics` alone now emits a *non-shared*
+  memory.
+
+So the recipe hadn't been *wrong*, it had **rotted**: the toolchain quietly
+dropped the auto-shared-memory behavior the canonical recipe leaned on. The fix
+was to pass everything explicitly: `--shared-memory` + `--max-memory` (a shared
+memory must declare a max) + `--import-memory` + the TLS exports
+(`__wasm_init_tls`, `__tls_{size,align,base}`) **and** `__heap_base`. The earlier
+dead-end was *incomplete*, not wrong — wasm-bindgen's threading pass needs those
+exported symbols to rewrite, and it tells you which one is missing
+(`failed to prepare module for threading` → no TLS exports; `failed to find
+__heap_base` → add `__heap_base`). Each error named the next flag to add.
+
+**The result / the lesson.** oxipng now threads multi-core — **11 rayon workers
+in Chromium, an 8-thread pool in WebKit/Safari** — verified by an e2e test that
+asserts threading *engages* (worker-helper fetch + no single-thread-fallback
+warning), single-thread fallback intact. **The lesson:** a "known-good recipe"
+has an implicit dependency on the toolchain version that produced it; when it
+fails on a newer toolchain, diff a *recent* working build against the *canonical*
+docs — the delta is the behavior the new toolchain stopped doing for free. (And
+trust the compiler's error messages: each missing-export error pointed straight
+at the next flag.) Full technical record:
+[threading-enablement.md](threading-enablement.md),
+[codec-build-notes.md](codec-build-notes.md).
 
 ### Cross-cutting lessons (the article's takeaways)
 

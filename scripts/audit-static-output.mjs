@@ -326,6 +326,13 @@ const expectedLogicalAssetRecords = [
     cache: 'precache',
   },
   {
+    logicalKey: 'oxipng:encoder:multi-thread',
+    codec: 'oxipng',
+    role: 'encoder',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
     logicalKey: 'imagequant:processor:default',
     codec: 'imagequant',
     role: 'processor',
@@ -373,6 +380,7 @@ const physicalWasmGroups = [
   ['jxl:decoder:default', jxlDecoderWasmAssets],
   ['mozjpeg:encoder:default', mozjpegEncoderWasmAssets],
   ['oxipng:encoder:single-thread', oxipngWasmAssets],
+  ['oxipng:encoder:multi-thread', oxipngWasmAssets],
   ['imagequant:processor:default', imagequantWasmAssets],
   ['resize:processor:default', resizeWasmAssets],
   ['hqx:processor:hqx', hqxWasmAssets],
@@ -459,8 +467,8 @@ assert(
   `Expected exactly one MozJPEG encoder WASM asset after the generated wrapper patch, found ${mozjpegEncoderWasmAssets.length}.`,
 );
 assert(
-  oxipngWasmAssets.length === 1,
-  `Expected exactly one OxiPNG WASM asset after the generated wrapper patch, found ${oxipngWasmAssets.length}.`,
+  oxipngWasmAssets.length === 2,
+  `Expected two OxiPNG WASM assets (single-thread pkg + threaded pkg-parallel) now that the rayon runtime is wired, found ${oxipngWasmAssets.length}.`,
 );
 assert(
   imagequantWasmAssets.length === 1,
@@ -487,8 +495,8 @@ assert(
   'Missing emitted generated WebP features-worker asset.',
 );
 assert(
-  workerHelperAssets.length === 0,
-  `Expected no OxiPNG parallel worker helper assets when the SvelteKit app injects the single-thread runtime, found ${workerHelperAssets.length}.`,
+  workerHelperAssets.length > 0,
+  `Expected OxiPNG parallel worker helper assets now that the SvelteKit app wires the threaded (wasm-bindgen-rayon) runtime, found ${workerHelperAssets.length}.`,
 );
 assert(
   immutableWorkerAsset,
