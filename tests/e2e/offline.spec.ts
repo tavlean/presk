@@ -5,7 +5,17 @@ import { expect, test } from '@playwright/test';
 test('reloads offline after the service worker installs', async ({
   page,
   context,
+  browserName,
 }) => {
+  // Playwright-WebKit throws "WebKit encountered an internal error" on
+  // page.reload() while context.setOffline(true) — its offline emulation doesn't
+  // support reload-while-offline. This is a harness limitation, not an app bug:
+  // the service-worker caching itself is verified by the same test on Chromium.
+  test.skip(
+    browserName === 'webkit',
+    'Playwright-WebKit setOffline + reload is unsupported (harness limitation)',
+  );
+
   // On loopback hosts (localhost) the SW is opt-in via `?sw=1` (persisted), so
   // it never pollutes a dev origin by accident. Production hosts register it
   // unconditionally; here we opt in so the offline path is exercised.

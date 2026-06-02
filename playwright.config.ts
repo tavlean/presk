@@ -27,6 +27,16 @@ export default defineConfig({
         viewport: { width: 1280, height: 900 },
       },
     },
+    // WebKit = the engine Safari ships. The codecs are emscripten/wasm-bindgen
+    // WASM, and Safari's JS/WASM engine (JavaScriptCore) differs from V8, so this
+    // is the cross-engine guard for codec rebuilds. Run with `--project=webkit`.
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+        viewport: { width: 1280, height: 900 },
+      },
+    },
   ],
   webServer: {
     command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
