@@ -263,6 +263,27 @@ const expectedLogicalAssetRecords = [
     cache: 'precache',
   },
   {
+    logicalKey: 'avif:encoder:multi-thread',
+    codec: 'avif',
+    role: 'encoder',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
+    logicalKey: 'avif:encoder:multi-thread-worker',
+    codec: 'avif',
+    role: 'worker-helper',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
+    logicalKey: 'avif:encoder:multi-thread-script',
+    codec: 'avif',
+    role: 'worker-helper',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
     logicalKey: 'webp:decoder:default',
     codec: 'webp',
     role: 'decoder',
@@ -310,6 +331,48 @@ const expectedLogicalAssetRecords = [
     role: 'encoder',
     variant: 'single-thread',
     cache: 'precache',
+  },
+  {
+    logicalKey: 'jxl:encoder:multi-thread',
+    codec: 'jxl',
+    role: 'encoder',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
+    logicalKey: 'jxl:encoder:multi-thread-worker',
+    codec: 'jxl',
+    role: 'worker-helper',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
+    logicalKey: 'jxl:encoder:multi-thread-script',
+    codec: 'jxl',
+    role: 'worker-helper',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
+    logicalKey: 'jxl:encoder:multi-thread-simd',
+    codec: 'jxl',
+    role: 'encoder',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
+    logicalKey: 'jxl:encoder:multi-thread-simd-worker',
+    codec: 'jxl',
+    role: 'worker-helper',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
+  },
+  {
+    logicalKey: 'jxl:encoder:multi-thread-simd-script',
+    codec: 'jxl',
+    role: 'worker-helper',
+    variant: 'multi-thread',
+    cache: 'threaded-only',
   },
   {
     logicalKey: 'mozjpeg:encoder:default',
@@ -373,10 +436,13 @@ const physicalWasmGroups = [
   ['webp:decoder:default', webpDecoderWasmAssets],
   ['avif:decoder:default', avifDecoderWasmAssets],
   ['avif:encoder:single-thread', avifEncoderWasmAssets],
+  ['avif:encoder:multi-thread', avifEncoderWasmAssets],
   ['rotate:preprocessor:default', rotateWasmAssets],
   ['qoi:encoder:default', qoiEncoderWasmAssets],
   ['qoi:decoder:default', qoiDecoderWasmAssets],
   ['jxl:encoder:single-thread', jxlEncoderWasmAssets],
+  ['jxl:encoder:multi-thread', jxlEncoderWasmAssets],
+  ['jxl:encoder:multi-thread-simd', jxlEncoderWasmAssets],
   ['jxl:decoder:default', jxlDecoderWasmAssets],
   ['mozjpeg:encoder:default', mozjpegEncoderWasmAssets],
   ['oxipng:encoder:single-thread', oxipngWasmAssets],
@@ -431,12 +497,12 @@ assert(
   `Expected exactly one AVIF decoder WASM asset after the generated wrapper patch, found ${avifDecoderWasmAssets.length}.`,
 );
 assert(
-  avifEncoderWasmAssets.length === 1,
-  `Expected exactly one AVIF encoder WASM asset after the generated wrapper patch, found ${avifEncoderWasmAssets.length}.`,
+  avifEncoderWasmAssets.length === 2,
+  `Expected two AVIF encoder WASM assets (single-thread enc + threaded enc_mt) now that the pthread runtime is wired, found ${avifEncoderWasmAssets.length}.`,
 );
 assert(
-  avifThreadedWorkerAssets.length === 0,
-  `Expected no AVIF threaded worker helper assets when the SvelteKit app injects the single-thread runtime, found ${avifThreadedWorkerAssets.length}.`,
+  avifThreadedWorkerAssets.length > 0,
+  `Expected AVIF threaded worker helper assets now that the SvelteKit app wires the threaded (Emscripten pthread) runtime, found ${avifThreadedWorkerAssets.length}.`,
 );
 assert(
   rotateWasmAssets.length === 1,
@@ -451,16 +517,16 @@ assert(
   `Expected exactly one QOI decoder WASM asset after the generated wrapper patch, found ${qoiDecoderWasmAssets.length}.`,
 );
 assert(
-  jxlEncoderWasmAssets.length === 1,
-  `Expected exactly one JPEG XL encoder WASM asset after the generated wrapper patch, found ${jxlEncoderWasmAssets.length}.`,
+  jxlEncoderWasmAssets.length === 3,
+  `Expected three JPEG XL encoder WASM assets (single-thread + threaded enc_mt + enc_mt_simd) now that the pthread runtime is wired, found ${jxlEncoderWasmAssets.length}.`,
 );
 assert(
   jxlDecoderWasmAssets.length === 1,
   `Expected exactly one JPEG XL decoder WASM asset after the generated wrapper patch, found ${jxlDecoderWasmAssets.length}.`,
 );
 assert(
-  jxlThreadedWorkerAssets.length === 0,
-  `Expected no JPEG XL threaded worker helper assets when the SvelteKit app injects the single-thread runtime, found ${jxlThreadedWorkerAssets.length}.`,
+  jxlThreadedWorkerAssets.length > 0,
+  `Expected JPEG XL threaded worker helper assets now that the SvelteKit app wires the threaded (Emscripten pthread) runtime, found ${jxlThreadedWorkerAssets.length}.`,
 );
 assert(
   mozjpegEncoderWasmAssets.length === 1,

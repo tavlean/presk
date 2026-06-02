@@ -44,10 +44,21 @@ export function createJxlEncoderRuntime({
     supportsSimd: detectSimd = supportsSimd,
   }: JxlEncodeRuntimeOptions = {}) {
     if (await detectThreads()) {
-      const moduleFactory = (await detectSimd())
-        ? await loadMultiThreadSimd()
-        : await loadMultiThread();
-      return initEmscriptenModule(moduleFactory);
+      try {
+        const moduleFactory = (await detectSimd())
+          ? await loadMultiThreadSimd()
+          : await loadMultiThread();
+        return await initEmscriptenModule(moduleFactory);
+      } catch (err) {
+        // Multithread setup can fail (nested-worker / pthread URL resolution
+        // under the bundler). Fall back to single-thread so encoding still works
+        // rather than hard-failing.
+        // eslint-disable-next-line no-console
+        console.warn(
+          'JPEG XL multithread load failed; using single-thread.',
+          err,
+        );
+      }
     }
 
     const moduleFactory = await loadSingleThread();

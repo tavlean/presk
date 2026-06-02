@@ -43,8 +43,16 @@ const crossOriginIsolation: Plugin = {
 export default defineConfig({
   plugins: [crossOriginIsolation, sveltekit()],
   build: {
-    assetsInlineLimit: (filePath) =>
-      filePath.endsWith('.wasm') ? false : undefined,
+    // Never inline WASM, nor the threaded (pthread / rayon) codec glue + worker
+    // scripts. A `*_mt(.worker).js` is ~2 kB — below the default inline limit —
+    // so Vite would emit it as a `data:` URI, but pthread workers must be real,
+    // fetchable files (a `data:` worker breaks under COEP and in WebKit), and the
+    // audit + service-worker manifest expect emitted files, not inlined URIs.
+    assetsInlineLimit: (filePath) => {
+      if (filePath.endsWith('.wasm')) return false;
+      if (/_mt(_simd)?(\.worker)?\.js$/.test(filePath)) return false;
+      return undefined;
+    },
   },
   resolve: {
     alias: {

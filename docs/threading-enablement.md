@@ -1,12 +1,12 @@
 # Threading Enablement (COOP/COEP) — Plan
 
-Last updated: 2026-06-03. Status: **oxipng MT threading LANDED & VERIFIED.** The
-threaded wasm-bindgen-rayon runtime engages multi-core in both Chromium (11 rayon
-workers) and WebKit/Safari (8-thread pool builds), with single-thread fallback
-intact. The shared-memory blocker is **solved** (see "POC status" below). AVIF +
-JXL (Emscripten pthreads — a different mechanism) are the remaining codecs to wire.
-Cross-origin isolation was already DONE and e2e-test-protected. Owner: solo.
-Priority: **high (performance).**
+Last updated: 2026-06-03. Status: **ALL THREE THREADED CODECS LANDED & VERIFIED —
+oxipng, AVIF, JXL.** Each engages multi-core in both Chromium (full worker pool)
+and WebKit/Safari, with single-thread fallback intact. oxipng (wasm-bindgen-rayon)
+needed a shared-memory build fix; AVIF + JXL (Emscripten pthreads) needed a
+`PTHREAD_POOL_SIZE` build fix + the `?url`/`mainScriptUrlOrBlob` JS wiring. Both
+blockers are solved (see below). Cross-origin isolation was already DONE and
+e2e-test-protected. Owner: solo. Priority: **high (performance) — essentially done.**
 
 Read [STATUS.md](STATUS.md) for live state. This finishes a **parked migration
 item**, it is not new greenfield work.
@@ -260,15 +260,46 @@ first on PATH, `CC_wasm32_unknown_unknown=<emsdk>/upstream/bin/clang`,
 `CPATH=<emsdk>/upstream/emscripten/cache/sysroot/include`. Full build engineering:
 [codec-build-notes.md](codec-build-notes.md).
 
-### Next: AVIF + JXL
+### AVIF + JXL (Emscripten pthreads) — LANDED 2026-06-03
 
 Their `_mt` / `_mt_simd` variants are **Emscripten pthreads** (built with
 `-pthread`), NOT wasm-bindgen-rayon — Emscripten infers shared memory from
-`-pthread`, so the shared-memory fix above does **not** apply. The work there is
-the JS-side wiring (flip the `supportsThreads`/`loadMultiThread` stubs in the
-generator, emit the `_mt(.worker).js` + threaded `.wasm` asset records, flip the
-audit asserts) + cross-engine verification — the `oxipng-threading-wip` branch is
-now superseded by this landed work.
+`-pthread`, so the shared-memory fix above does **not** apply. Two pieces were
+needed:
+
+**1. JS-side wiring (the `?url` + `mainScriptUrlOrBlob` pattern).** The generator
+now flips the `supportsThreads`/`loadMultiThread`(`Simd`) stubs to real detection
+(`checkThreadsSupport` + `wasm-feature-detect`'s `simd`), emits the threaded
+assets as `?url` records (wasm + `.worker.js` + the glue `.js`), and the audit
+asserts them. Because the codec runs inside a worker and the assets are served from
+hashed `?url` paths, the spawned pthread workers can't fall back to a relative
+`./<codec>_mt.js` import — so `initEmscriptenModule` hands them the glue's `?url`
+as **`Module.mainScriptUrlOrBlob`** (set by the generated `loadMultiThread` via a
+global; the generated `locateCodecWasm` maps `<codec>_mt(.worker).js` →
+`?url`). Also: `vite.config.ts`'s `assetsInlineLimit` must **not inline** the
+`~2 kB` `*_mt(.worker).js` scripts (a `data:` URI worker breaks under COEP /
+WebKit, and the audit + SW manifest expect real files).
+
+**2. The codec build fix (`PTHREAD_POOL_SIZE`).** Wiring alone wasn't enough — the
+encode **deadlocked**: init succeeds, but `module.encode()` (running synchronously
+in the codec worker, blocking on `Atomics.wait`) tries to spawn pthreads
+**on-demand** and can't, because the blocked worker can't process the new worker's
+`loaded` message. The `_mt` builds had **no pre-spawned pool**. Fixed by rebuilding
+the `_mt` wrappers with `-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency` (a
+link-only flag — relink against cached `.a`s, keeping the original `-O3 -flto` +
+`ALLOW_MEMORY_GROWTH` env flags). Full build detail:
+[codec-build-notes.md](codec-build-notes.md).
+
+**Diagnosis trail (how it was found):** the encode worked in the page context for
+*init* but threw `Atomics.wait cannot be called in this context` on the main thread
+(proving encode needs a worker); in a nested worker it hung after "factory resolved"
+at "encoding" — pinpointing the on-demand pthread spawn during the blocking encode.
+
+**Verified (2026-06-03):** `tests/e2e/emscripten-threads.spec.ts` (AVIF + JXL,
+Chromium + WebKit). Chromium spawns the full pthread pool (11 workers each; JXL via
+the SIMD variant), WebKit loads the threaded wasm with no fallback and no hang. The
+single-thread builds remain the fallback. `oxipng-threading-wip` is superseded by
+all of this landed work.
 
 ## Related
 

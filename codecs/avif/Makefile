@@ -54,6 +54,11 @@ $(OUT_ENC_JS): $(OUT_ENC_CPP) $(CODEC_DIR)/CMakeLists.txt $(LIBAOM_DIR)/CMakeLis
 
 # MT-Encoding
 # We need to run the ST and MT tasks sequentially to avoid conflicts with the copy of libsharpyuv in the build directory
+# OUT_FLAGS pre-spawns a pthread pool (PTHREAD_POOL_SIZE). Without it Emscripten
+# creates pthreads on-demand during the encode, but the encode runs synchronously
+# in a worker and blocks on Atomics.wait — so it can never process the new worker's
+# `loaded` message and deadlocks. Pre-spawning at init makes the pool ready before
+# the blocking encode. Sized to the runtime core count.
 $(OUT_ENC_MT_JS): $(OUT_ENC_CPP) $(CODEC_DIR)/CMakeLists.txt $(LIBAOM_DIR)/CMakeLists.txt $(LIBSHARPYUV_MT) | $(OUT_ENC_JS)
 	mkdir -p $(LIBWEBP_DIR)/build && cp $(LIBSHARPYUV_MT) $(LIBSHARPYUV)
 	$(MAKE) \
@@ -66,7 +71,7 @@ $(OUT_ENC_MT_JS): $(OUT_ENC_CPP) $(CODEC_DIR)/CMakeLists.txt $(LIBAOM_DIR)/CMake
 		" \
 		ENVIRONMENT=$(ENVIRONMENT) \
 		LIBAVIF_FLAGS="-DAVIF_CODEC_AOM_DECODE=0 -DAVIF_LOCAL_LIBSHARPYUV=ON" \
-		OUT_FLAGS="-pthread"
+		OUT_FLAGS="-pthread -sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency"
 
 # Decoding
 $(OUT_DEC_JS): $(OUT_DEC_CPP) $(CODEC_DIR)/CMakeLists.txt $(LIBAOM_DIR)/CMakeLists.txt

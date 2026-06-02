@@ -254,6 +254,54 @@ at the next flag.) Full technical record:
 [threading-enablement.md](threading-enablement.md),
 [codec-build-notes.md](codec-build-notes.md).
 
+### AVIF + JXL threading — "a deadlock that had been latent for years"
+
+> **What we set out to do.** Extend threading to AVIF and JXL. Unlike oxipng
+> (Rust/rayon) these are **Emscripten pthreads**, and their `_mt` / `_mt_simd`
+> builds *already existed* — so this looked like pure JS wiring. **The problem.**
+> After wiring, every AVIF/JXL encode **hung forever** — not a crash, not a
+> fallback, a silent hang.
+
+**The wiring itself was the easy part** (and it works): the threaded glue is
+served from a hashed `?url`, so the pthread workers it self-spawns can't use the
+relative `./<codec>_mt.js` import Emscripten defaults to — you hand them the glue's
+URL as `Module.mainScriptUrlOrBlob`. (Plus a Vite gotcha: the ~2 kB `.worker.js`
+was being **inlined as a `data:` URI** under the 4 kB limit, which breaks a Worker
+under COEP — pin `assetsInlineLimit` to keep it a real file.)
+
+**The hang was the hard part, and the diagnosis is the whole story.** The pthread
+workers are *classic nested* workers, which Playwright doesn't surface — so there
+was no console, no error, nothing. We narrowed it by **moving the code to where we
+could see it**: loaded the glue in the page itself → `init` resolved fine, but
+`encode()` threw `Atomics.wait cannot be called in this context` (the encode is
+*meant* to run on a worker thread, not the main thread). Then ran it in a
+*nested* worker with step-by-step `postMessage` progress → it printed
+"factory resolved" then "encoding" then **stopped**. That pinned it: not init, the
+encode.
+
+**The root cause was in the codec build, not our code** — and it had been latent
+*because the threaded builds had never actually been run* (threading was disabled
+since the migration). The `_mt` Makefiles compile with `-pthread` but set **no
+`PTHREAD_POOL_SIZE`**, so Emscripten creates pthreads **on-demand** mid-encode. But
+the encode runs synchronously in the codec worker and **blocks on `Atomics.wait`**
+waiting for the pool — so it can never process the new worker's "I'm loaded"
+message, and the thread it's waiting for can never start. Classic deadlock. **The
+fix:** rebuild the `_mt` wrappers with
+`-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency` so the pool is spawned + ready
+*before* the blocking encode. It's a link-only flag (relink against the cached
+`.a`s in seconds), with one trap: keep the original `-O3 -flto` +
+`ALLOW_MEMORY_GROWTH` env flags or you silently ship a 16 MB-capped, unoptimised
+binary.
+
+**The result / the lesson.** AVIF + JXL now spawn the full pthread pool (11 workers
+on an 11-core machine) and encode without falling back, Chromium + WebKit. **The
+lesson:** *code that is never executed accumulates latent bugs that look like
+config but are real.* The `_mt` builds had shipped for years with a fatal
+threading deadlock that nobody hit because nobody turned threading on. And when the
+runtime gives you nothing — classic nested workers are invisible — **relocate the
+failing code to a context you can observe** (page → nested worker, with progress
+pings) and the silent hang names itself.
+
 ### Cross-cutting lessons (the article's takeaways)
 
 - **The build harness is the product.** Three codecs compiled fine and were silently

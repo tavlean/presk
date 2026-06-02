@@ -37,8 +37,13 @@ enc/jxl_enc_mt_simd.js: $(CODEC_MT_SIMD_BUILD_DIR)/lib/libjxl.a $(CODEC_MT_SIMD_
 # JPEG-XL & Highway need to catch up, once they do, we can remove this suppression.
 export CXXFLAGS += -Wno-deprecated-declarations
 
-# Compile multithreaded wrappers with -pthread.
-enc/jxl_enc_mt.js enc/jxl_enc_mt_simd.js: CXXFLAGS+=-pthread
+# Compile multithreaded wrappers with -pthread, and pre-spawn a pthread pool
+# (PTHREAD_POOL_SIZE). Without a pre-spawned pool Emscripten creates pthreads
+# on-demand during the encode, but the encode runs synchronously in a worker and
+# blocks on Atomics.wait — so it can never process the new worker's `loaded`
+# message and deadlocks. Pre-spawning at init makes the pool ready before the
+# blocking encode. Sized to the runtime core count.
+enc/jxl_enc_mt.js enc/jxl_enc_mt_simd.js: CXXFLAGS+=-pthread -sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency
 
 $(OUT_JS):
 	$(CXX) \

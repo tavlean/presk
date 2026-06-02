@@ -34,21 +34,21 @@ export function createAvifEncoderRuntime({
 }: AvifEncoderRuntime) {
   let emscriptenModule: Promise<AVIFModule>;
 
-  async function loadMT() {
-    if (!loadMultiThread) {
-      throw new Error('AVIF multithread runtime is unavailable.');
-    }
-
-    return loadMultiThread();
-  }
-
   async function init({
     supportsThreads: detectThreads = supportsThreads,
   } = {}) {
-    const moduleFactory = (await detectThreads())
-      ? await loadMT()
-      : await loadSingleThread();
-    return initEmscriptenModule(moduleFactory);
+    if ((await detectThreads()) && loadMultiThread) {
+      try {
+        return await initEmscriptenModule(await loadMultiThread());
+      } catch (err) {
+        // Multithread setup can fail (nested-worker / pthread URL resolution
+        // under the bundler). Fall back to single-thread so encoding still works
+        // rather than hard-failing.
+        // eslint-disable-next-line no-console
+        console.warn('AVIF multithread load failed; using single-thread.', err);
+      }
+    }
+    return initEmscriptenModule(await loadSingleThread());
   }
 
   return async function encode(

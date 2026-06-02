@@ -13,14 +13,20 @@
 export function initEmscriptenModule<T extends EmscriptenWasm.Module>(
   moduleFactory: EmscriptenWasm.ModuleFactory<T>,
 ): Promise<T> {
-  const locateFile = (
-    globalThis as {
-      __squshEmscriptenLocateFile?: (path: string, prefix?: string) => string;
-    }
-  ).__squshEmscriptenLocateFile;
+  const globals = globalThis as {
+    __squshEmscriptenLocateFile?: (path: string, prefix?: string) => string;
+    __squshEmscriptenMainScriptUrlOrBlob?: string;
+  };
 
   return moduleFactory({
-    locateFile,
+    locateFile: globals.__squshEmscriptenLocateFile,
+    // Threaded (pthread) builds spawn worker copies of themselves that re-import
+    // the main module via `import(Module.mainScriptUrlOrBlob)`. Under the bundler
+    // the glue is served from a hashed `?url`, so we must hand the worker that URL
+    // explicitly — otherwise it falls back to a relative `./<codec>_mt.js` that
+    // 404s. Undefined for single-thread builds (they ignore it). The generated
+    // `locateCodecWasm` sets it alongside __squshEmscriptenLocateFile.
+    mainScriptUrlOrBlob: globals.__squshEmscriptenMainScriptUrlOrBlob,
     // Just to be safe, don't automatically invoke any wasm functions
     noInitialRun: true,
   });

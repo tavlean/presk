@@ -168,6 +168,9 @@ const codecAssetUrl = (logicalKey: string): string =>
 const avifWasmUrls = {
   decoder: codecAssetUrl('avif:decoder:default'),
   encoder: codecAssetUrl('avif:encoder:single-thread'),
+  encoderMt: codecAssetUrl('avif:encoder:multi-thread'),
+  encoderMtWorker: codecAssetUrl('avif:encoder:multi-thread-worker'),
+  encoderMtScript: codecAssetUrl('avif:encoder:multi-thread-script'),
 } satisfies AvifWasmUrls;
 
 const webpWasmUrls = {
@@ -184,6 +187,12 @@ const qoiWasmUrls = {
 const jxlWasmUrls = {
   decoder: codecAssetUrl('jxl:decoder:default'),
   encoder: codecAssetUrl('jxl:encoder:single-thread'),
+  encoderMt: codecAssetUrl('jxl:encoder:multi-thread'),
+  encoderMtWorker: codecAssetUrl('jxl:encoder:multi-thread-worker'),
+  encoderMtScript: codecAssetUrl('jxl:encoder:multi-thread-script'),
+  encoderMtSimd: codecAssetUrl('jxl:encoder:multi-thread-simd'),
+  encoderMtSimdWorker: codecAssetUrl('jxl:encoder:multi-thread-simd-worker'),
+  encoderMtSimdScript: codecAssetUrl('jxl:encoder:multi-thread-simd-script'),
 } satisfies JxlWasmUrls;
 
 const mozjpegWasmUrls = {

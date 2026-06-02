@@ -110,6 +110,31 @@ libavif **v1.0.1 → v1.4.2**, libaom **v3.7.0 → v3.12.1** (CVE-2024-5171, CVS
 images gain most). Both the single-thread (`avif_enc` 2.79 MB) and threaded
 (`avif_enc_mt` 2.85 MB) encoders + decoder (`avif_dec` 1.25 MB) rebuilt.
 
+**Threaded (pthread) builds need a PRE-SPAWNED POOL — `PTHREAD_POOL_SIZE`
+(2026-06-03).** When MT threading was actually wired + exercised for the first
+time (it had always been disabled), AVIF *and* JXL `_mt`/`_mt_simd` **deadlocked**:
+the encode loads + the threaded wasm runs, then hangs forever. Root cause: the
+`_mt` Makefiles compile with `-pthread` but set **no `PTHREAD_POOL_SIZE`**, so
+Emscripten creates pthreads **on-demand** during the encode via `getNewWorker` →
+`allocateUnusedWorker` + `loadWasmModuleToWorker`. But the encode runs
+**synchronously inside the codec worker and blocks on `Atomics.wait`** (waiting
+for the pool) — so the blocked worker can never process the freshly-spawned
+worker's `loaded` message → the new pthread never becomes ready → deadlock. (It
+was latent for years because the threaded builds were never run.) **The fix:** add
+`-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency` to the MT link (`OUT_FLAGS` in
+`codecs/avif/Makefile`; the `enc/jxl_enc_mt.js enc/jxl_enc_mt_simd.js: CXXFLAGS+=`
+line in `codecs/jxl/Makefile`) so the pool is spawned + loaded at init, *before*
+the blocking encode — then `getNewWorker` returns a ready worker, no on-demand
+spawn, no deadlock. This is a **link/JS-glue flag** only (no libaom/libjxl
+rebuild): relink the `_mt` wrappers against the cached `.a`s. **Watch-out:** the
+naïve relink must keep the original env flags (`CXXFLAGS="-O3 -flto -std=c++17"`,
+`LDFLAGS="… -s ALLOW_MEMORY_GROWTH=1 …"`) — dropping them produces a fixed 16 MB
+memory (`max=256` pages, OOMs real images) + an unoptimised 5× glue. With the
+flags kept, the rebuilt `_mt` wasm is **byte-size-identical** to the old one plus
+the pool. Verified: AVIF + JXL spawn the full worker pool (11 on an 11-core M-series)
+and encode without falling back, in Chromium + WebKit. See
+[threading-enablement.md](threading-enablement.md).
+
 **THE ROOT CAUSE (the whole saga in one line):** libavif **v1.4 changed
 `AVIF_CODEC_AOM` from a boolean to a string enum** (`OFF` / `SYSTEM` / `LOCAL`).
 The old recipe passed `-DAVIF_CODEC_AOM=1`. To the new cmake, `1` is **not a
