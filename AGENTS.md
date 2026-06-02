@@ -14,12 +14,14 @@ preserved on the `preact` branch (tag `preact-final`) for reference only — it 
 no longer a fallback for `main`. There is a single working tree at the repo
 root; the old `../Sqush-svelte` worktree and the `svelte` branch are gone.
 
-The immediate focus is **post-migration cleanup and Svelte hardening**: remove
-dead Preact-era code, make the ported components fully idiomatic Svelte 5, and
-fix the defects/rule-violations found by the post-migration review — all
-behavior-preserving. The prioritized backlog is
-[svelte-hardening-plan.md](docs/svelte-hardening-plan.md). Bulk UI and other new
-product work remain roadmap items, not part of this cleanup.
+Recent focus (2026-06): all 7 WASM codecs were rebuilt from source natively
+(no Docker), and the multi-threaded (MT) codec runtime is now being wired
+(**active**, on branch `oxipng-threading-wip`). Ongoing alongside: post-migration
+cleanup and Svelte hardening — remove dead Preact-era code, make ported
+components idiomatic Svelte 5, fix review defects (all behavior-preserving;
+backlog [svelte-hardening-plan.md](docs/svelte-hardening-plan.md)). Bulk UI and
+other new product work remain roadmap items. **[docs/STATUS.md](docs/STATUS.md)
+is the source of truth for current state — read it first.**
 
 ## Boundaries
 
@@ -50,13 +52,25 @@ product work remain roadmap items, not part of this cleanup.
 - Commit meaningful checkpoints. Push when CI feedback is useful or the
   maintainer asks.
 
+## Keeping docs current (mandatory)
+
+The project keeps its state in docs, not in your head — and they only stay
+useful if they don't go stale. So **after finishing any task, before you call it
+done, open [docs/INDEX.md](docs/INDEX.md)** — the doc registry. It lists every doc
+with an explicit "**Update when**" trigger. For each row your work matched, update
+that doc: versions, `Status:` / `Last updated:` lines, new gotchas, completion
+marks. Two are especially easy to forget: log any interesting problem/solution in
+[docs/journey-and-article-notes.md](docs/journey-and-article-notes.md) (it feeds
+two planned articles), and bump [docs/codec-provenance.md](docs/codec-provenance.md)
+on any codec-version change. If you create a new doc, register it in `docs/INDEX.md`
+**and** link it from `docs/README.md`. This is not optional — the index exists so
+the maintainer doesn't have to ask after every run.
+
 ## Reference docs
 
-- [Current status](docs/STATUS.md)
-- [Cleanup & Svelte hardening plan](docs/svelte-hardening-plan.md)
-- [Migration plan](docs/MIGRATION-PLAN.md) (concluded; historical)
-- [Build and runtime map](docs/build-and-runtime.md)
-- [Product roadmap](docs/road-map.md)
-- [Svelte migration context](docs/svelte-migration-context.md)
-- [Bulk image architecture](docs/bulk-image-architecture.md)
-- [Manual QA checklist](docs/manual-qa.md)
+- **[Doc index / registry](docs/INDEX.md)** — every doc + when to read & update it. Use this to find or maintain docs.
+- [Docs map & priorities](docs/README.md) — human-friendly map + the work order.
+- [Current status](docs/STATUS.md) — live state (read first each session).
+- [Codec build notes](docs/codec-build-notes.md) · [Threading enablement](docs/threading-enablement.md) — the active codec/threading record.
+- [Cleanup & Svelte hardening plan](docs/svelte-hardening-plan.md) · [Build and runtime map](docs/build-and-runtime.md) · [Product roadmap](docs/road-map.md) · [Bulk image architecture](docs/bulk-image-architecture.md) · [Manual QA checklist](docs/manual-qa.md)
+- Migration archive (concluded; historical): [docs/history/](docs/history/).
