@@ -8,6 +8,34 @@ Re-run: Workflow({ scriptPath: ".../workflows/scripts/codec-upgrade-audit-wf_851
 
 # Sqush Codec-Upgrade Audit
 
+> ## ✅ COMPLETED 2026-06-02 — all do-now AND gradual upgrades landed
+>
+> Every codec this audit recommended upgrading was rebuilt and committed on the
+> **`codec-rebuilds`** branch, built **natively with emsdk 3.1.0 + rustup nightly
+> (no Docker, no sudo)**. The version numbers that actually shipped:
+>
+> - **imagequant** 2.12.1 → **2.18.0** (byte-identical; security/quality)
+> - **libwebp** pre-1.2.0 commit → **v1.6.0** (CVE-2023-4863; byte-identical)
+> - **libavif** 1.0.1 → **1.4.2** + **libaom** 3.7.0 → **3.12.1** (CVE-2024-5171
+>   CVSS 9.8; zero size regression, 6–13% faster encode)
+> - **libjxl** pre-0.7 commit → **v0.8.5** (Path A; CVE-2023-0645, CVE-2023-35790,
+>   CVE-2025-12474; CVE-2026-1837 is LCMS2-only and the build uses skcms, so N/A;
+>   3–6% smaller + 2–9% faster)
+> - **oxipng** 9.0.0 → **10.1.1** (byte-identical at default preset; robustness +
+>   fast-mode/ICC fixes)
+> - **mozjpeg** 3.3.1 → **4.1.5** (9 CVEs from the libjpeg-turbo 2.x base;
+>   compression intentionally unchanged = byte-identical; autotools → CMake)
+> - **resize** 0.5.5 → **0.8.9** (Rust; ahead of both Squoosh and jSquash, which
+>   pin 0.5.5)
+>
+> Where the actual landed version differs from the target this audit names (it
+> cites libaom v3.14.1 and libjxl v0.11.2), the **banner numbers above are
+> authoritative** — the analysis below is kept verbatim as historical context.
+> Verified by the 17-test Playwright e2e suite + the benchmark with no
+> regressions. Build details (toolchains, gotchas, bugs):
+> [codec-build-notes.md](codec-build-notes.md). Still deferred: wiring the
+> multi-threaded (`_mt`) runtime — see [threading-enablement.md](threading-enablement.md).
+
 A decision-oriented review of every codec Sqush ships, plus new-codec, WebP2, and SVG questions. Written for a solo dev: every row tells you whether to act now, later, investigate, or skip — and why. Where a gain is marginal, it says so.
 
 > **Spun-off plans from this audit:** [threading-enablement.md](threading-enablement.md) (enable the already-built multithreading) and [codec-surface-cleanup.md](codec-surface-cleanup.md) (remove WebP 2; the dead `codecs/png/` deletion is already done). Docs map: [README.md](README.md).

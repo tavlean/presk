@@ -1,13 +1,21 @@
 # Codec Upgrade Runbooks — Per-Codec, Turnkey
 
-Last updated: 2026-06-02. Status: **runbooks ready; not executed here.** Run
-later, locally or in CI.
+Last updated: 2026-06-02. Status: **✅ DONE.** Every codec in the table below was
+upgraded to the target version and committed on the **`codec-rebuilds`** branch,
+built **natively with emsdk 3.1.0 + rustup nightly (no Docker, no sudo)** —
+verified by the 17-test Playwright e2e suite + the benchmark with no regressions.
+**These per-codec recipes are now historical**; the actual build record (toolchains,
+gotchas, the bugs hit per codec) is in
+[codec-build-notes.md](codec-build-notes.md). Note: libjxl shipped **Path A
+(v0.8.5)** and libaom shipped **v3.12.1** (the audit cited later targets — the
+landed versions in the table below are authoritative).
 
 Turnkey, per-codec upgrade steps derived from the codec audit
-([codec-upgrade-audit.md](codec-upgrade-audit.md)). **The WASM build toolchain
-(emcc / cmake / wasm-pack / docker) is NOT installed in this repo**, so codec
-sources cannot be recompiled here — these runbooks are written to be run later on
-a machine (or CI) that has the toolchain.
+([codec-upgrade-audit.md](codec-upgrade-audit.md)). **All of these were executed
+on 2026-06-02** — built natively with emsdk 3.1.0 + rustup nightly (no Docker, no
+sudo) and committed on `codec-rebuilds`. These recipes are kept as a reference for
+future codec updates; the as-built record is in
+[codec-build-notes.md](codec-build-notes.md).
 
 Read [codec-provenance.md](codec-provenance.md) before touching `codecs/` and
 follow its build / generated-metadata / service-worker / browser verification
@@ -40,19 +48,19 @@ budget** if it asserts exact sizes.
    libjxl-internal headers, not the public C API.
 4. **oxipng**, **mozjpeg**, **resize** — gradual; defer each to its own session.
 
-| Codec | Urgency | From → To | Wrapper edits |
-|-------|---------|-----------|---------------|
-| libimagequant (`codecs/imagequant`) | 🔴 urgent | 2.12.1 → 2.18.0 | none |
-| libwebp (`codecs/webp`) | 🔴 urgent | commit `d2e245ea` (pre-1.2.0) → v1.6.0 | none |
-| libavif + libaom (`codecs/avif`) | 🔴 urgent | avif 1.0.1 / aom 3.7.0 → avif 1.4.2 / aom ≥3.9.1 | likely none (verify) |
-| libjxl (`codecs/jxl`) | 🔴 urgent | commit `9f544641` (pre-0.7) → v0.8.5 (Path A) / v0.11.2 (Path B) | A: ~none; B: full encoder rewrite |
-| oxipng (`codecs/oxipng`) | 🟡 gradual | 9.0.0 → 10.1.1 | one line + one import |
-| mozjpeg (`codecs/mozjpeg`) | 🟡 gradual | v3.3.1 → v4.1.5 | none in `.cpp`; build-system rewrite |
-| resize (`codecs/resize`) | 🟡 gradual | 0.5.5 → 0.8.9 | moderate rewrite |
+| Codec | Status | From → To (landed) | Wrapper edits |
+|-------|--------|--------------------|---------------|
+| libimagequant (`codecs/imagequant`) | ✅ done | 2.12.1 → 2.18.0 | none |
+| libwebp (`codecs/webp`) | ✅ done | commit `d2e245ea` (pre-1.2.0) → v1.6.0 | none |
+| libavif + libaom (`codecs/avif`) | ✅ done | avif 1.0.1 / aom 3.7.0 → avif 1.4.2 / aom 3.12.1 | likely none (verify) |
+| libjxl (`codecs/jxl`) | ✅ done | commit `9f544641` (pre-0.7) → **v0.8.5 (Path A shipped)** | A: ~none; B: full encoder rewrite |
+| oxipng (`codecs/oxipng`) | ✅ done | 9.0.0 → 10.1.1 | one line + one import |
+| mozjpeg (`codecs/mozjpeg`) | ✅ done | v3.3.1 → v4.1.5 | none in `.cpp`; build-system rewrite (autotools → CMake) |
+| resize (`codecs/resize`) | ✅ done | 0.5.5 → 0.8.9 | moderate rewrite |
 
 ---
 
-## libimagequant (`codecs/imagequant`) — 🔴 urgent
+## libimagequant (`codecs/imagequant`) — ✅ done (2.12.1 → 2.18.0)
 
 - **Current pin:** 2.12.1 (2018).
 - **Target:** 2.18.0 (the 2.x C branch; tag confirmed via the GitHub API). **Do
@@ -108,7 +116,7 @@ today). `.wasm` size shifts slightly — re-check the audit budget.
 
 ---
 
-## libwebp (`codecs/webp`) — 🔴 urgent
+## libwebp (`codecs/webp`) — ✅ done (→ v1.6.0)
 
 - **Current pin:** commit `d2e245ea9e959a5a79e1db0ed2085206947e98f2` (Nov 24 2020,
   just before v1.2.0).
@@ -174,7 +182,7 @@ bundled cmake is recent enough, but a cmake error is the signal. (3) Regenerated
 
 ---
 
-## libavif + libaom (`codecs/avif`) — 🔴 urgent
+## libavif + libaom (`codecs/avif`) — ✅ done (avif → v1.4.2 / aom → v3.12.1)
 
 - **Current pin:** libavif v1.0.1 + libaom v3.7.0; libsharpyuv from libwebp commit
   `e2c85878f6a33f29948b43d3492d9cdaf801aa54`.
@@ -258,7 +266,7 @@ change that. (5) Regenerated `.wasm` sizes change; re-check the audit budget.
 
 ---
 
-## libjxl (`codecs/jxl`) — 🔴 urgent
+## libjxl (`codecs/jxl`) — ✅ done (Path A shipped: → v0.8.5)
 
 - **Current pin:** commit `9f544641ec83f6abd9da598bdd08178ee8a003e0` (Jan 2022,
   pre-0.7).
@@ -361,7 +369,7 @@ list (Makefile lines 53–80); Highway version bumps may reintroduce
 
 ---
 
-## oxipng (`codecs/oxipng`) — 🟡 gradual
+## oxipng (`codecs/oxipng`) — ✅ done (9.0.0 → 10.1.1)
 
 - **Current pin:** 9.0.0
   (`oxipng = { version = "9.0", default-features = false, features = ["freestanding"] }`).
@@ -447,7 +455,7 @@ proven-buildable reference.**
 
 ---
 
-## mozjpeg (`codecs/mozjpeg`) — 🟡 gradual
+## mozjpeg (`codecs/mozjpeg`) — ✅ done (v3.3.1 → v4.1.5)
 
 - **Current pin:** v3.3.1 (2018), built with autotools.
 - **Target:** v4.1.5 (Oct 2023; tag confirmed). **CMake-only** (`configure.ac`
@@ -539,7 +547,7 @@ only.
 
 ---
 
-## resize (`codecs/resize` Rust crate) — 🟡 gradual
+## resize (`codecs/resize` Rust crate) — ✅ done (0.5.5 → 0.8.9)
 
 - **Current pin:** `resize` 0.5.5, `wasm-bindgen` 0.2.38, `wee_alloc`, 2015-style
   edition.

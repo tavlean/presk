@@ -66,11 +66,32 @@ browser, the build is static, and offline reload must work after load.
     offline reload. This is the regression net for the codec rebuilds — run it
     after each one. `npm test` now runs `check` + e2e.
 
-  Still outstanding from the audit (not started): the **urgent** security-driven
-  codec rebuilds (libwebp, libavif/libaom, libjxl) + the easy libimagequant bump.
-  These only need **Docker** to build — [codec-upgrade-handoff.md](codec-upgrade-handoff.md)
-  is the build+verify+commit loop (with a fresh-session prompt), backed by the
-  per-codec [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md). The
+- Codec rebuilds (2026-06-02): **✅ all 7 WASM codecs have been rebuilt/upgraded
+  and committed on the `codec-rebuilds` branch.** The audit's "do-now"
+  security-driven rebuilds and the gradual upgrades all landed in one sweep,
+  built **natively with emsdk 3.1.0 + rustup nightly (no Docker, no sudo)**:
+  - **imagequant** 2.12.1 → 2.18.0 (byte-identical; security/quality)
+  - **libwebp** pre-1.2.0 commit → v1.6.0 (CVE-2023-4863; byte-identical output)
+  - **libavif** 1.0.1 → 1.4.2 + **libaom** 3.7.0 → 3.12.1 (CVE-2024-5171 CVSS 9.8;
+    zero size regression, 6–13% faster encode)
+  - **libjxl** pre-0.7 commit → v0.8.5 (CVE-2023-0645, CVE-2023-35790,
+    CVE-2025-12474; CVE-2026-1837 is LCMS2-only and the build uses skcms, so N/A;
+    result: 3–6% smaller + 2–9% faster)
+  - **oxipng** 9.0.0 → 10.1.1 (byte-identical at default preset; value is
+    robustness + fast-mode/ICC fixes)
+  - **mozjpeg** 3.3.1 → 4.1.5 (9 CVEs from the libjpeg-turbo 2.x base; compression
+    intentionally unchanged = byte-identical; build moved autotools → CMake)
+  - **resize** 0.5.5 → 0.8.9 (Rust; ahead of both Squoosh and jSquash, which pin
+    0.5.5)
+
+  **Verified by the full 17-test Playwright e2e suite + the benchmark
+  (`npm run bench` / `bench:compare`) — no regressions.** The benchmark fixture
+  corpus was expanded 4 → 9 (added gradient, gradient-dithered, hard-edges,
+  noise-synthetic, screenshot). The deep engineering record of HOW each codec was
+  built (toolchains, gotchas, bugs) lives in
+  [codec-build-notes.md](codec-build-notes.md). Still deferred (NOT done): wiring
+  the multi-threaded (`_mt`) codec runtime — needs Safari testing; the `_mt`
+  variants are built but unused (`supportsThreads()` returns false). The
   [new-codec-investigation.md](new-codec-investigation.md) records a
   researched-but-not-added shortlist (SVGO first, HEIC-decode later, jpegli /
   JPEG→JXL skip). Full docs map: [README.md](README.md).
@@ -184,18 +205,17 @@ What's next, in short:
 
 1. **Finish multithreading** — the headers are set; do the in-browser
    verification (crossOriginIsolated, the three seams, per-codec `_mt` loading,
-   cross-browser). [threading-enablement.md](threading-enablement.md).
-2. **Urgent — codec security rebuilds** (libwebp, libavif/libaom, libjxl) + the
-   trivial libimagequant bump. Turnkey steps:
-   [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) (the WASM toolchain is
-   not installed here, so they run later locally/CI).
-   Audit/why: [codec-upgrade-audit.md](codec-upgrade-audit.md).
-3. **Gradual codec upgrades** (OxiPNG, mozjpeg, resize) — runbooks in
-   [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md).
-4. **Investigate new codecs** — researched, not added:
+   cross-browser). The `_mt` variants are built but unused
+   (`supportsThreads()` returns false) — needs Safari testing.
+   [threading-enablement.md](threading-enablement.md).
+2. ✅ **Codec security rebuilds + gradual upgrades — DONE** (all 7 codecs landed
+   on `codec-rebuilds`; see the Current State entry above). Build details:
+   [codec-build-notes.md](codec-build-notes.md). Audit/why:
+   [codec-upgrade-audit.md](codec-upgrade-audit.md).
+3. **Investigate new codecs** — researched, not added:
    [new-codec-investigation.md](new-codec-investigation.md) (SVGO first,
    HEIC-decode later, jpegli / JPEG→JXL skip).
-5. **Product features** — Multi-Format Compare, then bulk — see
+4. **Product features** — Multi-Format Compare, then bulk — see
    [road-map.md](road-map.md).
 
 ## Gotchas
@@ -208,8 +228,10 @@ What's next, in short:
   on the branch, but until a human confirms `crossOriginIsolated` and per-codec
   `_mt` loading in real browsers, do not assume threads are actually running.
 - Do not touch `codecs/**` without codec provenance, build, service-worker, and
-  browser verification. The codec rebuilds need the WASM toolchain (emcc / cmake
-  / wasm-pack / docker), which is **not installed in this repo** — run the
-  [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) locally/CI.
+  browser verification. The 2026-06-02 codec rebuilds were built **natively with
+  emsdk 3.1.0 + rustup nightly (no Docker, no sudo)** and landed on
+  `codec-rebuilds` — the build record is in
+  [codec-build-notes.md](codec-build-notes.md); the per-codec runbooks
+  ([codec-upgrade-runbooks.md](codec-upgrade-runbooks.md)) are now historical.
 - Preview browsers can keep old service workers. If behavior looks stale, clear
   site data or use a fresh context.

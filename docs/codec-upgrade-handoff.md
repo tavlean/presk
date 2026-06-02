@@ -1,7 +1,18 @@
 # Codec-Upgrade Handoff
 
-Last updated: 2026-06-02. Status: **in progress — proven; 2 of 4 urgent codecs
-done natively (no Docker).** See the progress log at the bottom.
+Last updated: 2026-06-02. Status: **✅ DONE — the 2026-06-02 sweep is complete.**
+
+> ## ✅ DONE — all 7 codecs upgraded
+>
+> This handoff's build + verify + commit loop was executed for **every** codec.
+> All 7 (imagequant 2.18.0, libwebp v1.6.0, libavif v1.4.2 / libaom v3.12.1,
+> libjxl v0.8.5, oxipng 10.1.1, mozjpeg v4.1.5, resize 0.8.9) were rebuilt
+> **natively with emsdk 3.1.0 + rustup nightly (no Docker, no sudo)** and committed
+> on **`codec-rebuilds`** — verified by the 17-test Playwright e2e suite + the
+> benchmark with no regressions. The as-built record (toolchains, gotchas, bugs)
+> is in [codec-build-notes.md](codec-build-notes.md). **This doc is kept as a
+> reference for future codec updates.** Still deferred: wiring the multi-threaded
+> (`_mt`) runtime — see [threading-enablement.md](threading-enablement.md).
 
 This is a self-contained handoff for actually **building** the codec upgrades.
 The audit ([codec-upgrade-audit.md](codec-upgrade-audit.md)) decided *what* to
@@ -129,23 +140,26 @@ fails loudly instead of silently shipping garbage. **Run it after every codec.**
 2. ✅ **libwebp** → v1.6.0 — **DONE** (commit `c32fc2db`), CVE-2023-4863.
    Byte-identical output, zero size/speed regression. (libsharpyuv split +
    `-msimd128` SIMD fix handled — see the gotchas above.)
-3. **libavif + libaom** → latest 1.x / 3.x — CVE-2024-5171 (CVSS 9.8) + real
-   compression gain. **NEXT.** Heavy build (libaom); check disk first.
-4. **libjxl** → v0.11.x — 6 CVEs + faster lossless. **Isolate this one** (both
-   Squoosh and jSquash are stuck on the same old commit → expect build friction;
-   the `JxlEncoderOptions*` removal in v0.9 may need wrapper edits).
+3. ✅ **libavif v1.4.2 + libaom v3.12.1** — **DONE.** CVE-2024-5171 (CVSS 9.8);
+   zero size regression, 6–13% faster encode.
+4. ✅ **libjxl → v0.8.5 (Path A)** — **DONE.** CVE-2023-0645, CVE-2023-35790,
+   CVE-2025-12474 (CVE-2026-1837 is LCMS2-only; the build uses skcms, so N/A);
+   3–6% smaller + 2–9% faster.
 
 **Do later — gradual (real value, more effort, no urgency):**
 
-5. **OxiPNG** 9 → 10.x — Rust API break in `codecs/oxipng/src/lib.rs`.
-6. **mozjpeg** 3.3.1 → 4.x — security/robustness only; gated on the
-   autotools→CMake build change.
-7. **resize** 0.5.5 → 0.8.x — Rust API changes; disable rayon for WASM.
+5. ✅ **OxiPNG 9.0.0 → 10.1.1** — **DONE.** Rust API break handled; byte-identical
+   at default preset; robustness + fast-mode/ICC fixes.
+6. ✅ **mozjpeg 3.3.1 → 4.1.5** — **DONE.** 9 CVEs from the libjpeg-turbo 2.x base;
+   compression intentionally unchanged = byte-identical; build moved
+   autotools → CMake.
+7. ✅ **resize 0.5.5 → 0.8.9** — **DONE.** Rust rewrite; rayon disabled for WASM;
+   ahead of both Squoosh and jSquash (which pin 0.5.5).
 
-Each step is independent and separately committed, so you can stop after the
-urgent four and pick up the rest anytime. If a codec's build or the e2e suite
-fails, revert that codec (`git checkout -- codecs/<codec>`) and move on — the
-others are unaffected.
+All seven landed on `codec-rebuilds`. Each step was independent and separately
+committed. If a codec's build or the e2e suite fails on a future update, revert
+that codec (`git checkout -- codecs/<codec>`) and move on — the others are
+unaffected.
 
 ## New codec to consider first (separate, no Docker needed)
 
@@ -158,6 +172,11 @@ can't handle today. Independent of the rebuilds above.
 
 ## Copy-paste prompt for a fresh AI session
 
+> **Note (2026-06-02): the original sweep is COMPLETE — all 7 codecs are upgraded
+> and verified on `codec-rebuilds`. This prompt is kept as a template for a
+> *future* codec-update session; adapt the "already done / continue" lines to
+> whatever is then outstanding.**
+>
 > I'm working in the Sqush repo (a browser/WASM image compressor) on the
 > `codec-rebuilds` branch. libimagequant and libwebp are already upgraded +
 > verified; continue the remaining codec upgrades.

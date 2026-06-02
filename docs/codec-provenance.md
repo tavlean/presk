@@ -50,19 +50,31 @@ Some package names are inherited and do not uniquely identify their folder. Use 
 
 ## Local source references
 
-The build recipes record these upstream source references. Treat them as the rebuild recipe inputs, not as proof that every committed `.wasm` was generated from exactly these inputs, because the repository still carries inherited generated artifacts.
+The build recipes record these upstream source references. For the **seven codecs
+rebuilt on 2026-06-02** (avif, webp, jxl, mozjpeg, imagequant, resize, oxipng),
+the committed `.wasm`/`.js` were regenerated from exactly the pins below. For the
+codecs not rebuilt in that sweep (qoi, hqx, rotate), treat the references as the
+rebuild recipe inputs, not as proof that the inherited committed `.wasm` was
+generated from exactly these inputs.
+
+> **Updated 2026-06-02 — codec rebuilds landed on `codec-rebuilds`.** Seven codecs
+> were upgraded and committed; the version column below reflects the **new pins**.
+> All were built **natively with emsdk 3.1.0 + rustup nightly (no Docker, no
+> sudo)**, and verified by the 17-test Playwright e2e suite + the benchmark with no
+> regressions. Build details (toolchains, gotchas, bugs):
+> [codec-build-notes.md](codec-build-notes.md).
 
 | Codec folder        | Upstream source recorded locally                      | Reference recorded locally                                          | Notes                                                                                                  |
 | ------------------- | ----------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `codecs/avif`       | AOMediaCodec/libavif                                  | `v1.0.1` tarball                                                    | Uses libaom `v3.7.0` and libwebp commit `e2c85878f6a33f29948b43d3492d9cdaf801aa54` for libsharpyuv.    |
-| `codecs/webp`       | webmproject/libwebp                                   | commit `d2e245ea9e959a5a79e1db0ed2085206947e98f2` tarball           | Builds baseline and SIMD browser artifacts plus Node encoder/decoder artifacts.                        |
-| `codecs/jxl`        | libjxl/libjxl                                         | commit `9f544641ec83f6abd9da598bdd08178ee8a003e0`                   | Fetches submodules recursively and builds single-thread, multithread, SIMD, and Node-targeted outputs. |
-| `codecs/qoi`        | phoboslab/qoi                                         | commit `8d35d93cdca85d2868246c2a8a80a1e2c16ba2a8` tarball           | Builds encoder and decoder outputs.                                                                    |
-| `codecs/mozjpeg`    | mozilla/mozjpeg                                       | `v3.3.1` tarball                                                    | Configures with `--with-build-date=squoosh` for reproducible version strings.                          |
-| `codecs/imagequant` | ImageOptim/libimagequant                              | `2.12.1` tarball                                                    | Configures with `--disable-sse`.                                                                       |
-| `codecs/hqx`        | CryZe/wasmboy-rs `hqx` crate                          | git tag `v0.1.3`                                                    | Rust wrapper package is `squooshhqx` `0.1.0`; lockfile should be preserved when rebuilding.            |
-| `codecs/resize`     | crates.io `resize` crate                              | `0.5.5`                                                             | Rust wrapper package is `squoosh-resize` `0.1.0`; lockfile should be preserved when rebuilding.        |
-| `codecs/oxipng`     | crates.io `oxipng`                                    | `9.0`                                                               | Builds normal and parallel wasm-pack outputs; uses a pinned Rust Docker image in `package.json`.       |
+| `codecs/avif`       | AOMediaCodec/libavif                                  | `v1.4.2` tarball (was `v1.0.1`)                                     | Uses libaom `v3.12.1` (was `v3.7.0`) and libwebp `v1.6.0` for libsharpyuv. CVE-2024-5171; zero size regression, 6–13% faster encode. |
+| `codecs/webp`       | webmproject/libwebp                                   | `v1.6.0` tarball (was commit `d2e245ea9e959a5a79e1db0ed2085206947e98f2`) | Builds baseline and SIMD browser artifacts plus Node encoder/decoder artifacts. CVE-2023-4863; byte-identical output. |
+| `codecs/jxl`        | libjxl/libjxl                                         | `v0.8.5` (was commit `9f544641ec83f6abd9da598bdd08178ee8a003e0`)   | Fetches submodules recursively and builds single-thread, multithread, SIMD, and Node-targeted outputs. CVE-2023-0645, CVE-2023-35790, CVE-2025-12474; 3–6% smaller + 2–9% faster. |
+| `codecs/qoi`        | phoboslab/qoi                                         | commit `8d35d93cdca85d2868246c2a8a80a1e2c16ba2a8` tarball           | Builds encoder and decoder outputs. (Not upgraded — spec is frozen.)                                  |
+| `codecs/mozjpeg`    | mozilla/mozjpeg                                       | `v4.1.5` tarball (was `v3.3.1`)                                     | Build moved autotools → CMake. 9 CVEs from the libjpeg-turbo 2.x base; compression intentionally unchanged = byte-identical. |
+| `codecs/imagequant` | ImageOptim/libimagequant                              | `2.18.0` tarball (was `2.12.1`)                                     | Configures with `--disable-sse`. Byte-identical; security/quality.                                    |
+| `codecs/hqx`        | CryZe/wasmboy-rs `hqx` crate                          | git tag `v0.1.3`                                                    | Rust wrapper package is `squooshhqx` `0.1.0`; lockfile should be preserved when rebuilding. (Not upgraded — upstream abandoned, already on latest tag.) |
+| `codecs/resize`     | crates.io `resize` crate                              | `0.8.9` (was `0.5.5`)                                               | Rust wrapper package is `squoosh-resize` `0.1.0`; lockfile should be preserved when rebuilding. Ahead of both Squoosh and jSquash (which pin 0.5.5). |
+| `codecs/oxipng`     | crates.io `oxipng`                                    | `10.1.1` (was `9.0`)                                               | Builds normal and parallel wasm-pack outputs. Byte-identical at default preset; value is robustness + fast-mode/ICC fixes. |
 | `codecs/rotate`     | local Rust source                                     | local `squoosh-rotate` `0.1.0`                                      | Build uses `codecs/rotate/Dockerfile`, WABT `1.0.11`, and `wasm-opt`.                                  |
 
 ## App codec inventory
