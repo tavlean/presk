@@ -18,17 +18,26 @@ what breaks, and why. Distinct from the other codec docs:
 
 The codecs were originally built (via `codecs/build-cpp.sh` → Docker) with
 **Emscripten `emsdk:2.0.34`** (Oct 2021). You do **not** need Docker — install
-Emscripten directly (no sudo). But **which Emscripten version matters a lot**:
+Emscripten directly (no sudo).
 
-| Codec kind | Examples | Toolchain that works | Why |
+**Toolchain version is mostly _not_ the thing that breaks a build.** We spent
+hours blaming "emcc 5.x's linker strips the inner library" — that theory was
+**wrong** (see the AVIF saga below; the real cause was a cmake option in the
+*new library version*). Both emcc 3.1.0 and 5.x behaved identically. The linker
+behaved correctly the whole time.
+
+| Codec kind | Examples | Toolchain | Notes |
 |---|---|---|---|
-| Simple: single library, **direct** calls | libimagequant, libwebp | **emcc 5.x (latest)** is fine | Wrapper calls the lib directly; the linker keeps the chain. |
-| Complex: **multi-library** (libavif→libaom), indirect/codec-table dispatch | libavif+libaom, (likely) libjxl | **emcc 3.1.0** (arm64-native) or 2.0.34 (x86/Rosetta) | emcc 5.x's linker strips the inner library — see the AVIF saga below. |
+| Simple: single library, **direct** calls | libimagequant, libwebp | **emcc 5.x (latest)** | Clean; clang-16 is just stricter (`-Wno-error=…`, `-msimd128` for SIMD). |
+| Complex: **multi-library** (libavif→libaom) | libavif+libaom, (likely) libjxl | **emcc 3.1.0** (arm64-native) — proven | 5.x probably also works now; 3.1.0 is what we verified. Era-matched to 2.0.34, arm64-native so no Rosetta. |
 
-**Rule of thumb:** try emcc-latest first (simplest). If the built `.wasm` is
-*tiny* compared to the old one (e.g. an AVIF encoder at 21 KB vs 2.8 MB), the
-linker dropped a library — drop to **emsdk 3.1.0** (era-matched to the codecs'
-2.0.34, arm64-native so no Rosetta) and rebuild.
+**Rule of thumb when a `.wasm` comes out _tiny_** (e.g. AVIF encoder 21 KB vs
+2.8 MB): a whole library got dropped — but **don't assume it's the linker/DCE.**
+First check **why nothing references it**: inspect the inner archive
+(`emar t libavif.a | grep codec_aom`, `emnm libavif.a | grep aom_codec`). If the
+glue object is *missing*, the library's **own build config** excluded it (our
+AVIF bug) — the linker dropping an unreferenced archive is then *correct*. Only
+if the glue is present and still dropped should you suspect the toolchain.
 
 ## Native build setup (no Docker, no sudo)
 
@@ -88,43 +97,60 @@ commit (pre-1.2.0) → v1.6.0 (CVE-2023-4863). Two real gotchas:
 Output was byte-identical to the old build at default quality → pure security
 upgrade, zero regression (benchmark-verified).
 
-### libavif + libaom — the emcc 5.x linker saga (READ THIS before retrying)
+### libavif + libaom — ✅ DONE (emcc 3.1.0). Root cause was a cmake option, not the linker.
 libavif **v1.0.1 → v1.4.2**, libaom **v3.7.0 → v3.12.1** (CVE-2024-5171, CVSS
-9.8; aom must be ≥ v3.9.1).
+9.8; aom must be ≥ v3.9.1). Built 2026-06-02 with **emsdk 3.1.0** (arm64-native).
+**Result: zero size regression, 6–13 % _faster_ encode** (benchmark-verified, big
+images gain most). Both the single-thread (`avif_enc` 2.79 MB) and threaded
+(`avif_enc_mt` 2.85 MB) encoders + decoder (`avif_dec` 1.25 MB) rebuilt.
 
-**Compiles fine** with two build-file fixes:
-- libavif v1.4 **newly requires libyuv** → pass `-DAVIF_LIBYUV=OFF` to the
-  libavif cmake (helper.Makefile). (libavif falls back to its built-in YUV
-  conversion; we use sharp-YUV anyway.)
-- bump the sharpyuv source to libwebp **v1.6.0** (matches what libavif v1.4.2's
-  own `ext/libsharpyuv.cmd` pins).
+**THE ROOT CAUSE (the whole saga in one line):** libavif **v1.4 changed
+`AVIF_CODEC_AOM` from a boolean to a string enum** (`OFF` / `SYSTEM` / `LOCAL`).
+The old recipe passed `-DAVIF_CODEC_AOM=1`. To the new cmake, `1` is **not a
+valid codec source**, so it silently built libavif **without the AOM codec** —
+`libavif.a` contained **no `codec_aom.c.o`**, so nothing in the link referenced
+libaom, so wasm-ld **correctly** dropped the unreferenced `libaom.a` → a 21 KB
+encoder with no AV1 support.
 
-**The wall (emcc 5.0.7):** the encoder links to a **21 KB** `.wasm` (vs ~2.8 MB)
-and doesn't run — **libaom is stripped out**. Exhaustively diagnosed:
-- `avif_enc.o` has correct undefined refs (`U avifEncoderCreate`, …).
-- `libavif.a` defines all 211 `avif*` symbols (`T avifEncoderCreate`, …).
-- `libaom.a` is valid (154 real wasm objects, defines `aom_codec_encode`).
-- Yet the linker won't pull them. **Tried and FAILED:** `-Wl,--start-group`,
-  removing `-s ERROR_ON_UNDEFINED_SYMBOLS=0`, compiling `avif_enc.cpp` to a
-  separate `.o` first. **Only `-Wl,--whole-archive -Wl,--no-gc-sections`
-  force-includes libaom** (→ 2.57 MB) — but *that* binary traps at runtime
-  (dead code + uninitialised codec registry). So force-inclusion is a dead end.
-- Root cause: an Emscripten **DCE / archive-extraction behaviour change** between
-  2.0.34 and 5.x. libavif reaches libaom through its codec function-pointer
-  table (indirect dispatch); emcc 5.x's `--gc-sections` can't see that, so it
-  drops the whole codec. (webp survived because it calls its lib directly.)
+**THE FIX** (three lines in `helper.Makefile`, all on the libavif cmake):
+```
+-DAVIF_CODEC_AOM=SYSTEM          # was =1. Use the libaom WE build (AOM_LIBRARY/AOM_INCLUDE_DIR).
+-DAVIF_LIBYUV=OFF                # libavif v1.4 newly *requires* libyuv unless disabled.
+-DAOM_LIBRARY=$(LIBAOM_OUT) -DAOM_INCLUDE_DIR=$(LIBAOM_DIR)   # point SYSTEM at our archive.
+```
+Plus, in `Makefile`, bump the sharpyuv source to libwebp **v1.6.0** (matches
+libavif v1.4.2's own `ext/libsharpyuv.cmd`). With `=SYSTEM`, cmake compiles
+`codec_aom.c` into `libavif.a` (`U aom_codec_encode`); that undefined ref pulls
+`libaom.a` into the link → 2.79 MB. **Verify the fix landed before linking:**
+`emar t …/libavif.a | grep codec_aom` must print `codec_aom.c.o`.
 
-**The fix (the *right* way, not a band-aid):** build avif with the era-matched
-toolchain **emsdk 3.1.0** (arm64-native; same linker behaviour as the codecs'
-original 2.0.34) — see the saga's resolution in git history / STATUS. The
-band-aid flags (`--whole-archive`, `--no-gc-sections`, `-DCMAKE_C_STANDARD=11`)
-are **not** needed with 3.1.0; use the faithful `-O3 -flto` env.
+**Then one honest link warning remains — `undefined symbol: setjmp`.** libaom's
+objects emit a *raw* `setjmp` (not Emscripten's lowered form), so it can't be
+satisfied at link time — it must be a **runtime import** Emscripten provides.
+The original 2.0.34 recipe already handled this with **`-s ERROR_ON_UNDEFINED_SYMBOLS=0`**,
+which we kept. (Tried `-s SUPPORT_LONGJMP=1` instead — does **not** help, because
+the raw `setjmp` never goes through Emscripten's setjmp lowering.) This flag is
+**safe here**: now that `=SYSTEM` makes libaom genuinely link, the *only* symbol
+it leaves undefined is that intentional setjmp import — it is **not** masking a
+missing library. (It was dangerous *before* the real fix precisely because it
+hid the missing-libaom link error.)
 
-> Note: the **threaded** `avif_enc_mt` variant additionally fails on emcc 5.x
-> with "`--shared-memory` disallowed … not compiled with 'atomics'/'bulk-memory'"
-> — a pthread-flags issue. It's unused by the app (single-thread only; threading
-> is deferred), so it can be skipped, but it'll want `-matomics -mbulk-memory`
-> on the MT libaom build when threading is enabled.
+**Dead ends — do NOT retry these (all failed):** `-Wl,--start-group`; *removing*
+`ERROR_ON_UNDEFINED_SYMBOLS=0`; separate-compiling `avif_enc.cpp` first;
+swapping emsdk 3.1.0 ↔ 5.0.7 (both behaved identically — toolchain was never the
+cause); `-Wl,--whole-archive -Wl,--no-gc-sections` to force-include libaom (→
+2.57 MB binary that **traps at runtime** — of course: forcing in a libaom that
+`codec_aom.c` never wired up leaves the codec registry uninitialised). Every one
+of these was treating the symptom. The lesson: **when a sub-library vanishes,
+first prove _whether it's referenced at all_ (inspect the glue object in the
+inner archive) before blaming the linker.**
+
+> Threaded `avif_enc_mt`: built fine on 3.1.0 (`-pthread` sets atomics/bulk-memory
+> automatically). The "`--shared-memory` disallowed … not compiled with
+> 'atomics'/'bulk-memory'" error was **emcc-5.x-only**. The app dynamically
+> imports `avif_enc_mt` but only instantiates it when `supportsThreads()` is true
+> (currently always false — threading deferred), so the MT path isn't exercised
+> at runtime yet, but the artifact is now correct and on the secure libaom.
 
 ### libjxl — not yet attempted; expect the same class of issue
 Complex multi-library C++ (brotli/highway/skcms submodules) using libjxl's

@@ -1,9 +1,9 @@
 # using libavif from https://github.com/AOMediaCodec/libavif
-LIBAVIF_URL = https://github.com/AOMediaCodec/libavif/archive/refs/tags/v1.0.1.tar.gz
+LIBAVIF_URL = https://github.com/AOMediaCodec/libavif/archive/refs/tags/v1.4.2.tar.gz
 LIBAVIF_PACKAGE = node_modules/libavif.tar.gz
 
 # using libaom from https://aomedia.googlesource.com/aom
-LIBAOM_URL = https://aomedia.googlesource.com/aom/+archive/v3.7.0.tar.gz
+LIBAOM_URL = https://aomedia.googlesource.com/aom/+archive/v3.12.1.tar.gz
 LIBAOM_PACKAGE = node_modules/libaom.tar.gz
 
 export CODEC_DIR = node_modules/libavif
@@ -14,7 +14,7 @@ override CFLAGS += "-Wno-unused-macros"
 
 # We must build libsharpyuv from a specific libwebp commit
 # See libavif/ext/libsharpyuv.cmd for more detail
-LIBWEBP_URL_WITH_SHARPYUV = https://chromium.googlesource.com/webm/libwebp/+archive/e2c85878f6a33f29948b43d3492d9cdaf801aa54.tar.gz
+LIBWEBP_URL_WITH_SHARPYUV = https://chromium.googlesource.com/webm/libwebp/+archive/refs/tags/v1.6.0.tar.gz
 LIBWEBP_DIR := $(CODEC_DIR)/ext/libwebp
 LIBSHARPYUV_ST := $(LIBWEBP_DIR)/build_st/libsharpyuv.a
 LIBSHARPYUV_MT := $(LIBWEBP_DIR)/build_mt/libsharpyuv.a
