@@ -2,6 +2,12 @@
 
 Last updated: 2026-06-02.
 
+> **STATUS: all codecs rebuilt natively (no Docker) and committed on branch
+> `codec-rebuilds`.** imagequant 2.18.0, libwebp v1.6.0, libavif v1.4.2 +
+> libaom v3.12.1, libjxl v0.8.5, oxipng 10.1.1, mozjpeg v4.1.5, resize 0.8.9 —
+> all verified by the 17-test e2e suite + benchmark (no regressions). The
+> per-codec sections below are the engineering record of how each was built.
+
 Deep technical record of **building the WASM codecs from source** — what works,
 what breaks, and why. Distinct from the other codec docs:
 
@@ -237,7 +243,7 @@ the wrapper (which uses the stable public libjpeg API). Three gotchas:
    ourselves (`emcc -c rdswitch.c -o rdswitch.o`) and link it **before**
    `libjpeg.a`. Its unused file-I/O helpers resolve against emscripten libc stubs.
 
-### Rust codecs (oxipng ✅, resize ⏳, hqx) — emsdk clang for the C deps
+### Rust codecs (oxipng ✅, resize ✅, hqx) — emsdk clang for the C deps
 Need `rustup` + nightly (`-Z build-std` for the parallel/threaded variant) +
 `rustup target add wasm32-unknown-unknown` + `rust-src` + `wasm-pack`. **Put
 `~/.cargo/bin` FIRST on PATH** so the rustup shim wins over a Homebrew `cargo`
@@ -261,6 +267,24 @@ value is robustness + fast-mode/ICC fixes). Wrapper: `Options.interlace`
   `patchWasmBindgenWrapperFallbackUrl` in `scripts/sync-sveltekit-app.mjs` to match
   the `new URL('<asset>', import.meta.url)` expression (variable-name-agnostic),
   same approach as the emscripten patch.
+
+**resize 0.5.5 → 0.8.9 — done. We're AHEAD of both upstreams (Squoosh + jSquash
+pin 0.5.5), so there's no reference build — verify it directly.** Pure Rust (no C
+dep, so no emsdk clang needed); reuses oxipng's toolchain notes (rustup nightly,
+`~/.cargo/bin` first, bump wasm-bindgen + delete `Cargo.lock`). Wrapper rewrite:
+`Pixel::RGBA` → `Pixel::RGBA8`; 0.8.x resizes **typed pixel slices**
+(`rgb::RGBA<u8>`/`<f32>`) not raw `&[u8]`, so feed them via the `rgb` crate's
+`FromSlice` (`.as_rgba()` / `.as_rgba_mut()`, add `rgb = "0.8.52"`); `resize::new`
+and `.resize` now return `Result`. Disable defaults + `features=["std"]` (0.8.x
+default-enables `rayon`, which can't target wasm32). The crate is **edition 2015**,
+so a new dep needs `extern crate rgb;`, and an `extern crate` *inside a module*
+(`utils.rs`) is referenced as `self::…` in a `use`. Dropped the abandoned
+`wee_alloc` + `cfg-if`. Verified two ways: a UI-driven e2e (`tests/e2e/resize.spec.ts`
+— resize to 256px, decode, check dimensions + non-garbage) **and** a direct
+harness (`wasm-pack build -t nodejs` to a temp dir, then call `resize()` for both
+the RGBA8 and the RGBAF32 premultiply/linear paths — solid colour preserved,
+gradient interpolates monotonically). A processor has no encode-e2e coverage, so
+that functional test is the only guard.
 
 ## Verification loop (every codec)
 
