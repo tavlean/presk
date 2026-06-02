@@ -46,10 +46,8 @@ The top-level codec package files currently advertise these build entry points:
 | `codecs/resize`     | `resize`     | `../build-rust.sh`                                                                                                           |
 | `codecs/hqx`        | `hqx`        | `../build-rust.sh`                                                                                                           |
 | `codecs/rotate`     | `rotate`     | `../build-rust.sh ./build.sh`                                                                                                |
-| `codecs/png`        | `oxipng`     | `../build-rust.sh`                                                                                                           |
-| `codecs/visdif`     | `avif`       | `../build-cpp.sh`                                                                                                            |
 
-Some package names are inherited and do not uniquely identify their folder, such as `codecs/png` declaring `oxipng` and `codecs/visdif` declaring `avif`. Use folder paths, feature imports, and generated asset references as the source of truth when planning codec cleanup.
+Some package names are inherited and do not uniquely identify their folder. Use folder paths, feature imports, and generated asset references as the source of truth when planning codec cleanup. (Historically `codecs/png` declared `oxipng` and `codecs/visdif` declared `avif`; both were dead inherited dirs and were deleted in the codec-cleanup pass.)
 
 ## Local source references
 
@@ -64,10 +62,8 @@ The build recipes record these upstream source references. Treat them as the reb
 | `codecs/qoi`        | phoboslab/qoi                                         | commit `8d35d93cdca85d2868246c2a8a80a1e2c16ba2a8` tarball           | Builds encoder and decoder outputs.                                                                    |
 | `codecs/mozjpeg`    | mozilla/mozjpeg                                       | `v3.3.1` tarball                                                    | Configures with `--with-build-date=squoosh` for reproducible version strings.                          |
 | `codecs/imagequant` | ImageOptim/libimagequant                              | `2.12.1` tarball                                                    | Configures with `--disable-sse`.                                                                       |
-| `codecs/visdif`     | google/butteraugli                                    | commit `71b18b636b9c7d1ae0c1d3730b85b3c127eb4511` tarball           | Node-targeted visual-difference utility; not wired as a current app feature.                           |
 | `codecs/hqx`        | CryZe/wasmboy-rs `hqx` crate                          | git tag `v0.1.3`                                                    | Rust wrapper package is `squooshhqx` `0.1.0`; lockfile should be preserved when rebuilding.            |
 | `codecs/resize`     | crates.io `resize` crate                              | `0.5.5`                                                             | Rust wrapper package is `squoosh-resize` `0.1.0`; lockfile should be preserved when rebuilding.        |
-| `codecs/png`        | crates.io `png`, `wasm-bindgen`, `web-sys`, and `rgb` | `png 0.16.7`, `wasm-bindgen 0.2.68`, `web-sys 0.3.45`, `rgb 0.8.25` | Rust wrapper package is `squoosh-png` `0.1.0`; active PNG optimization uses OxiPNG today.              |
 | `codecs/oxipng`     | crates.io `oxipng`                                    | `9.0`                                                               | Builds normal and parallel wasm-pack outputs; uses a pinned Rust Docker image in `package.json`.       |
 | `codecs/rotate`     | local Rust source                                     | local `squoosh-rotate` `0.1.0`                                      | Build uses `codecs/rotate/Dockerfile`, WABT `1.0.11`, and `wasm-opt`.                                  |
 
@@ -95,9 +91,9 @@ The build recipes record these upstream source references. Treat them as the reb
 
 | Path                | Notes                                                                                                                                                        |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `codecs/png/`       | Rust PNG helper package. The active PNG encoder feature uses browser PNG; active PNG optimization uses OxiPNG. Verify before deleting.                       |
-| `codecs/visdif/`    | Visual-difference support utility. Not currently referenced from `src/features/`; verify before deleting.                                                    |
 | `codecs/*/*_node_*` | Node-targeted builds used by codec examples or package tests. They are not imported by browser features, but may be useful when rebuilding/verifying codecs. |
+
+The dead `codecs/png/` (Rust `image-png` wrapper) and `codecs/visdif/` (butteraugli visual-diff utility) directories were deleted in the codec-cleanup pass; the active PNG paths are browser PNG (encode) and OxiPNG (optimize), and `visdif` was never wired as an app feature.
 
 ## Current product direction
 

@@ -92,10 +92,10 @@ JS/WASM artifacts). Each codec is wired through `src/features/{encoders,decoders
 
 ### Codec assets present but not wired as app features
 
-- `codecs/png/` — Rust PNG helper (`squoosh-png`); active PNG optimization uses
-  OxiPNG. `codecs/visdif/` — butteraugli visual-diff utility (commit
-  `71b18b636b9c7d1ae0c1d3730b85b3c127eb4511`). `codecs/*/*_node_*` — Node-targeted
-  builds for codec tests/examples, not imported by browser features.
+- `codecs/*/*_node_*` — Node-targeted builds for codec tests/examples, not
+  imported by browser features. (The dead `codecs/png/` Rust PNG helper and
+  `codecs/visdif/` butteraugli visual-diff utility were deleted in the
+  codec-cleanup pass; active PNG optimization uses OxiPNG.)
 
 ### Product direction (per provenance doc)
 
