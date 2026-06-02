@@ -75,3 +75,16 @@ or Emscripten `locateFile`.
 
 `npm run audit:static-output` verifies the build emits one physical WASM copy
 per logical asset and that the service worker references the expected assets.
+
+## Formatting
+
+Prettier is the formatter (`.prettierrc.json`). Run it manually:
+
+- `npm run format` — write fixes across `**/*.{js,css,json,ts,tsx,svelte}`.
+- `npm run format:check` — the read-only check that `npm run check` runs first.
+
+There is intentionally **no pre-commit hook**. Husky/lint-staged were removed on
+2026-06-02 (solo project; the auto-`prettier --write` interrupted commits and
+reflowed Markdown). `*.md` is intentionally excluded from the Prettier globs —
+Prettier's Markdown formatter reflows prose and mangles hand-written docs, so
+format Markdown by hand. See [STATUS.md](STATUS.md).

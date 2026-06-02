@@ -1,6 +1,6 @@
 # Sqush Status
 
-Last updated: 2026-06-01.
+Last updated: 2026-06-02.
 
 Read this first. Sqush is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
@@ -26,6 +26,20 @@ browser, the build is static, and offline reload must work after load.
   (`.playwright-cli/`, `.tmp/`, stray `.DS_Store`) was also cleared. The type
   move is compile-time only, so build output is unchanged and `npm run check`
   stays green.
+- Root cleanup (2026-06-02): pruned inherited-from-Squoosh and team-oriented
+  cruft now that this is a solo project. **Removed:** `renovate.json` (a
+  disabled Renovate-bot config that did nothing), `CONTRIBUTING.md` (Google's
+  CLA boilerplate, inaccurate for this fork), and `.github/ISSUE_TEMPLATE/`
+  (generic Squoosh-era templates). **Removed the Husky + lint-staged pre-commit
+  hook entirely** (`.husky/`, the `husky`/`lint-staged` devDeps, the `prepare`
+  script, and the `lint-staged` config): the hook auto-ran `prettier --write` on
+  every commit and its **Markdown reflow** kept mangling docs (it caused the
+  earlier fix `a196f252`). Also **dropped `md` from the `format`/`format:check`
+  globs** in `package.json` so Prettier no longer reflows Markdown at all.
+  Formatting is now manual via `npm run format` (or editor format-on-save);
+  nothing rewrites files mid-commit. `.clang-format`, `.editorconfig`,
+  `.gitattributes`, and `.nvmrc` were kept (small, conventional, and `.nvmrc` is
+  used by CI). `npm run check` / `format:check` stay green.
 
 ## Product Scope For Launch
 
