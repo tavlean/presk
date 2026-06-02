@@ -19,9 +19,11 @@
     "format:check": "prettier --check \"**/*.{js,css,json,ts,tsx,svelte}\"",
     "preview": "vite preview",
     "sync": "node scripts/sync-sveltekit-app.mjs",
-    "test": "npm run check"
+    "test": "npm run check && npm run test:e2e",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@sveltejs/adapter-static": "3.0.10",
     "@sveltejs/kit": "2.61.1",
     "@sveltejs/vite-plugin-svelte": "7.1.2",
