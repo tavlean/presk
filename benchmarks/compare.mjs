@@ -24,8 +24,12 @@ const after = load(afterPath);
 
 const pct = (b, a) => (b ? ((a - b) / b) * 100 : 0);
 const fmtPct = (v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
-const verdict = (v) => {
-  if (Math.abs(v) < 0.5) return '≈';
+// Size is exact/deterministic, so a tight tolerance is right. Encode time is
+// machine-noisy run-to-run (commonly ±5%), so only a real slowdown counts.
+const SIZE_TOL = 0.5;
+const TIME_TOL = 12;
+const verdict = (v, tol) => {
+  if (Math.abs(v) < tol) return '≈';
   return v < 0 ? '✓ better' : '✗ WORSE'; // lower (smaller/faster) is better
 };
 
@@ -63,8 +67,8 @@ for (const af of after.fixtures ?? []) {
     }
     const sizePct = pct(b.outputBytes, a.outputBytes);
     const timePct = pct(b.medianMs, a.medianMs);
-    const sv = verdict(sizePct);
-    const tv = verdict(timePct);
+    const sv = verdict(sizePct, SIZE_TOL);
+    const tv = verdict(timePct, TIME_TOL);
     if (sv.includes('WORSE') || tv.includes('WORSE') || !a.ok) regressions++;
     console.log(
       [
