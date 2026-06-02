@@ -6,10 +6,10 @@ Last updated: 2026-06-01.
 > SvelteKit 2 / Svelte 5 app; the Preact/Rollup app is archived on the `preact`
 > branch. This document is kept as the historical migration record. Active work
 > is now post-migration cleanup — see
-> [svelte-hardening-plan.md](svelte-hardening-plan.md).
+> [svelte-hardening-plan.md](../svelte-hardening-plan.md).
 
-Read [STATUS.md](STATUS.md) first. This document is only the migration track.
-New product features, including bulk UI, live in [road-map.md](road-map.md).
+Read [STATUS.md](../STATUS.md) first. This document is only the migration track.
+New product features, including bulk UI, live in [road-map.md](../road-map.md).
 
 ## Decision
 
@@ -102,8 +102,8 @@ large photos and any edge formats they care about.
 ## Remaining Migration Actions
 
 None — the migration is closed. Post-migration cleanup is tracked in
-[svelte-hardening-plan.md](svelte-hardening-plan.md); product work is in
-[road-map.md](road-map.md).
+[svelte-hardening-plan.md](../svelte-hardening-plan.md); product work is in
+[road-map.md](../road-map.md).
 
 ## Notes For Future Agents
 

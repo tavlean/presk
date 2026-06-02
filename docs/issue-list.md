@@ -1,39 +1,38 @@
 # Issue List
 
-Last updated: 2026-05-31.
+Last updated: 2026-06-02.
 
-Use this as a backlog seed. Product work belongs in [road-map.md](road-map.md);
-migration closeout belongs in [MIGRATION-PLAN.md](MIGRATION-PLAN.md).
+Small backlog seed. The big tracks live in their own plans — see
+[README.md](README.md) for the map. Product work belongs in
+[road-map.md](road-map.md); the (concluded) migration record is in
+[history/MIGRATION-PLAN.md](history/MIGRATION-PLAN.md).
 
-## Migration Closeout
+## Done
 
-1. Complete full root verification.
-   - `npm run check`
-   - `npm run audit`
-   - production preview browser smoke
-   - offline reload after service-worker install
+- Migration closeout verification — `npm run check`, `npm run audit`, production
+  preview browser smoke, and offline-reload-after-SW-install all pass (see
+  [STATUS.md](STATUS.md) → Verification State).
+- Svelte hardening waves 0–2, 4–6 landed; Wave 3 promoted to
+  [codec-options-model.md](codec-options-model.md).
 
-2. Add or document a current browser smoke command if repeated local QA keeps
-   needing the same Playwright flow.
+## Open
 
-3. Confirm release browser coverage.
-   - Chromium first.
-   - Safari and Firefox before public support claims.
+1. **Release browser coverage.** Chromium is primary; confirm Safari and Firefox
+   before public support claims. Safari's nested-worker behavior specifically
+   matters once threading is enabled — fold into
+   [threading-enablement.md](threading-enablement.md) verification.
+2. **Browser smoke command.** If repeated local QA keeps re-running the same
+   Playwright flow, capture it as a script. See [manual-qa.md](manual-qa.md).
+3. **Codec provenance gaps.** Fill any remaining gaps in
+   [codec-provenance.md](codec-provenance.md) before touching committed codec
+   artifacts (the codec rebuilds in [codec-upgrade-audit.md](codec-upgrade-audit.md)
+   will exercise this).
+4. **Turn stable backlog items into GitHub issues** if/when the project moves to
+   issue-tracked work.
 
-## Post-Migration
+## Pointers (not tracked here)
 
-4. Decide codec visibility before deleting codec code.
-   - Keep WebP 2 as experimental parity until maintainer testing says otherwise.
-   - Hide formats only through product/design discussion.
-   - Delete codec folders only after build, generated metadata, service-worker,
-     and browser verification prove removal is safe.
-
-5. Expand pure helper tests when bulk work resumes.
-   - Queue progress.
-   - Per-image overrides.
-   - Retry/cancel behavior.
-   - Export naming and cleanup.
-
-6. Fill codec provenance gaps before touching committed codec artifacts.
-
-7. Turn stable backlog items into GitHub issues after migration acceptance.
+- Codec version currency, urgency, new codecs → [codec-upgrade-audit.md](codec-upgrade-audit.md).
+- WebP 2 removal (dead `codecs/png/` already deleted) → [codec-surface-cleanup.md](codec-surface-cleanup.md).
+- Multithreading / COOP-COEP → [threading-enablement.md](threading-enablement.md).
+- Remaining Svelte cleanup → [svelte-hardening-plan.md](svelte-hardening-plan.md).

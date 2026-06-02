@@ -19,7 +19,7 @@ This list is ordered by priority. Do the high-priority items before building new
    - Keep `npm run build` as the final release check.
 
 3. Completed: add a manual QA checklist.
-   - Checklist lives in [Manual QA checklist](manual-qa.md).
+   - Checklist lives in [Manual QA checklist](../manual-qa.md).
 
 ## Priority 1: dependency and security cleanup
 
@@ -284,7 +284,7 @@ This list is ordered by priority. Do the high-priority items before building new
     - CI cancels superseded runs, has read-only repository permissions, and has a 15-minute job timeout.
 
 17. Partially completed: track codec provenance.
-    - Initial inventory lives in [Codec provenance](codec-provenance.md).
+    - Initial inventory lives in [Codec provenance](../codec-provenance.md).
     - Local codec package names and build entry points are documented so future cleanup can distinguish folder paths from inherited package metadata.
     - Local Makefile and Rust manifest source refs are documented separately from generated `.wasm` provenance.
     - Exact generated-artifact provenance is still missing for inherited `.wasm` files.
@@ -299,12 +299,12 @@ This list is ordered by priority. Do the high-priority items before building new
     - Any Svelte-adjacent extraction should keep logic framework-neutral and avoid adding UI framework assumptions.
 
 19. Completed: review browser support.
-    - Initial policy note lives in [Browser support policy](browser-support.md).
+    - Initial policy note lives in [Browser support policy](../browser-support.md).
     - Current policy was reviewed again on 2026-05-24 against MDN image format guidance and Svelte migration constraints.
     - Re-check before public release or before changing codec visibility, because browser support can change quickly.
 
 20. Completed: create an issue list from this todo.
-    - Initial backlog seed lives in [Issue list](issue-list.md).
+    - Initial backlog seed lives in [Issue list](../issue-list.md).
     - Convert items to GitHub issues when the project workflow is ready.
 
 ## Current product-design hold

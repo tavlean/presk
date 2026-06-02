@@ -84,7 +84,7 @@ The audit verifies:
 - Do not rely on service-worker URL dedupe to hide physical output duplication.
 - Do not patch committed codec wrappers during migration cleanup.
 - Do not remove WebP 2 assets yet; it is experimental parity.
-- Do not touch `codecs/**` without following [codec-provenance.md](codec-provenance.md).
+- Do not touch `codecs/**` without following [codec-provenance.md](../codec-provenance.md).
 
 ## Open Follow-Up
 

@@ -4,8 +4,8 @@ Last updated: 2026-05-26.
 
 > Historical record. This file predates the root SvelteKit cutover and keeps the
 > old cleanup/prototype log for archaeology. For current state, use
-> [STATUS.md](STATUS.md), [MIGRATION-PLAN.md](MIGRATION-PLAN.md), and
-> [road-map.md](road-map.md).
+> [STATUS.md](../STATUS.md), [MIGRATION-PLAN.md](MIGRATION-PLAN.md), and
+> [road-map.md](../road-map.md).
 
 ## Resume handoff
 
@@ -24,7 +24,7 @@ Project homepage metadata: `https://sqush.app`.
 
 Historical archived fork, not the current project: `tavlean/SquooshPlus`.
 
-Project identity note: see [Project identity](project-identity.md). The current app/repo/package name is Sqush. The local checkout has been renamed to `/Users/tav/Development/Tavlean/Sqush`. Any remaining `SquooshPlus` references should be historical fork references or temporary tool compatibility paths.
+Project identity note: see [Project identity](../project-identity.md). The current app/repo/package name is Sqush. The local checkout has been renamed to `/Users/tav/Development/Tavlean/Sqush`. Any remaining `SquooshPlus` references should be historical fork references or temporary tool compatibility paths.
 
 Current local checkout: `/Users/tav/Development/Tavlean/Sqush`.
 

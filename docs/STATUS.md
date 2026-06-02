@@ -41,6 +41,33 @@ browser, the build is static, and offline reload must work after load.
   `.gitattributes`, and `.nvmrc` were kept (small, conventional, and `.nvmrc` is
   used by CI). `npm run check` / `format:check` stay green.
 
+- Codec audit (2026-06-02): a full codec version + landscape audit ran (see
+  [codec-upgrade-audit.md](codec-upgrade-audit.md)). Several outcomes have now
+  **landed on the `codec-cleanup-and-threading` branch** (not yet on `main`):
+  - **Multithreading config landed (commit `27ae8b88`) — pending in-browser
+    verify.** COOP `same-origin` + COEP `require-corp` are now set in
+    `vite.config.ts` (dev + preview) and `static/_headers` (host), with
+    `static/_headers` excluded from the SW precache manifest in
+    `svelte.config.js`. The headers are the easy half;
+    `self.crossOriginIsolated`, the three seams (Safari nested workers, codec
+    helper-asset URLs, SW cache), and per-codec `_mt` loading still need a human
+    at a browser. See [threading-enablement.md](threading-enablement.md).
+  - **WebP 2 removed completely (commit `962bdd0f`)** — encoder and decoder,
+    `codecs/wp2/`, the features/options wiring, and all data-driven references.
+    See [codec-surface-cleanup.md](codec-surface-cleanup.md).
+  - **Dead code deleted (commit `7bd03980`)** — `codecs/png/`, `codecs/visdif/`,
+    and the orphan `src/client/lazy-app/storage.ts`. See
+    [codec-surface-cleanup.md](codec-surface-cleanup.md).
+
+  Still outstanding from the audit (not started): the **urgent** security-driven
+  codec rebuilds (libwebp, libavif/libaom, libjxl) + the easy libimagequant bump
+  — now with **turnkey per-codec steps** in
+  [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) (the WASM toolchain is
+  not installed here, so they run later locally/CI). The
+  [new-codec-investigation.md](new-codec-investigation.md) records a
+  researched-but-not-added shortlist (SVGO first, HEIC-decode later, jpegli /
+  JPEG→JXL skip). Full docs map: [README.md](README.md).
+
 ## Product Scope For Launch
 
 The root app preserves the existing single-image optimizer:
@@ -52,11 +79,13 @@ The root app preserves the existing single-image optimizer:
 - saved per-side encoder settings;
 - static output through SvelteKit adapter-static;
 - SvelteKit-native service worker and codec/WASM precache;
-- WebP, WebP 2, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI, and browser encoders.
+- WebP, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI, and browser encoders.
 
-WebP remains the first production focus, AVIF second, JPEG XL advanced, and WebP
-2 experimental but included for parity until maintainer testing proves whether
-it should stay.
+WebP remains the first production focus, AVIF second, JPEG XL advanced. **WebP 2
+has been removed** (branch commit `962bdd0f`) — the codec audit confirmed it is a
+permanently-experimental format no browser can decode, so it was dropped end to
+end rather than kept for the now-closed migration parity (see
+[codec-surface-cleanup.md](codec-surface-cleanup.md)).
 
 ## Active Architecture
 
@@ -109,9 +138,10 @@ Current local verification:
   `svelte-check`, production build, and static-output audit.
 - `npm run audit` reports 0 vulnerabilities.
 - Production preview smoke on `http://127.0.0.1:5189/` passes with Playwright:
-  PNG to WebP, PNG to WebP 2, JPEG/SVG/WebP inputs to WebP, desktop load,
-  `390 x 844` mobile viewport with no horizontal overflow, controlled service
-  worker, offline reload, and no console/page errors.
+  PNG to WebP, JPEG/SVG/WebP inputs to WebP, desktop load, `390 x 844` mobile
+  viewport with no horizontal overflow, controlled service worker, offline
+  reload, and no console/page errors. (This smoke predates the WebP 2 removal;
+  the old "PNG to WebP 2" case no longer applies.)
 - Svelte MCP docs were consulted for project structure, adapter-static,
   service workers, `$service-worker`, config, `.svelte.ts` modules, and Svelte 5
   best practices.
@@ -126,26 +156,48 @@ hardening, captured in [svelte-hardening-plan.md](svelte-hardening-plan.md).
 
 ## Next Actions
 
-Work the cleanup backlog in [svelte-hardening-plan.md](svelte-hardening-plan.md),
-roughly in wave order:
+The Svelte hardening waves are essentially **done** (Waves 0–2, 4–6 landed;
+Wave 3 promoted to the [codec-options-model.md](codec-options-model.md) project).
+Only Wave 2b (explicit `options` ownership) and a few deferred items remain in
+[svelte-hardening-plan.md](svelte-hardening-plan.md). The active priority order
+is now the codec-audit fallout — see [README.md](README.md) for the one-screen
+priority view.
 
-1. Wave 0 — confirmed defects/rule-violations: the two-up "2"-key divider bug,
-   browser host objects in deep `$state`, and the unthrottled `persistSettings`
-   write.
-2. Wave 1 — dead-code purge (the `preact` type shim, `clean-modify.ts`, dead
-   `util/index.ts` helpers, orphaned `.css.d.ts` stubs).
-3. Waves 2–3 — the controlled-component event boundary and the `apply()`
-   mirror-state panels (AVIF/JXL).
-4. Then reactivity cleanups, Output attachments, and structural simplification.
+**Already landed on the `codec-cleanup-and-threading` branch** (pending merge to
+`main`): WebP 2 removed; dead code (`codecs/png/`, `codecs/visdif/`,
+`storage.ts`) deleted; multithreading **config** in place (COOP/COEP) but its
+in-browser verification is still open.
 
-Roadmap/product work (starting with bulk-optimization design) follows the
-cleanup — see [road-map.md](road-map.md).
+What's next, in short:
+
+1. **Finish multithreading** — the headers are set; do the in-browser
+   verification (crossOriginIsolated, the three seams, per-codec `_mt` loading,
+   cross-browser). [threading-enablement.md](threading-enablement.md).
+2. **Urgent — codec security rebuilds** (libwebp, libavif/libaom, libjxl) + the
+   trivial libimagequant bump. Turnkey steps:
+   [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) (the WASM toolchain is
+   not installed here, so they run later locally/CI).
+   Audit/why: [codec-upgrade-audit.md](codec-upgrade-audit.md).
+3. **Gradual codec upgrades** (OxiPNG, mozjpeg, resize) — runbooks in
+   [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md).
+4. **Investigate new codecs** — researched, not added:
+   [new-codec-investigation.md](new-codec-investigation.md) (SVGO first,
+   HEIC-decode later, jpegli / JPEG→JXL skip).
+5. **Product features** — Multi-Format Compare, then bulk — see
+   [road-map.md](road-map.md).
 
 ## Gotchas
 
 - Do not add bulk UI as part of migration cleanup.
-- Do not prune WebP 2 yet; it remains included as experimental parity.
+- WebP 2 is **gone** (branch commit `962bdd0f`, encoder + decoder); do not
+  resurrect it. The removal record is in
+  [codec-surface-cleanup.md](codec-surface-cleanup.md).
+- Multithreading is **configured but unverified**: the COOP/COEP headers are set
+  on the branch, but until a human confirms `crossOriginIsolated` and per-codec
+  `_mt` loading in real browsers, do not assume threads are actually running.
 - Do not touch `codecs/**` without codec provenance, build, service-worker, and
-  browser verification.
+  browser verification. The codec rebuilds need the WASM toolchain (emcc / cmake
+  / wasm-pack / docker), which is **not installed in this repo** — run the
+  [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) locally/CI.
 - Preview browsers can keep old service workers. If behavior looks stale, clear
   site data or use a fresh context.

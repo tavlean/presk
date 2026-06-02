@@ -1,13 +1,23 @@
 # Sqush Product Roadmap
 
-Last updated: 2026-06-01.
+Last updated: 2026-06-02.
 
 The SvelteKit migration is now **closed** (`main` is the production app). This
 roadmap is the product track that follows it — not a migration phase list. The
 immediate post-migration engineering track is cleanup and Svelte hardening in
 [svelte-hardening-plan.md](svelte-hardening-plan.md); product features below
-come after that foundation pass. See [STATUS.md](STATUS.md) for live state and
-[MIGRATION-PLAN.md](MIGRATION-PLAN.md) for the (concluded) migration record.
+come after that foundation pass. See [STATUS.md](STATUS.md) for live state,
+[README.md](README.md) for the full docs map, and
+[history/MIGRATION-PLAN.md](history/MIGRATION-PLAN.md) for the (concluded)
+migration record.
+
+> **2026-06-02 codec audit.** A full codec version + landscape audit
+> ([codec-upgrade-audit.md](codec-upgrade-audit.md)) reset the codec strategy
+> below. Headlines: urgent security-driven codec rebuilds, remove WebP 2,
+> enable the already-built multithreading, and a new Multi-Format Compare
+> feature. The dedicated plans are [codec-upgrade-audit.md](codec-upgrade-audit.md),
+> [threading-enablement.md](threading-enablement.md), and
+> [codec-surface-cleanup.md](codec-surface-cleanup.md).
 
 Sqush remains local-first: no uploads, no server processing, and dependable
 browser/offline behavior after the app loads. New features must protect the
@@ -99,17 +109,26 @@ Later bulk export work:
 
 ## Codec Strategy
 
-Keep the SvelteKit parity surface broad until usage/runtime evidence supports a
-change:
+Every codec is years behind its upstream — the
+[codec-upgrade-audit.md](codec-upgrade-audit.md) is the authoritative plan for
+version currency (which to upgrade, urgency, effort). Product focus:
 
-- **WebP**: first production codec focus and first bulk target.
-- **AVIF**: second production codec focus after WebP bulk is stable.
-- **JPEG XL**: advanced/power-user format; support should be rechecked before
-  making it prominent.
-- **WebP 2**: keep included as experimental parity. Do not promote it as a
-  primary format until maintainer testing proves it is useful.
-- Browser JPEG/PNG/GIF, MozJPEG, OxiPNG, and QOI: keep available while parity is
-  being validated; decide later whether they are visible, advanced, or hidden.
+- **WebP**: first production codec focus and first bulk target. Upgrade urgent
+  (security CVE — see the audit).
+- **AVIF**: second production codec focus after WebP bulk is stable. Upgrade
+  urgent (security CVE + real compression gain).
+- **JPEG XL**: advanced/power-user format; upgrade urgent (CVEs). Browser
+  support is improving — recheck before making it prominent. A cheap bonus is
+  lossless JPEG→JXL transcoding.
+- **WebP 2**: **remove** (reverses the old "keep for parity" stance). Permanently
+  experimental, no browser decodes it, non-final bitstream. Staged removal in
+  [codec-surface-cleanup.md](codec-surface-cleanup.md).
+- Browser JPEG/PNG/GIF, MozJPEG, OxiPNG, and QOI: keep available; decide later
+  whether they are visible, advanced, or hidden. The dead `codecs/png/` dir has
+  been deleted (see codec-surface-cleanup).
+- **jpegli** (new): a libjxl-based encoder that outputs standard JPEG at ~30%
+  better compression — the highest-ROI *new* codec to add. Needs a custom WASM
+  build; tracked as investigate in the audit.
 
 Deletion is a separate engineering decision. If the product hides codecs, leave
 runtime code intact until build output, generated metadata, workers, WASM
@@ -118,17 +137,34 @@ assets, service-worker caching, and browser QA prove removal is safe. Follow
 
 ## Performance And Platform
 
-Possible post-launch tracks:
-
+- **Enable multithreading (high priority).** The `_mt` codec builds already
+  exist and are already wired up; they are dormant only because cross-origin
+  isolation (COOP/COEP) was dropped when the app moved to the repo root. Full
+  plan: [threading-enablement.md](threading-enablement.md). This is the biggest
+  available perf win, is how the app properly uses many-core / Apple Silicon
+  machines, and unlocks Multi-Format Compare below.
 - shared decode between the two comparison sides for large-image performance;
-- threaded AVIF/JXL/OxiPNG with COOP/COEP, nested-worker, helper-asset, and
-  service-worker proof;
-- static-host header strategy if threaded codecs become important;
 - browser support matrix refresh before changing runtime assumptions;
-- build/dependency modernization now that Vite/SvelteKit owns production.
+- build/dependency modernization now that Vite/SvelteKit owns production
+  ([dependency-modernization.md](dependency-modernization.md)).
 
-Single-thread codecs are the launch baseline. Threaded codecs are performance
-work, not a migration blocker.
+A native wrapper (e.g. Tauri) shipping native codec binaries is the only path to
+true native-CPU performance, but it is a separate product (loses the zero-install
+browser advantage) — not planned, noted for completeness.
+
+## Multi-Format Compare
+
+New feature surfaced by the codec audit. On import, encode the image across
+several formats at once (MozJPEG / WebP / AVIF / JXL / OxiPNG) in parallel
+workers and present a size (and ideally quality) comparison table, so the user
+picks by *result* instead of guessing a format up front.
+
+- **Depends on** multithreading ([threading-enablement.md](threading-enablement.md))
+  to spread the parallel encodes across cores.
+- Design notes: use *fast presets* for the compare pass (AVIF/JXL at high effort
+  take tens of seconds on large images), then a full-quality encode once the user
+  commits; bound concurrency to `navigator.hardwareConcurrency`.
+- Pairs naturally with the bulk work and the shared image-pipeline helpers.
 
 ## PWA, Import, And Persistence
 

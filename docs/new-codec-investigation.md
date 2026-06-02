@@ -1,0 +1,121 @@
+# New-Codec Investigation — Researched, NOT Added
+
+Last updated: 2026-06-02. Status: **investigation only — nothing added.** Decide
+later.
+
+This doc records a research pass on four candidate new codecs/processors that
+came out of the codec audit ([codec-upgrade-audit.md](codec-upgrade-audit.md)
+§4–5). **None of these are wired into the app.** This is decision material, not a
+plan to execute — each entry says what it would add, whether a usable
+browser/WASM build exists, the effort, and a recommendation. Re-decide when you
+have appetite; the WASM build toolchain (emcc/cmake/wasm-pack/docker) is not
+installed here, so anything needing a codec recompile cannot be done in this repo
+as-is.
+
+## TL;DR
+
+| Candidate | What it adds | Recommendation |
+|-----------|--------------|----------------|
+| **SVGO v4** (SVG/vector optimizer) | Optimizes SVG/vector files the raster pipeline can't touch | **KEEP — do first.** Pure JS, official browser bundle, no WASM/toolchain. |
+| **libheif decode-only HEIC input** | Opens iPhone `.heic` (browsers can't decode it), convert out | **LATER.** Strong, but defer for LGPL + WASM weight; do SVGO first. |
+| **jpegli WASM encoder** | Better quality-per-byte standard `.jpg` than MozJPEG | **SKIP now.** No off-the-shelf browser build; revisit if one ships. |
+| **Lossless JPEG→JXL transcode** | Recompress `.jpg` to `.jxl` ~20% smaller, reversible | **SKIP.** Recompile-gated and JXL browser reach is weak. |
+
+The one to act on first is **SVGO**: it is the only candidate that adds a format
+the app cannot handle today, and it needs no codec toolchain.
+
+---
+
+## 1. SVGO v4 — SVG / vector optimization — **KEEP / do first**
+
+- **What it adds:** Optimizes SVG/vector files, which the raster codec pipeline
+  cannot touch at all. Complements the existing codecs rather than competing with
+  them — it is the only candidate that adds a *format the app cannot handle
+  today*.
+- **WASM feasibility:** Best of the four. **Pure JS, no WASM**, with an official
+  browser bundle (`import svgo/browser`), Worker-friendly. v4.0.0 shipped June
+  2025 (current 4.0.1).
+- **Effort:** Low-to-moderate, all TS/Svelte — no codec build. ~780 KB lazy
+  bundle. Work is: add SVG detection, an "optimize" processor, and a small UI.
+  Note v4 disables `removeViewBox` and `removeTitle` by default (behavior change
+  from v3 to be aware of when porting any preset).
+- **Maturity:** Mature and active; v4.0.0 June 2025, official browser bundle.
+- **Sources:**
+  - <https://github.com/svg/svgo/releases/tag/v4.0.0>
+  - <https://svgo.dev/docs/usage/>
+  - <https://www.npmjs.com/package/svgo>
+
+---
+
+## 2. libheif decode-only HEIC input — **LATER**
+
+- **What it adds:** Opens iPhone HEIC files (browsers cannot natively decode
+  HEIC) so a user can drop a `.heic` and convert it out to a supported format.
+  **Decode only — never encode HEIC.**
+- **WASM feasibility:** Strong. The maintained `libheif-js` (catdad, v1.19.8) is
+  decode-capable, and the browser variant bundles the `.wasm` inside a single
+  `.mjs`. License is **LGPL-3.0** — a deliberate licensing decision, not an
+  accident, and the reason to defer.
+- **Effort:** Moderate TS/wiring, **no codec build**. Sketch: decoder under
+  `src/features/decoders/heif/*`, register the HEIC MIME/extension, add it to
+  `src/shared/codec-assets.ts` and the SW precache plan
+  (`src/sw/cache-plan.ts`), and lazy-load on a HEIC drop.
+- **Maturity:** Mature. Upstream libheif (strukturag) is the de-facto library;
+  `libheif-js` is active (v1.19.x).
+- **Recommendation:** LATER. The candidate is strong, but defer for the LGPL
+  license, the WASM weight, and the added surface. Do SVGO first.
+- **Sources:**
+  - <https://github.com/catdad-experiments/libheif-js>
+  - <https://www.npmjs.com/package/libheif-js>
+  - <https://github.com/strukturag/libheif>
+
+---
+
+## 3. jpegli WASM encoder — **SKIP now**
+
+- **What it adds:** Better quality-per-byte JPEG than MozJPEG, producing normal
+  `.jpg` output — a universal win that would benefit every JPEG export.
+- **WASM feasibility:** No off-the-shelf browser/npm build exists. The libjxl
+  WASM-encoder issue (#3454) is still **open**; the only fork is the stale
+  `apenchev/jpegli` (RGBA-only, missing XYB, reads raw files); and `gen2brain`'s
+  port is Go/wazero, not a drop-in C/WASM module.
+- **Effort:** High. Needs emcc (**not installed here**) plus a wrapper and the
+  full feature wiring.
+- **Maturity:** Upstream jpegli is mature (BSD-3), but the **browser packaging is
+  immature**.
+- **Recommendation:** SKIP now; revisit if an official WASM encoder ships.
+- **Sources:**
+  - <https://github.com/libjxl/libjxl/issues/3454>
+  - <https://github.com/apenchev/jpegli>
+  - <https://github.com/gen2brain/jpegli>
+
+---
+
+## 4. Lossless JPEG→JXL transcoding — **SKIP**
+
+- **What it adds:** Recompresses a `.jpg` into a `.jxl` ~20% smaller,
+  **bit-for-bit reversible** (the `cjxl` default behavior for JPEG input).
+- **WASM feasibility:** Not possible with the current code. True transcoding
+  needs the JPEG DCT bitstream path (`JxlEncoderAddJPEGFrame`), but Sqush's
+  `jxl_enc.cpp` takes **pixels** and `jxl_dec.cpp` outputs **pixels**. jSquash's
+  `lossless: true` is a pixel re-encode, not a transcode, so it does not give the
+  reversible ~20% either.
+- **Effort:** High. New C++ plus a libjxl recompile — impossible here (no emcc).
+- **Maturity:** The libjxl transcode path is mature upstream, but it is **not
+  surfaced** in Sqush or in jSquash.
+- **Recommendation:** SKIP; it is recompile-gated and JXL browser reach is weak
+  (~12% of browsers).
+- **Sources:**
+  - <https://github.com/jamsinclair/jSquash/issues/93>
+  - <https://github.com/jamsinclair/jSquash/pull/94>
+  - <https://en.wikipedia.org/wiki/JPEG_XL>
+
+---
+
+## Related
+
+- [codec-upgrade-audit.md](codec-upgrade-audit.md) — the audit that raised these
+  candidates (§4–5).
+- [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) — turnkey upgrade steps
+  for the *existing* codecs (a separate, executable track).
+- [road-map.md](road-map.md) — product direction.
