@@ -1,4 +1,4 @@
-CODEC_URL = https://github.com/webmproject/libwebp/archive/d2e245ea9e959a5a79e1db0ed2085206947e98f2.tar.gz
+CODEC_URL = https://github.com/webmproject/libwebp/archive/refs/tags/v1.6.0.tar.gz
 CODEC_DIR = node_modules/libwebp
 CODEC_BUILD_ROOT := $(CODEC_DIR)/build
 CODEC_BASELINE_BUILD_DIR := $(CODEC_BUILD_ROOT)/baseline
@@ -19,6 +19,12 @@ enc/webp_node_enc.js dec/webp_node_dec.js: ENVIRONMENT = node
 enc/webp_node_enc.js dec/webp_node_dec.js: $(CODEC_BASELINE_BUILD_DIR)/libwebp.a
 enc/webp_enc.js dec/webp_dec.js: $(CODEC_BASELINE_BUILD_DIR)/libwebp.a
 enc/webp_enc_simd.js: $(CODEC_SIMD_BUILD_DIR)/libwebp.a
+# libwebp >= 1.3.0 splits libsharpyuv into its own archive. Link it AFTER
+# libwebp.a (which references SharpYuv* symbols); it is built by the same cmake
+# build, so it already exists once libwebp.a is built.
+enc/webp_node_enc.js dec/webp_node_dec.js: $(CODEC_BASELINE_BUILD_DIR)/libsharpyuv.a
+enc/webp_enc.js dec/webp_dec.js: $(CODEC_BASELINE_BUILD_DIR)/libsharpyuv.a
+enc/webp_enc_simd.js: $(CODEC_SIMD_BUILD_DIR)/libsharpyuv.a
 
 $(OUT_JS):
 	$(LD) \
@@ -38,6 +44,9 @@ $(OUT_JS):
 
 %/libwebp.a: %/Makefile
 	$(MAKE) -C $(@D)
+
+# libsharpyuv.a is produced as a byproduct of the libwebp.a cmake build.
+%/libsharpyuv.a: %/libwebp.a ;
 
 # Enable SIMD on a SIMD build.
 $(CODEC_SIMD_BUILD_DIR)/Makefile: CMAKE_FLAGS+=-DWEBP_ENABLE_SIMD=1
