@@ -1,6 +1,7 @@
-import { sveltekit } from '@sveltejs/kit/vite';
+import type { ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig, type Connect, type Plugin } from 'vite';
 
 const repoRoot = fileURLToPath(new URL('.', import.meta.url));
 
@@ -14,8 +15,33 @@ const crossOriginIsolationHeaders = {
   'Cross-Origin-Embedder-Policy': 'require-corp',
 };
 
+// Vite's `server.headers` / `preview.headers` are NOT applied to SvelteKit's own
+// page (document) responses, so the top-level document never became cross-origin
+// isolated and SharedArrayBuffer stayed unavailable. This plugin injects the
+// COOP/COEP pair via middleware on EVERY dev/preview response, including the
+// SvelteKit-rendered page, which is what actually flips `crossOriginIsolated`.
+const setIsolationHeaders = (
+  _req: Connect.IncomingMessage,
+  res: ServerResponse,
+  next: Connect.NextFunction,
+) => {
+  for (const [k, v] of Object.entries(crossOriginIsolationHeaders))
+    res.setHeader(k, v);
+  next();
+};
+
+const crossOriginIsolation: Plugin = {
+  name: 'sqush-cross-origin-isolation',
+  configureServer(server) {
+    server.middlewares.use(setIsolationHeaders);
+  },
+  configurePreviewServer(server) {
+    server.middlewares.use(setIsolationHeaders);
+  },
+};
+
 export default defineConfig({
-  plugins: [sveltekit()],
+  plugins: [crossOriginIsolation, sveltekit()],
   build: {
     assetsInlineLimit: (filePath) =>
       filePath.endsWith('.wasm') ? false : undefined,
