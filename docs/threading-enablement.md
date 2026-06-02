@@ -175,6 +175,49 @@ wasm-bindgen-rayon's `new Worker(new URL('./workerHelpers.js', import.meta.url))
 resolves correctly under Vite's static output — testable in CI now that WebKit is
 in the e2e matrix. Keep single-thread as the automatic fallback throughout.
 
+## POC status (2026-06-02): oxipng wiring DONE; blocked on the threaded wasm build
+
+A full oxipng threaded-runtime POC was built and is preserved on branch
+**`oxipng-threading-wip`** (kept off `codec-rebuilds` because it currently makes
+oxipng *slower* — see the blocker). Everything in the plan above WORKS:
+
+- Generator (`sync-sveltekit-app.mjs`): emits the `oxipng:encoder:multi-thread`
+  asset record (cache `threaded-only`, correctly excluded from precache), real
+  `supportsThreads: checkThreadsSupport`, and `loadMultiThread` (dynamic import of
+  `pkg-parallel` + `initThreadPool`). Plus it now copies `pkg-parallel/` + its
+  `snippets/workerHelpers.js` + `package.json` into the generated tree (the last
+  is required: workerHelpers does `import('../../..')`, resolved via `"main"`).
+- Vite/rolldown **bundles the nested wasm-bindgen-rayon worker successfully** —
+  `workerHelpers-*.js` is emitted, the threaded `.wasm` is emitted, `npm run check`
+  + the audit pass, and oxipng encodes in **both Chromium and WebKit**.
+- Safety: the runtime falls back to single-thread if MT load throws, so oxipng
+  never hard-fails.
+
+**THE ONE BLOCKER — the threaded wasm has a non-shared `WebAssembly.Memory`.**
+At runtime, wasm-bindgen-rayon's `startWorkers` does `postMessage(memory)` to its
+workers; that throws `DataCloneError: #<Memory> could not be cloned` because the
+memory isn't shared, so every encode falls back to single-thread (Chromium even
+spawns the 11 workers first, then errors; WebKit fails before spawning). Parsing
+the wasm memory section confirms `flags=0x0` (not shared, no max). Findings:
+
+- **Not a wasm-opt problem** — non-shared even with `wasm-opt` disabled.
+- Building `pkg-parallel` with the canonical
+  `RUSTFLAGS=-C target-feature=+atomics,+bulk-memory,+mutable-globals` +
+  `-Z build-std=panic_abort,std` (nightly 1.98) still produces a **non-shared**
+  memory.
+- Forcing it with `-C link-arg=--shared-memory -C link-arg=--max-memory=…` makes
+  **wasm-bindgen** itself error `failed to prepare module for threading`.
+
+So the remaining work is purely getting the threaded `pkg-parallel` wasm to ship a
+SHARED memory that wasm-bindgen can process. Next steps for the focused session:
+match a known-good wasm-bindgen-rayon recipe — likely pin `wasm-bindgen-rayon`
+(currently 1.0.1) + the `wasm-bindgen` CLI (0.2.122) + the nightly to a
+combination proven to emit shared memory (compare against **jSquash's
+oxipng-parallel** build, which ships working threads), or add a `.cargo/config.toml`
+with the exact flags that recipe uses. Once the threaded wasm reports
+`flags=0x03` (shared+max), the rest of the POC on `oxipng-threading-wip` should
+light up unchanged.
+
 ## Related
 
 - [codec-upgrade-audit.md](codec-upgrade-audit.md) — WASM framing; threading note.
