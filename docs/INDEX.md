@@ -1,26 +1,22 @@
-# Doc registry — the index AIs consult after every task
+# Doc registry — consult before and after every task
 
-**Last updated: 2026-06-02.**
+**Last updated: 2026-06-03.**
 
-This is the **canonical, machine-actionable registry** of every project doc:
-what each contains, when to **read** it, and — most importantly — when to
-**update** it. [README.md](README.md) is the human-friendly map + work
-priorities; *this* file is the staleness-prevention index.
+The canonical registry of every project doc: what it holds, when to **read** it,
+when to **update** it. ([README.md](README.md) is the narrative map;
+[STATUS.md](STATUS.md) is current state; this is the maintenance index.)
 
-## How to use this (read this part — it's the whole point)
+## How to use
 
-**After finishing ANY task, before you consider it done:**
-1. Scan the "Update when" column below.
-2. For every row whose trigger your work matched, **open that doc and update it**
-   — versions, status lines, new problems/solutions, new gotchas, completion
-   marks. A doc going stale is a defect.
-3. If you **created a new doc**, add a row here. If you **deleted/repurposed** one,
-   fix its row.
-4. `Last updated:` / `Status:` lines exist on most docs — bump them when you edit.
+- **Before a task** — scan "Read when"; read the docs relevant to what you're
+  about to do. The docs tell the whole story; don't redo what's already decided.
+- **After a task** — update every doc whose "Update when" trigger your work
+  matched (versions, `Status:` / `Last updated:`, gotchas, completion marks),
+  before calling it done.
+- **New doc** → add a row here + link from README.md. Don't create a doc when an
+  existing row's "Update when" already covers the topic.
 
-When in doubt, over-update rather than leave stale. Several of these docs
-(`journey-and-article-notes.md`, `codec-provenance.md`, `STATUS.md`) are easy to
-forget and high-cost when stale — they're flagged ⚠️ below.
+Read only the docs you need — context is finite; this index is the cheap lookup.
 
 ---
 
@@ -28,7 +24,7 @@ forget and high-cost when stale — they're flagged ⚠️ below.
 
 | Doc | Contains | Read when | Update when |
 |---|---|---|---|
-| ⚠️ [STATUS.md](STATUS.md) | Live project state, current branch, what's done/in-flight, gotchas. The single source of truth for "where things are now." | **First, every session.** | **Almost any task** that changes project state: a feature/track lands or starts, a branch's state changes, a build/verify status flips, a blocker is hit or cleared. |
+| [STATUS.md](STATUS.md) | Live project state, current branch, what's done/in-flight, gotchas. The single source of truth for "where things are now." | **First, every session.** | **Almost any task** that changes project state: a feature/track lands or starts, a branch's state changes, a build/verify status flips, a blocker is hit or cleared. |
 | [README.md](README.md) | Human map of all docs + the work-priority table + conventions. | To find which doc covers a topic, or the priority order of work. | A doc is added/finished/archived; the priority/status of a track changes. |
 | [INDEX.md](INDEX.md) (this file) | The registry below — per-doc read/update triggers. | **After every task** (to find which docs to update). | A doc is created, deleted, or repurposed; an "update when" trigger is wrong. |
 
@@ -37,7 +33,7 @@ forget and high-cost when stale — they're flagged ⚠️ below.
 | Doc | Contains | Read when | Update when |
 |---|---|---|---|
 | [codec-build-notes.md](codec-build-notes.md) | The engineering record of building each WASM codec from source: toolchains, the gotchas, the bugs, the fixes (incl. the dead-ends not to retry). | Before building/rebuilding ANY codec. | After any codec build/rebuild work — a new gotcha, a new fix, a new codec, a toolchain finding. |
-| ⚠️ [codec-provenance.md](codec-provenance.md) | The exact vendored version of every codec + its source pin (a factual record). | To know what version ships. | **Whenever a codec's version/source changes** (must never show a stale version). |
+| [codec-provenance.md](codec-provenance.md) | The exact vendored version of every codec + its source pin (a factual record). | To know what version ships. | **Whenever a codec's version/source changes** (must never show a stale version). |
 | [codec-source-references.md](codec-source-references.md) | Where each codec's source comes from. | Sourcing/checking a codec's upstream. | A codec's upstream source/repo/pin changes. |
 | [codec-upgrade-audit.md](codec-upgrade-audit.md) | The version + CVE + landscape audit (the "why upgrade"). Now ✅ done. | Planning codec currency/CVE work. | A new audit runs, a new CVE appears, or upgrade outcomes change. |
 | [codec-upgrade-handoff.md](codec-upgrade-handoff.md) · [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) | The per-codec upgrade how-to (build+verify+commit loop, exact edits). ✅ 2026-06-02 sweep done; now reference. | Doing a future codec upgrade. | The upgrade *process* changes, or a codec is upgraded (mark it). |
@@ -50,7 +46,7 @@ forget and high-cost when stale — they're flagged ⚠️ below.
 
 | Doc | Contains | Read when | Update when |
 |---|---|---|---|
-| ⚠️ [threading-enablement.md](threading-enablement.md) | The MT-threading subsystem: COOP/COEP (done), the oxipng POC, the exact remaining blocker + next steps. The active/blocked track. | Before ANY threading/SharedArrayBuffer/worker-pool work. | After any threading progress — a blocker hit/cleared, the POC status, a codec's MT path wired/verified. |
+| [threading-enablement.md](threading-enablement.md) | The MT-threading subsystem: COOP/COEP (done), the oxipng POC, the exact remaining blocker + next steps. The active/blocked track. | Before ANY threading/SharedArrayBuffer/worker-pool work. | After any threading progress — a blocker hit/cleared, the POC status, a codec's MT path wired/verified. |
 
 ## Architecture & runtime
 
@@ -73,11 +69,11 @@ forget and high-cost when stale — they're flagged ⚠️ below.
 | [parity-audit.md](parity-audit.md) | Editor feature-parity vs the original Squoosh + the deviation log. | Changing editor features; verifying parity. | A feature changes, parity is verified, or a deviation is added/closed. |
 | [manual-qa.md](manual-qa.md) | The manual QA checklist (pre-release / after risky changes). | Before a release or after build/worker/codec changes. | A new feature/path needs a manual check, or a step changes. |
 
-## Articles / journey (easy to forget — don't)
+## Reference / notes
 
 | Doc | Contains | Read when | Update when |
 |---|---|---|---|
-| ⚠️ [journey-and-article-notes.md](journey-and-article-notes.md) | Task/problem/solution source material for two planned articles (the migration + the codec sweep). | Writing the articles; recalling how a problem was solved. | **After any substantial task** with an interesting problem/solution — log it here so the articles stay writable. New saga = new beat. |
+| [journey-and-article-notes.md](journey-and-article-notes.md) | Task/problem/solution notes for two planned articles (migration + codec sweep). | Writing the articles; recalling how a past problem was solved. | A task produced a notable problem/solution worth recording. |
 
 ## Archive & end-user (special handling)
 
@@ -86,14 +82,3 @@ forget and high-cost when stale — they're flagged ⚠️ below.
 | [history/](history/) | The SvelteKit-migration archive (plans, audits, handoffs) — frozen historical record. | For migration context / the migration article. | **Generally frozen — do NOT update.** It's a point-in-time record; new state goes in the live docs above. |
 | [user-guide/](user-guide/index.md) | End-user documentation (features, formats, options, codecs) — written for users, not devs. | Changing any user-facing feature/option/codec/UI. | **A user-facing feature, option, codec, or default changes.** (e.g. a new codec version that changes behavior, a new/removed option.) |
 
----
-
-## Conventions
-
-- Every plan/status doc carries `Last updated:` and (for plans) `Status:`. Bump
-  them on edit.
-- New doc → add a row here **and** link it from [README.md](README.md).
-- Don't create a new doc when an existing one's "Update when" already covers the
-  topic — extend the existing doc instead.
-- `STATUS.md` is the truth for *current state*; the plan docs are the truth for
-  *how/why*; this index is the truth for *which doc to touch*.

@@ -52,19 +52,15 @@ is the source of truth for current state — read it first.**
 - Commit meaningful checkpoints. Push when CI feedback is useful or the
   maintainer asks.
 
-## Keeping docs current (mandatory)
+## Docs are the source of truth — use the registry
 
-The project keeps its state in docs, not in your head — and they only stay
-useful if they don't go stale. So **after finishing any task, before you call it
-done, open [docs/INDEX.md](docs/INDEX.md)** — the doc registry. It lists every doc
-with an explicit "**Update when**" trigger. For each row your work matched, update
-that doc: versions, `Status:` / `Last updated:` lines, new gotchas, completion
-marks. Two are especially easy to forget: log any interesting problem/solution in
-[docs/journey-and-article-notes.md](docs/journey-and-article-notes.md) (it feeds
-two planned articles), and bump [docs/codec-provenance.md](docs/codec-provenance.md)
-on any codec-version change. If you create a new doc, register it in `docs/INDEX.md`
-**and** link it from `docs/README.md`. This is not optional — the index exists so
-the maintainer doesn't have to ask after every run.
+[docs/INDEX.md](docs/INDEX.md) is the doc registry: every doc with "read when" /
+"update when" triggers. **Consult it at both ends of a task.** *Before starting,*
+read the docs relevant to what you're about to do — they tell the whole story, so
+you don't redo or undo decided work. *After finishing,* update every doc whose
+"update when" trigger your work matched (versions, `Status:` / `Last updated:`,
+gotchas, completion marks) before calling the task done. New doc → register it in
+the index. Read only what's relevant; keeping docs current is not optional.
 
 ## Reference docs
 

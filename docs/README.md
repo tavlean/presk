@@ -8,9 +8,9 @@ live separately in [user-guide/](user-guide/index.md).
 
 > **Maintaining docs?** [INDEX.md](INDEX.md) is the canonical **doc registry** —
 > every doc with explicit "read when" / "update when" triggers. Per
-> [AGENTS.md](../AGENTS.md), consult it after every task and update whatever your
-> work touched, so nothing goes stale. This file is the narrative map; INDEX.md is
-> the maintenance index.
+> [AGENTS.md](../AGENTS.md), consult it **before** a task (read what's relevant)
+> and **after** (update what your work touched), so nothing goes stale. This file
+> is the narrative map; INDEX.md is the maintenance index.
 
 Each doc carries a `Last updated:` line and (for plans) a `Status:`. Keep this
 index in sync when you add, finish, or archive a doc — see
