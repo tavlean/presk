@@ -35,7 +35,6 @@ export interface DecodeWorkerBridge {
   avifDecode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
   webpDecode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
   jxlDecode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
-  wp2Decode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
   qoiDecode(signal: AbortSignal, blob: Blob): WorkerBridgeReturn<ImageData>;
 }
 
@@ -88,9 +87,6 @@ export async function decodeImage(
       }
       if (mimeType === 'image/jxl') {
         return await workerBridge.jxlDecode(signal, blob);
-      }
-      if (mimeType === 'image/webp2') {
-        return await workerBridge.wp2Decode(signal, blob);
       }
       if (mimeType === 'image/qoi') {
         return await workerBridge.qoiDecode(signal, blob);

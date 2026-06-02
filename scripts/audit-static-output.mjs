@@ -115,12 +115,6 @@ const simdWasmAssets = files
 const webpDecoderWasmAssets = files
   .filter((file) => file.includes('webp_dec') && file.endsWith('.wasm'))
   .sort();
-const wp2EncoderWasmAssets = files
-  .filter((file) => file.includes('wp2_enc') && file.endsWith('.wasm'))
-  .sort();
-const wp2DecoderWasmAssets = files
-  .filter((file) => file.includes('wp2_dec') && file.endsWith('.wasm'))
-  .sort();
 const avifDecoderWasmAssets = files
   .filter((file) => file.includes('avif_dec') && file.endsWith('.wasm'))
   .sort();
@@ -183,12 +177,6 @@ const simdWasmAsset = files.find(
 );
 const webpDecoderWasmAsset = files.find(
   (file) => file.includes('/webp_dec.') && file.endsWith('.wasm'),
-);
-const wp2EncoderWasmAsset = files.find(
-  (file) => file.includes('/wp2_enc.') && file.endsWith('.wasm'),
-);
-const wp2DecoderWasmAsset = files.find(
-  (file) => file.includes('/wp2_dec.') && file.endsWith('.wasm'),
 );
 const avifDecoderWasmAsset = files.find(
   (file) => file.includes('/avif_dec.') && file.endsWith('.wasm'),
@@ -296,20 +284,6 @@ const expectedLogicalAssetRecords = [
     cache: 'precache',
   },
   {
-    logicalKey: 'wp2:decoder:default',
-    codec: 'wp2',
-    role: 'decoder',
-    variant: 'default',
-    cache: 'precache',
-  },
-  {
-    logicalKey: 'wp2:encoder:baseline',
-    codec: 'wp2',
-    role: 'encoder',
-    variant: 'baseline',
-    cache: 'precache',
-  },
-  {
     logicalKey: 'qoi:decoder:default',
     codec: 'qoi',
     role: 'decoder',
@@ -390,8 +364,6 @@ const physicalWasmGroups = [
   ['webp:encoder:baseline', baselineWasmAssets],
   ['webp:encoder:simd', simdWasmAssets],
   ['webp:decoder:default', webpDecoderWasmAssets],
-  ['wp2:encoder:baseline', wp2EncoderWasmAssets],
-  ['wp2:decoder:default', wp2DecoderWasmAssets],
   ['avif:decoder:default', avifDecoderWasmAssets],
   ['avif:encoder:single-thread', avifEncoderWasmAssets],
   ['rotate:preprocessor:default', rotateWasmAssets],
@@ -422,8 +394,6 @@ assert(pageCssAsset, 'Missing emitted SvelteKit page CSS asset.');
 assert(wasmAsset, 'Missing emitted WebP WASM asset from the worker probe.');
 assert(simdWasmAsset, 'Missing emitted SIMD WebP WASM asset.');
 assert(webpDecoderWasmAsset, 'Missing emitted WebP decoder WASM asset.');
-assert(wp2EncoderWasmAsset, 'Missing emitted WebP 2 encoder WASM asset.');
-assert(wp2DecoderWasmAsset, 'Missing emitted WebP 2 decoder WASM asset.');
 assert(avifDecoderWasmAsset, 'Missing emitted AVIF decoder WASM asset.');
 assert(avifEncoderWasmAsset, 'Missing emitted AVIF encoder WASM asset.');
 assert(rotateWasmAsset, 'Missing emitted rotate WASM asset.');
@@ -447,14 +417,6 @@ assert(
 assert(
   webpDecoderWasmAssets.length === 1,
   `Expected exactly one WebP decoder WASM asset after the generated wrapper patch, found ${webpDecoderWasmAssets.length}.`,
-);
-assert(
-  wp2EncoderWasmAssets.length === 1,
-  `Expected exactly one WebP 2 encoder WASM asset after the generated wrapper patch, found ${wp2EncoderWasmAssets.length}.`,
-);
-assert(
-  wp2DecoderWasmAssets.length === 1,
-  `Expected exactly one WebP 2 decoder WASM asset after the generated wrapper patch, found ${wp2DecoderWasmAssets.length}.`,
 );
 assert(
   avifDecoderWasmAssets.length === 1,
@@ -633,14 +595,6 @@ assert(
   `Service-worker build manifest does not include ${webpDecoderWasmAsset}.`,
 );
 assert(
-  serviceWorker.includes(wp2EncoderWasmAsset),
-  `Service-worker build manifest does not include ${wp2EncoderWasmAsset}.`,
-);
-assert(
-  serviceWorker.includes(wp2DecoderWasmAsset),
-  `Service-worker build manifest does not include ${wp2DecoderWasmAsset}.`,
-);
-assert(
   serviceWorker.includes(avifDecoderWasmAsset),
   `Service-worker build manifest does not include ${avifDecoderWasmAsset}.`,
 );
@@ -753,8 +707,6 @@ console.log(
     `WASM asset: ${wasmAsset}`,
     `SIMD WASM asset: ${simdWasmAsset}`,
     `WebP decoder WASM asset: ${webpDecoderWasmAsset}`,
-    `WebP 2 encoder WASM asset: ${wp2EncoderWasmAsset}`,
-    `WebP 2 decoder WASM asset: ${wp2DecoderWasmAsset}`,
     `AVIF decoder WASM asset: ${avifDecoderWasmAsset}`,
     `AVIF encoder WASM asset: ${avifEncoderWasmAsset}`,
     `Rotate WASM asset: ${rotateWasmAsset}`,
@@ -777,10 +729,6 @@ console.log(
     ...simdWasmAssets.map((asset) => `  - ${asset}`),
     `WebP decoder WASM copies: ${webpDecoderWasmAssets.length}`,
     ...webpDecoderWasmAssets.map((asset) => `  - ${asset}`),
-    `WebP 2 encoder WASM copies: ${wp2EncoderWasmAssets.length}`,
-    ...wp2EncoderWasmAssets.map((asset) => `  - ${asset}`),
-    `WebP 2 decoder WASM copies: ${wp2DecoderWasmAssets.length}`,
-    ...wp2DecoderWasmAssets.map((asset) => `  - ${asset}`),
     `AVIF decoder WASM copies: ${avifDecoderWasmAssets.length}`,
     ...avifDecoderWasmAssets.map((asset) => `  - ${asset}`),
     `AVIF encoder WASM copies: ${avifEncoderWasmAssets.length}`,

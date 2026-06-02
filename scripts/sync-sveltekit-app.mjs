@@ -42,7 +42,6 @@ const codecAssetOutputDir = join(
 );
 const avifCodecAssetOutputPath = join(codecAssetOutputDir, 'avif.ts');
 const webpCodecAssetOutputPath = join(codecAssetOutputDir, 'webp.ts');
-const wp2CodecAssetOutputPath = join(codecAssetOutputDir, 'wp2.ts');
 const qoiCodecAssetOutputPath = join(codecAssetOutputDir, 'qoi.ts');
 const jxlCodecAssetOutputPath = join(codecAssetOutputDir, 'jxl.ts');
 const mozjpegCodecAssetOutputPath = join(codecAssetOutputDir, 'mozjpeg.ts');
@@ -138,38 +137,6 @@ const patchedWebpDecoderShimOutputPath = join(
 const stalePatchedWebpDecoderTsOutputPath = join(
   patchedWebpDecoderWrapperOutputDir,
   'webp_dec.ts',
-);
-const patchedWp2EncoderWrapperOutputDir = join(
-  appRoot,
-  '.svelte-kit',
-  'sqush-generated',
-  'codecs',
-  'wp2',
-  'enc',
-);
-const patchedWp2EncoderOutputPath = join(
-  patchedWp2EncoderWrapperOutputDir,
-  'wp2_enc.js',
-);
-const patchedWp2EncoderShimOutputPath = join(
-  patchedWp2EncoderWrapperOutputDir,
-  'wp2_enc.d.ts',
-);
-const patchedWp2DecoderWrapperOutputDir = join(
-  appRoot,
-  '.svelte-kit',
-  'sqush-generated',
-  'codecs',
-  'wp2',
-  'dec',
-);
-const patchedWp2DecoderOutputPath = join(
-  patchedWp2DecoderWrapperOutputDir,
-  'wp2_dec.js',
-);
-const patchedWp2DecoderShimOutputPath = join(
-  patchedWp2DecoderWrapperOutputDir,
-  'wp2_dec.d.ts',
 );
 const patchedAvifDecoderWrapperOutputDir = join(
   appRoot,
@@ -350,7 +317,6 @@ const appEncoderNames = [
   'oxiPNG',
   'qoi',
   'webP',
-  'wp2',
 ];
 const svelteKitReadyWorkerMethods = [
   {
@@ -396,22 +362,10 @@ const svelteKitReadyWorkerMethods = [
       'WebP decode runs with generated Vite worker and generated WebP decoder WASM URL injection.',
   },
   {
-    name: 'wp2Decode',
-    source: 'features/decoders/wp2/worker/wp2Decode',
-    reason:
-      'WebP 2 decode runs with generated Vite worker and generated WebP 2 decoder WASM URL injection.',
-  },
-  {
     name: 'qoiEncode',
     source: 'features/encoders/qoi/worker/qoiEncode',
     reason:
       'QOI encode runs with generated Vite worker and generated QOI WASM URL injection.',
-  },
-  {
-    name: 'wp2Encode',
-    source: 'features/encoders/wp2/worker/wp2Encode',
-    reason:
-      'WebP 2 single-thread encode runs with generated Vite worker and generated WebP 2 encoder WASM URL injection.',
   },
   {
     name: 'jxlEncode',
@@ -497,24 +451,6 @@ const codecAssetRecords = [
     cache: 'precache',
     module: './webp',
     urlBinding: 'webpEncoderSimdWasmUrl',
-  },
-  {
-    logicalKey: 'wp2:decoder:default',
-    codec: 'wp2',
-    role: 'decoder',
-    variant: 'default',
-    cache: 'precache',
-    module: './wp2',
-    urlBinding: 'wp2DecoderWasmUrl',
-  },
-  {
-    logicalKey: 'wp2:encoder:baseline',
-    codec: 'wp2',
-    role: 'encoder',
-    variant: 'baseline',
-    cache: 'precache',
-    module: './wp2',
-    urlBinding: 'wp2EncoderWasmUrl',
   },
   {
     logicalKey: 'qoi:decoder:default',
@@ -806,7 +742,6 @@ function generateWebpWorkerEntry() {
     '// It intentionally stays a narrow generated worker until the remaining codec asset seams are resolved.',
     '',
     "import { expose } from 'comlink';",
-    "import { blobToArrayBuffer, initEmscriptenModule } from 'features/worker-utils';",
     "import { createAvifDecoderRuntime } from 'features/decoders/avif/worker/runtime';",
     "import avifDecoder from 'sqush-generated/codecs/avif/dec/avif_dec';",
     "import { createAvifEncoderRuntime } from 'features/encoders/avif/worker/runtime';",
@@ -818,9 +753,6 @@ function generateWebpWorkerEntry() {
     "import type { EncodeOptions } from 'features/encoders/webP/shared/meta';",
     "import webpEncoder from 'sqush-generated/codecs/webp/enc/webp_enc';",
     "import webpEncoderSimd from 'sqush-generated/codecs/webp/enc/webp_enc_simd';",
-    "import wp2Decoder, { type WP2Module as Wp2DecoderModule } from 'sqush-generated/codecs/wp2/dec/wp2_dec';",
-    "import wp2Encoder, { type WP2Module as Wp2EncoderModule } from 'sqush-generated/codecs/wp2/enc/wp2_enc';",
-    "import type { EncodeOptions as Wp2EncodeOptions } from 'features/encoders/wp2/shared/meta';",
     "import { createQoiDecoderRuntime } from 'features/decoders/qoi/worker/runtime';",
     "import qoiDecoder from 'sqush-generated/codecs/qoi/dec/qoi_dec';",
     "import { createJxlDecoderRuntime } from 'features/decoders/jxl/worker/runtime';",
@@ -856,11 +788,6 @@ function generateWebpWorkerEntry() {
     '  baseline: string;',
     '  decoder: string;',
     '  simd: string;',
-    '}',
-    '',
-    'export interface Wp2WasmUrls {',
-    '  decoder: string;',
-    '  encoder: string;',
     '}',
     '',
     'export interface QoiWasmUrls {',
@@ -901,7 +828,6 @@ function generateWebpWorkerEntry() {
     '  mozjpeg,',
     '  qoi,',
     '  webp,',
-    '  wp2,',
     '}: {',
     '  avif?: AvifWasmUrls;',
     '  imagequant?: ImagequantWasmUrls;',
@@ -909,7 +835,6 @@ function generateWebpWorkerEntry() {
     '  mozjpeg?: MozjpegWasmUrls;',
     '  qoi?: QoiWasmUrls;',
     '  webp?: WebpWasmUrls;',
-    '  wp2?: Wp2WasmUrls;',
     '}): void {',
     '  globalThis.__squshEmscriptenLocateFile = (path) => {',
     "    if (path === 'avif_dec.wasm') return avif?.decoder ?? path;",
@@ -917,8 +842,6 @@ function generateWebpWorkerEntry() {
     "    if (path === 'webp_enc.wasm') return webp?.baseline ?? path;",
     "    if (path === 'webp_dec.wasm') return webp?.decoder ?? path;",
     "    if (path === 'webp_enc_simd.wasm') return webp?.simd ?? path;",
-    "    if (path === 'wp2_dec.wasm') return wp2?.decoder ?? path;",
-    "    if (path === 'wp2_enc.wasm') return wp2?.encoder ?? path;",
     "    if (path === 'qoi_enc.wasm') return qoi?.encoder ?? path;",
     "    if (path === 'qoi_dec.wasm') return qoi?.decoder ?? path;",
     "    if (path === 'jxl_enc.wasm') return jxl?.encoder ?? path;",
@@ -944,8 +867,6 @@ function generateWebpWorkerEntry() {
     '  loadBaseline: async () => webpEncoder,',
     '  loadSimd: async () => webpEncoderSimd,',
     '});',
-    'let wp2DecoderModule: Promise<Wp2DecoderModule> | undefined;',
-    'let wp2EncoderModule: Promise<Wp2EncoderModule> | undefined;',
     'const decodeQoi = createQoiDecoderRuntime({',
     '  loadDecoder: async () => qoiDecoder,',
     '});',
@@ -1018,34 +939,6 @@ function generateWebpWorkerEntry() {
     '  webpDecode(blob: Blob, wasmUrls: WebpWasmUrls): Promise<ImageData> {',
     '    locateCodecWasm({ webp: wasmUrls });',
     '    return decodeWebp(blob);',
-    '  },',
-    '  async wp2Decode(blob: Blob, wasmUrls: Wp2WasmUrls): Promise<ImageData> {',
-    '    locateCodecWasm({ wp2: wasmUrls });',
-    '    wp2DecoderModule ??= initEmscriptenModule(wp2Decoder);',
-    '    const [module, data] = await Promise.all([',
-    '      wp2DecoderModule,',
-    '      blobToArrayBuffer(blob),',
-    '    ]);',
-    '    const result = module.decode(data);',
-    "    if (!result) throw new Error('Decoding error');",
-    '    return result;',
-    '  },',
-    '  async wp2Encode(',
-    '    imageData: ImageData,',
-    '    options: Wp2EncodeOptions,',
-    '    wasmUrls: Wp2WasmUrls,',
-    '  ): Promise<ArrayBuffer> {',
-    '    locateCodecWasm({ wp2: wasmUrls });',
-    '    wp2EncoderModule ??= initEmscriptenModule(wp2Encoder);',
-    '    const module = await wp2EncoderModule;',
-    '    const result = module.encode(',
-    '      imageData.data,',
-    '      imageData.width,',
-    '      imageData.height,',
-    '      options,',
-    '    );',
-    "    if (!result) throw new Error('Encoding error.');",
-    '    return new Uint8Array(result).buffer;',
     '  },',
     '  qoiDecode(blob: Blob, wasmUrls: QoiWasmUrls): Promise<ImageData> {',
     '    locateCodecWasm({ qoi: wasmUrls });',
@@ -1200,24 +1093,6 @@ function generateWebpCodecAssets() {
     '  webpDecoderWasmUrl,',
     '  webpEncoderWasmUrl,',
     '  webpEncoderSimdWasmUrl,',
-    '] as const;',
-    '',
-  ].join('\n');
-}
-
-function generateWp2CodecAssets() {
-  return [
-    '// This file is autogenerated by scripts/sync-sveltekit-app.mjs',
-    '// It is the SvelteKit app canonical asset manifest for WebP 2 codec WASM URLs.',
-    '',
-    "import wp2DecoderWasmUrl from 'codecs/wp2/dec/wp2_dec.wasm?url';",
-    "import wp2EncoderWasmUrl from 'codecs/wp2/enc/wp2_enc.wasm?url';",
-    '',
-    'export { wp2DecoderWasmUrl, wp2EncoderWasmUrl };',
-    '',
-    'export const wp2CodecAssetUrls = [',
-    '  wp2DecoderWasmUrl,',
-    '  wp2EncoderWasmUrl,',
     '] as const;',
     '',
   ].join('\n');
@@ -1466,34 +1341,6 @@ function generatePatchedWebpWrapperShim({ typeImportPath }) {
   ].join('\n');
 }
 
-function generatePatchedWp2EncoderWrapperShim() {
-  return [
-    '// This file is autogenerated by scripts/sync-sveltekit-app.mjs',
-    '// It describes the patched local wrapper while preserving the original codec types.',
-    '',
-    "import type { WP2Module } from 'codecs/wp2/enc/wp2_enc';",
-    '',
-    'declare const moduleFactory: EmscriptenWasm.ModuleFactory<WP2Module>;',
-    "export type { EncodeOptions, WP2Module } from 'codecs/wp2/enc/wp2_enc';",
-    'export default moduleFactory;',
-    '',
-  ].join('\n');
-}
-
-function generatePatchedWp2DecoderWrapperShim() {
-  return [
-    '// This file is autogenerated by scripts/sync-sveltekit-app.mjs',
-    '// It describes the patched local wrapper while preserving the original codec types.',
-    '',
-    "import type { WP2Module } from 'codecs/wp2/dec/wp2_dec';",
-    '',
-    'declare const moduleFactory: EmscriptenWasm.ModuleFactory<WP2Module>;',
-    "export type { WP2Module } from 'codecs/wp2/dec/wp2_dec';",
-    'export default moduleFactory;',
-    '',
-  ].join('\n');
-}
-
 function generatePatchedAvifEncoderWrapperShim() {
   return [
     '// This file is autogenerated by scripts/sync-sveltekit-app.mjs',
@@ -1643,8 +1490,6 @@ await Promise.all([
   mkdir(patchedAvifEncoderWrapperOutputDir, { recursive: true }),
   mkdir(patchedJxlEncoderWrapperOutputDir, { recursive: true }),
   mkdir(patchedWebpDecoderWrapperOutputDir, { recursive: true }),
-  mkdir(patchedWp2EncoderWrapperOutputDir, { recursive: true }),
-  mkdir(patchedWp2DecoderWrapperOutputDir, { recursive: true }),
   mkdir(patchedAvifDecoderWrapperOutputDir, { recursive: true }),
   mkdir(patchedJxlDecoderWrapperOutputDir, { recursive: true }),
   mkdir(patchedQoiEncoderWrapperOutputDir, { recursive: true }),
@@ -1684,7 +1529,6 @@ await Promise.all([
   writeFile(workerSurfaceReadyOutputPath, generateWorkerSurfaceReady()),
   writeFile(avifCodecAssetOutputPath, generateAvifCodecAssets()),
   writeFile(webpCodecAssetOutputPath, generateWebpCodecAssets()),
-  writeFile(wp2CodecAssetOutputPath, generateWp2CodecAssets()),
   writeFile(qoiCodecAssetOutputPath, generateQoiCodecAssets()),
   writeFile(jxlCodecAssetOutputPath, generateJxlCodecAssets()),
   writeFile(mozjpegCodecAssetOutputPath, generateMozjpegCodecAssets()),
@@ -1735,30 +1579,6 @@ await Promise.all([
     generatePatchedWebpWrapperShim({
       typeImportPath: 'codecs/webp/dec/webp_dec',
     }),
-  ),
-  writeFile(
-    patchedWp2EncoderOutputPath,
-    await patchEmscriptenWrapperFallbackUrl({
-      sourcePath: join(repoRoot, 'codecs', 'wp2', 'enc', 'wp2_enc.js'),
-      assetName: 'wp2_enc.wasm',
-      codecName: 'WebP 2',
-    }),
-  ),
-  writeFile(
-    patchedWp2EncoderShimOutputPath,
-    generatePatchedWp2EncoderWrapperShim(),
-  ),
-  writeFile(
-    patchedWp2DecoderOutputPath,
-    await patchEmscriptenWrapperFallbackUrl({
-      sourcePath: join(repoRoot, 'codecs', 'wp2', 'dec', 'wp2_dec.js'),
-      assetName: 'wp2_dec.wasm',
-      codecName: 'WebP 2',
-    }),
-  ),
-  writeFile(
-    patchedWp2DecoderShimOutputPath,
-    generatePatchedWp2DecoderWrapperShim(),
   ),
   writeFile(
     patchedAvifEncoderOutputPath,

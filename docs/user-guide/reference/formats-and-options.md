@@ -32,7 +32,6 @@ Notes that apply throughout:
 | ------------------ | ------------- | ---------- | ------------- | ------------------ | ----------------------------------------- |
 | Original Image     | `identity`    | (original) | (original)    | passthrough        | n/a (no Compress options)                 |
 | WebP               | `webP`        | `webp`     | `image/webp`  | both               | yes                                       |
-| WebP v2 (unstable) | `wp2`         | `wp2`      | `image/webp2` | both               | yes                                       |
 | AVIF               | `avif`        | `avif`     | `image/avif`  | both               | yes                                       |
 | JPEG XL (beta)     | `jxl`         | `jxl`      | `image/jxl`   | both               | yes                                       |
 | MozJPEG            | `mozJPEG`     | `jpg`      | `image/jpeg`  | lossy              | yes                                       |
@@ -42,9 +41,9 @@ Notes that apply throughout:
 | Browser PNG        | `browserPNG`  | `png`      | `image/png`   | lossless           | **no** ("no adjustable options")          |
 | Browser GIF        | `browserGIF`  | `gif`      | `image/gif`   | lossless (palette) | **no** ("no adjustable options")          |
 
-- The label/ext for `wp2`, `jxl`, `browserJPEG`, `browserPNG`, `browserGIF` are read
-  from `encoderMap.<id>.meta` so they stay in sync (hence "WebP v2 (unstable)",
-  "JPEG XL (beta)", "Browser JPEG/PNG/GIF"). `webP`, `avif`, `mozJPEG`, `oxiPNG`,
+- The label/ext for `jxl`, `browserJPEG`, `browserPNG`, `browserGIF` are read
+  from `encoderMap.<id>.meta` so they stay in sync (hence "JPEG XL (beta)",
+  "Browser JPEG/PNG/GIF"). `webP`, `avif`, `mozJPEG`, `oxiPNG`,
   `qoi` use hard-coded labels in `OUTPUT_FORMATS`.
 - **Browser encoders are feature-detected** via `canvas.toBlob(mime)` in
   `getSupportedFormatIds()`; a side is offered only if the canvas actually returns
@@ -116,49 +115,6 @@ struct. Lossless vs lossy splits the whole panel.
 `filter_type` is exposed only as the binary "Strong filter" toggle (the codec field is
 a number). `image_hint` only ever toggles between 0 and 3 in the UI even though the
 codec accepts other hint values.
-
----
-
-## WebP v2 (`wp2`) — "WebP v2 (unstable)"
-
-Panel: `Wp2Options.svelte`. `lossless` is **derived from quality > 95** (no real
-`lossless` field). `separateAlpha` is derived from `quality !== alpha_quality`.
-
-**Always visible**
-
-| UI label | key                       | control  | range / values                                 | default          |
-| -------- | ------------------------- | -------- | ---------------------------------------------- | ---------------- |
-| Lossless | (derived: sets `quality`) | checkbox | on → `quality = 100`; off → `min(quality, 95)` | off (quality 75) |
-| Effort   | `effort`                  | range    | 0–9, step 1                                    | 5                |
-
-**Lossless on**
-
-| UI label    | key       | control | range                                             | default |
-| ----------- | --------- | ------- | ------------------------------------------------- | ------- |
-| Slight loss | `quality` | range   | 0–5, step 0.1, inverted (`quality = 100 − value`) | —       |
-
-**Lossless off**
-
-| UI label               | key                                     | control  | range                                       | default |
-| ---------------------- | --------------------------------------- | -------- | ------------------------------------------- | ------- |
-| Quality                | `quality`                               | range    | 0–95, step 0.1                              | 75      |
-| Separate alpha quality | (derived: toggles `alpha_quality` link) | checkbox | when off, `alpha_quality = quality`         | off     |
-| Alpha quality          | `alpha_quality`                         | range    | 0–100, step 1 (only when Separate alpha on) | 75      |
-
-**Lossless-off → Advanced settings** (Revealer)
-
-| UI label              | key                 | control  | range / values                       | default             |
-| --------------------- | ------------------- | -------- | ------------------------------------ | ------------------- |
-| Passes                | `pass`              | range    | 1–10, step 1                         | 1                   |
-| Spatial noise shaping | `sns`               | range    | 0–100, step 1                        | 50                  |
-| Error diffusion       | `error_diffusion`   | range    | 0–100, step 1                        | 0                   |
-| Subsample chroma      | `uv_mode`           | select   | Auto(3) / Vary(0) / Half(1) / Off(2) | Auto (`UVModeAuto`) |
-| Color space           | `csp_type`          | select   | YCoCg(0) / YCbCr(1) / YIQ(3)         | YCoCg (`kYCoCg`)    |
-| Random matrix         | `use_random_matrix` | checkbox | bool                                 | false               |
-
-**Hidden / quirks** — `Csp.kCustom` (value 2) exists in the enum but is **not** offered in the
-Color-space select (only YCoCg=0, YCbCr=1, YIQ=3 are selectable). There is no raw `lossless` field; lossless
-mode is an emergent UI state from `quality`.
 
 ---
 

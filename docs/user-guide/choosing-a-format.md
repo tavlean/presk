@@ -28,7 +28,7 @@ A note on animation: Sqush's only animation-capable encoder is **Browser GIF**, 
 
 ## Controls / Settings
 
-The format chooser is the dropdown at the top of each side's **Compress** panel. The exact roster is defined in `src/lib/compress.ts` (`OUTPUT_FORMATS`). The modern WASM codecs (WebP, WebP v2, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI) are always available. The three **Browser** encoders are feature-detected at runtime via `canvas.toBlob`, so they only appear if your browser actually supports them.
+The format chooser is the dropdown at the top of each side's **Compress** panel. The exact roster is defined in `src/lib/compress.ts` (`OUTPUT_FORMATS`). The modern WASM codecs (WebP, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI) are always available. The three **Browser** encoders are feature-detected at runtime via `canvas.toBlob`, so they only appear if your browser actually supports them.
 
 ### Original Image
 
@@ -43,13 +43,6 @@ The format chooser is the dropdown at the top of each side's **Compress** panel.
 - **Range & default:** id `webP`, extension `.webp`, MIME `image/webp`. Supports both lossy and lossless (toggled by a **Lossless** checkbox in its panel).
 - **How to choose:** This is the safe modern default. For photos, leave it lossy and adjust Quality. For logos/screenshots, turn Lossless on. If you can only pick one modern format to ship widely, WebP is it because support is essentially universal across current browsers. (src: caniuse.com — webp)
 - **Recommended starting point:** **WebP, lossy, for photos; WebP lossless for flat graphics.** Deviate to AVIF/JPEG XL when you want even smaller files and your audience's browsers can handle them.
-
-### WebP v2 (unstable)
-
-- **What it does:** An experimental successor to WebP. Aims for better compression but is not a finished, shippable format.
-- **Range & default:** id `wp2`, extension `.wp2`, MIME `image/webp2`. Supports both lossy and lossless (lossless is reached by pushing quality very high in its panel). Its label comes straight from the codec, hence "(unstable)".
-- **How to choose:** Use only for experimentation and curiosity. No browser ships support for `.wp2`, so files won't open as web images anywhere yet.
-- **Recommended starting point:** **Avoid for anything you need to use.** Reach for it only to explore where the WebP lineage is heading.
 
 ### AVIF
 
@@ -114,10 +107,10 @@ The format chooser is the dropdown at the top of each side's **Compress** panel.
 - **Don't save flat graphics or text as a lossy format.** WebP/AVIF/JPEG lossy will smear sharp edges and text into fuzzy halos. Use OxiPNG or WebP _lossless_ for logos, icons, charts, and screenshots of UI.
 - **Don't save photographs as PNG.** OxiPNG will keep them perfect but enormous; a lossy WebP/AVIF/JPEG will be a fraction of the size with no visible loss.
 - **JPEG has no transparency.** If your image has a transparent background and you pick MozJPEG or Browser JPEG, the transparency is lost. Use WebP, AVIF, JPEG XL, or OxiPNG instead.
-- **Modern ≠ always safe to ship.** Ranked by how widely they open today: JPEG and PNG (everywhere) > WebP (near-universal) > AVIF (broad on current browsers) > JPEG XL (mainly Safari) > WebP v2 / QOI (not a web format). Match the format to where the image will be used. (src: caniuse.com)
+- **Modern ≠ always safe to ship.** Ranked by how widely they open today: JPEG and PNG (everywhere) > WebP (near-universal) > AVIF (broad on current browsers) > JPEG XL (mainly Safari) > QOI (not a web format). Match the format to where the image will be used. (src: caniuse.com)
 - **Smaller files cost encode time.** AVIF and high "Effort"/"Passes" settings are the slowest; JPEG/PNG/QOI are the fastest. If a side feels slow to update, that's expected for AVIF.
 - **The Browser encoders are feature-detected.** If Browser GIF (or, rarely, another) isn't in your list, your browser doesn't support producing that type via `canvas` — that's normal, not a bug.
 
 ## Under the hood
 
-The modern formats (WebP, WebP v2, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI) run as WebAssembly codecs inside a worker, while the three Browser encoders use the browser's own `canvas.toBlob` on the main thread (`src/lib/compress.ts`). "Original" is the `identity` pseudo-encoder: it skips encoding entirely, hands back the source file unchanged, and reports 0% change. When you pick a real encoder, Sqush also decodes the result back to pixels so the "after" preview shows the true codec output — compression artifacts and all — rather than an idealized version.
+The modern formats (WebP, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI) run as WebAssembly codecs inside a worker, while the three Browser encoders use the browser's own `canvas.toBlob` on the main thread (`src/lib/compress.ts`). "Original" is the `identity` pseudo-encoder: it skips encoding entirely, hands back the source file unchanged, and reports 0% change. When you pick a real encoder, Sqush also decodes the result back to pixels so the "after" preview shows the true codec output — compression artifacts and all — rather than an idealized version.

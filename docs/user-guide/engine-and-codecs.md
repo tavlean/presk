@@ -21,7 +21,7 @@ Modern browsers can run WebAssembly faster when they support two optional featur
 - **Threads** — letting a codec use several CPU cores at once.
 - **SIMD** — a CPU trick that processes several pixels in a single instruction.
 
-The committed codec set includes baseline, SIMD, and threaded artifacts, but the current SvelteKit launch path is conservative: single-thread WASM is the baseline for AVIF, JPEG XL, WebP 2, and OxiPNG, while WebP also has a generated SIMD asset path. Threaded codec work is being kept as post-launch performance/platform work, not a launch promise. Correctness does not depend on threads.
+The committed codec set includes baseline, SIMD, and threaded artifacts, but the current SvelteKit launch path is conservative: single-thread WASM is the baseline for AVIF, JPEG XL, and OxiPNG, while WebP also has a generated SIMD asset path. Threaded codec work is being kept as post-launch performance/platform work, not a launch promise. Correctness does not depend on threads.
 
 > **Single-thread is the launch floor.** Threaded artifacts remain in the repository for future work, but the migration-closeout target is reliable single-image optimization through the proven single-thread paths.
 
@@ -38,7 +38,6 @@ The versions below come straight from the project's build recipes, recorded in `
 | **WebP**                     | libwebp (`webmproject/libwebp`)  | commit `d2e245ea…`                | SIMD          | Broadly supported modern format; great all-rounder.                      |
 | **AVIF**                     | libavif + libaom (+ libsharpyuv) | libavif `v1.0.1`, libaom `v3.7.0` | Threads       | Excellent compression for photos; slower to encode.                      |
 | **JPEG XL (beta)**           | libjxl                           | commit `9f544641…`                | Threads, SIMD | Newer high-efficiency format; labelled **beta** in the app.              |
-| **WebP v2 (unstable)**       | libwebp2 (Chromium)              | commit `413df7ca…`                | Threads, SIMD | Experimental; labelled **unstable**. Keep expectations modest.           |
 | **MozJPEG**                  | `mozilla/mozjpeg`                | `v3.3.1`                          | —             | Highly optimized classic JPEG encoder.                                   |
 | **OxiPNG**                   | `oxipng` (crates.io)             | `9.0`                             | —             | Lossless PNG optimizer; shrinks PNGs without quality loss.               |
 | **QOI**                      | `phoboslab/qoi`                  | commit `8d35d93c…`                | —             | Tiny, very fast lossless format.                                         |
@@ -48,7 +47,7 @@ The three **Browser** encoders use the canvas that's already in your browser rat
 
 ### Input formats (what you can open)
 
-Sqush can also _decode_ (read) WebP, AVIF, JPEG XL, WebP v2, and QOI, in addition to whatever your browser natively understands (JPEG, PNG, GIF, SVG, and so on). Decoding uses the matching libraries from the table above (`src/features/decoders`).
+Sqush can also _decode_ (read) WebP, AVIF, JPEG XL, and QOI, in addition to whatever your browser natively understands (JPEG, PNG, GIF, SVG, and so on). Decoding uses the matching libraries from the table above (`src/features/decoders`).
 
 ### Helpers behind the editing controls
 
@@ -75,7 +74,7 @@ The service worker only activates on the **real deployed site**. During developm
 - **Privacy is structural, not a promise.** Because there is no server in the compression path, there is no upload to opt out of — your image physically cannot leave your device during compression.
 - **Encoding speed depends on your browser and CPU, not on Sqush settings alone.** A browser without thread/SIMD support will still produce identical output; it just takes longer. AVIF and JPEG XL are the most compute-heavy, so they feel slowest on older machines.
 - **"Browser GIF" may be missing.** Many browsers don't let the canvas write GIFs, so that menu entry can be absent. That's expected — use a WASM format instead.
-- **Beta and unstable labels mean what they say.** JPEG XL is marked **(beta)** and WebP v2 **(unstable)**. They work, but they're newer and less universally supported by other apps and browsers, so prefer WebP or AVIF for files you need to share widely.
+- **Beta labels mean what they say.** JPEG XL is marked **(beta)**. It works, but it's newer and less universally supported by other apps and browsers, so prefer WebP or AVIF for files you need to share widely.
 - **First offline use requires one online visit.** Offline reload can only work _after_ the service worker has cached the app, so open Sqush online once before relying on it without a connection.
 
 ## Under the hood

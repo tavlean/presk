@@ -40,7 +40,6 @@ const supportedImageExtensions = new Set([
   'tif',
   'tiff',
   'webp',
-  'wp2',
 ]);
 
 function getFileExtension(fileName: string): string {

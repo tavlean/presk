@@ -33,7 +33,6 @@ Each output format has its own page covering what it's good at and what every op
 | Page                                                    | Best for                                                                                       |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | [WebP](./formats/webp.md)                               | A great all-round default — good compression, broad browser support, lossy and lossless modes. |
-| [WebP v2 (unstable)](./formats/webp2.md)                | Experimental next-generation WebP; included for comparison, not for production use.            |
 | [AVIF](./formats/avif.md)                               | Excellent compression for photos; modern browsers.                                             |
 | [JPEG XL (beta)](./formats/jpeg-xl.md)                  | High-quality, flexible format with a lossless mode; limited browser support today.             |
 | [MozJPEG](./formats/mozjpeg.md)                         | A finely tuned JPEG encoder — maximum compatibility for photographs.                           |

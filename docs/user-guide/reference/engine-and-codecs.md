@@ -11,7 +11,7 @@ and provenance come from `docs/codec-provenance.md` and the codec build recipes.
   SvelteKit worker surface. Browser-native JPEG / PNG / GIF encode through
   `canvas.toBlob()` on the main thread because they use browser APIs.
 - **Single-thread is the SvelteKit launch baseline.** The generated worker
-  surface currently forces single-thread encode for AVIF, JPEG XL, WebP 2, and
+  surface currently forces single-thread encode for AVIF, JPEG XL, and
   OxiPNG. WebP has a generated SIMD asset path. Threaded artifacts still exist
   under `codecs/`, but threaded runtime enablement is post-launch
   performance/platform work, not current launch behavior.
@@ -75,7 +75,6 @@ JS/WASM artifacts). Each codec is wired through `src/features/{encoders,decoders
 | Codec / role           | Library (upstream)               | Version / commit (recorded locally)                                 | Threads               | SIMD                    | App wiring                                                                                                     |
 | ---------------------- | -------------------------------- | ------------------------------------------------------------------- | --------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------- |
 | WebP enc/dec           | libwebp (webmproject/libwebp)    | commit `d2e245ea9e959a5a79e1db0ed2085206947e98f2`                   | no                    | yes (`webp_enc_simd`)   | enc+dec, `image/webp`                                                                                          |
-| WebP 2 enc/dec         | libwebp2 (Chromium)              | commit `413df7caeca5013fa9a51401660f7efd8572e0ae`                   | yes (`wp2_enc_mt`)    | yes (`wp2_enc_mt_simd`) | enc+dec, experimental ("WebP v2 (unstable)"), `image/webp2`; SvelteKit uses baseline/single-thread asset paths |
 | AVIF enc/dec           | libavif + libaom (+ libsharpyuv) | libavif `v1.0.1`, libaom `v3.7.0`, libwebp `e2c85878...` (sharpyuv) | yes (`avif_enc_mt`)   | no                      | enc+dec, `image/avif`; SvelteKit uses single-thread encode                                                     |
 | JPEG XL enc/dec        | libjxl                           | commit `9f544641ec83f6abd9da598bdd08178ee8a003e0`                   | yes (`jxl_enc_mt`)    | yes (`jxl_enc_mt_simd`) | enc+dec, "JPEG XL (beta)", `image/jxl`; SvelteKit uses single-thread encode                                    |
 | MozJPEG enc            | mozilla/mozjpeg                  | `v3.3.1` (built `--with-build-date=squoosh`)                        | no                    | no                      | enc, `image/jpeg`                                                                                              |
@@ -100,9 +99,8 @@ JS/WASM artifacts). Each codec is wired through `src/features/{encoders,decoders
 
 ### Product direction (per provenance doc)
 
-Focused codec list under consideration: **WebP 1, AVIF, JPEG XL**. WebP 2 is kept
-as experimental parity. Nothing deleted yet; codecs to be hidden in UI before any
-removal.
+Focused codec list under consideration: **WebP 1, AVIF, JPEG XL**. WebP 2 has been
+removed (encoder + decoder); its `codecs/wp2/` tree and all wiring are gone.
 
 ## Offline / Service Worker
 

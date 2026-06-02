@@ -48,11 +48,6 @@ export const OUTPUT_FORMATS: {
   ext: string;
 }[] = [
   { id: 'webP', label: 'WebP', ext: encoderMap.webP.meta.extension },
-  {
-    id: 'wp2',
-    label: encoderMap.wp2.meta.label,
-    ext: encoderMap.wp2.meta.extension,
-  },
   { id: 'avif', label: 'AVIF', ext: encoderMap.avif.meta.extension },
   // Use the engine's own label so it stays in sync (e.g. "JPEG XL (beta)").
   {

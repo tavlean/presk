@@ -62,11 +62,6 @@ export interface ImagePipelineWorkerBridge
     imageData: ImageData,
     options: Extract<EncoderState, { type: 'webP' }>['options'],
   ): WorkerBridgeReturn<ArrayBuffer>;
-  wp2Encode(
-    signal: AbortSignal,
-    imageData: ImageData,
-    options: Extract<EncoderState, { type: 'wp2' }>['options'],
-  ): WorkerBridgeReturn<ArrayBuffer>;
 }
 
 export function compressImage(
@@ -157,15 +152,6 @@ export function compressImage(
         sourceFilename,
         workerBridge,
         encoderMap.webP,
-      );
-    case 'wp2':
-      return compressImageWithEncoder(
-        signal,
-        image,
-        encodeData.options,
-        sourceFilename,
-        workerBridge,
-        encoderMap.wp2,
       );
   }
 
