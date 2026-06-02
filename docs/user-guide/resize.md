@@ -126,6 +126,26 @@ The methods fall into three families. The five "worker" methods (Lanczos3, Mitch
 - **How to choose:** With it **on**, blended/resized colors (especially bright areas and high-contrast edges) stay truer and gradients don't darken. Turning it **off** does the math directly on the stored sRGB values — faster conceptually but slightly less accurate, and fine details can come out marginally darker (src: lomont.org/posts/2023/correctalphagammaforimages; ssp.impulsetrain.com/gamma-premult.html).
 - **Recommended starting point:** **On.** This matches how Squoosh resizes by default and gives the most color-accurate result. Only experiment with turning it off if a specific image looks better to your eye without it.
 
+## Recommended settings & community tips
+
+> The settings below are **community recommendations** from encoding/resampling guides. They are advice, not new defaults; Sqush's actual defaults (Lanczos3 + Premultiply alpha + Linear RGB, all on) already match best practice for photographic downscaling. Sources are listed at the end.
+
+| Use case                                          | Suggested method                                       | Why                                                                                                                       |
+| ------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| **Downscaling photographs (the common case)**     | **Lanczos3**, Premultiply on, Linear RGB on            | Lanczos is the community standard for high-quality downscaling — best anti-aliasing and detail retention, sharper than Mitchell, at the cost of slight ringing. |
+| **Flat graphics / illustrations / gradients**     | **Mitchell** (or **Catmull-Rom** for more bite)        | Mitchell trades a hair of sharpness for far fewer ringing halos than Lanczos — preferable on synthetic imagery and smooth gradients where overshoot is visible. |
+| **Upscaling / enlarging**                         | **Lanczos3** generally; **Mitchell** if halos appear   | Lanczos enlarges at high quality but rings more; Mitchell gives smoother, halo-free enlargements. (Upscaling in a compressor is usually a mistake — it adds bytes without real detail.) |
+| **Pixel art / sprites**                           | **hqx (pixel art)** to enlarge, or **Browser pixelated** | Any smoothing filter destroys crisp pixel-art edges; nearest-neighbor / hqx are the only correct choices, and only at integer scale factors. |
+
+**Community tips**
+
+- **Keep Linear RGB on.** Resizing in gamma (non-linear) space darkens fine detail and thin bright features. Sqush defaults it on; turning it off makes downscales subtly muddier.
+- **Keep Premultiply alpha on** for anything transparent. Forgetting it produces dark fringes around transparent edges after a resize.
+- **Lanczos ringing = halos.** If you see light/dark echoes near high-contrast edges (especially on flat graphics), switch to Mitchell — the #1 reason to leave Lanczos for non-photographic content.
+- **Downscaling softens; sharpen *after*.** The standard fix for the inherent softening of downscaling is a light unsharp/sharpen pass at the *final* size. Sqush doesn't expose a post-resize sharpen today, so if you need crispness back, do it in another tool after exporting.
+
+_Sources: [encoding/resampling guide](https://guideencodemoe-mkdocs.readthedocs.io/encoding/resampling/); [image-scaling algorithms comparison](https://grokipedia.com/page/Comparison_gallery_of_image_scaling_algorithms); [PixInsight interpolation algorithms](https://pixinsight.com/doc/docs/InterpolationAlgorithms/InterpolationAlgorithms.html)._
+
 ## Tips & pitfalls
 
 - **Resize first, then compress.** Shrinking to the display size is the highest-impact thing you can do for file size — often bigger than any quality-slider change in the format panel.

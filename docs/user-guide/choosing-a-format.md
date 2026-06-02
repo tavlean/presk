@@ -110,6 +110,7 @@ The format chooser is the dropdown at the top of each side's **Compress** panel.
 - **Modern ≠ always safe to ship.** Ranked by how widely they open today: JPEG and PNG (everywhere) > WebP (near-universal) > AVIF (broad on current browsers) > JPEG XL (mainly Safari) > QOI (not a web format). Match the format to where the image will be used. (src: caniuse.com)
 - **Smaller files cost encode time.** AVIF and high "Effort"/"Passes" settings are the slowest; JPEG/PNG/QOI are the fastest. If a side feels slow to update, that's expected for AVIF.
 - **The Browser encoders are feature-detected.** If Browser GIF (or, rarely, another) isn't in your list, your browser doesn't support producing that type via `canvas` — that's normal, not a bug.
+- **Want concrete starting numbers?** Once you've picked a format, the [Recommended settings](./recommended-settings.md) cheat sheet lists community best-practice values per codec (and each format page repeats them in context).
 
 ## Under the hood
 

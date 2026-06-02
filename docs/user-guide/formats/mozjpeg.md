@@ -129,6 +129,27 @@
 - **How to choose:** Set it lower than the main quality to save bytes when color precision doesn't matter much; set it higher to protect saturated colors and colored edges. Watch the preview around colorful details.
 - **Recommended starting point:** **75** (matching the default quality). Adjust only when separating chroma intentionally.
 
+## Recommended settings & community tips
+
+> The settings below are **community recommendations** from web.dev/images.guide and the MozJPEG project, mapped onto Sqush's controls. They are advice, not new defaults; the factual ranges and defaults above are unchanged. Sources are listed at the end.
+
+| Use case                                  | Suggested settings                                                                        | Why                                                                                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **General web photography (default)**     | Quality **80–85**, Progressive on, **Trellis multipass** on, chroma auto (4:2:0)          | `q80–85` is the documented web sweet spot (~30–40% savings at acceptable quality). Trellis is the whole reason to use MozJPEG over plain libjpeg — it makes globally better block decisions for a few % free. |
+| **Thumbnails / retina (2×) imagery**      | Quality **60–70**, Progressive on, chroma auto (4:2:0)                                     | On high-DPI screens, pixel density masks artifacts, so q~60–70 is fine and cuts bytes substantially.                              |
+| **Text / UI screenshots / sharp edges**   | Quality **90+**, **Auto subsample chroma off** + **Subsample chroma by 1** (4:4:4)        | 4:2:0 halves color resolution and makes colored text/edges look fuzzy; keep full color resolution for crisp content (JPEG is still photo-first — for true graphics use PNG/WebP). |
+| **Max-quality / archival**                | Quality **92–95**, 4:4:4, full trellis suite, Trellis passes **2**                        | Stacking trellis multipass + zero-block + after-trellis at high quality squeezes the last few percent; only worth it for masters. |
+| **Smallest file (slow, batch)**           | Quality **72–80**, full trellis suite, Progressive on, 4:2:0                               | The full trellis stack wrings out the last bytes at the cost of much slower encode — diminishing returns past ~1–2 Trellis passes. |
+
+**Community tips**
+
+- **Trellis is off by default but is MozJPEG's headline feature.** Turning **Trellis multipass** on is the documented way to get MozJPEG's edge over a regular JPEG. It interacts with the other trellis toggles, so enable it first.
+- **Auto subsampling silently applies 4:2:0**, which blurs colored text and UI. For anything with sharp colored edges, force 4:4:4 (Auto off → Subsample chroma by 1).
+- **Progressive is worth it but not free.** Progressive JPEGs are a bit smaller and reveal nicely on slow connections, but can decode up to ~3× slower than baseline on weak mobile CPUs.
+- **The quantization table rarely needs tuning.** The default (ImageMagick) is a solid all-rounder; only experiment when chasing the last few percent on a specific image.
+
+_Sources: [images.guide (web.dev)](https://images.guide/); [MozJPEG guide](https://imagecompressor.io/blog/mozjpeg-guide/); [MozJPEG issue #111 (trellis)](https://github.com/mozilla/mozjpeg/issues/111); [chroma subsampling (Wikipedia)](https://en.wikipedia.org/wiki/Chroma_subsampling)._
+
 ## Tips & pitfalls
 
 - **Start and stop at Quality.** For 95% of images, picking a Quality between 70 and 85 and ignoring the advanced panel gives an excellent result. Use the preview to confirm.

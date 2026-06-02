@@ -38,6 +38,25 @@ The Reduce palette controls (shared across formats):
 
 A practical recipe: enable **Reduce palette**, then lower **Colors** as far as you can before the image visibly degrades — flat graphics and icons often look fine at 64, 32, or even fewer colors, while detailed images need more. **Dithering** trades smooth gradients (higher values) against cleaner flat areas and slightly smaller files (lower values). Watch the live preview as you adjust. Because reducing colors _is_ lossy, this is the one place the OxiPNG workflow can change how the image looks — OxiPNG's own optimization stays perfectly lossless.
 
+## Recommended settings & community tips
+
+> The settings below are **community recommendations** from the OxiPNG project README and related docs, mapped onto Sqush's 0–6 Effort slider (which corresponds to OxiPNG's `-o` levels). They are advice, not new defaults; the factual ranges and defaults above are unchanged. Sources are listed at the end.
+
+| Use case                                           | Suggested settings                            | Why                                                                                                                       |
+| -------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Interactive single-image use (default)**         | Effort **2**, Interlace off                   | OxiPNG's own default `-o 2` is "quite fast and provides good compression" — the right balance for a responsive browser tool. |
+| **You can wait a bit (balanced)**                  | Effort **4**, Interlace off                   | The level the OxiPNG maintainers use in their own example config; a recognized "good balance" with still-tolerable runtime. |
+| **Absolute smallest PNG (one-off hero/icon)**      | Effort **6** (max), Interlace off             | Tries the most filter/compression strategies for the smallest output, at a notably longer wait. Reserve for assets served to many users. |
+
+**Community tips**
+
+- **Higher Effort is *not* guaranteed smaller.** OxiPNG is explicitly "not a brute-force optimizer," so Effort 6 can occasionally come out marginally larger than 4. If a high level barely beats a medium one, step back down.
+- **Interlacing inflates PNGs.** Adam7 interlacing scatters pixels and defeats DEFLATE, typically growing the file ~5–30%. Leave it off unless you genuinely want a progressive fade-in.
+- **OxiPNG is lossless only.** It can't meaningfully shrink a 24-bit photographic PNG — that's a job for **Reduce palette** first, or switching to JPEG/WebP/AVIF.
+- **Palette reduction does the heavy lifting.** For any image with ≤256 effective colors, run Reduce palette first; OxiPNG then just polishes the already-smaller indexed PNG.
+
+_Sources: [OxiPNG README](https://github.com/oxipng/oxipng/blob/master/README.md); [oxipng man page](https://man.archlinux.org/man/oxipng.1.en); [Adam7 algorithm (Wikipedia)](https://en.wikipedia.org/wiki/Adam7_algorithm)._
+
 ## Tips & pitfalls
 
 - **OxiPNG alone never changes your image.** Any visible difference comes from the separate Reduce palette step, not from OxiPNG's Effort or Interlace settings.

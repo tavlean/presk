@@ -96,6 +96,27 @@ These live under the **Advanced settings** expander. The defaults are sensible f
 - **How to choose:** Splitting into tiles slightly _increases_ file size and can create faint seams along tile edges, because each tile is compressed on its own. Leave both at 0 for normal images. They are mainly useful for very large images where decode/encode speed matters more than the last few bytes. (src: github.com/AOMediaCodec/libavif)
 - **Recommended starting point:** **0** for both — only raise them for very large images where speed matters.
 
+## Recommended settings & community tips
+
+> The settings below are **community recommendations** drawn from web.dev's AVIF guide and encoder-community practice, translated into Sqush's UI terms (its Quality slider is 0–99 and its Effort slider is 0–10, where higher Effort = slower/smaller). They are advice, not new defaults; the factual ranges and defaults above are unchanged. Sources are listed at the end.
+
+| Use case                                | Suggested settings                                                                    | Why                                                                                                                            |
+| --------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Web photo (lossy)**                   | Quality **60–70**, Effort **6**, **4:2:0**, Tuning **SSIM**                            | AVIF's sweet spot is aggressive size reduction — it typically beats a JPEG at q85–90 at roughly half the size. Higher Effort squeezes more at no quality cost. |
+| **Graphics / screenshots / text**       | Quality **80–88**, **4:4:4** (no subsampling), Effort **5–6**                          | 4:4:4 stops the color fringing the default 4:2:0 causes around text and sharp color edges; push quality up because low-bitrate AVIF blurs crisp UI detail. |
+| **Transparency / alpha cutouts**        | Quality **70–80**; turn on **Separate alpha quality** and match it to color           | Keeps base quality high so cutout edges don't smear against varied backgrounds, and prevents the mask from being over-compressed. |
+| **Archival / max-fidelity**             | **Lossless** on (forces 4:4:4), slow Effort (**6–8**) — or steer toward JPEG XL        | AVIF can do lossless, but at high quality JPEG XL usually matches it and keeps fine texture better, so it's a defensible-but-not-ideal archival pick. |
+
+**Community tips**
+
+- **JPEG quality numbers don't transfer.** Feeding an AVIF a "90" over-spends bits. AVIF holds up far lower than JPEG — start 10–15 points below your JPEG habit and judge by the preview.
+- **The #1 gripe: smearing at low quality.** AVIF blurs fine texture (hair, fur, foliage, grain) instead of showing crisp artifacts. This is where JPEG XL wins at q80–95; if texture matters, raise quality or compare JPEG XL.
+- **4:2:0 fringes text and logos.** Switch **Subsample chroma** to 4:4:4 for any image with sharp colored edges. On some images 4:4:4 even compresses *better* than 4:2:0 — worth comparing.
+- **Effort/speed swings file size 20–30% for free.** It only costs encode time, so use a high Effort for final exports and a low one only for quick previews.
+- **Tuning = SSIM tracks perceived quality** better than PSNR for stills; reach for it when you want the result to look as good as possible to the eye.
+
+_Sources: [web.dev: compress images with AVIF](https://web.dev/articles/compress-images-avif); [openaviffile: best AVIF settings](https://openaviffile.com/best-settings-for-avif-encoding/); [chroma subsampling (Wikipedia)](https://en.wikipedia.org/wiki/Chroma_subsampling); [Cloudinary: advanced image formats](https://cloudinary.com/blog/advanced-image-formats-and-when-to-use-them); [a better image-compression comparison](https://www.rachelplusplus.me.uk/blog/2025/07/a-better-image-compression-comparison/)._
+
 ## Tips & pitfalls
 
 - **Effort affects size, not looks.** Raising Effort makes the file smaller at the same quality — it does not improve or degrade how the image appears. The only cost is time, so use high Effort for anything you publish.

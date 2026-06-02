@@ -31,6 +31,17 @@ QOI has **no adjustable options at all**. Its `EncodeOptions` is an empty object
 - You want the quickest possible lossless export and don't care about squeezing out the last few kilobytes.
 - For anything destined for the **web**, prefer OxiPNG (lossless) or WebP/AVIF (lossy) — browsers don't display `.qoi` files natively.
 
+### Recommended settings & community tips (QOI)
+
+> **Community guidance**, not new defaults. QOI has no options to recommend — its whole point is being parameter-free.
+
+- **There is nothing to tune, by design.** QOI is fixed lossless RGB(A) with zero quality/effort knobs. Just pick it and download.
+- **Don't expect a size win.** QOI is usually *slightly worse* than an optimized libpng/OxiPNG on size; its only edge is speed (~20–50× faster encode, ~3–4× faster decode).
+- **Not a browser-delivery format.** No major browser decodes `.qoi` natively, so a QOI download is useless for a web page — you'd have to convert it back.
+- **Its real niche is pipelines you control:** game-engine/embedded asset loading, intermediate storage, fast screenshot capture — places where encode/decode throughput matters more than the last few kilobytes. It's already adopted in tools like FFmpeg, GIMP, and ImageMagick.
+
+_Sources: [phoboslab/qoi](https://github.com/phoboslab/qoi); [QOI (Wikipedia)](<https://en.wikipedia.org/wiki/QOI_(image_format)>)._
+
 ---
 
 ## Browser encoders (JPEG / PNG / GIF)

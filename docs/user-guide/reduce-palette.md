@@ -24,6 +24,25 @@ The panel has two sliders, "Colors" and "Dithering" (`src/lib/editor/options/Qua
 - **How to choose:** Higher values trade clean flat color for smoother gradients. The catch: dithering adds noise, and noise is harder to compress, so strong dithering can make the PNG _larger_ than the same image with dithering off (src: strikingloo.github.io/dithering). Lower it (or set 0) when your image is mostly solid blocks of color — icons, line art, flat UI — where you want crisp edges and the smallest file, and where banding isn't a concern because there are no gradients to band. Keep it high for images with gradients, soft shadows, or skin-like transitions that would otherwise step.
 - **Recommended starting point:** Leave it at the default **1.0** for anything with gradients or shading. For **flat graphics, icons, and line art, set it to 0** to get crisper edges and a smaller file. If 1.0 looks too grainy but 0 bands, try a middle value like **0.5**.
 
+## Recommended settings & community tips
+
+> The settings below are **community recommendations** from the pngquant/libimagequant project (the engine behind this panel). They are advice, not new defaults; the factual ranges and defaults above are unchanged. Sources are listed at the end.
+
+| Use case                                          | Suggested settings                          | Why                                                                                                                       |
+| ------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Flat graphics: logos, icons, screenshots, UI**  | Colors **32–128** (often far fewer), Dithering **0** (or ~0.2–0.5) | Flat graphics need few colors and look *cleaner* without dithering — dithering scatters noise that both looks worse on solid fills and compresses worse. A 2-color logo needs 2 colors. |
+| **Illustrations / few-color art**                 | Colors **128**, Dithering **~0.3**          | A light touch of dithering smooths the few transitions without flooding flat areas with hard-to-compress noise.          |
+| **Gradient-heavy / photographic-to-palette**      | Colors **256**, Dithering **1.0**           | Smooth gradients band badly when quantized; full dithering diffuses the error and hides the banding. (If PNG isn't required, prefer WebP/JPEG instead.) |
+
+**Community tips**
+
+- **Dithering is a double-edged sword.** It kills banding on gradients but *adds* noise that inflates the PNG and looks bad on flat fills. Leaving it at 1.0 globally gives worse-looking, bigger logos — turn it down (or off) for flat content.
+- **256 colors is not "safe/lossless."** It's lossy; for rich images it can both degrade quality *and* end up larger than truecolor once dither noise is added. pngquant's own docs warn dithered palette images sometimes compress worse than the full 32-bit image.
+- **Use the fewest colors that hold up.** Drop the count aggressively on simple images — indexed PNG typically runs 40–70% smaller than 24/32-bit when the image genuinely has few colors.
+- **Always pair with OxiPNG.** Quantize first, then let OxiPNG deflate the resulting palette PNG — that's where the combined win comes from.
+
+_Sources: [pngquant / libimagequant](https://pngquant.org/lib/); [ImageOptim/libimagequant](https://github.com/ImageOptim/libimagequant); [pngquant](https://pngquant.org/)._
+
 ## Tips & pitfalls
 
 - **Photos: usually skip this panel.** Palette reduction is built for flat-color graphics. For photographs, lean on a lossy format's own quality slider (WebP, AVIF, JPEG XL, MozJPEG) instead — they handle smooth color far better than a 256-color palette.

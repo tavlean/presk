@@ -94,6 +94,28 @@ _(Only shown when Lossless is off.)_
 - **How to choose:** Raising effort generally yields a smaller file for the same quality, at the cost of a slower encode. In lossy mode, higher effort also gives more consistent visual quality. Lowering it encodes faster but leaves some size on the table (src: github.com/libjxl/libjxl). Because everything runs locally in your browser, very high effort on large images can feel slow.
 - **Recommended starting point:** **7** (the default) is a sensible balance. Drop to **3–5** if encoding feels sluggish and you just want a quick result; push to **8–9** for a final export where you want the smallest possible file and don't mind waiting.
 
+## Recommended settings & community tips
+
+> The settings below are **community recommendations** from the libjxl docs and Cloudinary's Pareto-front analysis. JPEG XL's native quality knob on the command line is `--distance` (0 = lossless, ~1.0 = visually lossless); Sqush exposes the friendlier 0–99.9 **Quality** slider instead, where **~90 ≈ distance 1.0**. These are advice, not new defaults; the factual ranges above are unchanged. Sources are listed at the end.
+
+| Use case                                | Suggested settings                                                       | Why                                                                                                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Web photo (lossy), high quality**     | Quality **~90** (≈ distance 1.0), Effort **7**                           | "Visually lossless" — looks identical for most photos. At medium-high quality JXL is ~20% smaller than AVIF and keeps fine texture better.      |
+| **Lighter web weight**                  | Quality **75–85** (≈ distance 1.5–2.5), Effort **7**                     | The useful lossy band; trades a little fidelity for noticeably smaller files while staying clean on detailed images.                            |
+| **Graphics / screenshots / line art**   | **Lossless** on, Effort **7** (Effort 5 is also fine if speed matters)   | JXL auto-selects its modular mode for flat/synthetic content; lossless on screenshots and line art is both small and artifact-free.             |
+| **Transparency / alpha cutouts**        | **Lossless** on, or Quality **~90**, Effort **7**                        | JXL handles alpha natively in both modes; high quality keeps mask edges clean. No special flags needed.                                         |
+| **Archival / master files**             | **Lossless** on, Effort **7–9**                                          | The strongest archival pick here: lossless is ~35% smaller than optimized PNG and supports up to 32-bit and wide gamut.                          |
+
+**Community tips**
+
+- **Effort 7 ("squirrel") is the sweet spot.** It sits on the Pareto front; Effort 8–9 give tiny extra savings for a large time cost. Don't waste minutes at 9 for a marginal gain.
+- **JXL's killer feature is lossless JPEG transcoding.** On the command line, feeding `cjxl` a `.jpg` losslessly re-packs it ~20% smaller, reversibly, with zero quality change. Sqush re-encodes from decoded pixels rather than doing this bit-exact transcode, so to mimic it, keep an existing JPEG at high quality and compare.
+- **Browser support is the catch.** Native only in Safari 17+; Chrome/Firefox keep it behind a flag or removed it — hence the **beta** label. Great for archiving, Safari-targeted, or controlled pipelines; not general web delivery yet.
+- **Quality numbers aren't comparable across formats.** A JXL "75" is not a WebP "75". Judge by the preview.
+- **JXL shines at high quality, not extreme size reduction.** For the very smallest flat-graphic files at the lowest bitrates, AVIF can edge it out; JXL's strength is photographic and high-fidelity/archival work.
+
+_Sources: [cjxl man page](https://manpages.debian.org/unstable/libjxl-tools/cjxl.1.en.html); [libjxl](https://github.com/libjxl/libjxl); [Cloudinary: JPEG XL & the Pareto front](https://cloudinary.com/blog/jpeg-xl-and-the-pareto-front); [JPEG XL (Wikipedia)](https://en.wikipedia.org/wiki/JPEG_XL)._
+
 ## Tips & pitfalls
 
 - **Lossless is just Quality = 100.** There's no separate lossless flag in the file. Ticking Lossless maxes out quality; the Quality slider only goes to 99.9 precisely so the two states stay distinct.
