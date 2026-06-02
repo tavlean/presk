@@ -1,4 +1,4 @@
-CODEC_URL := https://github.com/ImageOptim/libimagequant/archive/2.12.1.tar.gz
+CODEC_URL := https://github.com/ImageOptim/libimagequant/archive/2.18.0.tar.gz
 CODEC_DIR := node_modules/libimagequant
 CODEC_OUT_RELATIVE := libimagequant.a
 CODEC_OUT := $(addprefix $(CODEC_DIR)/, $(CODEC_OUT_RELATIVE))
