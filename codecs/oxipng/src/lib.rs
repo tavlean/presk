@@ -1,7 +1,7 @@
 #[cfg(feature = "parallel")]
 pub use wasm_bindgen_rayon::init_thread_pool;
 
-use oxipng::{BitDepth, ColorType, Interlacing};
+use oxipng::{BitDepth, ColorType};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::Clamped;
 
@@ -15,11 +15,8 @@ pub fn optimise(
 ) -> Vec<u8> {
     let mut options = oxipng::Options::from_preset(level);
     options.optimize_alpha = true;
-    options.interlace = Some(if interlace {
-        Interlacing::Adam7
-    } else {
-        Interlacing::None
-    });
+    // oxipng 10.x: `interlace` is `Option<bool>` (was `Option<Interlacing>` in 9.x).
+    options.interlace = Some(interlace);
 
     let raw = oxipng::RawImage::new(width, height, ColorType::RGBA, BitDepth::Eight, data.0)
         .unwrap_throw();
