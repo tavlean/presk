@@ -93,11 +93,13 @@ Deliberate deviations (my call — re-open if you disagree):
    preserving the user's zoom/pan with the original's pan-compensation math.
    Re-fit is simpler and arguably nicer (re-centres the new framing); the
    compensation is risky for marginal benefit.
-2. **`wp2` (WebP v2, "unstable") is experimental parity** — restored in the
-   SvelteKit surface with generated single-thread encode/decode assets and a
-   Svelte option panel. Chromium production-preview QA now covers online and
-   offline `.wp2` encode; keep it experimental until maintainer/product testing
-   says it is worth promoting.
+2. **`wp2` (WebP v2, "unstable") was experimental parity — now RESOLVED by
+   removal (2026-06-02).** It was restored in the SvelteKit surface for migration
+   parity, but the maintainer testing that decision called for was done (see
+   [codec-upgrade-audit.md](codec-upgrade-audit.md) §3) and concluded WebP 2 is a
+   permanently-experimental format no browser can decode, so it was removed
+   entirely — see [codec-surface-cleanup.md](codec-surface-cleanup.md). This
+   parity item is closed.
 
 Deferred to the post-migration roadmap (infra/product work, not migration
 feature/bug parity):
@@ -145,7 +147,7 @@ alignment · history via SvelteKit shallow routing. (See §B "Resolved".)
 
 ### Deliberate deviations / deferred (see §B)
 
-Pinch-zoom re-fits on dimension change · WebP 2 threaded/prominence decisions ·
+Pinch-zoom re-fits on dimension change · WebP 2 removed entirely (2026-06-02) ·
 shared decode (post-launch performance) · share-target (PWA).
 
 ### Deferred / N-A (see §D)

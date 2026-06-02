@@ -114,12 +114,7 @@ Three "do now" items (libwebp, AVIF, JXL) are driven by genuine security exposur
 - **Why your build crashes specifically:** your pin predates years of fuzzer/overflow fixes, and there's a known Squoosh bug ([#854](https://github.com/GoogleChromeLabs/squoosh/issues/854)) where **lossless + palette reduction → `WP2_STATUS_BITSTREAM_ERROR`**, which you inherit at an even older commit. A rebuild to HEAD *would* patch some crashes (e.g. the Dec 2025 `GetMaxTileSize` uint32 overflow) — but the bitstream stays non-final, so it doesn't make WebP2 *safe to ship to users*.
 - **The build wall:** HEAD bumped to **C++20** (Apr 2025), so upgrading isn't even a free rebuild — it needs a C++20-capable emsdk.
 
-**Recommendation:** Do **not** invest in upgrading wp2. Take the opposite direction:
-1. **Now:** in the UI, harden the "experimental" label into an explicit disclosure — *no browser or OS image viewer can open these files, and the bitstream may change so existing `.wp2` files can become undecodeable.* (Add the same caveat to `docs/user-guide/formats/webp2.md`.) The current label understates the risk.
-2. **Soon:** **hide wp2 from the UI** — it's already off your focused-codec list (WebP1 + AVIF + JXL).
-3. **Later:** **delete the codec** once bulk-workflow and smoke tests pass.
-
-If you ever *do* want to reduce crash noise without dropping it, a one-shot rebuild to a recent HEAD (`d5920d8`) is technically feasible via the existing `emcmake cmake` Makefile — but treat it as a low-priority quality-of-life patch on a doomed codec, not a strategic upgrade. Don't tell users to store anything important as WebP2.
+**Recommendation: ✅ RESOLVED — WebP 2 was removed entirely (encoder and decoder) on 2026-06-02.** The original staged plan (harden label → hide → delete) was superseded by a clean full removal, since the only real-world producer of `.wp2` files was this app's own encoder and no browser can decode them. See [codec-surface-cleanup.md](codec-surface-cleanup.md) for the removal record. There is nothing left to upgrade or maintain here.
 
 ---
 
@@ -202,10 +197,10 @@ When in doubt, match **jSquash** first — it's actively maintained (last commit
 12. **libimagequant 4.x (Rust)** — better quant + drops OpenMP, but a full toolchain switch. Standalone project.
 
 ### Skip
-13. **wp2** — don't upgrade; **hide from UI now, delete later**. Harden the user-facing label first (no browser decodes it; bitstream non-final → files may become unreadable). Add the caveat to `docs/user-guide/formats/webp2.md`.
+13. **wp2** — ✅ **DONE: removed entirely** (encoder + decoder) on 2026-06-02. No browser decodes it; bitstream non-final. See [codec-surface-cleanup.md](codec-surface-cleanup.md).
 14. **QOI** — spec is **frozen**; only one real two-line commit (~1.4% encode). Bump the SHA opportunistically if you rebuild for another reason. (Also: QOI files are *larger* than optimised PNG — no compression rationale.)
 15. **hqx** — already on the latest tag; upstream abandoned; fixed-math filter.
 16. **png (image-png crate)** — **dead directory** (DELETED), never imported (browserPNG + OxiPNG own all PNG paths). `codecs/png/` was deleted in the codec-cleanup pass.
 17. **SVT-AV1 / HEIC encoder / ECT / zopflipng / JPEG XS** — not viable or not worth it in single-threaded WASM (see §4).
 
-**Suggested sequencing:** do the four security-driven rebuilds (items 1–4) as one batch since they share the Emscripten/Docker pipeline and the libwebp↔AVIF libsharpyuv coupling means testing them together is cleaner. The `codecs/png/` deletion is already DONE; hide wp2 in the same cleanup spirit — pure subtraction that de-risks the codec surface. Defer mozjpeg's CMake rewrite, the resize crate edits, and the jpegli build to their own focused sessions.
+**Suggested sequencing:** the codec-surface cleanup (WebP 2 removed, `codecs/png/` + `codecs/visdif/` deleted) and the multithreading headers are **already DONE** on the `codec-cleanup-and-threading` branch. The remaining codec work is the upgrades: do the four security-driven rebuilds (items 1–4) as one batch since they share the Emscripten/Docker pipeline and the libwebp↔AVIF libsharpyuv coupling means testing them together is cleaner — see [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) for turnkey steps. Defer mozjpeg's CMake rewrite, the resize crate edits, and the jpegli build to their own focused sessions.

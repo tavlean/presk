@@ -38,7 +38,6 @@ The top-level codec package files currently advertise these build entry points:
 | `codecs/avif`       | `avif`       | `../build-cpp.sh`                                                                                                            |
 | `codecs/webp`       | `webp`       | `../build-cpp.sh`                                                                                                            |
 | `codecs/jxl`        | `jxl`        | `../build-cpp.sh`                                                                                                            |
-| `codecs/wp2`        | `wp2`        | `../build-cpp.sh`                                                                                                            |
 | `codecs/qoi`        | `qoi`        | `../build-cpp.sh`                                                                                                            |
 | `codecs/mozjpeg`    | not declared | `../build-cpp.sh`                                                                                                            |
 | `codecs/oxipng`     | `oxipng`     | `RUST_IMG=rustlang/rust@sha256:5fd16a5576c22c8fdd5d659247755999e426c04de8dcf18a41ea446c5f253309 ../build-rust.sh ./build.sh` |
@@ -58,7 +57,6 @@ The build recipes record these upstream source references. Treat them as the reb
 | `codecs/avif`       | AOMediaCodec/libavif                                  | `v1.0.1` tarball                                                    | Uses libaom `v3.7.0` and libwebp commit `e2c85878f6a33f29948b43d3492d9cdaf801aa54` for libsharpyuv.    |
 | `codecs/webp`       | webmproject/libwebp                                   | commit `d2e245ea9e959a5a79e1db0ed2085206947e98f2` tarball           | Builds baseline and SIMD browser artifacts plus Node encoder/decoder artifacts.                        |
 | `codecs/jxl`        | libjxl/libjxl                                         | commit `9f544641ec83f6abd9da598bdd08178ee8a003e0`                   | Fetches submodules recursively and builds single-thread, multithread, SIMD, and Node-targeted outputs. |
-| `codecs/wp2`        | Chromium libwebp2                                     | commit `413df7caeca5013fa9a51401660f7efd8572e0ae` archive           | Builds baseline, multithread, SIMD, and Node-targeted outputs.                                         |
 | `codecs/qoi`        | phoboslab/qoi                                         | commit `8d35d93cdca85d2868246c2a8a80a1e2c16ba2a8` tarball           | Builds encoder and decoder outputs.                                                                    |
 | `codecs/mozjpeg`    | mozilla/mozjpeg                                       | `v3.3.1` tarball                                                    | Configures with `--with-build-date=squoosh` for reproducible version strings.                          |
 | `codecs/imagequant` | ImageOptim/libimagequant                              | `2.12.1` tarball                                                    | Configures with `--disable-sse`.                                                                       |
@@ -77,8 +75,6 @@ The build recipes record these upstream source references. Treat them as the reb
 | WebP encoder        | `src/features/encoders/webP`        | `codecs/webp/enc/webp_enc.*`, `webp_enc_simd.*`                 | Used by app; SIMD path exists                                              |
 | JPEG XL decoder     | `src/features/decoders/jxl`         | `codecs/jxl/dec/jxl_dec.*`                                      | Used by app; strategy still undecided                                      |
 | JPEG XL encoder     | `src/features/encoders/jxl`         | `codecs/jxl/enc/jxl_enc.*`, `jxl_enc_mt.*`, `jxl_enc_mt_simd.*` | Used by app; strategy still undecided                                      |
-| WP2 decoder         | `src/features/decoders/wp2`         | `codecs/wp2/dec/wp2_dec.*`                                      | Experimental parity; SvelteKit uses the single-thread asset path           |
-| WP2 encoder         | `src/features/encoders/wp2`         | `codecs/wp2/enc/wp2_enc.*`, `wp2_enc_mt.*`, `wp2_enc_mt_simd.*` | Experimental parity; threaded assets remain unproven in SvelteKit          |
 | QOI decoder         | `src/features/decoders/qoi`         | `codecs/qoi/dec/qoi_dec.*`                                      | Used by app today; likely removable later if the codec surface is narrowed |
 | QOI encoder         | `src/features/encoders/qoi`         | `codecs/qoi/enc/qoi_enc.*`                                      | Used by app today; likely removable later if the codec surface is narrowed |
 | MozJPEG encoder     | `src/features/encoders/mozJPEG`     | `codecs/mozjpeg/enc/mozjpeg_enc.*`                              | Used by app today; not in the proposed focused codec list                  |
@@ -103,10 +99,10 @@ The focused codec list being considered is:
 - AVIF
 - JPEG XL
 
-WebP 2 is included as experimental parity in the SvelteKit editor. Keep the
-inherited WP2 provenance notes for historical accuracy, and treat any future
-promotion, hiding, threaded-runtime work, or removal as an evidence-based product
-decision.
+WebP 2 was **removed entirely** (encoder and decoder) on 2026-06-02 — it was a
+permanently-experimental format no browser can decode. See
+[codec-surface-cleanup.md](codec-surface-cleanup.md) for the removal record and
+[codec-upgrade-audit.md](codec-upgrade-audit.md) §3 for the rationale.
 
 To reduce risk, first hide unwanted codecs from product UI after design discussion. Delete codec code only after:
 

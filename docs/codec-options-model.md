@@ -24,7 +24,7 @@ different style:
   `speed`; WebP "Slight loss" is `100 - near_lossless`; "Filter sharpness" is
   `7 - filter_sharpness`.
 - **Fake booleans.** WebP stores several flags as `0/1` integers, not booleans.
-- **Inferred toggles.** WP2/AVIF/JXL infer "lossless" / "separate alpha" from the
+- **Inferred toggles.** AVIF/JXL infer "lossless" / "separate alpha" from the
   current field values at mount.
 - **Inter-field rules.** JXL: `quality < 7` forces `lossyModular = true`. AVIF:
   `separateAlpha` decides whether `qualityAlpha` is `-1` or a real value.
@@ -87,7 +87,7 @@ Treat these as the regression checklist; re-run the editor parity expectations
   ↔ `lossyPalette`.
 - WebP inverted sliders (`near_lossless`, `filter_sharpness`), `0/1` flags, lossless
   Effort preset table.
-- WP2/AVIF/JXL inferred toggles seed correctly at mount and after copy/import (the
+- AVIF/JXL inferred toggles seed correctly at mount and after copy/import (the
   behavior the `{#key options}` remount currently provides).
 
 ## Suggested approach (multi-step, each independently verifiable)

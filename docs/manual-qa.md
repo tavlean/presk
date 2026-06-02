@@ -40,7 +40,6 @@ Open `http://127.0.0.1:5189` in a fresh browser context when possible.
 At minimum before launch:
 
 - WebP encode/download.
-- WebP 2 encode/download while it remains visible.
 - AVIF encode/download.
 - JPEG XL encode/download if browser/runtime permits the preview.
 - MozJPEG and OxiPNG encode/download.
@@ -85,7 +84,7 @@ preview on `127.0.0.1:5189`.
 
 Current smoke coverage:
 
-- PNG to WebP and WebP 2 download links;
+- PNG to WebP download links;
 - JPEG, SVG, and WebP inputs to WebP download links;
 - desktop editor load;
 - `390 x 844` mobile viewport with no horizontal overflow;
@@ -97,7 +96,7 @@ Suggested future smoke:
 1. Start preview on `127.0.0.1:5189`.
 2. Upload a local PNG or JPEG.
 3. Wait for the editor title to include the file name.
-4. Switch one side to WebP and WebP 2.
+4. Switch one side to WebP.
 5. Wait until the title is no longer in a working state.
 6. Assert an `a[download]` or blob URL exists for the output.
 7. Check console errors.
