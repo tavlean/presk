@@ -243,10 +243,12 @@ Highest leverage — one change at the primitives ripples through every panel.
   would mean: on Konami in the Reduce-palette panel, reveal a control that sets
   `options.zx = 1`. To discuss before implementing.
 - **Context API for `OptionsPanel`.** Pass `EditorSession` / per-side state via
-  `setContext`/`getContext` to collapse the ~15-prop interface
+  context to collapse the ~15-prop interface
   ([+page.svelte:119](../src/routes/+page.svelte:119)). Matter of taste given the
   singleton is already reactive; do it _after_ Wave 2 so the boundary is clean
-  first.
+  first. **Use `createContext`** (type-safe) rather than raw
+  `setContext`/`getContext` — that's the current best-practice (confirmed via the
+  Svelte MCP, 2026-06-02).
 - **Data-driven codec panels.** Folded into the codec options model project —
   see [codec-options-model.md](codec-options-model.md).
 - **Legacy service-worker / cache surfaces.** A second AI flagged `skip-waiting`,
@@ -262,8 +264,11 @@ Highest leverage — one change at the primitives ripples through every panel.
 - Codec pruning / visibility changes (separate engineering decision; follow
   [codec-provenance.md](codec-provenance.md)).
 - Server-side processing or upload paths.
-- `class:` → `class={…}` object-form conversion — low value; current `class:`
-  usage is fine. Skip unless it demonstrably improves a specific component.
+- `class:` → `class={…}` object-form conversion — low value here, but note the
+  current Svelte 5 **best-practices doc does recommend** clsx-style array/object
+  `class` over the `class:` directive (confirmed via the Svelte MCP, 2026-06-02).
+  So it's a sanctioned cleanup if a component's `class:` usage gets unwieldy —
+  just not worth a sweeping pass. Skip unless it improves a specific component.
 
 ## Dropped after verification
 
