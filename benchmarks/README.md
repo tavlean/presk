@@ -12,11 +12,17 @@ npm run bench                         # writes benchmarks/results/current.json
 BENCH_LABEL=webp-1.6 npm run bench    # custom label → results/webp-1.6.json
 ```
 
-It boots the production build (cross-origin isolated) and, for each of WebP,
-AVIF, JPEG XL, MozJPEG, OxiPNG, QOI, encodes `fixtures/photo.png` at the app's
-default settings — 1 warm-up run (records the cold/module-load time) plus 4
-measured runs (records the median). Browser PNG/JPEG/GIF are excluded (native,
-never rebuilt).
+It boots the production build (cross-origin isolated) and, for each **image type**
+(`photo` 1024×683, `illustration`, `transparent`, and `photo-large` 12 MP — see
+`tests/fixtures/`), encodes through each of WebP, AVIF, JPEG XL, MozJPEG, OxiPNG,
+QOI at the app's default settings. The normal fixtures run 1 warm-up + 3 measured
+runs (records median); the big 12 MP image runs once (each encode is slow — it's
+there to show whether huge inputs behave differently). Browser PNG/JPEG/GIF are
+excluded (native, never rebuilt).
+
+Multiple types matter: a codec change can help photos but hurt flat
+illustrations, break alpha, or behave very differently on huge images — the
+report (and `bench:compare`) breaks results out per type so any of those shows up.
 
 ## Compare (before vs after an upgrade)
 
@@ -40,9 +46,9 @@ or started failing) — so it can gate a codec upgrade in CI.
 - `baseline.json` — committed reference (the current codecs). **Re-capture and
   commit this after a confirmed-good upgrade** so it tracks the shipped state.
 - `results/` — per-run reports (gitignored).
-- `fixtures/photo.png` — the benchmark image (1024×540). Swap it for an
-  article-quality photo if you want headline numbers; re-capture the baseline if
-  you do.
+- Fixtures live in `tests/fixtures/` (shared with the e2e suite) — see
+  `tests/fixtures/README.md`. Swap `photo.jpg` / `photo-large.jpg` for your own
+  images for article-quality numbers; re-capture the baseline if you do.
 
 ## Caveats
 

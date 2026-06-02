@@ -3,30 +3,34 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 
 /**
- * Codec benchmark. For each WASM codec we upgrade, it encodes a fixed real
- * image at the app's default settings and records:
+ * Codec benchmark across image TYPES. For each fixture (photo / illustration /
+ * transparent / big) it encodes through every WASM codec at default settings and
+ * records, per codec:
  *   - outputBytes  — exact, deterministic. The "compresses better?" signal.
- *   - encodeMs     — median over N warm runs (cold/first run recorded separately
- *                    since it includes WASM module load). The "faster?" signal.
+ *   - medianMs     — encode time (median of warm runs; cold/module-load separate).
  *   - ok           — encode succeeded + produced a non-trivial blob. Reliability.
  *
- * It writes a JSON report to benchmarks/results/<label>.json. Capture one
- * report BEFORE a codec upgrade and one AFTER, then `npm run bench:compare` the
- * two to see the size/speed delta (and catch regressions). The numbers are also
- * the raw data for any "we made X% gains" write-up.
+ * Multiple image types matter because a codec change can help photos but hurt
+ * flat illustrations, break alpha, or behave differently on huge images — this
+ * surfaces all of that. Writes benchmarks/results/<label>.json; capture one
+ * before a codec upgrade and one after, then `npm run bench:compare` them.
  *
- * Timing note: encodeMs measures the editor's working-state window (the encode
- * itself), not wall-clock, so it excludes the ~100ms option debounce. It is
- * machine-dependent — only compare reports captured on the same machine.
+ * Timing measures the editor's working window (excludes the ~100ms debounce) and
+ * is machine-dependent — only compare reports captured on the same machine.
  */
-const fixture = fileURLToPath(new URL('./fixtures/photo.png', import.meta.url));
+const fixturePath = (name: string) =>
+  fileURLToPath(new URL(`../tests/fixtures/${name}`, import.meta.url));
 const resultsDir = fileURLToPath(new URL('./results/', import.meta.url));
 
-const WARMUP_RUNS = 1;
-const MEASURED_RUNS = 4;
+// The big 12MP image runs fewer times (each encode is slow) — we mainly want to
+// see whether huge inputs behave differently, not a tight timing distribution.
+const FIXTURES = [
+  { name: 'photo', file: 'photo.jpg', warmup: 1, runs: 3 },
+  { name: 'illustration', file: 'illustration.png', warmup: 1, runs: 3 },
+  { name: 'transparent', file: 'transparent.png', warmup: 1, runs: 3 },
+  { name: 'photo-large', file: 'photo-large.jpg', warmup: 0, runs: 1 },
+];
 
-// Only the WASM codecs (the ones we upgrade). Browser PNG/JPEG/GIF are native
-// and never rebuilt, so they're out of scope for codec-version benchmarking.
 const CODECS = [
   { id: 'webP', label: 'WebP' },
   { id: 'avif', label: 'AVIF' },
@@ -42,20 +46,17 @@ const median = (xs: number[]) => {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 };
 
-test('codec benchmark', async ({ page }) => {
+test('codec benchmark across image types', async ({ page }) => {
   test.slow();
   await page.goto('/');
-  await page.setInputFiles('input[type=file]', fixture);
-  await expect(page.locator('.options-2 select.builtin-select')).toBeVisible();
-
   const env = await page.evaluate(() => ({
     cores: navigator.hardwareConcurrency,
     isolated: self.crossOriginIsolated,
     ua: navigator.userAgent,
   }));
 
-  // One encode pass measured entirely in-page: switch the right side to the
-  // target format, time the editor's working window, and read the output size.
+  // One encode measured in-page: switch the right side to the target format,
+  // time the editor's working window, and read the output size.
   const encodeOnce = (formatId: string) =>
     page.evaluate(async (id: string) => {
       const root = document.querySelector('.options-2')!;
@@ -72,7 +73,7 @@ test('codec benchmark', async ({ page }) => {
         setter.call(select, val);
         select.dispatchEvent(new Event('change', { bubbles: true }));
       };
-      const waitFor = (pred: () => boolean, timeout = 120_000) =>
+      const waitFor = (pred: () => boolean, timeout = 300_000) =>
         new Promise<void>((resolve, reject) => {
           const start = performance.now();
           const tick = setInterval(() => {
@@ -87,80 +88,84 @@ test('codec benchmark', async ({ page }) => {
         });
       const working = () => document.title.includes('⏳');
 
-      // Reset to the original so re-selecting the format re-encodes from scratch.
       setFormat('identity');
       await waitFor(() => !working());
       const prevHref = download()?.href ?? null;
 
       setFormat(id);
-      // Encode window = working-state up → down (excludes the option debounce).
       await waitFor(() => working(), 5_000).catch(() => {});
       const start = performance.now();
       await waitFor(
         () => !working() && !!download() && download()!.href !== prevHref,
       );
       const ms = performance.now() - start;
-
       const bytes = (await (await fetch(download()!.href)).arrayBuffer())
         .byteLength;
       return { ms, bytes };
     }, formatId);
 
-  const inputBytes = readFileSync(fixture).byteLength;
-  const results = [];
+  const fixtureReports = [];
 
-  for (const codec of CODECS) {
-    let cold = 0;
-    const runs: number[] = [];
-    let bytes = 0;
-    let ok = true;
-    try {
-      for (let i = 0; i < WARMUP_RUNS; i++) {
-        const r = await encodeOnce(codec.id);
-        cold = r.ms;
+  for (const fixture of FIXTURES) {
+    await page.goto('/');
+    await page.setInputFiles('input[type=file]', fixturePath(fixture.file));
+    await expect(
+      page.locator('.options-2 select.builtin-select'),
+    ).toBeVisible();
+    const inputBytes = readFileSync(fixturePath(fixture.file)).byteLength;
+
+    console.log(`\n[${fixture.name}] (${(inputBytes / 1024) | 0} KB input)`);
+    const codecResults = [];
+    for (const codec of CODECS) {
+      let cold = 0;
+      const runs: number[] = [];
+      let bytes = 0;
+      let ok = true;
+      try {
+        for (let i = 0; i < fixture.warmup; i++)
+          cold = (await encodeOnce(codec.id)).ms;
+        for (let i = 0; i < fixture.runs; i++) {
+          const r = await encodeOnce(codec.id);
+          runs.push(r.ms);
+          bytes = r.bytes;
+        }
+        ok = bytes > 24;
+      } catch {
+        ok = false;
       }
-      for (let i = 0; i < MEASURED_RUNS; i++) {
-        const r = await encodeOnce(codec.id);
-        runs.push(r.ms);
-        bytes = r.bytes;
-      }
-      ok = bytes > 24;
-    } catch {
-      ok = false;
+      const medianMs = runs.length ? Math.round(median(runs)) : 0;
+      codecResults.push({
+        format: codec.id,
+        label: codec.label,
+        ok,
+        outputBytes: bytes,
+        coldMs: Math.round(cold),
+        medianMs,
+        runsMs: runs.map((m) => Math.round(m)),
+      });
+      console.log(
+        `  ${codec.label.padEnd(9)} ${ok ? 'ok ' : 'FAIL'} ${String(bytes).padStart(9)} B  ${medianMs}ms`,
+      );
+      expect(ok, `${codec.label} failed on ${fixture.name}`).toBe(true);
     }
-    const medianMs = runs.length ? Math.round(median(runs)) : 0;
-    results.push({
-      format: codec.id,
-      label: codec.label,
-      ok,
-      outputBytes: bytes,
-      vsInputPct: inputBytes ? Math.round((bytes / inputBytes) * 1000) / 10 : 0,
-      coldMs: Math.round(cold),
-      medianMs,
-      runsMs: runs.map((m) => Math.round(m)),
+    fixtureReports.push({
+      name: fixture.name,
+      file: fixture.file,
+      inputBytes,
+      codecs: codecResults,
     });
-    // eslint-disable-next-line no-console
-    console.log(
-      `  ${codec.label.padEnd(9)} ${ok ? 'ok ' : 'FAIL'} ${String(bytes).padStart(8)} B  ${medianMs}ms (cold ${Math.round(cold)}ms)`,
-    );
-    expect(ok, `${codec.label} encode failed`).toBe(true);
   }
 
   const report = {
     label: process.env.BENCH_LABEL ?? 'current',
     generatedAt: new Date().toISOString(),
-    fixture: 'photo.png',
-    inputBytes,
     machine: env,
-    warmupRuns: WARMUP_RUNS,
-    measuredRuns: MEASURED_RUNS,
-    codecs: results,
+    fixtures: fixtureReports,
   };
 
   mkdirSync(resultsDir, { recursive: true });
   const out = `${resultsDir}${report.label}.json`;
   writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
-  // eslint-disable-next-line no-console
   console.log(
     `\nBenchmark report written: benchmarks/results/${report.label}.json`,
   );

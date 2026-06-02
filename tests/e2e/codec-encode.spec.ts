@@ -5,7 +5,8 @@ import { expect, test } from '@playwright/test';
 // output format, and assert the encode produces a downloadable blob with the
 // correct file-format magic bytes. If a codec rebuild breaks encoding (throws,
 // emits garbage, or emits the wrong format) one of these fails.
-const sample = fileURLToPath(new URL('./fixtures/sample.png', import.meta.url));
+// Real photograph (1024×683) — representative input for per-codec validation.
+const sample = fileURLToPath(new URL('../fixtures/photo.jpg', import.meta.url));
 
 const ascii = (head: number[], a: number, b: number) =>
   String.fromCharCode(...head.slice(a, b));
