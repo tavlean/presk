@@ -59,7 +59,11 @@ test('oxipng threading engages (no single-thread fallback)', async ({
       `requests=${workerHelperRequests} fallback=${fallback}`,
   );
 
-  // The threaded path ran (workerHelpers fetched) and did not fall back.
+  // The threaded path ran and did not fall back to single-thread. Each engine
+  // surfaces a different signal that the rayon worker path executed: Chromium
+  // reports both the nested worker objects and the script fetch; WebKit only the
+  // network fetch (no nested-worker visibility); Firefox only the worker objects
+  // (no nested-worker network visibility). Require at least one positive signal.
   expect(fallback).toBe(false);
-  expect(workerHelperRequests).toBeGreaterThan(0);
+  expect(workerHelperWorkers + workerHelperRequests).toBeGreaterThan(0);
 });
