@@ -79,6 +79,10 @@ time-pressure (security); everything else is value/effort.
   the production preview cross-origin-isolated and encodes through every codec,
   asserting valid output bytes; plus offline reload. **Run after any codec/build
   change.** `npm test` runs both.
+- **Codec benchmark:** `npm run bench` + `npm run bench:compare` (`benchmarks/`) —
+  measures each WASM codec's output size + encode time + reliability and diffs
+  before/after a codec upgrade (regression gate + article numbers). See
+  `benchmarks/README.md`.
 - **Manual / release QA:** [manual-qa.md](manual-qa.md) for what still needs eyes
   (visual quality, Safari/Firefox, mobile layout).
 

@@ -6,3 +6,7 @@ node_modules
 *.css.d.ts
 build
 *.o
+test-results
+playwright-report
+benchmarks/results
+benchmarks/baseline.json

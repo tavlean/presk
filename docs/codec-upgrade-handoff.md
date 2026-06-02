@@ -49,10 +49,23 @@ cd ../..
 npm run check            # format, sync, svelte-check, vite build, asset audit
 npm run test:e2e         # browser regression: every format encodes valid bytes
 
-# 4. If green, commit just this codec:
+# 4. Prove it's an improvement, not a regression (size + speed):
+npm run bench            # writes benchmarks/results/current.json
+npm run bench:compare    # baseline (pre-upgrade) vs current — fails if it regressed
+#   Read the table: smaller bytes = better compression, lower ms = faster.
+#   A big size drop with no quality complaint = a real win and your article number.
+
+# 5. If green + no regression, commit just this codec, then re-baseline:
 git add codecs/<codec> codecs/<codec>/Cargo.lock 2>/dev/null
 git commit -m "feat(<codec>): upgrade to <version> (<one-line: CVE/compression/speed>)"
+cp benchmarks/results/current.json benchmarks/baseline.json   # track the new shipped state
+git add benchmarks/baseline.json && git commit -m "bench: re-baseline after <codec> upgrade"
 ```
+
+Capture the baseline **once before you start** (it's already committed, but
+re-run `BENCH_LABEL=baseline npm run bench && cp benchmarks/results/baseline.json
+benchmarks/baseline.json` on this machine first, since timing is machine-specific).
+See `benchmarks/README.md`.
 
 `npm run test:e2e` is the safety net added on 2026-06-02 — it loads the app and
 encodes through every format asserting valid output, so a bad codec rebuild

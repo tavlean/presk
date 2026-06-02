@@ -94,6 +94,9 @@ data contract (`src/shared/codec-assets.ts`) already has `multi-thread` /
   codec asserting valid output magic bytes, and tests SW offline reload. The
   webServer builds + previews automatically. **Run after any codec/build change.**
 - `npm test` runs both.
+- `npm run bench` / `npm run bench:compare` — codec benchmark (`benchmarks/`):
+  per-codec output size + encode time + reliability, with a before/after diff to
+  gate codec upgrades and produce performance numbers. See `benchmarks/README.md`.
 
 ## Formatting
 

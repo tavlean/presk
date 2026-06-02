@@ -1,0 +1,105 @@
+{
+  "label": "baseline",
+  "generatedAt": "2026-06-02T06:48:43.391Z",
+  "fixture": "photo.png",
+  "inputBytes": 244906,
+  "machine": {
+    "cores": 11,
+    "isolated": true,
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36"
+  },
+  "warmupRuns": 1,
+  "measuredRuns": 4,
+  "codecs": [
+    {
+      "format": "webP",
+      "label": "WebP",
+      "ok": true,
+      "outputBytes": 80416,
+      "vsInputPct": 32.8,
+      "coldMs": 216,
+      "medianMs": 201,
+      "runsMs": [
+        192,
+        218,
+        201,
+        201
+      ]
+    },
+    {
+      "format": "avif",
+      "label": "AVIF",
+      "ok": true,
+      "outputBytes": 65070,
+      "vsInputPct": 26.6,
+      "coldMs": 1909,
+      "medianMs": 1866,
+      "runsMs": [
+        1864,
+        1866,
+        1866,
+        1978
+      ]
+    },
+    {
+      "format": "jxl",
+      "label": "JPEG XL",
+      "ok": true,
+      "outputBytes": 58953,
+      "vsInputPct": 24.1,
+      "coldMs": 801,
+      "medianMs": 793,
+      "runsMs": [
+        793,
+        800,
+        784,
+        793
+      ]
+    },
+    {
+      "format": "mozJPEG",
+      "label": "MozJPEG",
+      "ok": true,
+      "outputBytes": 57946,
+      "vsInputPct": 23.7,
+      "coldMs": 178,
+      "medianMs": 181,
+      "runsMs": [
+        177,
+        185,
+        178,
+        184
+      ]
+    },
+    {
+      "format": "oxiPNG",
+      "label": "OxiPNG",
+      "ok": true,
+      "outputBytes": 104226,
+      "vsInputPct": 42.6,
+      "coldMs": 440,
+      "medianMs": 433,
+      "runsMs": [
+        432,
+        433,
+        433,
+        433
+      ]
+    },
+    {
+      "format": "qoi",
+      "label": "QOI",
+      "ok": true,
+      "outputBytes": 310401,
+      "vsInputPct": 126.7,
+      "coldMs": 136,
+      "medianMs": 129,
+      "runsMs": [
+        128,
+        129,
+        129,
+        128
+      ]
+    }
+  ]
+}
