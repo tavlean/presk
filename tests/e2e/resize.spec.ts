@@ -16,7 +16,10 @@ test('WASM resize outputs the requested size and a valid image', async ({
 
   const panel = page.locator('.options-2');
   // Lossless PNG preserves the resized pixels exactly.
-  await panel.locator('select.builtin-select').first().selectOption('browserPNG');
+  await panel
+    .locator('select.builtin-select')
+    .first()
+    .selectOption('browserPNG');
 
   const setup = await page.evaluate(async () => {
     const root = document.querySelector('.options-2')!;
@@ -27,17 +30,19 @@ test('WASM resize outputs the requested size and a valid image', async ({
       prop: 'value' | 'checked',
       v: unknown,
     ) =>
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, prop)!.set!.call(
-        el,
-        v,
-      );
+      Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        prop,
+      )!.set!.call(el, v);
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     // Enable the "Resize" section-enabler toggle.
-    const enabler = [...root.querySelectorAll('label.option-toggle')].find((l) =>
-      /Resize/.test(l.textContent ?? ''),
+    const enabler = [...root.querySelectorAll('label.option-toggle')].find(
+      (l) => /Resize/.test(l.textContent ?? ''),
     );
-    const cb = enabler?.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    const cb = enabler?.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
     if (cb && !cb.checked) {
       setVal(cb, 'checked', true);
       fire(cb, 'input', 'change');
@@ -94,7 +99,9 @@ test('WASM resize outputs the requested size and a valid image', async ({
     return { w: bmp.width, h: bmp.height, colors: seen.size };
   }, href!);
 
-  expect(out.w, `resized width should be 256 (got ${out.w}x${out.h})`).toBe(256);
+  expect(out.w, `resized width should be 256 (got ${out.w}x${out.h})`).toBe(
+    256,
+  );
   expect(out.w, 'output should be smaller than the 1024 source').toBeLessThan(
     1024,
   );
