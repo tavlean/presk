@@ -152,11 +152,62 @@ inner archive) before blaming the linker.**
 > (currently always false — threading deferred), so the MT path isn't exercised
 > at runtime yet, but the artifact is now correct and on the secure libaom.
 
-### libjxl — not yet attempted; expect the same class of issue
-Complex multi-library C++ (brotli/highway/skcms submodules) using libjxl's
-**internal** C++ API. Plan: emsdk 3.1.0 + **Path A (v0.8.5)** first (keeps the
-internal headers the wrapper uses → ~zero source edits); v0.11.2 needs a full
-encoder rewrite onto the public C API. See the libjxl runbook.
+### libjxl — ✅ DONE (emcc 3.1.0, Path A v0.8.5). The runtime bug was embind, not the codec.
+pre-0.7 commit → **v0.8.5** (CVE-2023-0645, CVE-2023-35790, CVE-2025-12474;
+CVE-2026-1837 is LCMS2-only and we link skcms → N/A). **Result: 3–6 % smaller +
+2–9 % faster** across all image types (benchmark-verified). Complex multi-library
+C++ (brotli/highway/skcms + libpng/zlib/sjpeg/lcms submodules) using libjxl's
+**internal** C++ API — Path A (v0.8.5) keeps that API; v0.9+ removed it (would
+need a public-C-API rewrite). Six native-build gotchas, in the order you hit them:
+
+1. **`nproc` is Linux-only.** The Makefile's submodule fetch used `--jobs \`nproc\``;
+   on macOS → `sysctl -n hw.ncpu` fallback (committed in the Makefile).
+2. **Submodules must be populated.** `git submodule update --init --recursive`
+   pulls them; we fetch the ones cmake configure checks for — highway, brotli,
+   skcms, **plus libpng, zlib, sjpeg, lcms, googletest** — and skip the large
+   test-only `testdata` (fine with `-DBUILD_TESTING=0`). If make already created
+   `node_modules/jxl/CMakeLists.txt` from a failed run it will **skip** the whole
+   fetch target, so submodule dirs stay empty — populate them by hand or wipe
+   `node_modules/jxl` to force a clean fetch.
+3. **cmake 4.x vs brotli's 2019 CMakeLists.** `cmake_minimum_required < 3.5` is
+   rejected → pass **`-DCMAKE_POLICY_VERSION_MINIMUM=3.5`** (via the Makefile's
+   `$(CMAKE_FLAGS)` hook). cmake suggests this itself.
+4. **`llvm-ar` not on PATH.** The Makefile's manual skcms compile calls `llvm-ar`;
+   native emsdk doesn't PATH the LLVM bins → add `…/emsdk/upstream/bin` to PATH.
+5. **skcms double-link (duplicate symbols).** v0.8.5 defaults
+   `JPEGXL_BUNDLE_SKCMS=ON`, archiving `skcms-obj` **into** `libjxl.a`, which
+   collides with the Makefile's standalone `libskcms.a` (the decoder uses skcms
+   directly so it pulls both) → pass **`-DJPEGXL_BUNDLE_SKCMS=0`** so libjxl links
+   skcms externally. The encoder linked anyway (it never referenced the standalone
+   archive); only the decoder surfaced the duplicate.
+6. **Wrapper port for the 0.7→0.8 internal API** (`enc/jxl_enc.cpp`):
+   `CompressParams::quality_pair` was removed — v0.8 drives **both** VarDCT and
+   modular from `butteraugli_distance` (quality 100 → distance 0 → lossless;
+   modular lossless = kNone, lossy = kXYB). `ConvertFromExternal` now takes a
+   `JxlPixelFormat` (4ch/UINT8/LE) instead of has_alpha/endianness/float_in.
+
+**THE BUG THAT COST THE MOST (read this — it'll bite any embind codec on a newer
+emcc):** the wrappers captured the JS constructors in **namespace-scope
+`thread_local`s** — `thread_local const val Uint8Array = val::global("Uint8Array")`
+(and `ImageData`/`Uint8ClampedArray` in the decoder). In a *large* module on emcc
+3.1.0 those static-init handles are created **before the JS runtime is ready**,
+producing an **invalid emval handle** that throws `TypeError: Cannot read
+properties of undefined (reading 'value')` at `toValue` **only when the result is
+marshalled**. So the encoder ran fine and produced a valid 56 KB JXL
+(`EncodeFile ok=1`), but `Uint8Array.new_(...)` threw on the way out → the app saw
+no output and the e2e "encodes JPEG XL" failed with "no download". **avif and webp
+use the identical pattern and work** — their smaller static-init chains happen to
+survive it, which is why it looked codec-specific. **Fix: resolve `val::global(...)`
+at call time**, inside the function. Don't pre-cache JS globals in a `thread_local`
+in a big module.
+   - How it was found: `compressFile` (`src/lib/compress.ts`) decodes the encoded
+     output for the preview *before* it creates the download URL, so an encoder
+     OR decoder failure both show as "no download". `EM_ASM({console.warn(...)})`
+     probes in the wrapper (visible via Playwright `worker.on('console')`, since
+     the codec worker is the bundled `webp-*.js` worker) pinpointed the throw to
+     the return marshalling. A fast manual relink (reusing the built `libjxl.a`,
+     ~30 s vs a 20-min `make`) made the iterate-debug loop tractable —
+     see `/tmp/jxl-fastlink.sh` pattern.
 
 ### Rust codecs (oxipng, resize, hqx) — not yet attempted
 Need `rustup` + `rustup target add wasm32-unknown-unknown` + `wasm-pack`, and the
