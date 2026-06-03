@@ -87,6 +87,8 @@
       <Output
         leftImage={session.results[0]?.outputImageData}
         rightImage={session.results[1]?.outputImageData}
+        leftWorking={session.showSpinner[0]}
+        rightWorking={session.showSpinner[1]}
         fileId={session.loadId}
         leftContain={session.leftContain}
         rightContain={session.rightContain}
