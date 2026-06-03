@@ -216,10 +216,11 @@ Only Wave 2b (explicit `options` ownership) and a few deferred items remain in
 is now the codec-audit fallout — see [README.md](README.md) for the one-screen
 priority view.
 
-**Already landed on the `codec-cleanup-and-threading` branch** (pending merge to
-`main`): WebP 2 removed; dead code (`codecs/png/`, `codecs/visdif/`,
-`storage.ts`) deleted; multithreading **config** in place (COOP/COEP) but its
-in-browser verification is still open.
+**Landed on `codec-rebuilds`** (the live branch; merging to `main`): all 7 WASM
+codecs rebuilt natively; WebP 2 removed; dead code (`codecs/png/`,
+`codecs/visdif/`, `storage.ts`) deleted; cross-origin isolation (COOP/COEP)
+**and** the full MT threading runtime — oxipng, AVIF, JXL all verified threading
+multi-core in Chromium + WebKit.
 
 What's next, in short:
 
