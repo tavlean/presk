@@ -1,11 +1,12 @@
 <script lang="ts">
   // The per-side in-progress badge. Phase machine: hidden → working → success →
   // hidden. While a side encodes it shows a spinner + "Optimising…"; the instant
-  // the encode finishes successfully it morphs in place into a green glowing dot +
-  // "Optimised" (the badge background shifts green), holds briefly, then fades out.
-  // Driven off the 500ms-delayed `working` flag, so sub-500ms encodes never show
-  // it at all (and so never flash a success beat either).
+  // the encode finishes successfully the spinner MORPHS in place into a small green
+  // dot, the text crossfades "Optimising… → Optimised", the badge background shifts
+  // green, it holds briefly, then fades out. Driven off the 500ms-delayed `working`
+  // flag, so sub-500ms encodes never show it at all (and never flash a success beat).
   import { fade } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import { onDestroy, untrack } from 'svelte';
 
   interface Props {
@@ -56,15 +57,11 @@
 
   onDestroy(() => clearTimeout(hideTimer));
 
-  const label = $derived(
-    phase === 'success'
-      ? wasReencode
-        ? 'Re-optimised'
-        : 'Optimised'
-      : wasReencode
-        ? 'Re-optimising…'
-        : 'Optimising…',
-  );
+  // Both texts are rendered, stacked, and crossfaded — they share the "Optimis…"
+  // prefix, so left-aligning them keeps the prefix pixel-stable and only the
+  // differing suffix visibly changes. Picked once per pass via `wasReencode`.
+  const workingText = $derived(wasReencode ? 'Re-optimising…' : 'Optimising…');
+  const successText = $derived(wasReencode ? 'Re-optimised' : 'Optimised');
 </script>
 
 {#if phase !== 'hidden'}
@@ -74,17 +71,25 @@
     class:success={phase === 'success'}
     role="status"
     aria-live="polite"
-    in:fade={{ duration: 200 }}
-    out:fade={{ duration: 450 }}
+    in:fade={{ duration: 200, easing: cubicOut }}
+    out:fade={{ duration: 300, easing: cubicOut }}
   >
     <span class="indicator" aria-hidden="true">
-      {#if phase === 'success'}
-        <span class="dot"></span>
-      {:else}
-        <span class="spinner"></span>
-      {/if}
+      <!-- One element: a spinning ring in `working` that collapses + greens into
+           a small dot in `success`. Rotation lives on the inner .ring so it never
+           fights the .morph scale transform. -->
+      <span class="morph"><span class="ring"></span></span>
     </span>
-    <span>{label}</span>
+    <!-- Stacked labels (CSS grid, same cell): the badge sizes to the longer one
+         and both are left-aligned, so only the suffix crossfades. -->
+    <span class="label">
+      <span class="l l-working" aria-hidden={phase === 'success'}
+        >{workingText}</span
+      >
+      <span class="l l-success" aria-hidden={phase !== 'success'}
+        >{successText}</span
+      >
+    </span>
   </div>
 {/if}
 
@@ -95,37 +100,36 @@
     transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 9px 16px 9px 11px;
-    background: rgba(0, 0, 0, 0.72);
+    gap: 8px;
+    padding: 8px 15px 8px 10px;
+    background-color: rgba(0, 0, 0, 0.72);
     color: #fff;
     border-radius: 999px;
     font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: 0.01em;
+    line-height: 1; /* glyph box = cap height, so it centres on the dot */
     z-index: 9;
     pointer-events: none;
     backdrop-filter: blur(3px);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
     white-space: nowrap;
-    /* The working → success colour shift is what sells the in-place "morph". */
+    /* The badge greens as a unit with the dot (an on-screen morph → ease-in-out). */
     transition:
-      background-color 300ms ease,
-      box-shadow 300ms ease;
+      background-color 260ms cubic-bezier(0.645, 0.045, 0.355, 1),
+      box-shadow 260ms cubic-bezier(0.645, 0.045, 0.355, 1);
   }
 
   .badge.success {
-    background: rgba(18, 53, 38, 0.92);
+    background-color: rgba(18, 53, 38, 0.92);
     box-shadow:
       0 2px 12px rgba(0, 0, 0, 0.35),
-      0 0 0 1px rgba(52, 211, 153, 0.25);
+      0 0 0 1px rgba(52, 211, 153, 0.22);
   }
 
-  /* Centre each badge in its side's VISIBLE region — i.e. between the two
-     option-panel insets (`--fit-inset-*`: 300px each on desktop, 0 on mobile,
-     set on .compress). Without this the right badge sits at 75% of the full
-     width and tucks behind the right options panel. Inherited custom props
-     resolve here even though the component's other styles are scoped. */
+  /* Centre each badge in its side's VISIBLE region — between the two option-panel
+     insets (`--fit-inset-*`: 300px each on desktop, 0 on mobile, set on .compress)
+     — so the right badge isn't tucked behind the right options panel. */
   .left {
     left: calc(25% + var(--fit-inset-left, 0px) / 2);
   }
@@ -143,32 +147,68 @@
     top: 75%;
   }
 
-  /* Fixed slot so the spinner and the success dot share the same footprint
-     (no layout shift when one swaps for the other). */
+  /* Fixed slot so the spinner→dot change never shifts where the text starts. */
   .indicator {
     display: grid;
     place-items: center;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
-  .spinner {
-    width: 18px;
-    height: 18px;
-    border: 2.5px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
+  .morph {
+    position: relative;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
+    background-color: transparent;
+    transform: scale(1);
+    transition:
+      transform 260ms cubic-bezier(0.645, 0.045, 0.355, 1),
+      background-color 260ms cubic-bezier(0.645, 0.045, 0.355, 1),
+      box-shadow 260ms cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+
+  .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    border-top-color: #fff;
     /* Slightly faster than a typical spinner — reads as "working quickly". */
     animation: spin 0.6s linear infinite;
+    transition: opacity 160ms ease;
   }
 
-  .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #34d399;
-    box-shadow: 0 0 8px 2px rgba(52, 211, 153, 0.55);
-    animation: dot-in 360ms cubic-bezier(0.2, 0.85, 0.3, 1.2) both;
+  /* Success: the ring fades while the morph collapses + greens into a ~7px dot
+     (monotonic scale-down, no overshoot). */
+  .success .morph {
+    transform: scale(0.5);
+    background-color: #34d399;
+    box-shadow: 0 0 16px 4px rgba(52, 211, 153, 0.5);
+  }
+  .success .ring {
+    opacity: 0;
+  }
+
+  /* Stacked labels: one grid cell, both left-aligned → shared prefix overlaps and
+     stays put; the badge sizes to the longer (working) text so nothing reflows. */
+  .label {
+    display: grid;
+  }
+  .label > .l {
+    grid-area: 1 / 1;
+    text-align: left;
+    white-space: nowrap;
+    transition: opacity 170ms ease;
+  }
+  .l-success {
+    opacity: 0;
+  }
+  .success .l-working {
+    opacity: 0;
+  }
+  .success .l-success {
+    opacity: 1;
   }
 
   @keyframes spin {
@@ -177,30 +217,15 @@
     }
   }
 
-  /* Pop the dot in with a little overshoot + a glow that blooms on. */
-  @keyframes dot-in {
-    0% {
-      transform: scale(0.3);
-      opacity: 0;
-      box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
-    }
-    60% {
-      transform: scale(1.18);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-      box-shadow: 0 0 8px 2px rgba(52, 211, 153, 0.55);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .spinner {
+    .ring {
       animation-duration: 1.2s;
     }
-    .dot {
-      animation: none;
+    .badge,
+    .morph,
+    .ring,
+    .label > .l {
+      transition: none;
     }
   }
 </style>
