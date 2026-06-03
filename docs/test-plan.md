@@ -8,7 +8,7 @@ The goal is confidence that new work didn't break old work â€” without adding te
 nobody benefits from.
 
 This doc is a plan. Nothing here is implemented yet except where it says
-"already exists." See [INDEX.md](INDEX.md) for the doc registry and
+"already exists." See [README.md](README.md) for the doc registry and
 [STATUS.md](STATUS.md) for live state.
 
 ---
@@ -238,8 +238,8 @@ lines 143, 355, 362; `codec-options-model.md:49`; `road-map.md:201`) are fine â€
 leave as plans.
 
 After this plan is approved/executed, update per the doc-hygiene rule:
-INDEX.md, STATUS.md, README.md, manual-qa.md, and bulk-image-architecture.md's
-test-plan section.
+README.md (registry + status), STATUS.md, manual-qa.md, and
+bulk-image-architecture.md's test-plan section.
 
 ---
 

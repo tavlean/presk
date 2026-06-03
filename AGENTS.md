@@ -54,18 +54,18 @@ is the source of truth for current state — read it first.**
 
 ## Docs are the source of truth — use the registry
 
-[docs/INDEX.md](docs/INDEX.md) is the doc registry: every doc with "read when" /
-"update when" triggers. **Consult it at both ends of a task.** *Before starting,*
+[docs/README.md](docs/README.md) is the docs hub: the work-priority order plus the
+**registry** of every doc with "read when" / "update when" triggers. **Consult it
+at both ends of a task.** *Before starting,*
 read the docs relevant to what you're about to do — they tell the whole story, so
 you don't redo or undo decided work. *After finishing,* update every doc whose
 "update when" trigger your work matched (versions, `Status:` / `Last updated:`,
 gotchas, completion marks) before calling the task done. New doc → register it in
-the index. Read only what's relevant; keeping docs current is not optional.
+the hub. Read only what's relevant; keeping docs current is not optional.
 
 ## Reference docs
 
-- **[Doc index / registry](docs/INDEX.md)** — every doc + when to read & update it. Use this to find or maintain docs.
-- [Docs map & priorities](docs/README.md) — human-friendly map + the work order.
+- **[Docs hub: registry + work order](docs/README.md)** — every doc + when to read & update it, plus the priority order. Use this to find or maintain docs.
 - [Current status](docs/STATUS.md) — live state (read first each session).
 - [Codec build notes](docs/codec-build-notes.md) · [Threading enablement](docs/threading-enablement.md) — the active codec/threading record.
 - [Cleanup & Svelte hardening plan](docs/svelte-hardening-plan.md) · [Build and runtime map](docs/build-and-runtime.md) · [Product roadmap](docs/road-map.md) · [Bulk image architecture](docs/bulk-image-architecture.md) · [Manual QA checklist](docs/manual-qa.md)
