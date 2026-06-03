@@ -3,8 +3,8 @@
   // hidden. While a side encodes it shows a spinner + "Optimising…"; the instant
   // the encode finishes successfully the spinner MORPHS in place into a small green
   // dot, the text crossfades "Optimising… → Optimised", the badge background shifts
-  // green, it holds briefly, then fades out. Driven off the 500ms-delayed `working`
-  // flag, so sub-500ms encodes never show it at all (and never flash a success beat).
+  // green and resizes to fit, holds briefly, then fades out. Driven off the
+  // 500ms-delayed `working` flag, so sub-500ms encodes never show it at all.
   import { fade } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { onDestroy, untrack } from 'svelte';
@@ -87,6 +87,38 @@
     duration: reduceMotion ? 120 : 300,
     easing: cubicOut,
   });
+
+  // The badge resizes to fit the ACTIVE text so there's no dead space on the right
+  // once it shrinks ("Optimising…" → "Optimised"). CSS can't animate to a content
+  // width, so we measure the two text widths (the labels are nowrap + absolute, so
+  // offsetWidth is their intrinsic width) plus the badge's fixed chrome, and
+  // transition the badge's explicit width. A translateX keeps the LEFT edge
+  // anchored while the width changes, so only the right edge moves in.
+  let badgeEl = $state<HTMLDivElement>();
+  let indicatorEl = $state<HTMLSpanElement>();
+  let workingEl = $state<HTMLSpanElement>();
+  let successEl = $state<HTMLSpanElement>();
+  let workingW = $state(0);
+  let successW = $state(0);
+  let chrome = $state(0); // indicator + gap + horizontal padding
+  $effect(() => {
+    workingText; // re-measure when the wording changes (Optimising vs Re-optimising)
+    successText;
+    if (workingEl) workingW = workingEl.offsetWidth;
+    if (successEl) successW = successEl.offsetWidth;
+    if (badgeEl && indicatorEl) {
+      const cs = getComputedStyle(badgeEl);
+      chrome =
+        indicatorEl.offsetWidth +
+        parseFloat(cs.paddingLeft) +
+        parseFloat(cs.paddingRight) +
+        parseFloat(cs.columnGap || cs.gap || '0');
+    }
+  });
+  const activeTextW = $derived(phase === 'success' ? successW : workingW);
+  const badgeWidth = $derived(chrome && activeTextW ? chrome + activeTextW : 0);
+  // Negative shift in success cancels the centred-shrink, pinning the left edge.
+  const anchorShift = $derived((activeTextW - workingW) / 2);
 </script>
 
 {#if phase !== 'hidden'}
@@ -94,25 +126,34 @@
     class="badge {side}"
     class:vertical={orientation === 'vertical'}
     class:success={phase === 'success'}
+    class:measured={badgeWidth > 0}
+    bind:this={badgeEl}
     role="status"
     aria-live="polite"
+    style:width={badgeWidth ? `${badgeWidth}px` : null}
+    style:transform={`translate(-50%, -50%) translateX(${anchorShift}px)`}
     in:fade={fadeIn}
     out:fade={fadeOut}
   >
-    <span class="indicator" aria-hidden="true">
+    <span class="indicator" bind:this={indicatorEl} aria-hidden="true">
       <!-- One element: a spinning ring in `working` that collapses + greens into
            a small dot in `success`. Rotation lives on the inner .ring so it never
            fights the .morph scale transform. -->
       <span class="morph"><span class="ring"></span></span>
     </span>
-    <!-- Stacked labels (CSS grid, same cell): the badge sizes to the longer one
-         and both are left-aligned, so only the suffix crossfades. -->
+    <!-- Stacked labels (both absolutely positioned, left-aligned): the shared
+         "Optimis…" prefix overlaps and stays put while the suffix crossfades. The
+         label fills the badge (flex) and clips its right edge as the badge resizes. -->
     <span class="label">
-      <span class="l l-working" aria-hidden={phase === 'success'}
-        >{workingText}</span
+      <span
+        class="l l-working"
+        bind:this={workingEl}
+        aria-hidden={phase === 'success'}>{workingText}</span
       >
-      <span class="l l-success" aria-hidden={phase !== 'success'}
-        >{successText}</span
+      <span
+        class="l l-success"
+        bind:this={successEl}
+        aria-hidden={phase !== 'success'}>{successText}</span
       >
     </span>
   </div>
@@ -122,7 +163,7 @@
   .badge {
     position: absolute;
     top: 50%;
-    transform: translate(-50%, -50%);
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -139,8 +180,11 @@
     backdrop-filter: blur(3px);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
     white-space: nowrap;
-    /* The badge greens as a unit with the dot (an on-screen morph → ease-in-out). */
+    /* width + transform animate the resize (right edge in, left edge pinned);
+       background/shadow green as a unit with the dot. All one on-screen morph. */
     transition:
+      width 260ms cubic-bezier(0.645, 0.045, 0.355, 1),
+      transform 260ms cubic-bezier(0.645, 0.045, 0.355, 1),
       background-color 260ms cubic-bezier(0.645, 0.045, 0.355, 1),
       box-shadow 260ms cubic-bezier(0.645, 0.045, 0.355, 1);
   }
@@ -164,12 +208,12 @@
   /* Stacked (mobile): panels are at the bottom, insets are 0 — just centre
      horizontally and offset vertically. */
   .left.vertical {
-    left: 50%;
     top: 25%;
+    left: 50%;
   }
   .right.vertical {
-    left: 50%;
     top: 75%;
+    left: 50%;
   }
 
   /* Fixed slot so the spinner→dot change never shifts where the text starts. */
@@ -215,13 +259,23 @@
     opacity: 0;
   }
 
-  /* Stacked labels: one grid cell, both left-aligned → shared prefix overlaps and
-     stays put; the badge sizes to the longer (working) text so nothing reflows. */
+  /* The label fills the badge's text column (flex) once measured, so the badge's
+     animated width drives it; clip-path clips the wider text on the RIGHT as it
+     shrinks, but expands top/bottom so glyph descenders (g, p) are never cut.
+     Before measuring it sizes to the working text naturally (no collapse). */
   .label {
-    display: grid;
+    position: relative;
+    height: 1em;
+    min-width: 0;
+    clip-path: inset(-50% 0 -50% 0);
+  }
+  .badge.measured .label {
+    flex: 1 1 0;
   }
   .label > .l {
-    grid-area: 1 / 1;
+    position: absolute;
+    left: 0;
+    top: 0;
     text-align: left;
     white-space: nowrap;
     transition: opacity 170ms ease;
@@ -243,9 +297,9 @@
   }
 
   /* Reduced motion = keep it smooth, just QUICK (not abrupt). We only transform
-     in place — opacity, colour, a tiny scale — never move across the screen, so a
-     short transition stays calm. The spin keeps its normal pace (a faster
-     rotation would be more motion, not less). See the note in the script. */
+     in place — opacity, colour, a tiny scale, an in-place resize — never move
+     across the screen, so a short transition stays calm. The spin keeps its normal
+     pace (a faster rotation would be more motion, not less). Note in the script. */
   @media (prefers-reduced-motion: reduce) {
     .badge,
     .morph {
