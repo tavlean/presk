@@ -83,6 +83,9 @@ time-pressure (security); everything else is value/effort.
 - [bulk-image-architecture.md](bulk-image-architecture.md) — technical reference
   for the future bulk-optimization feature.
 - [issue-list.md](issue-list.md) — small backlog seed / loose open items.
+- [test-plan.md](test-plan.md) — **test strategy & plan** (proposal): the
+  two-layer model (unit tests always / E2E only on codec-or-build changes), the
+  gap analysis, the bulk-engine unit-test plan, E2E additions, and CI changes.
 
 ## Testing
 

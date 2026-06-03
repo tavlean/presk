@@ -57,6 +57,13 @@ existing framework-neutral helper surface lives under
 `src/client/lazy-app/bulk/`; [bulk-image-architecture.md](bulk-image-architecture.md)
 is the technical reference.
 
+> **Test note.** That bulk engine exists but has no UI yet, so nothing currently
+> exercises it. A small, focused unit-test subset for its core logic (counter
+> integrity, stale-output requeue, snapshot parse/restore) is the one piece of
+> testing genuinely worth doing *before/alongside* the bulk UI — it locks the
+> contract the UI sits on and makes the feature faster to build, not slower. See
+> [test-plan.md](test-plan.md) §4 (Phase 1). The rest of the test work can wait.
+
 ### Design First
 
 Resolve the product shape before implementation:
@@ -192,6 +199,21 @@ Deferred polish/features:
 - keyboard shortcut discoverability;
 - advanced codec grouping once product format focus is decided.
 
+## Testing
+
+The app today has a strong Playwright E2E suite (codec/threading/offline) but
+**no unit-test layer**, and the ~2,000-line framework-neutral bulk engine under
+`src/client/lazy-app/bulk/` has no automated coverage. The full strategy —
+two layers (fast unit tests run always; expensive E2E runs only when codec/build
+files change), the gap analysis, the per-module unit-test plan, E2E additions,
+and CI changes — lives in **[test-plan.md](test-plan.md)**. That doc is the
+single reference for all test work.
+
+Sequencing is deliberately flexible: the plan can be picked up as a dedicated
+pass later. The one exception worth weighing **before** building bulk is a small
+unit-test subset for the bulk engine's core logic (queue counters, stale-output
+requeue, snapshot parse/restore) — see the note under Bulk Optimization.
+
 ## Upstream Mining
 
 The upstream Squoosh repository has many abandoned pull requests. Mine them
@@ -204,6 +226,8 @@ tests or focused browser verification.
 
 - [bulk-image-architecture.md](bulk-image-architecture.md) — bulk model,
   helpers, snapshots, queue/export behavior.
+- [test-plan.md](test-plan.md) — test strategy & plan (unit + E2E layers, gaps,
+  CI cadence).
 - [manual-qa.md](manual-qa.md) — release and browser QA checklist.
 - [codec-provenance.md](codec-provenance.md) — codec origin and safety rules.
 - [browser-support.md](browser-support.md) — browser support assumptions.

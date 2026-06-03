@@ -63,6 +63,7 @@ Read only the docs you need — context is finite; this index is the cheap looku
 | Doc | Contains | Read when | Update when |
 |---|---|---|---|
 | [road-map.md](road-map.md) | Product direction (codec strategy, performance, Multi-Format Compare, bulk, PWA). | Planning product work / priorities. | A roadmap item lands or its priority/feasibility changes (e.g. codecs done unblocks Multi-Format Compare). |
+| [test-plan.md](test-plan.md) | The test strategy: two-layer model (unit always / E2E on codec-or-build change), the gap analysis, the bulk-engine unit-test plan, E2E additions, CI changes, and verified doc-accuracy fixes. | Before adding/changing tests, or building bulk/crop/compare (write the feature's test with it). | A test layer/tool lands, a gap is closed, the CI cadence changes, or a planned phase completes. |
 | [svelte-hardening-plan.md](svelte-hardening-plan.md) | The post-migration cleanup / Svelte-5 hardening backlog. | Doing cleanup/hardening work. | A hardening wave/item is done or added. |
 | [issue-list.md](issue-list.md) | Small backlog seed (issues that don't warrant their own plan). | Picking up small fixes. | A small issue is found, fixed, or promoted to a plan. |
 | [dependency-modernization.md](dependency-modernization.md) | The dependency-graph modernization state. | Modernizing/bumping deps. | Dependencies are modernized/bumped meaningfully. |
