@@ -1,6 +1,6 @@
 // The landing-screen blob animation, adapted from Squoosh's
 // src/shared/prerendered-app/Intro/blob-anim/{index.ts,meta.ts}. A canvas of
-// soft pink blobs: a stack of slowly-rotating, gently-morphing "central" blobs
+// soft peach blobs: a stack of slowly-rotating, gently-morphing "central" blobs
 // sitting behind the drop/paste target. Colour + opacity come from the
 // `--blob-color` / `--center-blob-opacity` custom properties read off the canvas.
 //

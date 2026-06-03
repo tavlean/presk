@@ -1,11 +1,11 @@
 <script lang="ts">
-  // The landing screen: our logo over a field of soft pink blobs, with a central
+  // The landing screen: our logo over a field of soft peach blobs, with a central
   // "Drop OR Paste" target that opens the file dialog on click. Structure +
   // blob animation are adapted from Squoosh's prerendered-app/Intro (we keep
   // only the hero — no demo thumbnails, waves or info sections). The whole page
   // is already a drop target (see fileDrop in +page.svelte); this adds the
   // click-to-open and paste affordances.
-  import { onMount, untrack } from 'svelte';
+  import type { Attachment } from 'svelte/attachments';
   import { asset } from '$app/paths';
   import { startBlobAnim } from './blob-anim';
 
@@ -17,21 +17,28 @@
   }
   let { onFiles, onMessage }: Props = $props();
 
-  let fileInput = $state<HTMLInputElement>();
-  let canvas = $state<HTMLCanvasElement>();
-  let target = $state<HTMLElement>();
-
   const supportsClipboardRead =
     typeof navigator !== 'undefined' &&
     !!navigator.clipboard &&
     'read' in navigator.clipboard;
 
-  onMount(() => {
-    if (canvas && target) {
-      const stop = untrack(() => startBlobAnim(canvas!, target!));
-      return stop;
-    }
-  });
+  // The hidden file input, captured on mount for the open/change handlers.
+  let fileInput: HTMLInputElement | undefined;
+  const captureInput: Attachment<HTMLInputElement> = (node) => {
+    fileInput = node;
+  };
+
+  // Blob animation (canvas). It gravitates towards the load target, so it needs
+  // both the canvas and that element: capture the target into $state so the
+  // canvas attachment re-runs once it's set, then start the animation from the
+  // canvas attachment, returning startBlobAnim's teardown for cleanup on unmount.
+  let blobTarget = $state<HTMLElement>();
+  const captureBlobTarget: Attachment<HTMLElement> = (node) => {
+    blobTarget = node;
+  };
+  const blobAnim: Attachment<HTMLCanvasElement> = (canvas) => {
+    if (blobTarget) return startBlobAnim(canvas, blobTarget);
+  };
 
   // Deliver a single File as a real FileList, so it flows through the same
   // pickFiles path as the dialog and the drop handler.
@@ -87,14 +94,14 @@
 <div class="intro">
   <input
     class="hide"
-    bind:this={fileInput}
+    {@attach captureInput}
     type="file"
     accept="image/*"
     onchange={onFileChange}
   />
 
   <div class="main">
-    <canvas class="blob-canvas" bind:this={canvas} aria-hidden="true"></canvas>
+    <canvas class="blob-canvas" {@attach blobAnim} aria-hidden="true"></canvas>
 
     <h1 class="logo-container">
       <img
@@ -108,7 +115,7 @@
       <img class="wordmark" src={asset('/sqush-wordmark.svg')} alt="Sqush" />
     </h1>
 
-    <div class="load-img" bind:this={target}>
+    <div class="load-img" {@attach captureBlobTarget}>
       <div class="load-img-content">
         <button
           class="load-btn"
@@ -206,9 +213,8 @@
     width: 88px;
     height: 88px;
   }
-  /* Size the wordmark by height so it locks up optically with the 128px icon
-     (its glyphs sit ~56px tall, a touch under half the icon — a balanced
-     horizontal logo lockup). Width follows the SVG's intrinsic aspect ratio. */
+  /* Size the wordmark by height so it locks up optically with the icon as one
+     horizontal logo. Width follows the SVG's intrinsic aspect ratio. */
   .wordmark {
     display: block;
     height: 48px;
