@@ -22,9 +22,15 @@ living at the repo root as a static SPA:
 - `src/service-worker.ts` is the SvelteKit-native offline service worker.
 
 The original Preact/Rollup app is preserved on the `preact` branch (tag
-`preact-final`) for reference only; it is no longer a fallback for `main`. The
-current track is post-migration cleanup and Svelte hardening — see
-[docs/svelte-hardening-plan.md](docs/svelte-hardening-plan.md).
+`preact-final`) for reference only; it is no longer a fallback for `main`.
+
+All seven WASM codecs have been rebuilt from source on current upstreams (closing
+14 CVEs, including a CVSS 9.8), and multi-threaded codec encoding is enabled and
+verified across browser engines, with a single-thread fallback — see
+[docs/codec-build-notes.md](docs/codec-build-notes.md) and
+[docs/threading-enablement.md](docs/threading-enablement.md). Post-migration
+Svelte hardening is essentially complete
+([docs/svelte-hardening-plan.md](docs/svelte-hardening-plan.md)).
 
 ## Developing
 
@@ -56,8 +62,8 @@ SvelteKit sync, `svelte-check`, production build, and the static-output audit.
 A working build must preserve:
 
 - local import, decode, process, encode, preview, and export;
-- WebP, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI, browser encoders, and experimental
-  WebP 2 parity unless a later product decision removes a format deliberately;
+- WebP, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI, and the browser encoders (WebP 2 was
+  deliberately removed — no browser can decode it);
 - object URL cleanup and downloadable outputs;
 - static output with no image-processing server;
 - service-worker/offline reload after the app has loaded.
@@ -67,19 +73,22 @@ offline behavior are release blockers.
 
 ## Docs
 
+[docs/README.md](docs/README.md) is the index and map of the full doc set; start
+there. Key entries:
+
 - [Agent guide](AGENTS.md)
 - [Current status](docs/STATUS.md)
-- [Cleanup & Svelte hardening plan](docs/svelte-hardening-plan.md)
-- [Migration plan](docs/MIGRATION-PLAN.md)
-- [Build and runtime map](docs/build-and-runtime.md)
 - [Project overview](docs/overview.md)
+- [Build and runtime map](docs/build-and-runtime.md)
+- [Codec build notes](docs/codec-build-notes.md) — building each WASM codec from source
+- [Codec provenance](docs/codec-provenance.md)
+- [Multithreading](docs/threading-enablement.md)
+- [Browser support policy](docs/browser-support.md)
+- [Product roadmap](docs/road-map.md)
 - [User guide](docs/user-guide/index.md)
 - [Manual QA checklist](docs/manual-qa.md)
-- [Product roadmap](docs/road-map.md)
-- [Bulk image architecture](docs/bulk-image-architecture.md)
-- [Codec asset strategy](docs/sveltekit-codec-asset-strategy.md)
-- [Codec provenance](docs/codec-provenance.md)
-- [Browser support policy](docs/browser-support.md)
+- [Cleanup & Svelte hardening plan](docs/svelte-hardening-plan.md)
+- [Migration plan (archived)](docs/history/MIGRATION-PLAN.md)
 
 ## Attribution
 
