@@ -89,6 +89,8 @@
         rightImage={session.results[1]?.outputImageData}
         leftWorking={session.showSpinner[0]}
         rightWorking={session.showSpinner[1]}
+        leftDone={session.statuses[0] === 'done'}
+        rightDone={session.statuses[1] === 'done'}
         fileId={session.loadId}
         leftContain={session.leftContain}
         rightContain={session.rightContain}

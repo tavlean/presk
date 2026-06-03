@@ -9,18 +9,21 @@
   import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
   import { isSafari } from 'client/lazy-app/util';
   import { retargetViewEvents } from './retarget-events';
-  import { fade } from 'svelte/transition';
+  import ProcessingBadge from './ProcessingBadge.svelte';
 
   interface Props {
     /** Pixels drawn on the left ("before") side — side 0's output. */
     leftImage?: ImageData;
     /** Pixels drawn on the right ("after") side — side 1's output. */
     rightImage?: ImageData;
-    /** Whether each side is mid-encode (the 500ms-delayed "working" signal).
-     *  Used to mark a side's preview as provisional while it has no result yet
-     *  — see leftPending/rightPending below. */
+    /** Whether each side is mid-encode (the 500ms-delayed "working" signal) —
+     *  drives the per-side ProcessingBadge. */
     leftWorking?: boolean;
     rightWorking?: boolean;
+    /** Whether each side's status is `done` — gates the badge's green success
+     *  beat (so an error/abort just fades, no green). */
+    leftDone?: boolean;
+    rightDone?: boolean;
     /** Identity of the loaded source; changes force a re-fit even at same dims. */
     fileId?: string | number;
     /** Per-side "contain" resize: display the (smaller) output letterboxed
@@ -38,6 +41,8 @@
     rightImage,
     leftWorking = false,
     rightWorking = false,
+    leftDone = false,
+    rightDone = false,
     fileId,
     leftContain = false,
     rightContain = false,
@@ -53,15 +58,6 @@
   // encode. Each side prefers its own pixels and only borrows when it has none.
   const leftDraw = $derived(leftImage ?? rightImage);
   const rightDraw = $derived(rightImage ?? leftImage);
-
-  // The badge label is the SINGLE, consistent in-progress signal (no blur): a
-  // working side always shows it, so the user learns one rule — "badge = this
-  // side is being optimised." First encode (no own result yet) reads
-  // "Optimising…"; a re-encode after a setting change (a result already exists,
-  // kept on screen crisp while the new one computes) reads "Re-optimising…", so
-  // the user knows their change triggered a fresh pass.
-  const leftLabel = $derived(leftImage ? 'Re-optimising…' : 'Optimising…');
-  const rightLabel = $derived(rightImage ? 'Re-optimising…' : 'Optimising…');
 
   // When a side is "contain"-resized, pin the canvas's CSS box to the original
   // source dims and let object-fit letterbox the smaller raster inside it, so
@@ -231,45 +227,23 @@
 
   <!-- Per-side in-progress signal, positioned over the side it refers to (left
        half / right half, or top / bottom when stacked) so it's never ambiguous
-       which side is busy. This badge is the ONLY in-progress treatment (no blur):
-       a working side always shows it, giving the user one consistent rule.
-       "Optimising…" on the first pass, "Re-optimising…" once a result exists and
-       a setting change re-runs the encoder (the prior result stays on screen,
-       crisp, while the new one computes). Tied to the same 500ms-delayed
-       "working" flag as the download spinner, so sub-500ms encodes never show it.
-       The in/out fade keeps it smooth: an encode that lands JUST past 500ms (e.g.
-       WebP at max effort) becomes a gentle pulse instead of a flash/snap, and a
-       genuinely slow one fades in then fades out when the result lands. A 500ms
-       delay alone can't fix the threshold edge (the encode can finish the instant
-       the badge appears) — the fade-out is what makes it always read as smooth. -->
-  {#snippet badge(label: string)}
-    <span class="spinner" aria-hidden="true"></span>
-    <span>{label}</span>
-  {/snippet}
-  {#if leftWorking}
-    <div
-      class="processing-badge side-left"
-      class:vertical={orientation === 'vertical'}
-      role="status"
-      aria-live="polite"
-      in:fade={{ duration: 200 }}
-      out:fade={{ duration: 400 }}
-    >
-      {@render badge(leftLabel)}
-    </div>
-  {/if}
-  {#if rightWorking}
-    <div
-      class="processing-badge side-right"
-      class:vertical={orientation === 'vertical'}
-      role="status"
-      aria-live="polite"
-      in:fade={{ duration: 200 }}
-      out:fade={{ duration: 400 }}
-    >
-      {@render badge(rightLabel)}
-    </div>
-  {/if}
+       which side is busy. The badge IS the in-progress treatment (no blur): a
+       working side shows a spinner + "Optimising…", and resolves into a green
+       "Optimised" beat on success. See ProcessingBadge for the phase machine. -->
+  <ProcessingBadge
+    side="left"
+    {orientation}
+    working={leftWorking}
+    done={leftDone}
+    hasResult={!!leftImage}
+  />
+  <ProcessingBadge
+    side="right"
+    {orientation}
+    working={rightWorking}
+    done={rightDone}
+    hasResult={!!rightImage}
+  />
 </div>
 
 <div class="controls">
@@ -415,65 +389,6 @@
 
   .pinch-zoom {
     outline: none;
-  }
-
-  .processing-badge {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 16px 9px 13px;
-    background: rgba(0, 0, 0, 0.72);
-    color: #fff;
-    border-radius: 999px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    z-index: 9;
-    pointer-events: none;
-    backdrop-filter: blur(3px);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-    white-space: nowrap;
-  }
-
-  /* Centre the badge over its own half so it unambiguously labels that side.
-     Horizontal split → left/right halves; vertical (stacked) → top/bottom. */
-  .side-left {
-    left: 25%;
-  }
-  .side-right {
-    left: 75%;
-  }
-  .side-left.vertical {
-    left: 50%;
-    top: 25%;
-  }
-  .side-right.vertical {
-    left: 50%;
-    top: 75%;
-  }
-
-  .spinner {
-    width: 18px;
-    height: 18px;
-    border: 2.5px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .spinner {
-      animation-duration: 1.6s;
-    }
   }
 
   .pinch-target {
