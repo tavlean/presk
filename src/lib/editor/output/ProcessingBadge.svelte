@@ -1,8 +1,8 @@
 <script lang="ts">
   // The per-side in-progress badge. Phase machine: hidden → working → success →
-  // hidden. While a side encodes it shows a spinner + "Optimising…"; the instant
+  // hidden. While a side encodes it shows a spinner + "Optimizing…"; the instant
   // the encode finishes successfully the spinner MORPHS in place into a small green
-  // dot, the text crossfades "Optimising… → Optimised", the badge background shifts
+  // dot, the text crossfades "Optimizing… → Optimized", the badge background shifts
   // green and resizes to fit, holds briefly, then fades out. Driven off the
   // 500ms-delayed `working` flag, so sub-500ms encodes never show it at all.
   import { fade } from 'svelte/transition';
@@ -16,14 +16,14 @@
      *  error or an abort just fades, no green). */
     done: boolean;
     /** Whether a result already existed when this pass started — picks the
-     *  "Optimising"/"Optimised" vs "Re-optimising"/"Re-optimised" wording. */
+     *  "Optimizing"/"Optimized" vs "Re-optimizing"/"Re-optimized" wording. */
     hasResult: boolean;
     side: 'left' | 'right';
     orientation: 'horizontal' | 'vertical';
   }
   let { working, done, hasResult, side, orientation }: Props = $props();
 
-  // How long the green "Optimised" beat holds before it fades away.
+  // How long the green "Optimized" beat holds before it fades away.
   const SUCCESS_HOLD = 850;
 
   let phase = $state<'hidden' | 'working' | 'success'>('hidden');
@@ -57,11 +57,11 @@
 
   onDestroy(() => clearTimeout(hideTimer));
 
-  // Both texts are rendered, stacked, and crossfaded — they share the "Optimis…"
+  // Both texts are rendered, stacked, and crossfaded — they share the "Optimiz…"
   // prefix, so left-aligning them keeps the prefix pixel-stable and only the
   // differing suffix visibly changes. Picked once per pass via `wasReencode`.
-  const workingText = $derived(wasReencode ? 'Re-optimising…' : 'Optimising…');
-  const successText = $derived(wasReencode ? 'Re-optimised' : 'Optimised');
+  const workingText = $derived(wasReencode ? 'Re-optimizing…' : 'Optimizing…');
+  const successText = $derived(wasReencode ? 'Re-optimized' : 'Optimized');
 
   // Reduced motion: we SHORTEN durations rather than snap to none. An abrupt swap
   // is the opposite of calm, and `prefers-reduced-motion` is about spatial
@@ -89,7 +89,7 @@
   });
 
   // The badge resizes to fit the ACTIVE text so there's no dead space on the right
-  // once it shrinks ("Optimising…" → "Optimised"). CSS can't animate to a content
+  // once it shrinks ("Optimizing…" → "Optimized"). CSS can't animate to a content
   // width, so we measure the two text widths (the labels are nowrap + absolute, so
   // offsetWidth is their intrinsic width) plus the badge's fixed chrome, and
   // transition the badge's explicit width. A translateX keeps the LEFT edge
@@ -102,7 +102,7 @@
   let successW = $state(0);
   let chrome = $state(0); // indicator + gap + horizontal padding
   $effect(() => {
-    workingText; // re-measure when the wording changes (Optimising vs Re-optimising)
+    workingText; // re-measure when the wording changes (Optimizing vs Re-optimizing)
     successText;
     if (workingEl) workingW = workingEl.offsetWidth;
     if (successEl) successW = successEl.offsetWidth;
@@ -142,7 +142,7 @@
       <span class="morph"><span class="ring"></span></span>
     </span>
     <!-- Stacked labels (both absolutely positioned, left-aligned): the shared
-         "Optimis…" prefix overlaps and stays put while the suffix crossfades. The
+         "Optimiz…" prefix overlaps and stays put while the suffix crossfades. The
          label fills the badge (flex) and clips its right edge as the badge resizes. -->
     <span class="label">
       <span

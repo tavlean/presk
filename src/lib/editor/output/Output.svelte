@@ -228,8 +228,8 @@
   <!-- Per-side in-progress signal, positioned over the side it refers to (left
        half / right half, or top / bottom when stacked) so it's never ambiguous
        which side is busy. The badge IS the in-progress treatment (no blur): a
-       working side shows a spinner + "Optimising…", and resolves into a green
-       "Optimised" beat on success. See ProcessingBadge for the phase machine. -->
+       working side shows a spinner + "Optimizing…", and resolves into a green
+       "Optimized" beat on success. See ProcessingBadge for the phase machine. -->
   <ProcessingBadge
     side="left"
     {orientation}
@@ -372,13 +372,25 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: #000;
-    opacity: 0.8;
-    transition: opacity 500ms ease;
+    /* Dark grey by default — a shade lighter than the option panels
+       (--off-black #1d1d1d) so the interface stays distinct against it rather
+       than blending in. The toggle swaps to a near-white (Tailwind zinc-200).
+       A faint, evenly spaced dot grid sits over the fill (in place of Squoosh's
+       transparency checkerboard); the dots are a neutral grey at low alpha so
+       they read on both the dark and the light fill, which lets only the
+       colour cross-fade on toggle. */
+    background-color: #27272a;
+    background-image: radial-gradient(
+      rgba(113, 113, 122, 0.28) 1px,
+      transparent 1.4px
+    );
+    background-size: 22px 22px;
+    background-position: center;
+    transition: background-color 500ms ease;
   }
 
   .output.alt-background::before {
-    opacity: 0;
+    background-color: #d4d4d8;
   }
 
   .two-up,

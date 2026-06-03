@@ -117,7 +117,7 @@
           oninput={(v) => {
             decodingSpeedTier = v;
             apply();
-          }}>Optimise for decoding speed (worse compression):</Range
+          }}>Optimize for decoding speed (worse compression):</Range
         >
       </div>
       <div class="option-one-cell">

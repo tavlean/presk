@@ -138,13 +138,18 @@
   .results {
     --download-overflow-size: 30px;
     display: grid;
-    grid-template-columns: [download] auto [bubble] 1fr;
+    /* The download blob is a fixed-size `auto` track pinned to the outer corner;
+       the bubble takes the rest as `minmax(0, 1fr)` (NOT `1fr`, whose `auto`
+       minimum lets a very wide size/percent grow the track and shove the blob
+       off the panel — and off-viewport). minmax(0,…) lets the bubble clip
+       instead, so the download button is always reachable. */
+    grid-template-columns: [download] auto [bubble] minmax(0, 1fr);
     align-items: center;
     margin-bottom: calc(var(--download-overflow-size) / 2);
     min-width: 0;
   }
   .results-right {
-    grid-template-columns: [bubble] 1fr [download] auto;
+    grid-template-columns: [bubble] minmax(0, 1fr) [download] auto;
   }
 
   .bubble {
