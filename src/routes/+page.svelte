@@ -2,12 +2,14 @@
   import { onMount } from 'svelte';
   import { dev } from '$app/environment';
   import { pushState } from '$app/navigation';
-  import { asset, resolve } from '$app/paths';
+  import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { registerSqushServiceWorker } from '$lib/service-worker-registration';
   import Output from '$lib/editor/output/Output.svelte';
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
   import Snackbar from '$lib/editor/Snackbar.svelte';
+  import Intro from '$lib/editor/intro/Intro.svelte';
+  import { snackbar } from '$lib/editor/snackbar-store.svelte';
   import { fileDrop } from '$lib/editor/file-drop';
   import { EditorSession } from '$lib/editor/editor-session.svelte';
   import '$lib/editor/theme.css';
@@ -53,35 +55,12 @@
      the file — Squoosh wraps everything in <file-drop> the same way. -->
 <div class="app-root" {@attach fileDrop((files) => pickFiles(files))}>
   {#if !session.file}
-    <main class="intro">
-      <header class="intro-head">
-        <img
-          class="intro-logo"
-          src={asset('/logo.webp')}
-          alt=""
-          width="96"
-          height="96"
-          fetchpriority="high"
-        />
-        <h1>Sqush</h1>
-        <p>Local-first image compression. Nothing leaves your device.</p>
-      </header>
-      <label class="select-button">
-        <input
-          type="file"
-          accept="image/*"
-          onchange={(e) =>
-            pickFiles((e.currentTarget as HTMLInputElement).files)}
-        />
-        Select an image
-      </label>
-      <p class="intro-hint">…or drop an image anywhere on the page</p>
-      {#if dev}
-        <p class="intro-diag">
-          <a href={resolve('/diagnostics')}>Pipeline diagnostics →</a>
-        </p>
-      {/if}
-    </main>
+    <Intro onFiles={pickFiles} onMessage={(t) => snackbar.show(t)} />
+    {#if dev}
+      <p class="intro-diag">
+        <a href={resolve('/diagnostics')}>Pipeline diagnostics →</a>
+      </p>
+    {/if}
   {:else}
     <div class="compress sqush-editor">
       <Output
@@ -160,76 +139,16 @@
     color: #fff;
   }
 
-  /* Intro / landing screen. The whole viewport is the drop target (see the
-     fileDrop attachment on .app-root) with the pink dashed drop overlay for
-     feedback, so there is no separate drop rectangle — just a click-to-select
-     button. */
-  .intro {
-    min-height: 100dvh;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 24px;
-    text-align: center;
-  }
-  .intro-head h1 {
-    margin: 0 0 4px;
-    font-size: 2.4rem;
-  }
-  .intro-logo {
-    display: block;
-    width: 96px;
-    height: 96px;
-    margin: 0 auto 14px;
-    border-radius: 22px;
-  }
-  .intro-head p {
-    margin: 0;
-    color: #bcbcbc;
-  }
-  .select-button {
-    display: inline-block;
-    cursor: pointer;
-    background: #ff3385;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.1rem;
-    padding: 14px 28px;
-    border-radius: 8px;
-    margin-top: 8px;
-    transition: background 150ms ease;
-  }
-  .select-button:hover {
-    background: #ff0066;
-  }
-  /* Keyboard focus ring — the file input is visually hidden but still focusable
-     (see below), so reflect its focus on the visible button. */
-  .select-button:focus-within {
-    outline: 3px solid #fff;
-    outline-offset: 3px;
-  }
-  /* Visually hide the file input WITHOUT removing it from the tab order, so the
-     button is reachable and operable by keyboard (display:none would drop it). */
-  .select-button input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-  .intro-hint {
-    margin: 0;
-    color: #bcbcbc;
-  }
+  /* The landing screen itself lives in Intro.svelte. The whole viewport is the
+     drop target (see the fileDrop attachment on .app-root), with the pink
+     dashed drop overlay for feedback. This page only adds the dev-only
+     diagnostics link, pinned out of the way in a corner. */
   .intro-diag {
-    margin-top: 8px;
+    position: fixed;
+    bottom: 12px;
+    right: 14px;
+    margin: 0;
+    z-index: 20;
   }
   .intro-diag a {
     color: #5fb4e4;
