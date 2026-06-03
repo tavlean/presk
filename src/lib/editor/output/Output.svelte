@@ -9,6 +9,7 @@
   import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
   import { isSafari } from 'client/lazy-app/util';
   import { retargetViewEvents } from './retarget-events';
+  import { fade } from 'svelte/transition';
 
   interface Props {
     /** Pixels drawn on the left ("before") side — side 0's output. */
@@ -235,7 +236,12 @@
        "Optimising…" on the first pass, "Re-optimising…" once a result exists and
        a setting change re-runs the encoder (the prior result stays on screen,
        crisp, while the new one computes). Tied to the same 500ms-delayed
-       "working" flag as the download spinner, so fast encodes never flash it. -->
+       "working" flag as the download spinner, so sub-500ms encodes never show it.
+       The in/out fade keeps it smooth: an encode that lands JUST past 500ms (e.g.
+       WebP at max effort) becomes a gentle pulse instead of a flash/snap, and a
+       genuinely slow one fades in then fades out when the result lands. A 500ms
+       delay alone can't fix the threshold edge (the encode can finish the instant
+       the badge appears) — the fade-out is what makes it always read as smooth. -->
   {#snippet badge(label: string)}
     <span class="spinner" aria-hidden="true"></span>
     <span>{label}</span>
@@ -246,6 +252,8 @@
       class:vertical={orientation === 'vertical'}
       role="status"
       aria-live="polite"
+      in:fade={{ duration: 200 }}
+      out:fade={{ duration: 400 }}
     >
       {@render badge(leftLabel)}
     </div>
@@ -256,6 +264,8 @@
       class:vertical={orientation === 'vertical'}
       role="status"
       aria-live="polite"
+      in:fade={{ duration: 200 }}
+      out:fade={{ duration: 400 }}
     >
       {@render badge(rightLabel)}
     </div>
