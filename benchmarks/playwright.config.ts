@@ -7,7 +7,7 @@ import { defineConfig, devices } from '@playwright/test';
 const PORT = 4318;
 
 export default defineConfig({
-  testDir: 'benchmarks',
+  testDir: '.',
   testMatch: '**/*.bench.spec.ts',
   fullyParallel: false,
   workers: 1,

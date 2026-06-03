@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "type": "module",
   "homepage": "https://sqush.app",
-  "license": "apache-2.0",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=24.12.0 <25",
     "npm": ">=11"
@@ -21,7 +21,7 @@
     "sync": "node scripts/sync-sveltekit-app.mjs",
     "test": "npm run check && npm run test:e2e",
     "test:e2e": "playwright test",
-    "bench": "playwright test --config playwright.bench.config.ts",
+    "bench": "playwright test --config benchmarks/playwright.config.ts",
     "bench:compare": "node benchmarks/compare.mjs"
   },
   "devDependencies": {
@@ -41,5 +41,13 @@
   },
   "overrides": {
     "cookie": "1.1.1"
+  },
+  "prettier": {
+    "endOfLine": "lf",
+    "plugins": [
+      "prettier-plugin-svelte"
+    ],
+    "singleQuote": true,
+    "trailingComma": "all"
   }
 }
