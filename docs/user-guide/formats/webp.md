@@ -33,16 +33,16 @@ The panel changes shape depending on the **Lossless** toggle. Two controls are a
 #### Effort
 
 - **What it does:** Controls how hard the encoder works. Higher effort searches more compression options for a smaller and/or better-looking file, but takes longer to encode.
-- **Range & default:** 0–6, step 1, default **4** (`method`). The slider label reads "Effort:".
-- **How to choose:** Raising it makes files a little smaller or better at the cost of encoding time; lowering it is faster but slightly worse. Since Sqush runs in your browser, very high effort on large images can feel slow.
-- **Recommended starting point:** **4** (the default). Bump to 6 for maximum compression if you don't mind waiting.
+- **Range & default:** 0–6, step 1, default **6** — the highest effort, for the best compression (`method`). The slider label reads "Effort:".
+- **How to choose:** Raising it makes files a little smaller or better at the cost of encoding time; lowering it is faster but slightly worse. Since Sqush runs in your browser, very high effort on large images can feel slow — but WebP stays quick even at 6 for typical web images.
+- **Recommended starting point:** **6** (the default — maximum compression). Lower it only if you're compressing very large images and want a faster encode.
 
 #### Quality
 
 - **What it does:** The main quality dial for lossy WebP. Lower values discard more detail for a smaller file; higher values keep more detail in a larger file.
-- **Range & default:** 0–100, step 0.1, default **75** (`quality`).
+- **Range & default:** 0–100, step 0.1, default **80** (`quality`).
 - **How to choose:** This is the setting you'll adjust most. Watch the preview and the output size, then pick the lowest value that still looks good. Below ~50 you'll start seeing visible artifacts on most photos; above ~90 the file grows quickly for little visible gain.
-- **Recommended starting point:** **75** (the default). Try **65–80** for typical web photos.
+- **Recommended starting point:** **80** (the default). Try **65–85** for typical web photos — lower for smaller files, higher when quality matters most.
 
 ---
 

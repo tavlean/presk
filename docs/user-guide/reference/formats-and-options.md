@@ -80,8 +80,8 @@ struct. Lossless vs lossy splits the whole panel.
 
 | UI label | key       | control | range           | default |
 | -------- | --------- | ------- | --------------- | ------- |
-| Effort   | `method`  | range   | 0–6, step 1     | 4       |
-| Quality  | `quality` | range   | 0–100, step 0.1 | 75      |
+| Effort   | `method`  | range   | 0–6, step 1     | 6       |
+| Quality  | `quality` | range   | 0–100, step 0.1 | 80      |
 
 **Lossy → Advanced settings** (Revealer toggle, UI-only)
 

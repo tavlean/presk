@@ -17,12 +17,15 @@ export { EncodeOptions };
 export const label = 'WebP';
 export const mimeType = 'image/webp';
 export const extension = 'webp';
-// These come from struct WebPConfig in encode.h.
+// These come from struct WebPConfig in encode.h. Sqush diverges from upstream
+// Squoosh on two values: quality 80 (was 75) and method 6 — the highest effort,
+// best compression (was 4) — as the project's preferred WebP default, since WebP
+// is the default right-side encoder and stays sub-second even at method 6.
 export const defaultOptions: EncodeOptions = {
-  quality: 75,
+  quality: 80,
   target_size: 0,
   target_PSNR: 0,
-  method: 4,
+  method: 6,
   sns_strength: 50,
   filter_strength: 60,
   filter_sharpness: 0,

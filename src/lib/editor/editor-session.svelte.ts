@@ -33,7 +33,11 @@ type SavedSide = {
   optionsByFormat?: Record<string, Record<string, unknown>>;
 };
 
-const STORAGE_KEY = 'sqush:settings:v2';
+// Bumped v2 → v3 when the default WebP options changed (quality 80 / method 6)
+// and to discard pre-existing persisted side settings that would otherwise mask
+// the new defaults (e.g. a stale AVIF-on-both-sides config). Old keys are simply
+// ignored; a fresh default (left = Original, right = WebP) loads instead.
+const STORAGE_KEY = 'sqush:settings:v3';
 const SAVE_VERSION = 1;
 const IMAGE_UPDATE_DELAY = 100;
 const SPINNER_DELAY = 500;

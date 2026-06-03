@@ -18,9 +18,9 @@ Each codec section links to its full page for the reasoning, ranges, and sources
 | Transparency / alpha                  | Lossy Quality ~90, Alpha quality 100                           |
 | Re-encoding an existing JPEG          | Lossy Quality ~80 (never Lossless)                             |
 
-**Current Sqush default:** lossy, Quality 75, Effort 4.
+**Current Sqush default:** lossy, Quality 80, Effort 6 (updated 2026-06-03 from the upstream-Squoosh 75/4 — the "Web photo" recommendation below is now the shipped default).
 
-**Could become a default/preset:** a "Web photo" preset at Quality 80 / Effort 6; auto-suggesting **Lossless** when the source is a PNG or has an alpha channel or looks like a flat-color screenshot, since lossy WebP visibly hurts that material.
+**Could become a default/preset:** auto-suggesting **Lossless** when the source is a PNG or has an alpha channel or looks like a flat-color screenshot, since lossy WebP visibly hurts that material. (The earlier "Quality 80 / Effort 6 preset" suggestion is now the default.)
 
 ---
 
@@ -126,7 +126,7 @@ QOI has **no settings to recommend** — it is fixed lossless RGB(A) with zero k
 
 | Codec / tool      | Default already optimal?                                                                 |
 | ----------------- | ---------------------------------------------------------------------------------------- |
-| WebP              | Mostly — Quality 75 is a touch low vs the q80 web consensus; Effort 4 vs 6.               |
+| WebP              | **Yes (since 2026-06-03)** — default is now Quality 80 / Effort 6, matching the web consensus. |
 | AVIF              | Quality 50 is conservative; community leans ~60–70 for photos. Effort under-surfaced.    |
 | JPEG XL           | **Yes** — Effort 7 is the Pareto-front sweet spot; Quality 75 is reasonable.             |
 | MozJPEG           | Quality 75 is a touch low; Trellis off is the notable gap vs the codec's whole point.    |
