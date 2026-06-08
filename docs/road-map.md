@@ -1,6 +1,6 @@
 # Sqush Product Roadmap
 
-Last updated: 2026-06-02.
+Last updated: 2026-06-09.
 
 The SvelteKit migration is now **closed** (`main` is the production app). This
 roadmap is the product track that follows it — not a migration phase list. The
@@ -191,7 +191,7 @@ Do not store live image blobs or object URLs in `localStorage`.
 
 Deferred polish/features:
 
-- intro or marketing route redesign;
+- intro/onboarding route redesign;
 - mobile multi-panel accordion decision if the current responsive editor is not
   sufficient;
 - visual difference metrics;
@@ -221,6 +221,11 @@ after migration and launch stabilization, especially for codec fixes, browser
 compatibility fixes, service-worker fixes, build updates, and small UI
 improvements. Avoid merging stale PRs wholesale; extract small patches with
 tests or focused browser verification.
+
+The current triage ledger is [upstream-signals.md](upstream-signals.md). Treat
+it as external evidence and idea intake, not as a second roadmap; promote items
+into this roadmap or a dedicated plan only after local repro, design discussion,
+or implementation intent.
 
 ## Reference Docs
 

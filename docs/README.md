@@ -1,6 +1,6 @@
 # Sqush Docs — map, registry & work order
 
-Last updated: 2026-06-03.
+Last updated: 2026-06-06.
 
 The single hub for all project docs: the **work priority order** plus the
 **registry** of every doc with explicit "read when" / "update when" triggers.
@@ -96,6 +96,7 @@ Every project doc: what it holds, when to **read** it, when to **update** it.
 | [test-plan.md](test-plan.md) | The test strategy: two-layer model (unit always / E2E on codec-or-build change), the gap analysis, the bulk-engine unit-test plan, E2E additions, CI changes, and verified doc-accuracy fixes. | Before adding/changing tests, or building bulk/crop/compare (write the feature's test with it). | A test layer/tool lands, a gap is closed, the CI cadence changes, or a planned phase completes. |
 | [svelte-hardening-plan.md](svelte-hardening-plan.md) | The post-migration cleanup / Svelte-5 hardening backlog. | Doing cleanup/hardening work. | A hardening wave/item is done or added. |
 | [issue-list.md](issue-list.md) | Small backlog seed (issues that don't warrant their own plan). | Picking up small fixes. | A small issue is found, fixed, or promoted to a plan. |
+| [upstream-signals.md](upstream-signals.md) | Triage ledger for high-signal issues/PRs from GoogleChromeLabs/squoosh, classified against Sqush's docs and boundaries. | Mining upstream Squoosh, classifying external requests/bugs/PR ideas, or checking whether a signal is already handled locally. | An upstream issue/PR is reviewed, dismissed, promoted to local backlog, implemented, or changes a local assumption. |
 | [dependency-modernization.md](dependency-modernization.md) | The dependency-graph modernization state. | Modernizing/bumping deps. | Dependencies are modernized/bumped meaningfully. |
 | [parity-audit.md](parity-audit.md) | Editor feature-parity vs the original Squoosh + the deviation log. | Changing editor features; verifying parity. | A feature changes, parity is verified, or a deviation is added/closed. |
 | [manual-qa.md](manual-qa.md) | The manual QA checklist (pre-release / after risky changes). | Before a release or after build/worker/codec changes. | A new feature/path needs a manual check, or a step changes. |
