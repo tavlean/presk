@@ -43,28 +43,53 @@ been removed from the `svelte` branch.
   codecs and processors.
 - `worker-bridge/meta.ts`: method names and worker API type.
 - `worker-surface/ready.ts`: ready and intentionally blocked worker methods.
-- `codec-assets/`: Vite URL imports and logical codec asset manifests.
+- `codec-assets/`: Vite URL imports and logical codec asset manifests,
+  including `codec-assets/service-worker.ts` — the curated record list the
+  service worker variant-selects from. It deliberately excludes `?worker`
+  imports (they would make the SW build re-emit duplicate worker chunks) and
+  sub-inline-limit assets like the rotate WASM and the `*_mt.worker.js`
+  pthread stubs (the SW build ignores the app's `assetsInlineLimit` and would
+  inline them as unusable `data:` URLs; they precache with the app shell via
+  `$service-worker`'s `build` list instead).
 - `codecs/`: patched wrapper copies that avoid duplicate WASM emissions.
-- `service-worker/cache-plan.ts`: generated worker/cache records for the
-  service worker.
+
+(The old `service-worker/cache-plan.ts` generated module is gone — replaced by
+`codec-assets/service-worker.ts` above; `npm run sync` removes stale copies.)
 
 Generated files are ignored and can be deleted; `npm run sync` recreates them.
 
 ## Service Worker
 
 `src/service-worker.ts` imports `{ build, files, prerendered, version }` from
-`$service-worker` and adds generated codec cache URLs from
-`src/lib/service-worker-codec-assets.ts`.
+`$service-worker` plus the curated codec-asset records from
+`src/lib/service-worker-codec-assets.ts` (a re-export of the generated
+`codec-assets/service-worker.ts`).
 
-Behavior:
+Behavior (variant-aware precache, 2026-06-10 — first-visit payload
+14.3 MB → ~6.8 MB):
 
-- install: precache app, static assets, prerendered paths, generated worker
-  entry, and codec WASM assets;
+- install: feature-detect what this browser will actually run — WASM threads
+  and SIMD via `wasm-feature-detect`, native AVIF/WebP decode via tiny
+  `createImageBitmap` probes — then precache the app shell (everything in
+  `build` minus codec variants and diagnostics probe workers, plus static
+  files and prerendered paths) and only the codec variants selected by
+  `selectCodecPrecacheUrls()` in `src/sw/cache-plan.ts` (e.g. threads+SIMD
+  Chromium gets `avif_enc_mt` + `jxl_enc_mt_simd` + `webp_enc_simd` +
+  oxipng-MT and skips the single-thread/baseline builds and the natively
+  decodable AVIF/WebP WASM decoders);
 - activate: delete old Sqush caches and claim clients;
-- fetch: serve known assets cache-first, otherwise network-first with cache
-  fallback.
+- fetch: serve known assets cache-first (runtime-caching misses, so a
+  non-precached variant still ends up cached after first use — a
+  mis-detection costs one online network trip, never a broken codec),
+  otherwise network-first with cache fallback.
 
-Production preview is required for realistic service-worker testing.
+Known approximation: nested-worker support (the Safari 16 gap) can't be
+probed from SW scope, so such a browser precaches `_mt` builds it won't use;
+the single-thread fallback loads on demand.
+
+Production preview is required for realistic service-worker testing. Note
+`vite preview` (sirv) snapshots the file list at startup — after a rebuild,
+restart the preview server or new hashed filenames 404.
 
 ## Codec Assets
 
@@ -74,7 +99,10 @@ assets through Vite `?url` modules and passes explicit URLs into worker runtimes
 or Emscripten `locateFile`.
 
 `npm run audit:static-output` verifies the build emits one physical WASM copy
-per logical asset and that the service worker references the expected assets.
+per logical asset, that the service worker references the expected assets and
+carries the variant-aware precache machinery, and that the service-worker
+build emits **no** duplicate worker chunks of its own (top-level
+`assets/*.js`).
 
 **Multithreading is enabled** (2026-06-03): the generator
 (`sync-sveltekit-app.mjs`) emits the threaded variants and real thread detection,

@@ -1,6 +1,6 @@
 # Sqush Post-Migration Cleanup & Svelte Hardening Plan
 
-Last updated: 2026-06-01.
+Last updated: 2026-06-10.
 
 Read [STATUS.md](STATUS.md) first for live state. The SvelteKit 2 / Svelte 5
 migration is **concluded** — `main` is the production app and the retired
@@ -251,12 +251,16 @@ Highest leverage — one change at the primitives ripples through every panel.
   Svelte MCP, 2026-06-02).
 - **Data-driven codec panels.** Folded into the codec options model project —
   see [codec-options-model.md](codec-options-model.md).
-- **Legacy service-worker / cache surfaces.** A second AI flagged `skip-waiting`,
-  `share-ready`, `cache-all` in `src/client/lazy-app/sw-bridge/runtime.ts` and
-  old app-chunk modeling in `src/sw/cache-plan.ts` as possible dead surface.
-  **Unverified** and outside the Svelte-idiom scope. This needs its own
-  SW-focused pass with build + offline verification — the service worker is
-  protected; do not lump it into idiom cleanup.
+- **Legacy service-worker / cache surfaces.** ✅ **Done 2026-06-10**, as part of
+  the performance pass (which WAS the SW-focused pass with build + offline
+  verification this item asked for). Both suspicions confirmed dead and
+  deleted: `createServiceWorkerBridge` (`skip-waiting`/`share-ready`/
+  `cache-all`) + `sw-bridge/support.ts` had zero callers and no SW message
+  handlers (only `registerServiceWorkerUrl` survives), and the Squoosh
+  entry-data modeling in `src/sw/cache-plan.ts` was replaced by the
+  variant-aware precache selection. Verified by `npm run check` + the full
+  Playwright e2e incl. offline reload. See [STATUS.md](STATUS.md) and
+  [build-and-runtime.md](build-and-runtime.md).
 
 ## Explicitly not in scope
 

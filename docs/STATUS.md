@@ -1,6 +1,6 @@
 # Sqush Status
 
-Last updated: 2026-06-03.
+Last updated: 2026-06-10.
 
 Read this first. Sqush is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
@@ -129,6 +129,43 @@ browser, the build is static, and offline reload must work after load.
   - **WebP default → Quality 80 / Effort (method) 6** (from upstream 75/4); the
     persisted-settings key was bumped `v2 → v3` so stale saved side-settings are
     discarded and the fresh default (left = Original, right = WebP) loads.
+- Performance pass (2026-06-10), all landed on `main`:
+  - **Variant-aware service-worker precache** — first-visit payload **14.27 MB →
+    6.82 MB** (52% less). The SW used to blanket-cache every Vite-emitted asset
+    (both MT and single-thread codec builds, SIMD and baseline, all decoders);
+    it now feature-detects at install (threads/SIMD via `wasm-feature-detect`,
+    native AVIF/WebP decode via tiny `createImageBitmap` probes) and precaches
+    only the variants that browser runs. Unselected variants stay runtime-cached
+    on first use. `src/sw/cache-plan.ts` was rewritten as the selection module
+    (the dead Squoosh entry-data modeling is gone). Details in
+    [build-and-runtime.md](build-and-runtime.md).
+  - **Duplicate SW-build worker chunks eliminated** — the SW import graph had
+    `?worker&url` imports that made the SW Vite build re-emit the 232 kB
+    features-worker + probe workers as dead `assets/*.js` (precached, never
+    fetched by the page). The SW now consumes a curated generated records module
+    (`codec-assets/service-worker.ts`); `audit:static-output` asserts no such
+    duplicates. **Gotcha discovered:** SvelteKit's SW build ignores the app's
+    `assetsInlineLimit`, so sub-4 kB assets imported into the SW graph inline as
+    `data:` URLs (which `cache.addAll` rejects) — that's why the rotate WASM and
+    pthread `*_mt.worker.js` stubs are excluded from the records and precache
+    with the app shell instead.
+  - **svelte-check 4.3.4 → 4.6.0** — 4.3.4's bundled volar calls the removed
+    internal `program.forEachResolvedModule` under TypeScript 6 and crashes with
+    `TypeError: forEachResolvedModule is not a function` whenever a diagnostic's
+    code-fix path runs (e.g. a bad named import anywhere). 4.6.0 fixes it.
+  - **Landing/runtime smoothness:** `logo.webp` 512 px/56 kB → 176 px/7 kB
+    (renders at 88 CSS px); the blob animation no longer does per-frame layout +
+    style reads or per-frame canvas reallocation (geometry cached, refreshed by
+    ResizeObserver); the codec worker idle-terminate went 10 s → 60 s so slider
+    tweaks after a pause don't pay a WASM + pthread-pool cold start.
+  - **Dead sw-bridge surface deleted** — `createServiceWorkerBridge`
+    (`share-ready`/`skip-waiting`/`cache-all`) and `sw-bridge/support.ts` had no
+    callers and no SW message handlers; only `registerServiceWorkerUrl`
+    survives. This closes the "Legacy service-worker / cache surfaces" deferred
+    item in [svelte-hardening-plan.md](svelte-hardening-plan.md).
+  - Verified end to end: `npm run check` green, full Playwright e2e (41 passed,
+    1 pre-existing WebKit offline-harness skip), preview cache audit confirming
+    the 6.82 MB selection in Chromium.
 - **Writing the articles** (migration + codec sweep): the task/problem/solution
   source material is in [journey-and-article-notes.md](journey-and-article-notes.md).
 

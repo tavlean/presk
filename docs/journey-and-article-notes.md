@@ -319,3 +319,68 @@ pings) and the silent hang names itself.
 - **Keep the fix, not the band-aid.** Several first attempts (ERROR_ON_UNDEFINED=0
   masking, `--whole-archive` force-include, the emcc-version theory) were reverted
   once the real cause was found and written down so we'd never retry them.
+
+## Bonus beats — the performance pass (2026-06-10)
+
+Not a planned article, but several beats here are strong sidebar material for
+either write-up. Task: make the app faster, smoother, leaner.
+
+### The service worker was shipping both halves of every either/or
+
+**The task.** First-visit payload audit: the SW precached 14.27 MB.
+**The problem.** `$service-worker`'s `build` array lists *every* Vite-emitted
+asset, and the SW blanket-`addAll`'d it — so every visitor downloaded the
+multi-thread AND single-thread AVIF encoders (2.8 + 2.7 MB), three JXL encoder
+variants of which any given browser runs exactly one, SIMD and baseline WebP,
+and WASM decoders for formats their browser decodes natively.
+**The solution.** Feature-detect *in the service worker at install time*
+(threads + SIMD via `wasm-feature-detect`; native AVIF/WebP decode by feeding
+tiny probe images to `createImageBitmap`) and precache only the selected
+variants; everything else stays reachable via cache-first-with-runtime-fill,
+so a misdetection costs one online fetch, never a broken codec.
+**The result.** 6.82 MB precache in Chromium (−52%), offline promise intact,
+asserted by the e2e suite. **The lesson:** a "cache everything" install step
+silently doubles as a download-everything tax; the variant structure was
+already in the data model (`threaded-only` tags) — nobody had wired it to the
+SW.
+
+### Two gotchas inside SvelteKit's service-worker build
+
+1. The SW is built by a *separate* Vite config (kit's own): the app's
+   `assetsInlineLimit` doesn't apply, so sub-4 kB assets imported into the SW
+   graph (rotate WASM, pthread worker stubs) inline as `data:` URLs — and
+   `cache.addAll` rejects `data:` schemes. Fix: a curated generated records
+   module that simply never imports the tiny files (they ride the app shell,
+   whose URLs come as strings from `build`).
+2. `?worker&url` imports in the SW graph make that separate build re-emit the
+   whole worker chunk under its own hash — 270 kB of dead duplicates that got
+   precached while the page fetched the real ones. The audit script now
+   asserts the SW build emits zero own worker chunks.
+
+### svelte-check crashing with `forEachResolvedModule is not a function`
+
+A heisenbug worth its own sidebar: svelte-check 4.3.4 + TypeScript 6 only
+crashed when *some* diagnostic existed whose code-fix path consults the
+symlink cache (volar's wrapper calls the TS-internal
+`program.forEachResolvedModule`, removed in TS 6). A clean tree checked fine;
+one bad named import anywhere crashed the whole run with no stack trace. Cost
+a long bisect (file-by-file, then content-by-content, then a deliberate
+bad-import experiment on a clean tree proved it environmental). Fix:
+svelte-check 4.6.0.
+
+### Small leans with outsized ratios
+
+- `logo.webp`: 512 px / 56 kB for an 88-CSS-px slot → 176 px / 7 kB (cwebp
+  q90). The largest first-load asset of an image-compression app was an
+  unoptimized image.
+- The landing blob animation did 2× `getBoundingClientRect` +
+  `getComputedStyle` + a full canvas backing-store reallocation
+  (`canvas.width =`) *per rAF frame* — geometry now lives in a
+  ResizeObserver-refreshed snapshot and the loop just
+  `setTransform`+`clearRect`s.
+- The codec worker idle-terminated after 10 s (upstream Squoosh's number);
+  with threaded codecs a respawn now re-instantiates WASM and a pthread pool,
+  so a slider tweak after a pause paid a visible cold start. 60 s.
+- Verification gotcha: `vite preview` (sirv) snapshots the served file list at
+  boot — after a rebuild the new hashed filenames 404 until the preview server
+  restarts. Looks exactly like a broken build.

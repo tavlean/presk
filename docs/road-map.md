@@ -1,6 +1,6 @@
 # Sqush Product Roadmap
 
-Last updated: 2026-06-09.
+Last updated: 2026-06-10.
 
 The SvelteKit migration is now **closed** (`main` is the production app). This
 roadmap is the product track that follows it — not a migration phase list. The
@@ -144,12 +144,14 @@ assets, service-worker caching, and browser QA prove removal is safe. Follow
 
 ## Performance And Platform
 
-- **Enable multithreading (high priority).** The `_mt` codec builds already
-  exist and are already wired up; they are dormant only because cross-origin
-  isolation (COOP/COEP) was dropped when the app moved to the repo root. Full
-  plan: [threading-enablement.md](threading-enablement.md). This is the biggest
-  available perf win, is how the app properly uses many-core / Apple Silicon
-  machines, and unlocks Multi-Format Compare below.
+- ✅ **Enable multithreading — DONE 2026-06-03.** oxipng/AVIF/JXL engage
+  multi-core in Chromium + WebKit, single-thread fallback intact. Record:
+  [threading-enablement.md](threading-enablement.md). This unblocked
+  Multi-Format Compare below.
+- ✅ **Variant-aware service-worker precache — DONE 2026-06-10.** First-visit
+  payload 14.3 MB → 6.8 MB: the SW feature-detects threads/SIMD/native decode
+  at install and precaches only the codec variants that browser runs. See
+  [STATUS.md](STATUS.md) / [build-and-runtime.md](build-and-runtime.md).
 - shared decode between the two comparison sides for large-image performance;
 - browser support matrix refresh before changing runtime assumptions;
 - build/dependency modernization now that Vite/SvelteKit owns production
