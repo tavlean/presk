@@ -217,17 +217,11 @@ const resizeWasmAsset = files.find(
 const hqxWasmAsset = files.find(
   (file) => file.includes('/squooshhqx_bg.') && file.endsWith('.wasm'),
 );
-const serviceWorkerImportedWorkerAsset = files.find(
-  (file) =>
-    file.includes('assets/codec-asset-probe.worker') && file.endsWith('.js'),
-);
-const serviceWorkerImportedEncodeWorkerAsset = files.find(
-  (file) =>
-    file.includes('assets/webp-encode-probe.worker') && file.endsWith('.js'),
-);
-const serviceWorkerImportedFeaturesWorkerAsset = files.find(
-  (file) =>
-    /^assets\/webp-[A-Za-z0-9_-]+\.js$/.test(file) && file.endsWith('.js'),
+// The service-worker build must not re-emit worker chunks of its own (it
+// used to import `?worker&url` modules, duplicating the app's worker chunks
+// as dead top-level `assets/*.js` files that ended up precached).
+const serviceWorkerDuplicateWorkerAssets = files.filter((file) =>
+  /^assets\/[^/]+\.js$/.test(file),
 );
 const workerHelperAssets = files
   .filter((file) => file.includes('workerHelpers') && file.endsWith('.js'))
@@ -549,16 +543,10 @@ assert(
   `Expected exactly one HQX WASM asset after the generated wrapper patch, found ${hqxWasmAssets.length}.`,
 );
 assert(
-  serviceWorkerImportedWorkerAsset,
-  'Missing emitted module worker asset from the worker probe.',
-);
-assert(
-  serviceWorkerImportedEncodeWorkerAsset,
-  'Missing emitted module worker asset from the WebP encode probe.',
-);
-assert(
-  serviceWorkerImportedFeaturesWorkerAsset,
-  'Missing emitted generated WebP features-worker asset.',
+  serviceWorkerDuplicateWorkerAssets.length === 0,
+  `Service-worker build re-emitted duplicate worker chunks: ${serviceWorkerDuplicateWorkerAssets.join(
+    ', ',
+  )}.`,
 );
 assert(
   workerHelperAssets.length > 0,
@@ -717,16 +705,12 @@ assert(
   `Service-worker build manifest does not include ${hqxWasmAsset}.`,
 );
 assert(
-  serviceWorker.includes(serviceWorkerImportedWorkerAsset),
-  `Service-worker build manifest does not include ${serviceWorkerImportedWorkerAsset}.`,
+  serviceWorker.includes('avif:encoder:multi-thread'),
+  'Service worker does not carry the codec-asset logical records for variant-aware precache.',
 );
 assert(
-  serviceWorker.includes(serviceWorkerImportedEncodeWorkerAsset),
-  `Service-worker build manifest does not include ${serviceWorkerImportedEncodeWorkerAsset}.`,
-);
-assert(
-  serviceWorker.includes(serviceWorkerImportedFeaturesWorkerAsset),
-  `Service-worker build manifest does not include ${serviceWorkerImportedFeaturesWorkerAsset}.`,
+  serviceWorker.includes('createImageBitmap'),
+  'Service worker does not feature-detect native decoders for variant-aware precache.',
 );
 assert(
   serviceWorker.includes(appEntryAsset),
@@ -831,9 +815,6 @@ console.log(
     ...resizeWasmAssets.map((asset) => `  - ${asset}`),
     `HQX WASM copies: ${hqxWasmAssets.length}`,
     ...hqxWasmAssets.map((asset) => `  - ${asset}`),
-    `Worker asset: ${serviceWorkerImportedWorkerAsset}`,
-    `Encode worker asset: ${serviceWorkerImportedEncodeWorkerAsset}`,
-    `Generated WebP features-worker asset: ${serviceWorkerImportedFeaturesWorkerAsset}`,
     `OxiPNG parallel worker helper assets: ${workerHelperAssets.length}`,
     ...workerHelperAssets.map((asset) => `  - ${asset}`),
     `App worker asset: ${immutableWorkerAsset}`,

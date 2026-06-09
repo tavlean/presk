@@ -1,18 +1,12 @@
-import codecAssetProbeWorkerUrl from './codec-asset-probe.worker.ts?worker&url';
-import webpEncodeProbeWorkerUrl from './webp-encode-probe.worker.ts?worker&url';
+// The service worker's only bridge into generated codec-asset land. It must
+// stay free of `?worker` / `?worker&url` imports (those make the
+// service-worker Vite build re-emit duplicate worker chunks the page never
+// fetches) and of sub-inline-limit assets (the SW build ignores the app
+// build's assetsInlineLimit and would inline them as data: URLs). The
+// generated module below is curated for exactly those constraints.
 import {
-  collectEntryUrls,
-  dedupeUrls,
-  type ServiceWorkerCacheEntry,
-} from 'sw/cache-plan';
-import { generatedCodecCacheUrls } from 'sqush-generated/service-worker/cache-plan';
+  serviceWorkerCodecAssetRecords,
+  type CodecAssetRecord,
+} from 'sqush-generated/codec-assets/service-worker';
 
-const localProbeEntries = [
-  { main: codecAssetProbeWorkerUrl, deps: [] },
-  { main: webpEncodeProbeWorkerUrl, deps: [] },
-] satisfies readonly ServiceWorkerCacheEntry[];
-
-export const serviceWorkerCodecAssetUrls = dedupeUrls([
-  ...collectEntryUrls(localProbeEntries),
-  ...generatedCodecCacheUrls,
-]);
+export { serviceWorkerCodecAssetRecords, type CodecAssetRecord };

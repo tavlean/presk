@@ -1,126 +1,98 @@
-export interface ServiceWorkerCacheEntry {
-  main: string;
-  deps: readonly string[];
-}
+import type { CodecAssetRecord } from '../shared/codec-assets';
 
-export interface InitialCacheEntries {
-  initialApp: ServiceWorkerCacheEntry;
-  compress: ServiceWorkerCacheEntry;
-  swBridge: ServiceWorkerCacheEntry;
-  blobAnim: ServiceWorkerCacheEntry;
-  featuresWorker: ServiceWorkerCacheEntry;
-  serviceWorkerUrl: string;
-}
-
-export interface ProcessorSupport {
+/**
+ * What this browser's codec runtime will actually use. Detected by the
+ * service worker at install time; drives which mutually-exclusive codec
+ * variants are worth precaching.
+ */
+export interface CodecPrecacheSupport {
+  /** WASM threads (SharedArrayBuffer + atomics) are usable. */
   threads: boolean;
+  /** WASM SIMD is usable. */
   simd: boolean;
-  webp: boolean;
-  avif: boolean;
-}
-
-export interface ActiveProcessorCacheEntries {
-  featuresWorker: ServiceWorkerCacheEntry;
-  avifDec: ServiceWorkerCacheEntry;
-  webpDec: ServiceWorkerCacheEntry;
-  avifEncMt: ServiceWorkerCacheEntry;
-  avifEnc: ServiceWorkerCacheEntry;
-  jxlEncMtSimd: ServiceWorkerCacheEntry;
-  jxlEncMt: ServiceWorkerCacheEntry;
-  jxlEnc: ServiceWorkerCacheEntry;
-  oxiMt: ServiceWorkerCacheEntry;
-  oxi: ServiceWorkerCacheEntry;
-  webpEncSimd: ServiceWorkerCacheEntry;
-  webpEnc: ServiceWorkerCacheEntry;
-}
-
-function subtractSets<T>(set1: Set<T>, set2: Set<T>): Set<T> {
-  const result = new Set(set1);
-  for (const item of set2) result.delete(item);
-  return result;
+  /** The browser decodes AVIF natively, so the WASM decoder is never used. */
+  avifDecode: boolean;
+  /** The browser decodes WebP natively, so the WASM decoder is never used. */
+  webpDecode: boolean;
 }
 
 export function dedupeUrls(urls: readonly string[]): string[] {
   return [...new Set(urls)];
 }
 
-export function collectEntryUrls(
-  entries: readonly ServiceWorkerCacheEntry[],
+/**
+ * Picks the codec assets this browser will actually run, mirroring the
+ * runtime's own variant selection (worker-bridge + Emscripten/rayon glue):
+ *
+ * - encoders with threaded builds (AVIF, JXL, OxiPNG) use the `_mt` variant
+ *   (+ its glue script) when threads are supported, else single-thread;
+ * - JXL additionally prefers the SIMD threaded build when SIMD is supported;
+ * - WebP encodes through the SIMD build when supported, else baseline;
+ * - the AVIF/WebP WASM decoders are fallbacks for browsers without native
+ *   decode support — natively-supported browsers never fetch them;
+ * - everything else (JXL/QOI decoders, QOI/MozJPEG encoders, processors) has
+ *   a single variant used everywhere.
+ *
+ * Assets left out stay reachable: the service worker runtime-caches any
+ * known asset on first fetch, so a mis-detection only costs a network trip
+ * while online — it never breaks the codec.
+ */
+export function selectCodecPrecacheUrls(
+  records: readonly CodecAssetRecord[],
+  support: CodecPrecacheSupport,
 ): string[] {
-  return dedupeUrls(entries.flatMap((entry) => [entry.main, ...entry.deps]));
-}
-
-export function shouldCacheDynamically(url: string): boolean {
-  return url.startsWith('/c/demo-');
-}
-
-export function buildInitialCacheUrls(entries: InitialCacheEntries): string[] {
-  const initialJs = new Set(
-    collectEntryUrls([entries.compress, entries.swBridge, entries.blobAnim]),
-  );
-  const excludedUrls = new Set([
-    entries.initialApp.main,
-    ...entries.initialApp.deps.filter(
-      (item) =>
-        // Exclude JS deps that have been inlined:
-        item.endsWith('.js') ||
-        // As well as large image deps we want to keep dynamic:
-        shouldCacheDynamically(item),
-    ),
-    // Exclude features Worker itself - it's referenced from the main app,
-    // but is meant to be cached lazily.
-    entries.featuresWorker.main,
-    // Also exclude Service Worker itself.
-    entries.serviceWorkerUrl,
+  const wanted = new Set<string>([
+    'qoi:decoder:default',
+    'qoi:encoder:default',
+    'jxl:decoder:default',
+    'mozjpeg:encoder:default',
+    'imagequant:processor:default',
+    'resize:processor:default',
+    'hqx:processor:hqx',
   ]);
 
-  return ['/', ...subtractSets(initialJs, excludedUrls)];
-}
+  if (!support.avifDecode) wanted.add('avif:decoder:default');
+  if (!support.webpDecode) wanted.add('webp:decoder:default');
 
-export function buildActiveAdditionalProcessorCacheUrls(
-  support: ProcessorSupport,
-  entries: ActiveProcessorCacheEntries,
-): string[] {
-  const items: string[] = [];
-
-  function addWithDeps(entry: ServiceWorkerCacheEntry): void {
-    items.push(entry.main, ...entry.deps);
-  }
-
-  addWithDeps(entries.featuresWorker);
-
-  if (!support.avif) addWithDeps(entries.avifDec);
-  if (!support.webp) addWithDeps(entries.webpDec);
-
-  // AVIF
+  // AVIF. The tiny `*_mt.worker.js` pthread stubs are not variant-selected:
+  // they ride along with the always-precached app shell (see the generated
+  // service-worker codec-asset records).
   if (support.threads) {
-    addWithDeps(entries.avifEncMt);
+    wanted.add('avif:encoder:multi-thread');
+    wanted.add('avif:encoder:multi-thread-script');
   } else {
-    addWithDeps(entries.avifEnc);
+    wanted.add('avif:encoder:single-thread');
   }
 
   // JXL
   if (support.threads && support.simd) {
-    addWithDeps(entries.jxlEncMtSimd);
+    wanted.add('jxl:encoder:multi-thread-simd');
+    wanted.add('jxl:encoder:multi-thread-simd-script');
   } else if (support.threads) {
-    addWithDeps(entries.jxlEncMt);
+    wanted.add('jxl:encoder:multi-thread');
+    wanted.add('jxl:encoder:multi-thread-script');
   } else {
-    addWithDeps(entries.jxlEnc);
+    wanted.add('jxl:encoder:single-thread');
   }
 
-  // OXI
+  // OxiPNG (the rayon worker helpers ship in the app build's workers dir,
+  // which is precached as part of the app shell).
   if (support.threads) {
-    addWithDeps(entries.oxiMt);
+    wanted.add('oxipng:encoder:multi-thread');
   } else {
-    addWithDeps(entries.oxi);
+    wanted.add('oxipng:encoder:single-thread');
   }
 
   // WebP
   if (support.simd) {
-    addWithDeps(entries.webpEncSimd);
+    wanted.add('webp:encoder:simd');
   } else {
-    addWithDeps(entries.webpEnc);
+    wanted.add('webp:encoder:baseline');
   }
 
-  return dedupeUrls(items);
+  return dedupeUrls(
+    records
+      .filter((record) => wanted.has(record.logicalKey))
+      .map((record) => record.url),
+  );
 }
