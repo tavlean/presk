@@ -248,39 +248,64 @@
 
 <style>
   .options-scroller {
-    border-radius: var(--scroller-radius);
+    border-radius: var(--scroller-radius) var(--scroller-radius) 0 0;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    background: var(--off-black);
+    background: transparent;
     flex: 0 1 auto;
     min-height: 0;
+    /* Don't flush the very first header against the card's top edge. */
+    padding-top: 4px;
   }
 
+  /* Section headers: quiet uppercase labels with a per-side accent tick,
+     sticky over the scrolling rows (opaque-ish so rows fade beneath). */
   .options-title {
-    background-color: var(--main-theme-color);
-    color: var(--header-text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
-    padding: 10px var(--horizontal-padding);
-    font-weight: bold;
-    font-size: 1.4rem;
-    border-bottom: 1px solid var(--off-black);
+    padding: 10px var(--horizontal-padding) 8px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    background: linear-gradient(
+      var(--surface-solid) 75%,
+      color-mix(in srgb, var(--surface-solid) 65%, transparent)
+    );
     position: sticky;
     top: 0;
     z-index: 1;
   }
-  .original-image .options-title {
-    background-color: var(--black);
-    color: var(--white);
+  .options-title::before {
+    content: '';
+    flex: none;
+    width: 14px;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--main-theme-color),
+      var(--hot-theme-color)
+    );
+    box-shadow: 0 0 8px var(--main-theme-glow, transparent);
+  }
+  .original-image .options-title::before {
+    background: var(--text-3);
+    box-shadow: none;
   }
 
   .title-and-buttons {
+    flex: 1;
     display: grid;
     grid-template-columns: 1fr;
     grid-auto-columns: max-content;
     grid-auto-flow: column;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.9rem;
   }
 
   .title-button {
@@ -289,9 +314,17 @@
     margin: 0;
     padding: 0;
     cursor: pointer;
+    color: var(--text-3);
+    transition:
+      color 150ms ease,
+      transform 150ms ease;
+  }
+  .title-button:hover {
+    color: var(--text-1);
+    transform: scale(1.08);
   }
   .title-button svg {
-    --size: 20px;
+    --size: 18px;
     display: block;
     width: var(--size);
     height: var(--size);
@@ -300,15 +333,18 @@
     /* Point the filled arrow towards the other side (set per-side in theme). */
     transform: rotate(var(--rotate-copyoverbutton-angle, 0deg));
   }
+  .copy-over-button:hover {
+    transform: rotate(var(--rotate-copyoverbutton-angle, 0deg)) scale(1.08);
+  }
   .copy-over-button svg {
-    fill: var(--header-text-color);
+    fill: currentColor;
   }
   .save-button svg,
   .import-button svg {
-    stroke: var(--header-text-color);
+    stroke: currentColor;
   }
   .title-button:focus-visible {
-    outline: var(--header-text-color) solid 2px;
+    outline: var(--main-theme-color) solid 2px;
     outline-offset: 0.25em;
   }
   .button-opacity {
@@ -316,46 +352,41 @@
     cursor: not-allowed;
   }
   .button-opacity svg {
-    opacity: 0.5;
+    opacity: 0.4;
   }
 
   .no-opts {
     padding: 12px var(--horizontal-padding);
-    color: var(--less-light-gray);
+    color: var(--text-3);
     margin: 0;
   }
 
+  /* Card footer: filesize + delta + download (see Results.svelte). */
   .options-results {
-    /* No horizontal padding: the results span the full panel so the download
-       blob hugs the outer bottom corner (its negative margins overflow the
-       edge), matching the original. */
-    padding: 14px 0 0;
     flex: none;
+    border-top: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.18);
   }
 
   @media (max-width: 760px) {
     .options-scroller {
       /* Grow to fill the fixed-height mobile card (set on .options in the page)
          so both sides match height and the panel scrolls internally rather than
-         letting tall content clip behind the results bubble. */
+         letting tall content clip behind the results footer. */
       flex: 1 1 auto;
     }
 
     .options-title {
-      padding: 8px 10px;
-      font-size: 1rem;
+      padding: 8px var(--horizontal-padding) 6px;
+      font-size: 0.92rem;
     }
 
     .title-and-buttons {
-      gap: 0.5rem;
+      gap: 0.6rem;
     }
 
     .title-button svg {
-      --size: 18px;
-    }
-
-    .options-results {
-      padding-top: 8px;
+      --size: 17px;
     }
   }
 </style>

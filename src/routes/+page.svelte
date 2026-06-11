@@ -83,15 +83,13 @@
       {/if}
 
       <button class="back" onclick={back} title="Back" aria-label="Back">
-        <svg viewBox="0 0 61 53.3">
-          <title>Back</title>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
-            class="back-blob"
-            d="M0 25.6c-.5-7.1 4.1-14.5 10-19.1S23.4.1 32.2 0c8.8 0 19 1.6 24.4 8s5.6 17.8 1.7 27a29.7 29.7 0 01-20.5 18c-8.4 1.5-17.3-2.6-24.5-8S.5 32.6.1 25.6z"
-          />
-          <path
-            class="back-x"
-            d="M41.6 17.1l-2-2.1-8.3 8.2-8.2-8.2-2 2 8.2 8.3-8.3 8.2 2.1 2 8.2-8.1 8.3 8.2 2-2-8.2-8.3z"
+            d="M6.5 6.5l11 11m0-11l-11 11"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
           />
         </svg>
       </button>
@@ -135,8 +133,8 @@
     height: 100%;
   }
   :global(body) {
-    background: #18181b;
-    color: #fff;
+    background: #0c0c0f;
+    color: #f5f5f7;
   }
 
   /* The landing screen itself lives in Intro.svelte. The whole viewport is the
@@ -162,15 +160,17 @@
   /* Full-bleed editor */
   .compress {
     --mobile-options-height: min(44dvh, 360px);
-    --fit-inset-left: 300px;
-    --fit-inset-right: 300px;
+    --panel-width: 312px;
+    --panel-inset: 14px;
+    --fit-inset-left: calc(var(--panel-width) + var(--panel-inset) * 2);
+    --fit-inset-right: calc(var(--panel-width) + var(--panel-inset) * 2);
     --fit-inset-top: 0px;
     --fit-inset-bottom: 0px;
     position: relative;
     width: 100vw;
     height: 100dvh;
     overflow: hidden;
-    background: #1a1a1a;
+    background: var(--bg-0, #0c0c0f);
   }
 
   /* Drag-to-replace feedback, ported from Squoosh's .drop-valid overlay. The
@@ -180,9 +180,9 @@
     content: '';
     position: fixed;
     inset: 10px;
-    border: 2px dashed var(--pink, #ff3385);
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+    border: 2px dashed var(--accent-1, #ff8a5e);
+    background-color: rgba(255, 122, 80, 0.06);
+    border-radius: 16px;
     opacity: 0;
     transform: scale(0.95);
     transition:
@@ -203,87 +203,116 @@
     left: 50%;
     transform: translateX(-50%);
     margin: 0;
-    padding: 6px 14px;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.7);
+    padding: 7px 16px;
+    border-radius: 999px;
+    background: rgba(12, 12, 15, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
     color: #fff;
     z-index: 8;
     pointer-events: none;
     max-width: 70vw;
   }
   .status-pill.error {
-    color: #ff8a8a;
+    color: var(--bad, #ff7d92);
+    border-color: color-mix(in srgb, var(--bad, #ff7d92) 35%, transparent);
     font-weight: 600;
   }
 
-  /* Back button (pink blob X), ported from Compress/style.css */
+  /* Back button: a circular glass control in the top-left corner. */
   .back {
     position: absolute;
     top: 0;
     left: 0;
     margin: 14px;
-    background: none;
-    border: none;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    background: var(--surface, rgba(19, 19, 25, 0.82));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-radius: 50%;
     padding: 0;
     cursor: pointer;
+    color: var(--text-2, #aaa);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
     z-index: 10;
+    transition:
+      color 150ms ease,
+      border-color 150ms ease,
+      transform 150ms ease;
+  }
+  .back:hover {
+    color: var(--text-1, #fff);
+    border-color: var(--border-strong, rgba(255, 255, 255, 0.16));
+    transform: scale(1.06);
+  }
+  .back:focus-visible {
+    outline: 2px solid var(--accent-1, #ff8a5e);
+    outline-offset: 2px;
   }
   .back svg {
-    width: 58px;
-    overflow: visible;
+    width: 18px;
+    height: 18px;
     display: block;
   }
-  .back-blob {
-    fill: var(--hot-pink);
-    opacity: 0.77;
-  }
-  .back-x {
-    fill: var(--white);
-  }
 
-  /* Bottom-anchored option cards, ported from Compress/style.css.
-     Each side is a content-height card in a bottom corner; the canvas shows
-     above and between them. */
+  /* Bottom-anchored option cards: floating glass panels, inset from the
+     viewport edges; the canvas shows above and between them. */
   .options {
     position: absolute;
-    bottom: 0;
-    width: 300px;
-    max-height: calc(100% - 64px);
+    bottom: var(--panel-inset);
+    width: var(--panel-width);
+    max-height: calc(100% - 76px);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    color: #fff;
+    color: var(--text-1, #fff);
     font-size: 1.2rem;
     z-index: 5;
+    background: var(--surface, rgba(19, 19, 25, 0.82));
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-radius: var(--options-radius, 16px);
+    box-shadow: var(--panel-shadow, 0 24px 48px -16px rgba(0, 0, 0, 0.55));
+    overflow: hidden;
   }
   .options-1 {
-    left: 0;
+    left: var(--panel-inset);
   }
   .options-2 {
-    right: 0;
+    right: var(--panel-inset);
   }
 
   @media (max-width: 760px) {
     .compress {
+      --panel-inset: 6px;
       --fit-inset-left: 0px;
       --fit-inset-right: 0px;
     }
 
     :global(.sqush-editor .output) {
-      bottom: var(--mobile-options-height);
+      bottom: calc(var(--mobile-options-height) + var(--panel-inset));
     }
 
     :global(.sqush-editor .controls) {
-      bottom: calc(var(--mobile-options-height) + 8px);
+      bottom: calc(var(--mobile-options-height) + var(--panel-inset) + 8px);
       padding: 0 56px;
       box-sizing: border-box;
     }
 
     .back {
       margin: 8px;
+      width: 36px;
+      height: 36px;
     }
     .back svg {
-      width: 48px;
+      width: 16px;
+      height: 16px;
     }
 
     .status-pill {
@@ -293,21 +322,21 @@
     }
 
     .options {
-      width: 50vw;
+      width: calc(50vw - var(--panel-inset) * 1.5);
       /* Fixed (not just max) height so both bottom cards are the SAME height —
          otherwise the short "Original" side and the tall encoder side bottom-
          align at different heights and read as broken. The inner scroller grows
-         to fill and scrolls (see OptionsPanel), keeping the download bubble
+         to fill and scrolls (see OptionsPanel), keeping the download footer
          pinned at the bottom of each card. */
       height: var(--mobile-options-height);
       max-height: var(--mobile-options-height);
       font-size: 0.95rem;
     }
     .options-1 {
-      left: 0;
+      left: var(--panel-inset);
     }
     .options-2 {
-      right: 0;
+      right: var(--panel-inset);
     }
   }
 
@@ -317,7 +346,7 @@
     }
 
     :global(.sqush-editor .controls) {
-      bottom: calc(var(--mobile-options-height) + 6px);
+      bottom: calc(var(--mobile-options-height) + var(--panel-inset) + 6px);
       padding: 0 48px;
     }
   }
