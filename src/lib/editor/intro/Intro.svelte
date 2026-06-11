@@ -1,9 +1,9 @@
 <script lang="ts">
-  // The landing screen: our logo over a field of soft peach blobs, with a central
-  // "Drop OR Paste" target that opens the file dialog on click. Structure +
-  // blob animation are adapted from Squoosh's prerendered-app/Intro (we keep
-  // only the hero — no demo thumbnails, waves or info sections). The whole page
-  // is already a drop target (see fileDrop in +page.svelte); this adds the
+  // The landing screen: brand lockup + gradient headline over a field of soft
+  // coral blobs, with a central drop/paste/browse target. Structure + blob
+  // animation are adapted from Squoosh's prerendered-app/Intro (we keep only
+  // the hero — no demo thumbnails, waves or info sections). The whole page is
+  // already a drop target (see fileDrop in +page.svelte); this adds the
   // click-to-open and paste affordances.
   import type { Attachment } from 'svelte/attachments';
   import { asset } from '$app/paths';
@@ -21,6 +21,9 @@
     typeof navigator !== 'undefined' &&
     !!navigator.clipboard &&
     'read' in navigator.clipboard;
+
+  /** Codec line-up shown as chips under the drop target. */
+  const formats = ['AVIF', 'WebP', 'JPEG XL', 'PNG', 'JPEG', 'QOI'];
 
   // The hidden file input, captured on mount for the open/change handlers.
   let fileInput: HTMLInputElement | undefined;
@@ -103,7 +106,7 @@
   <div class="main">
     <canvas class="blob-canvas" {@attach blobAnim} aria-hidden="true"></canvas>
 
-    <h1 class="logo-container">
+    <h1 class="logo-container reveal" style="--reveal-order: 0">
       <img
         class="logo"
         src={asset('/logo.webp')}
@@ -115,8 +118,12 @@
       <img class="wordmark" src={asset('/sqush-wordmark.svg')} alt="Sqush" />
     </h1>
 
+    <p class="headline reveal" style="--reveal-order: 1">
+      Squeeze every <em>byte</em>
+    </p>
+
     <div class="load-img" {@attach captureBlobTarget}>
-      <div class="load-img-content">
+      <div class="load-img-content reveal" style="--reveal-order: 2">
         <button
           class="load-btn"
           type="button"
@@ -139,19 +146,42 @@
           </svg>
         </button>
         <div class="load-text">
-          <span class="drop-text">Drop</span> OR
+          <span class="drop-text">Drop</span>, click, or
           {#if supportsClipboardRead}
             <button class="paste-btn" type="button" onclick={onPasteClick}
-              >Paste</button
+              >paste</button
             >
           {:else}
-            Paste
+            paste
           {/if}
         </div>
       </div>
     </div>
 
-    <p class="tagline">
+    <ul class="formats reveal" style="--reveal-order: 3">
+      {#each formats as f (f)}
+        <li class="format-chip">{f}</li>
+      {/each}
+    </ul>
+
+    <p class="tagline reveal" style="--reveal-order: 4">
+      <svg class="lock" viewBox="0 0 16 16" aria-hidden="true">
+        <path
+          d="M4.5 6.5V5a3.5 3.5 0 1 1 7 0v1.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+        <rect
+          x="3"
+          y="6.5"
+          width="10"
+          height="7.5"
+          rx="2"
+          fill="currentColor"
+        />
+      </svg>
       Local-first image compression. Nothing leaves your device.
     </p>
   </div>
@@ -164,6 +194,14 @@
     place-items: center;
     overflow: hidden;
     color: var(--white, #fff);
+    /* A faint warm glow rising behind the hero. */
+    background:
+      radial-gradient(
+        ellipse 70% 55% at 50% 38%,
+        rgba(255, 122, 80, 0.07),
+        transparent 70%
+      ),
+      transparent;
   }
 
   .hide {
@@ -180,16 +218,36 @@
   }
 
   .main {
-    /* The blob colour + softness, read by the canvas animation. Soft peach. */
-    --blob-color: hsl(20, 90%, 80%);
-    --center-blob-opacity: 0.12;
+    /* The blob colour + softness, read by the canvas animation. Brand coral. */
+    --blob-color: hsl(15, 100%, 65%);
+    --center-blob-opacity: 0.085;
     position: relative;
     min-height: 541px;
     display: grid;
-    grid-template-rows: max-content max-content max-content;
+    grid-template-rows: repeat(5, max-content);
     justify-items: center;
     align-content: center;
     padding: 24px;
+  }
+
+  /* Staggered entrance: each hero row fades up once on load. */
+  .reveal {
+    animation: rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--reveal-order, 0) * 90ms);
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      animation-duration: 1ms;
+      animation-delay: 0ms;
+    }
   }
 
   .blob-canvas {
@@ -202,36 +260,63 @@
 
   .logo-container {
     position: relative;
-    margin: 0 0 1rem;
+    margin: 0 0 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 16px;
   }
   .logo {
     display: block;
-    width: 88px;
-    height: 88px;
+    width: 64px;
+    height: 64px;
+    filter: drop-shadow(0 8px 24px rgba(255, 122, 80, 0.25));
   }
   /* Size the wordmark by height so it locks up optically with the icon as one
      horizontal logo. Width follows the SVG's intrinsic aspect ratio. */
   .wordmark {
     display: block;
-    height: 48px;
+    height: 36px;
     width: auto;
-    margin-top: 4px;
+    margin-top: 3px;
+  }
+
+  /* The big promise, in a warm gradient. */
+  .headline {
+    position: relative;
+    margin: 0;
+    /* A hair of inline padding so the italic 'e' overhang isn't clipped by
+       background-clip: text. */
+    padding-inline: 0.08em;
+    font-size: clamp(2.6rem, 6vw, 4.2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    text-align: center;
+    background: linear-gradient(
+      100deg,
+      #fff 30%,
+      hsl(18, 100%, 78%) 65%,
+      hsl(14, 95%, 66%)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .headline em {
+    font-style: italic;
+    font-weight: 700;
   }
 
   .load-img {
     position: relative;
     color: var(--white, #fff);
-    font-style: italic;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
   }
 
   .load-img-content {
     position: relative;
-    --size: 29rem;
+    --size: 24rem;
     width: 90vw;
     max-width: var(--size);
     height: var(--size);
@@ -239,11 +324,15 @@
     grid-template-rows: max-content max-content;
     justify-items: center;
     align-content: center;
-    gap: 0.7rem;
+    gap: 1.1rem;
   }
 
+  /* The browse button: a coral-gradient disc that invites a squeeze. */
   .load-btn {
-    background: none;
+    --size: 7.2rem;
+    width: var(--size);
+    height: var(--size);
+    background: linear-gradient(145deg, hsl(20, 95%, 66%), hsl(8, 88%, 58%));
     border: 0;
     padding: 0;
     margin: 0;
@@ -251,25 +340,41 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    transition: transform 150ms ease;
+    box-shadow:
+      0 12px 40px rgba(255, 100, 60, 0.35),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.35);
+    transition:
+      transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1),
+      box-shadow 200ms ease;
   }
   .load-btn:hover {
-    transform: scale(1.06);
+    transform: scale(1.07);
+    box-shadow:
+      0 16px 52px rgba(255, 100, 60, 0.5),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.35);
+  }
+  .load-btn:active {
+    transform: scale(0.97);
   }
   .load-btn:focus-visible {
     outline: 3px solid var(--white, #fff);
-    outline-offset: 6px;
+    outline-offset: 5px;
   }
   .load-icon {
-    --size: 5rem;
+    --size: 3.4rem;
     width: var(--size);
     height: var(--size);
-    fill: var(--white, #fff);
-    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.05));
+    fill: #fff;
+    filter: drop-shadow(0 2px 4px rgba(120, 30, 0, 0.3));
   }
 
   .load-text {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+  }
+  .drop-text {
+    font-weight: 700;
   }
 
   .paste-btn {
@@ -278,26 +383,58 @@
     padding: 0;
     cursor: pointer;
     text-decoration: underline;
+    text-underline-offset: 3px;
     font: inherit;
+    font-weight: 700;
     color: inherit;
   }
   .paste-btn:hover {
-    opacity: 0.85;
+    color: hsl(20, 100%, 80%);
+  }
+
+  /* The codec line-up. */
+  .formats {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 7px;
+    list-style: none;
+    margin: 1.6rem 0 0;
+    padding: 0;
+  }
+  .format-chip {
+    padding: 4px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
   }
 
   .tagline {
     position: relative;
-    margin: 1.5rem 0 0;
-    font-size: 16px;
-    color: hsl(0, 0%, 56%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 1.4rem 0 0;
+    font-size: 1.15rem;
+    color: rgba(235, 235, 245, 0.45);
+  }
+  .lock {
+    width: 12px;
+    height: 12px;
+    color: rgba(235, 235, 245, 0.45);
   }
 
   @media (min-width: 600px) {
     .main {
-      min-height: 688px;
+      min-height: 660px;
     }
     .load-img-content {
-      --size: 36rem;
+      --size: 30rem;
     }
   }
 </style>

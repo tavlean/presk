@@ -42,10 +42,13 @@
     gap: 8px;
     max-width: 90vw;
     padding: 10px 8px 10px 16px;
-    border-radius: 6px;
-    background: #323232;
-    color: #fff;
-    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.5);
+    border-radius: 999px;
+    background: rgba(24, 24, 30, 0.88);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f5f5f7;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
     z-index: 30;
     font-size: 0.95rem;
   }
@@ -58,16 +61,17 @@
     flex: none;
     background: none;
     border: none;
-    color: var(--blue, #5fb4e4);
+    color: var(--accent-1, #ff8a5e);
     font: inherit;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
     padding: 6px 10px;
-    border-radius: 4px;
+    border-radius: 999px;
     cursor: pointer;
+    transition: background-color 150ms ease;
   }
   .action:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
   }
 </style>
