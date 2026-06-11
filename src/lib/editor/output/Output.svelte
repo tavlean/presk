@@ -372,19 +372,22 @@
     content: '';
     position: absolute;
     inset: 0;
-    /* Dark grey by default — a shade lighter than the option panels
-       (--off-black #1d1d1d) so the interface stays distinct against it rather
-       than blending in. The toggle swaps to a near-white (Tailwind zinc-200).
-       A faint, evenly spaced dot grid sits over the fill (in place of Squoosh's
-       transparency checkerboard); the dots are a neutral grey at low alpha so
-       they read on both the dark and the light fill, which lets only the
-       colour cross-fade on toggle. */
-    background-color: #27272a;
-    background-image: radial-gradient(
-      rgba(113, 113, 122, 0.28) 1px,
-      transparent 1.4px
-    );
-    background-size: 22px 22px;
+    /* The canvas stage: near-black with a soft vignette so the glass panels
+       read as floating above it, and a faint dot grid (in place of Squoosh's
+       transparency checkerboard). The dots are a neutral grey at low alpha so
+       they read on both the dark and the light fill (the toggle swaps to a
+       near-white), which lets only the colour cross-fade on toggle. */
+    background-color: #101014;
+    background-image:
+      radial-gradient(
+        ellipse 120% 90% at 50% 40%,
+        rgba(255, 255, 255, 0.045),
+        transparent 70%
+      ),
+      radial-gradient(rgba(128, 128, 140, 0.3) 1px, transparent 1.4px);
+    background-size:
+      100% 100%,
+      22px 22px;
     background-position: center;
     transition: background-color 500ms ease;
   }
@@ -439,46 +442,60 @@
     display: flex;
     align-items: center;
     box-sizing: border-box;
-    background-color: rgba(29, 29, 29, 0.92);
-    border: 1px solid rgba(0, 0, 0, 0.67);
+    background-color: var(--surface, rgba(19, 19, 25, 0.82));
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
     border-width: 1px 0 1px 1px;
     line-height: 1.1;
     white-space: nowrap;
-    height: 39px;
+    height: 38px;
     padding: 0 12px;
     font-size: 1.2rem;
     cursor: pointer;
-    color: #fff;
+    color: var(--text-2, #bbb);
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
   }
 
   .button {
     justify-content: center;
-    min-width: 39px;
+    min-width: 40px;
     padding: 0 7px;
   }
 
   .icon {
     display: block;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     fill: currentColor;
   }
 
   .button:hover {
-    background: rgba(50, 50, 50, 0.92);
+    background: rgba(45, 45, 54, 0.92);
+    color: var(--text-1, #fff);
   }
 
   .button.active {
-    background: rgba(72, 72, 72, 0.92);
+    background: rgba(62, 62, 74, 0.95);
+    color: var(--text-1, #fff);
+  }
+
+  .button-group {
+    border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   }
 
   .first-button {
-    border-radius: 6px 0 0 6px;
+    border-radius: 999px 0 0 999px;
+    padding-left: 11px;
   }
 
   .last-button {
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 999px 999px 0;
     border-right-width: 1px;
+    padding-right: 11px;
   }
 
   .zoom {
@@ -490,25 +507,26 @@
   }
 
   span.zoom {
-    color: #939393;
-    font-size: 0.8rem;
-    font-weight: 100;
+    color: var(--text-3, #939393);
+    font-size: 0.85rem;
   }
 
   .zoom-value {
     margin: 0 3px 0 0;
     padding: 0 2px;
-    font-size: 1.2rem;
-    letter-spacing: 0.05rem;
-    font-weight: 700;
-    color: #fff;
-    border-bottom: 1px dashed #999;
+    font-size: 1.15rem;
+    letter-spacing: 0.04rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-1, #fff);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
   }
 
   input.zoom {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-1, #fff);
     -moz-appearance: textfield;
     appearance: textfield;
   }

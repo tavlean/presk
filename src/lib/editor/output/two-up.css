@@ -1,13 +1,14 @@
-/* Ported verbatim from src/client/lazy-app/Compress/Output/custom-els/TwoUp/styles.css. */
+/* Ported from src/client/lazy-app/Compress/Output/custom-els/TwoUp/styles.css,
+   restyled for the studio theme: a slim hairline divider with a glass scrubber. */
 two-up {
   display: grid;
   position: relative;
   --split-point: 0;
-  --track-color: rgb(0 0 0 / 0.6);
-  --thumb-background: var(--black);
+  --track-color: rgba(135, 135, 150, 0.55);
+  --thumb-background: rgba(14, 14, 18, 0.85);
   --thumb-color: var(--accent-color);
-  --thumb-size: 62px;
-  --bar-size: 9px;
+  --thumb-size: 48px;
+  --bar-size: 2px;
   --bar-touch-size: 30px;
 }
 
@@ -48,18 +49,27 @@ two-up[legacy-clip-compat] > :not(.two-up-handle) {
   width: var(--thumb-size);
   height: var(--thumb-size);
   background: var(--thumb-background);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
   border-radius: var(--thumb-size);
   color: var(--thumb-color);
   box-sizing: border-box;
   padding: 0 calc(var(--thumb-size) * 0.24);
+  transition: transform 150ms ease;
+}
+
+.two-up-handle:hover .scrubber {
+  transform: translate(-50%, -50%) scale(1.08);
 }
 
 .arrow-left {
-  fill: var(--pink);
+  fill: var(--accent-1, var(--pink));
 }
 
 .arrow-right {
-  fill: var(--blue);
+  fill: var(--accent-2, var(--blue));
 }
 
 two-up[orientation='vertical'] .two-up-handle {
