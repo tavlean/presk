@@ -1,11 +1,23 @@
 # Sqush Status
 
-Last updated: 2026-06-10.
+Last updated: 2026-06-11.
 
 Read this first. Sqush is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
 
 ## Current State
+
+- **UI redesign (2026-06-11): the "studio" theme.** The whole interface was
+  restyled — floating glass option panels, coral/azure per-side accents
+  (replacing the ported Squoosh pink/blue), a results footer with a semantic
+  size-delta badge + "Save" pill (replacing the speech-bubble/blob), glass
+  toolbar + hairline two-up divider, Outfit Variable typography, and a new
+  landing hero (gradient headline, coral browse disc, codec chips). Pure
+  re-skin: no feature/behavior changes; the per-side
+  `--main-theme-color`/`--hot-theme-color` contract and the 12px-root rem
+  sizing are preserved. Deviation logged in
+  [parity-audit.md](parity-audit.md) §A.8; user-guide visual references
+  updated. `npm run check` green; browser-verified desktop + mobile.
 
 - The SvelteKit 2 / Svelte 5 migration is **concluded**. `main` is the
   production app at the repo root (not in `prototypes/sveltekit/`).

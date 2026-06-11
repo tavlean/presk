@@ -1,6 +1,6 @@
 # Editor parity audit & deviation log
 
-Last updated: 2026-06-03.
+Last updated: 2026-06-11.
 
 Goal: the Svelte editor must not **lose** any feature or gain any bug relative
 to the original Preact Squoosh editor. This doc tracks (a) deliberate deviations
@@ -97,6 +97,24 @@ behavior parity is preserved.
    bumped `sqush:settings:v2 → v3` so pre-existing saved side-settings (which
    would otherwise mask the new default) are discarded and the fresh default
    (left = Original, right = WebP) loads.
+
+8. **Full visual redesign — the "studio" theme (2026-06-11).** The editor no
+   longer mimics Squoosh's pink/blue look. New design system in
+   `lib/editor/theme.css`: floating glass option panels (inset, blurred,
+   bordered) instead of edge-flush black cards; per-side accents are now
+   **coral (left, the brand squeeze-orange) / azure (right)** instead of
+   pink/blue; section headers are uppercase labels with an accent tick instead
+   of full-width colored bars; the Results speech-bubble + download blob were
+   replaced by a panel footer (filesize + a semantic green/red delta badge + a
+   "Save" pill button); the back blob is a round glass "X"; the two-up divider
+   is a hairline with a glass scrubber; the zoom/tool buttons are glass pills;
+   typography moved to the self-hosted **Outfit Variable** font (root stays
+   12px rem-based). The landing page gained a gradient headline, a coral
+   browse disc, codec chips, and staggered entrance reveals. **Behavior parity
+   is untouched** — every control, shortcut, state machine, and the
+   `--main-theme-color`/`--hot-theme-color` per-side variable contract remain
+   (only the resolved values changed). `npm run check` green; verified in the
+   browser at desktop + mobile widths.
 
 > NOTE (import gotcha): shared `.svelte.ts` stores must be imported by the SAME
 > specifier everywhere (we use `$lib/editor/snackbar-store.svelte`). A mix of

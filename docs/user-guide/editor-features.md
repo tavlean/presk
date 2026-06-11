@@ -6,14 +6,14 @@
 
 Sqush is an in-browser image compressor — you pick an image, it stays on your device, and you tune how it is saved to make the file smaller. The editor shows a single **two-up** view: the same picture split down the middle, with your _original_ on one side and the _compressed result_ on the other, so you can judge the trade-off between quality and file size before you download. This page covers the interactive parts of that view — the compare slider, the zoom/rotate/inspect controls, and the per-side settings actions in each panel's header. (The encoder-specific quality settings live in their own format docs.)
 
-The screen has three parts: the big image area in the middle, and two settings panels pinned to the bottom-left and bottom-right corners. The **left panel and the left half of the image are "side 0"** (themed pink, the _before_ by default), and the **right panel and the right half are "side 1"** (themed blue, the _after_). By default the left side is the untouched **Original** and the right side is **WebP**.
+The screen has three parts: the big image area in the middle, and two settings panels pinned to the bottom-left and bottom-right corners. The **left panel and the left half of the image are "side 0"** (accented coral, the _before_ by default), and the **right panel and the right half are "side 1"** (accented azure, the _after_). By default the left side is the untouched **Original** and the right side is **WebP**.
 
 ## Controls / Settings
 
 ### Before/after compare slider (two-up)
 
 - **What it does:** Splits the image area in two. One side shows the left panel's output, the other shows the right panel's output, clipped at a movable split line. Drag the split line to wipe between _before_ and _after_ and spot compression artifacts.
-- **How to use it:** Grab the round handle on the split line and drag. On wide screens (viewport wider than 760px) the split is **horizontal** (left/right, drag sideways); on narrow/mobile screens (760px or less) it flips to **vertical** (top/bottom, drag up and down). The handle shows a pink left-arrow and a blue right-arrow so you can tell which side is which. The split position is kept as a _proportion_, so it stays in the same relative spot if you resize the window. There is also a hidden keyboard shortcut: with the editor focused (and not while typing in a text field), press **1**, **2**, or **3** to snap the split to the start, middle, or end.
+- **How to use it:** Grab the round handle on the split line and drag. On wide screens (viewport wider than 760px) the split is **horizontal** (left/right, drag sideways); on narrow/mobile screens (760px or less) it flips to **vertical** (top/bottom, drag up and down). The handle shows a coral left-arrow and an azure right-arrow so you can tell which side is which. The split position is kept as a _proportion_, so it stays in the same relative spot if you resize the window. There is also a hidden keyboard shortcut: with the editor focused (and not while typing in a text field), press **1**, **2**, or **3** to snap the split to the start, middle, or end.
 - **How to choose:** Put the split roughly in the middle to compare the two sides side-by-side, or push it fully to one end to view a single side in isolation. Drag it slowly across a detailed area (text, skin, gradients) to watch where compression starts to hurt.
 - **Recommended starting point:** **Middle** — then drag across the busiest part of the image to check quality.
 
@@ -69,21 +69,21 @@ The screen has three parts: the big image area in the middle, and two settings p
 
 ### Download
 
-- **What it does:** Downloads that side's result. The blob-shaped button is a real download link pointing at the freshly encoded file.
-- **Range & default:** One download button per side, inside the results bubble. It is **disabled** (icon hidden, no link) while that side is still encoding or before its first result exists. A spinner appears over it while encoding — but only after a short delay, so quick encodes don't flash it.
+- **What it does:** Downloads that side's result. The **Save** pill button in the panel footer is a real download link pointing at the freshly encoded file.
+- **Range & default:** One download button per side, in the panel footer next to the result size and the size-change badge. It is **disabled** (dimmed, no link) while that side is still encoding or before its first result exists. A spinner appears over it while encoding — but only after a short delay, so quick encodes don't flash it.
 - **How to choose:** The filename uses your original name with the new format's extension swapped in (for example `photo.webp`). The **Original** side downloads the untouched original file under its original name.
 - **Recommended starting point:** Compare both sides first, then download the side with the best size/quality balance for you.
 
 ### Drag-and-drop to load or replace
 
 - **What it does:** Lets you drop an image file **anywhere on the page** to load it — or, if the editor is already open, to replace the current image. This works because the whole app is a drop zone; the browser's default "open the file in a new tab" behaviour is suppressed.
-- **Range & default:** Always active, on the intro screen and inside the editor. While you drag a file over the window, a pink dashed full-page overlay fades in to show it's a valid drop target. Drags that carry only text or links (no actual files) are ignored — no overlay, no interference. A dropped file whose type isn't an image is rejected with a "…doesn't look like an image." message and not loaded.
+- **Range & default:** Always active, on the intro screen and inside the editor. While you drag a file over the window, a coral dashed full-page overlay fades in to show it's a valid drop target. Drags that carry only text or links (no actual files) are ignored — no overlay, no interference. A dropped file whose type isn't an image is rejected with a "…doesn't look like an image." message and not loaded.
 - **How to choose:** Drag from your file manager straight onto the page — faster than the "Select an image" button. Drop a new file mid-edit to swap images while keeping the editor open.
 - **Recommended starting point:** Use it as the quick way to start or switch images.
 
 ### Back
 
-- **What it does:** Closes the editor and returns to the intro/landing screen. It's the pink-blob "X" button in the top-left.
+- **What it does:** Closes the editor and returns to the intro/landing screen. It's the round "X" button in the top-left.
 - **Range & default:** Action button, shown while an image is open. It uses the browser's history, so the browser **Back button** (or a back-swipe gesture) does the same thing — returns you to the intro screen.
 - **How to choose:** Use it to drop the current image and start over.
 - **Recommended starting point:** Use when you're done with the current image.
