@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Ported from src/client/lazy-app/Compress/Options/Select — a styled native
-  // select with a custom arrow. `value` is bindable; children supply <option>s.
+  // A styled native select with a custom chevron. `value` is bindable;
+  // children supply <option>s. `large` is the prominent format picker.
   import type { Snippet } from 'svelte';
 
   interface Props {
@@ -48,8 +48,8 @@
   }
 
   .builtin-select {
-    background: var(--black);
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 8px;
     font: inherit;
     padding: 7px 0;
     padding-right: 25px;
@@ -57,19 +57,38 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border: none;
-    color: #fff;
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    color: var(--text-1, #fff);
     width: 100%;
+    cursor: pointer;
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease;
+  }
+
+  .builtin-select:hover {
+    border-color: var(--border-strong, rgba(255, 255, 255, 0.16));
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .builtin-select:focus-visible {
+    outline: none;
+    border-color: var(--main-theme-color);
   }
 
   .arrow {
     position: absolute;
-    right: 8px;
+    right: 9px;
     top: 50%;
     transform: translateY(-50%);
-    fill: #fff;
+    fill: var(--text-2, #aaa);
     width: 10px;
     pointer-events: none;
+    transition: fill 150ms ease;
+  }
+
+  .select:hover .arrow {
+    fill: var(--text-1, #fff);
   }
 
   .arrow svg {
@@ -77,9 +96,20 @@
     width: 100%;
   }
 
+  /* The format picker: bolder, accent-edged. */
   .large {
-    padding: 10px 35px 10px 10px;
-    background: var(--dark-gray);
+    padding: 10px 35px 10px 12px;
+    font-weight: 600;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03))
+        padding-box,
+      rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+  }
+
+  .large:focus-visible,
+  .large:hover {
+    box-shadow: 0 0 14px var(--main-theme-glow, transparent);
   }
 
   .large + .arrow {

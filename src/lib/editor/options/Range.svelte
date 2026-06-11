@@ -1,7 +1,6 @@
 <script lang="ts">
-  // Ported from src/client/lazy-app/Compress/Options/Range + its <range-input>
-  // custom element. A native range input (transparent) drives a styled track,
-  // thumb, and a value bubble that appears while dragging; a number input mirrors
+  // A native range input (transparent) drives a styled track, thumb, and a
+  // floating value chip that appears while dragging; a number input mirrors
   // the value. `value` is bindable; label text comes from children.
   import type { Snippet } from 'svelte';
 
@@ -75,7 +74,7 @@
       class="range-input"
       class:active
       class:disabled
-      style="--value-percent: {percent}%; --value-width: {displayValue.length}"
+      style="--value-percent: {percent}%"
     >
       <input
         class="input"
@@ -91,14 +90,7 @@
       />
       <div class="thumb-wrapper">
         <div class="thumb"></div>
-        <div class="value-display">
-          <svg width="32" height="62" aria-hidden="true">
-            <path
-              d="M27.3 27.3C25 29.6 17 35.8 17 43v3c0 3 2.5 5 3.2 5.8a6 6 0 1 1-8.5 0C12.6 51 15 49 15 46v-3c0-7.2-8-13.4-10.3-15.7A16 16 0 0 1 16 0a16 16 0 0 1 11.3 27.3z"
-            />
-          </svg>
-          <span>{displayValue}</span>
-        </div>
+        <div class="value-display">{displayValue}</div>
       </div>
     </div>
   </div>
@@ -120,10 +112,17 @@
     z-index: 0;
     display: grid;
     grid-template-columns: 1fr auto;
+    align-items: center;
   }
 
   .label-text {
-    color: #fff;
+    color: var(--text-2, #aaa);
+    transition: color 150ms ease;
+  }
+
+  .range:hover .label-text,
+  .range:focus-within .label-text {
+    color: var(--text-1, #fff);
   }
 
   .range-wc-container {
@@ -136,28 +135,33 @@
   .range-input {
     position: relative;
     display: flex;
-    height: 18px;
+    height: 22px;
     width: 100%;
     margin: 2px 0;
     font: inherit;
-    line-height: 16px;
+    align-items: center;
     overflow: visible;
   }
 
+  /* Track: a slim rail with an accent-gradient fill up to the value. */
   .range-input::before {
     content: '';
     display: block;
     position: absolute;
-    top: 8px;
+    top: 50%;
+    transform: translateY(-50%);
     left: 0;
     width: 100%;
-    height: 2px;
-    border-radius: 1px;
-    background: linear-gradient(
-        var(--main-theme-color),
-        var(--main-theme-color)
-      )
-      0 / var(--value-percent, 0%) 100% no-repeat var(--medium-light-gray);
+    height: 4px;
+    border-radius: 2px;
+    background:
+      linear-gradient(
+          90deg,
+          var(--hot-theme-color, #888),
+          var(--main-theme-color, #aaa)
+        )
+        0 / var(--value-percent, 0%) 100% no-repeat,
+      var(--medium-light-gray, rgba(255, 255, 255, 0.18));
   }
 
   .input {
@@ -167,84 +171,85 @@
     margin: 0;
     opacity: 0;
     cursor: pointer;
+    height: 100%;
   }
 
   .thumb {
     pointer-events: none;
     position: absolute;
-    bottom: 3px;
+    top: 50%;
     left: 0;
-    margin-left: -6px;
-    background: var(--main-theme-color);
+    width: 14px;
+    height: 14px;
+    margin-left: -7px;
+    transform: translateY(-50%);
+    background: var(--main-theme-color, #fff);
+    border: 2.5px solid #fff;
+    box-sizing: border-box;
     border-radius: 50%;
-    width: 12px;
-    height: 12px;
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.45),
+      0 0 0 0 var(--main-theme-glow, transparent);
+    transition:
+      box-shadow 200ms ease,
+      transform 150ms ease;
   }
 
-  .range-input:focus-within .thumb {
-    outline: white solid 2px;
+  .range-input:hover .thumb {
+    transform: translateY(-50%) scale(1.12);
+  }
+
+  .range-input:focus-within .thumb,
+  .range-input.active .thumb {
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.45),
+      0 0 0 5px var(--main-theme-glow, rgba(255, 255, 255, 0.2));
   }
 
   .thumb-wrapper {
+    /* Spans the thumb's travel range; translateX(%) is relative to this
+       element's own width, so the thumb lands exactly under the native input's
+       thumb position. */
     position: absolute;
-    left: 6px;
-    right: 6px;
+    left: 7px;
+    right: 7px;
+    top: 0;
     bottom: 0;
-    height: 0;
     overflow: visible;
-    transform: translate(var(--value-percent, 0%), 0);
+    transform: translateX(var(--value-percent, 0%));
     pointer-events: none;
   }
 
+  /* Floating value chip, shown while dragging. */
   .value-display {
     position: absolute;
-    box-sizing: border-box;
+    bottom: calc(100% - 2px);
     left: 0;
-    bottom: 3px;
-    width: 32px;
-    height: 62px;
-    text-align: center;
-    padding: 8px 3px 0;
-    margin: 0 0 0 -16px;
-    transform-origin: 50% 90%;
-    opacity: 0.0001;
-    transform: scale(0.2);
-    color: #fff;
-    font: inherit;
-    font-size: calc(100% - var(--value-width, 3) / 5 * 0.2em);
-    text-overflow: clip;
-    text-shadow: 0 -0.5px 0 rgba(0, 0, 0, 0.4);
-    transition: all 200ms ease;
-    transition-property: opacity, transform;
-    will-change: transform;
+    transform: translateX(-50%) translateY(4px) scale(0.8);
+    transform-origin: 50% 100%;
+    opacity: 0;
+    padding: 3px 8px;
+    border-radius: 7px;
+    background: var(--main-theme-color, #444);
+    color: #16161c;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    transition:
+      opacity 180ms ease,
+      transform 180ms cubic-bezier(0.34, 1.4, 0.64, 1);
     pointer-events: none;
-    overflow: hidden;
-  }
-
-  .value-display > svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    fill: var(--main-theme-color);
-  }
-
-  .value-display > span {
-    position: relative;
   }
 
   .range-input.active .value-display {
     opacity: 1;
-    transform: scale(1);
-  }
-
-  .range-input.active .thumb {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    transform: translateX(-50%) translateY(0) scale(1);
   }
 
   .range-input.disabled {
     filter: grayscale(1);
+    opacity: 0.5;
     cursor: default;
   }
 
@@ -253,9 +258,12 @@
     grid-column: 2 / 3;
     text-align: right;
     background: transparent;
-    color: inherit;
+    color: var(--text-1, #fff);
     font: inherit;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
     border: none;
+    border-radius: 6px;
     padding: 2px 5px;
     box-sizing: border-box;
     text-decoration: underline;
@@ -267,11 +275,14 @@
     left: 5px;
     -moz-appearance: textfield;
     appearance: textfield;
+    transition: background-color 150ms ease;
   }
 
   .text-input:focus {
-    background: #fff;
-    color: #000;
+    outline: none;
+    background: rgba(0, 0, 0, 0.45);
+    text-decoration-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--main-theme-color);
   }
 
   .text-input::-webkit-outer-spin-button,

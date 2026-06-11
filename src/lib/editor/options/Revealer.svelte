@@ -1,6 +1,5 @@
 <script lang="ts">
-  // Ported from src/client/lazy-app/Compress/Options/Revealer — a checkbox shown
-  // as a rotating arrow, used to reveal "Advanced settings".
+  // A checkbox shown as a rotating chevron, used to reveal "Advanced settings".
   interface Props {
     checked?: boolean;
     name?: string;
@@ -30,8 +29,8 @@
   .arrow {
     width: 10px;
     height: 10px;
-    fill: var(--white);
-    transition: transform 200ms ease;
+    fill: currentColor;
+    transition: transform 250ms cubic-bezier(0.34, 1.3, 0.64, 1);
     transform: rotate(-90deg);
   }
 

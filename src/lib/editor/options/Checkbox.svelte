@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Ported from src/client/lazy-app/Compress/Options/Checkbox. A real (hidden)
-  // checkbox drives an icon-rendered box, with a focus ripple.
+  // A real (hidden) checkbox drives a rendered box: rounded square that fills
+  // with the side accent and draws a check when on, with a focus ripple.
   interface Props {
     checked?: boolean;
     disabled?: boolean;
@@ -17,35 +17,18 @@
 </script>
 
 <div class="checkbox">
-  {#if checked}
-    <svg
-      class="icon"
-      class:checked={!disabled}
-      class:disabled
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
+  <span class="box" class:checked class:disabled aria-hidden="true">
+    <svg class="tick" viewBox="0 0 12 10">
       <path
-        d="M21.3 0H2.7A2.7 2.7 0 0 0 0 2.7v18.6A2.7 2.7 0 0 0 2.7 24h18.6a2.7 2.7 0 0 0 2.7-2.7V2.7A2.7 2.7 0 0 0 21.3 0zm-12 18.7L2.7 12l1.8-1.9L9.3 15 19.5 4.8l1.8 1.9z"
+        d="M1 5.5L4.5 9L11 1.5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
       />
     </svg>
-  {:else}
-    <svg
-      class="icon"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        d="M21.3 2.7v18.6H2.7V2.7h18.6m0-2.7H2.7A2.7 2.7 0 0 0 0 2.7v18.6A2.7 2.7 0 0 0 2.7 24h18.6a2.7 2.7 0 0 0 2.7-2.7V2.7A2.7 2.7 0 0 0 21.3 0z"
-      />
-    </svg>
-  {/if}
+  </span>
   <input
     class="real-checkbox"
     type="checkbox"
@@ -89,17 +72,46 @@
     pointer-events: none;
   }
 
-  .icon {
-    display: block;
+  .box {
+    position: relative;
+    display: grid;
+    place-items: center;
     width: var(--size);
     height: var(--size);
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    background: rgba(0, 0, 0, 0.25);
+    color: #16161c;
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease,
+      box-shadow 200ms ease;
   }
 
-  .checked {
-    fill: var(--main-theme-color);
+  .box.checked {
+    background: linear-gradient(
+      135deg,
+      var(--main-theme-color),
+      var(--hot-theme-color)
+    );
+    border-color: transparent;
+    box-shadow: 0 0 10px var(--main-theme-glow, transparent);
   }
 
-  .disabled {
-    fill: var(--dark-gray);
+  .box.disabled {
+    opacity: 0.45;
+  }
+
+  .tick {
+    width: 10px;
+    height: 9px;
+    stroke-dasharray: 16;
+    stroke-dashoffset: 16;
+    transition: stroke-dashoffset 220ms ease 60ms;
+  }
+
+  .box.checked .tick {
+    stroke-dashoffset: 0;
   }
 </style>
