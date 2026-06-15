@@ -289,7 +289,7 @@
        background-clip: text. */
     padding-inline: 0.08em;
     font-size: clamp(2.6rem, 6vw, 4.2rem);
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.1;
     text-align: center;

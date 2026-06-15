@@ -49,8 +49,5 @@
     ],
     "singleQuote": true,
     "trailingComma": "all"
-  },
-  "dependencies": {
-    "@fontsource-variable/outfit": "^5.2.8"
   }
 }
