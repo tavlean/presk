@@ -81,33 +81,6 @@ export function compressImage(
         workerBridge,
         encoderMap.avif,
       );
-    case 'browserGIF':
-      return compressImageWithEncoder(
-        signal,
-        image,
-        encodeData.options,
-        sourceFilename,
-        workerBridge,
-        encoderMap.browserGIF,
-      );
-    case 'browserJPEG':
-      return compressImageWithEncoder(
-        signal,
-        image,
-        encodeData.options,
-        sourceFilename,
-        workerBridge,
-        encoderMap.browserJPEG,
-      );
-    case 'browserPNG':
-      return compressImageWithEncoder(
-        signal,
-        image,
-        encodeData.options,
-        sourceFilename,
-        workerBridge,
-        encoderMap.browserPNG,
-      );
     case 'jxl':
       return compressImageWithEncoder(
         signal,

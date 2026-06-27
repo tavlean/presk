@@ -50,8 +50,6 @@ At minimum before launch:
 - AVIF encode/download.
 - JPEG XL encode/download if browser/runtime permits the preview.
 - MozJPEG and OxiPNG encode/download.
-- QOI encode/download.
-- Browser JPEG/PNG feature detection and encode.
 
 ## Saved Settings
 

@@ -15,11 +15,8 @@ test('WASM resize outputs the requested size and a valid image', async ({
   await page.setInputFiles('input[type=file]', photo);
 
   const panel = page.locator('.options-2');
-  // Lossless PNG preserves the resized pixels exactly.
-  await panel
-    .locator('select.builtin-select')
-    .first()
-    .selectOption('browserPNG');
+  // Lossless PNG (OxiPNG) preserves the resized pixels exactly.
+  await panel.locator('select.builtin-select').first().selectOption('oxiPNG');
 
   const setup = await page.evaluate(async () => {
     const root = document.querySelector('.options-2')!;

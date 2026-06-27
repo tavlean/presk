@@ -101,7 +101,7 @@ generated from exactly these inputs.
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `codecs/*/*_node_*` | Node-targeted builds used by codec examples or package tests. They are not imported by browser features, but may be useful when rebuilding/verifying codecs. |
 
-The dead `codecs/png/` (Rust `image-png` wrapper) and `codecs/visdif/` (butteraugli visual-diff utility) directories were deleted in the codec-cleanup pass; the active PNG paths are browser PNG (encode) and OxiPNG (optimize), and `visdif` was never wired as an app feature.
+The dead `codecs/png/` (Rust `image-png` wrapper) and `codecs/visdif/` (butteraugli visual-diff utility) directories were deleted in the codec-cleanup pass; the active PNG path is OxiPNG (the canvas browser-PNG encoder was itself removed on 2026-06-27), and `visdif` was never wired as an app feature.
 
 ## Current product direction
 

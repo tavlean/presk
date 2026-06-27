@@ -24,7 +24,7 @@ Sqush depends on these capabilities:
 - WebAssembly for codecs and processors;
 - Web Workers for keeping heavy optimization work off the UI thread;
 - service workers and Cache Storage for offline/PWA behavior;
-- Canvas and ImageData for preview, resize, and browser encoders;
+- Canvas and ImageData for preview and resize;
 - Blob, File, object URLs, local file input, paste, drag/drop, and downloads;
 - dynamic module loading for the current SvelteKit/Vite output;
 - optional WebAssembly SIMD and threads for faster codec paths.

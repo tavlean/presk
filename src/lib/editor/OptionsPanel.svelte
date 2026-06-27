@@ -15,7 +15,6 @@
   import JxlOptions from './options/JxlOptions.svelte';
   import MozjpegOptions from './options/MozjpegOptions.svelte';
   import OxipngOptions from './options/OxipngOptions.svelte';
-  import BrowserJpegOptions from './options/BrowserJpegOptions.svelte';
   import ResizeOptions from './options/ResizeOptions.svelte';
   import QuantizeOptions from './options/QuantizeOptions.svelte';
   import Results from './Results.svelte';
@@ -210,10 +209,6 @@
           />
         {:else if format === 'oxiPNG'}
           <OxipngOptions options={options as unknown as OxipngEncodeOptions} />
-        {:else if format === 'browserJPEG'}
-          <BrowserJpegOptions
-            options={options as unknown as { quality: number }}
-          />
         {:else if typeof options.quality === 'number'}
           <OptionRow>
             <Range

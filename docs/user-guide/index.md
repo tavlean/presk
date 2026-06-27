@@ -38,7 +38,6 @@ Each output format has its own page covering what it's good at and what every op
 | [JPEG XL (beta)](./formats/jpeg-xl.md)                  | High-quality, flexible format with a lossless mode; limited browser support today.             |
 | [MozJPEG](./formats/mozjpeg.md)                         | A finely tuned JPEG encoder — maximum compatibility for photographs.                           |
 | [OxiPNG](./formats/oxipng.md)                           | Lossless PNG optimisation for graphics, screenshots, and transparency.                         |
-| [Simple & utility formats](./formats/simple-formats.md) | QOI and the browser's built-in JPEG / PNG / GIF encoders.                                      |
 
 ## Editing
 

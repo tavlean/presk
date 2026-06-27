@@ -192,7 +192,7 @@ The root app preserves the existing single-image optimizer:
 - saved per-side encoder settings;
 - static output through SvelteKit adapter-static;
 - SvelteKit-native service worker and codec/WASM precache;
-- WebP, AVIF, JPEG XL, MozJPEG, OxiPNG, QOI, and browser encoders.
+- WebP, AVIF, JPEG XL, MozJPEG, and OxiPNG.
 
 WebP remains the first production focus, AVIF second, JPEG XL advanced. **WebP 2
 has been removed** (branch commit `962bdd0f`) — the codec audit confirmed it is a

@@ -130,9 +130,10 @@ version currency (which to upgrade, urgency, effort). Product focus:
 - **WebP 2**: **remove** (reverses the old "keep for parity" stance). Permanently
   experimental, no browser decodes it, non-final bitstream. Staged removal in
   [codec-surface-cleanup.md](codec-surface-cleanup.md).
-- Browser JPEG/PNG/GIF, MozJPEG, OxiPNG, and QOI: keep available; decide later
-  whether they are visible, advanced, or hidden. The dead `codecs/png/` dir has
-  been deleted (see codec-surface-cleanup).
+- MozJPEG and OxiPNG: shipping output formats. The browser canvas encoders
+  (JPEG/PNG/GIF) and QOI-as-output were removed from the picker on 2026-06-27 —
+  QOI's decoder stays for import — and the dead `codecs/png/` dir was deleted
+  (see [codec-surface-cleanup.md](codec-surface-cleanup.md)).
 - **jpegli** (new): a libjxl-based encoder that outputs standard JPEG at ~30%
   better compression — the highest-ROI *new* codec to add. Needs a custom WASM
   build; tracked as investigate in the audit.

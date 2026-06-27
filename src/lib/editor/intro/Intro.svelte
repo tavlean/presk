@@ -22,8 +22,8 @@
     !!navigator.clipboard &&
     'read' in navigator.clipboard;
 
-  /** Codec line-up shown as chips under the drop target. */
-  const formats = ['AVIF', 'WebP', 'JPEG XL', 'PNG', 'JPEG', 'QOI'];
+  /** Output codec line-up shown as chips under the drop target. */
+  const formats = ['AVIF', 'WebP', 'JPEG XL', 'PNG', 'JPEG'];
 
   // The hidden file input, captured on mount for the open/change handlers.
   let fileInput: HTMLInputElement | undefined;

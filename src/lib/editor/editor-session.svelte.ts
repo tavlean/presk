@@ -1,14 +1,10 @@
 import { untrack } from 'svelte';
-import { SvelteSet } from 'svelte/reactivity';
 import {
-  BROWSER_ENCODER_IDS,
   compressFile,
   getDefaultOptions,
-  getSupportedFormatIds,
   IDENTITY,
   OUTPUT_FORMATS,
   type CompressOutcome,
-  type OutputFormat,
   type SideFormat,
 } from '$lib/compress';
 import type { ResizeOptionsState } from './options/processor-types';
@@ -202,17 +198,6 @@ export class EditorSession {
     this.statuses[1] === 'working' && this.spinnerDelayPassed[1],
   ] as [boolean, boolean]);
   errors = $state<[string, string]>(['', '']);
-  // Seed with the always-available (WASM) encoders only. The browser-native
-  // ones (canvas.toBlob — GIF is usually unsupported) are added once
-  // loadSupportedFormats() probes them, so an unsupported encoder never appears
-  // in the dropdown, even briefly. Matches the original's "show only supported".
-  supportedFormatIds = $state(
-    new SvelteSet<OutputFormat>(
-      OUTPUT_FORMATS.filter(
-        (format) => !BROWSER_ENCODER_IDS.includes(format.id),
-      ).map((format) => format.id),
-    ),
-  );
   canImport = $state<[boolean, boolean]>([hasSavedSide(0), hasSavedSide(1)]);
 
   private lastUrls: [string | null, string | null] = [null, null];
@@ -244,9 +229,8 @@ export class EditorSession {
 
   isVectorSource = $derived(this.file?.type === 'image/svg+xml');
 
-  availableFormats = $derived(
-    OUTPUT_FORMATS.filter((format) => this.supportedFormatIds.has(format.id)),
-  );
+  // Every encoder is an always-available WASM codec, so the list is static.
+  availableFormats = OUTPUT_FORMATS;
 
   leftContain = $derived(this.sideContains(0));
   rightContain = $derived(this.sideContains(1));
@@ -269,10 +253,6 @@ export class EditorSession {
         $effect(() => this.updateSpinner(index));
       }
     });
-  }
-
-  async loadSupportedFormats(): Promise<void> {
-    this.supportedFormatIds = new SvelteSet(await getSupportedFormatIds());
   }
 
   encodeSide(index: SideIndex): (() => void) | void {

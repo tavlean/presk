@@ -22,10 +22,6 @@
       console.error('Service worker registration failed', error);
     });
 
-    session.loadSupportedFormats().catch((error: unknown) => {
-      console.error('Format support detection failed', error);
-    });
-
     return () => session.dispose();
   });
 

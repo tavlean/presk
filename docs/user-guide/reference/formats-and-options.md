@@ -3,8 +3,7 @@
 Code-derived inventory of every output format and every encoder option exposed
 in the Sqush editor. Sources:
 
-- `src/lib/compress.ts` — `OUTPUT_FORMATS`, the `identity`/"Original" pseudo-format,
-  browser-encoder feature detection (`getSupportedFormatIds`, `canvas.toBlob`).
+- `src/lib/compress.ts` — `OUTPUT_FORMATS` and the `identity`/"Original" pseudo-format.
 - `src/lib/editor/OptionsPanel.svelte` — per-format panel dispatch + the generic
   quality-slider / "no adjustable options" fallback.
 - `src/lib/editor/options/*Options.svelte` — the per-encoder panels.
@@ -36,19 +35,13 @@ Notes that apply throughout:
 | JPEG XL (beta)     | `jxl`         | `jxl`      | `image/jxl`   | both               | yes                                       |
 | MozJPEG            | `mozJPEG`     | `jpg`      | `image/jpeg`  | lossy              | yes                                       |
 | OxiPNG             | `oxiPNG`      | `png`      | `image/png`   | lossless           | yes                                       |
-| QOI                | `qoi`         | `qoi`      | `image/qoi`   | lossless           | **no** (falls to "no adjustable options") |
-| Browser JPEG       | `browserJPEG` | `jpg`      | `image/jpeg`  | lossy              | yes (quality only)                        |
-| Browser PNG        | `browserPNG`  | `png`      | `image/png`   | lossless           | **no** ("no adjustable options")          |
-| Browser GIF        | `browserGIF`  | `gif`      | `image/gif`   | lossless (palette) | **no** ("no adjustable options")          |
 
-- The label/ext for `jxl`, `browserJPEG`, `browserPNG`, `browserGIF` are read
-  from `encoderMap.<id>.meta` so they stay in sync (hence "JPEG XL (beta)",
-  "Browser JPEG/PNG/GIF"). `webP`, `avif`, `mozJPEG`, `oxiPNG`,
-  `qoi` use hard-coded labels in `OUTPUT_FORMATS`.
-- **Browser encoders are feature-detected** via `canvas.toBlob(mime)` in
-  `getSupportedFormatIds()`; a side is offered only if the canvas actually returns
-  that MIME type (browsers fall back to PNG for unsupported types, which is filtered
-  out by checking `blob.type === mime`). `browserGIF` is usually unavailable.
+- The label/ext for `jxl` are read from `encoderMap.jxl.meta` so they stay in
+  sync (hence "JPEG XL (beta)"). `webP`, `avif`, `mozJPEG`, and `oxiPNG` use
+  hard-coded labels in `OUTPUT_FORMATS`.
+- **Every output format is an always-available WASM codec** — there is no runtime
+  feature detection. (QOI and the canvas/browser encoders were removed from the
+  picker on 2026-06-27; QOI's decoder remains for import.)
 - The format `<select>` always prepends an **"Original Image (<filename>)"** entry
   whose value is `identity`.
 
@@ -245,51 +238,18 @@ No hidden options — the `EncodeOptions` interface is exactly `{ level, interla
 
 ---
 
-## QOI (`qoi`)
-
-Lossless. `EncodeOptions = {}` and `defaultOptions = {}`. No panel; not in
-`OptionsPanel.svelte`'s dispatch and has no `quality` key, so it falls through to:
-**"QOI has no adjustable options."** Nothing configurable by design.
-
----
-
-## Browser JPEG (`browserJPEG`)
-
-Panel: `BrowserJpegOptions.svelte`. Canvas-based (`canvas.toBlob('image/jpeg', q)`),
-main thread. Single field on a **0–1** scale (distinct from WASM encoders' 0–100).
-
-| UI label | key       | control | range          | default |
-| -------- | --------- | ------- | -------------- | ------- |
-| Quality  | `quality` | range   | 0–1, step 0.01 | 0.75    |
-
-Feature-detected at runtime; only offered if `canvas.toBlob('image/jpeg')` works.
-
----
-
-## Browser PNG (`browserPNG`)
-
-Canvas-based (`canvas.toBlob('image/png')`). `EncodeOptions = {}`, no panel, no
-`quality` key → **"Browser PNG has no adjustable options."** Lossless. Feature-detected.
-
----
-
-## Browser GIF (`browserGIF`)
-
-Canvas-based (`canvas.toBlob('image/gif')`). `EncodeOptions = {}`, no panel, no
-`quality` key → **"Browser GIF has no adjustable options."** Feature-detected and
-**usually unavailable** (most browsers don't support GIF in `toBlob`, so it is filtered
-out of the offered list).
-
----
-
 ## Generic fallback in `OptionsPanel.svelte`
 
 For any non-`identity` format with no dedicated panel branch:
 
 - If the options object has a numeric `quality` key → a generic **Quality** range
   (min 0, max 100, step 0.1) bound to `options.quality`.
-- Otherwise → `"<label> has no adjustable options."` (this is what QOI / Browser PNG /
-  Browser GIF hit today).
+- Otherwise → `"<label> has no adjustable options."`
+
+No shipped format hits this fallback today — all five output formats have a
+dedicated options panel. It remains as a safety net for a future encoder added
+without one. (QOI, which previously hit the "no adjustable options" branch, was
+removed from the picker on 2026-06-27; its decoder stays for import.)
 
 ## Editor-side ("Edit") controls shared by every real encoder
 
