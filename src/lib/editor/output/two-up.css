@@ -1,13 +1,14 @@
-/* Ported verbatim from src/client/lazy-app/Compress/Output/custom-els/TwoUp/styles.css. */
+/* Ported from src/client/lazy-app/Compress/Output/custom-els/TwoUp/styles.css;
+   divider + scrubber restyled (hairline bar, frosted round handle). */
 two-up {
   display: grid;
   position: relative;
   --split-point: 0;
-  --track-color: rgb(0 0 0 / 0.6);
-  --thumb-background: var(--black);
+  --track-color: rgb(255 255 255 / 0.45);
+  --thumb-background: rgba(12, 12, 15, 0.82);
   --thumb-color: var(--accent-color);
-  --thumb-size: 62px;
-  --bar-size: 9px;
+  --thumb-size: 46px;
+  --bar-size: 2px;
   --bar-touch-size: 30px;
 }
 
@@ -36,6 +37,7 @@ two-up[legacy-clip-compat] > :not(.two-up-handle) {
   width: var(--bar-size);
   margin: 0 auto;
   background: var(--track-color);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
 }
 
 .scrubber {
@@ -48,6 +50,10 @@ two-up[legacy-clip-compat] > :not(.two-up-handle) {
   width: var(--thumb-size);
   height: var(--thumb-size);
   background: var(--thumb-background);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
   border-radius: var(--thumb-size);
   color: var(--thumb-color);
   box-sizing: border-box;
