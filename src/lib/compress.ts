@@ -4,9 +4,7 @@
 // preprocess -> resize -> `imagePipeline.compressImage`. compressImage dispatches
 // on the encoder type through the generated encoder runtime map, so the
 // single-image path and the bulk engine share one code path. Heavy work runs in
-// the SvelteKit codec worker
-// via SvelteKitWorkerBridge; browser encoders (GIF/JPEG/PNG) encode on the main
-// thread through the same map. No per-format switch.
+// the SvelteKit codec worker via SvelteKitWorkerBridge. No per-format switch.
 
 import {
   decodeImage,

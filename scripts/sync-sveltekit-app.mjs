@@ -342,9 +342,6 @@ const staleServiceWorkerOutputDir = join(
 // so single-image and bulk share one imagePipeline.compressImage path.
 const appEncoderNames = [
   'avif',
-  'browserGIF',
-  'browserJPEG',
-  'browserPNG',
   'jxl',
   'mozJPEG',
   'oxiPNG',
