@@ -21,9 +21,9 @@ Modern browsers can run WebAssembly faster when they support two optional featur
 - **Threads** — letting a codec use several CPU cores at once.
 - **SIMD** — a CPU trick that processes several pixels in a single instruction.
 
-The committed codec set includes baseline, SIMD, and threaded artifacts, but the current SvelteKit launch path is conservative: single-thread WASM is the baseline for AVIF, JPEG XL, and OxiPNG, while WebP also has a generated SIMD asset path. Threaded codec work is being kept as post-launch performance/platform work, not a launch promise. Correctness does not depend on threads.
+The committed codec set includes baseline, SIMD, and threaded artifacts, and Sqush picks the fastest your browser allows. AVIF, JPEG XL, and OxiPNG **encode multi-core** when the page is cross-origin-isolated — which Sqush sets up automatically (COOP/COEP) — falling back to a single thread when threads or `SharedArrayBuffer` aren't available. WebP runs through a SIMD build. Correctness never depends on threads; they only affect speed.
 
-> **Single-thread is the launch floor.** Threaded artifacts remain in the repository for future work, but the migration-closeout target is reliable single-image optimization through the proven single-thread paths.
+> **Threading is on, with a single-thread fallback.** All three threaded codecs — AVIF, JPEG XL, OxiPNG — engage multiple cores in current Chromium and Safari/WebKit. If cross-origin isolation or `SharedArrayBuffer` isn't available, they fall back to a correct single-thread path, so the output is identical either way.
 
 ## The codecs
 

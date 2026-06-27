@@ -9,11 +9,14 @@ and provenance come from `docs/codec-provenance.md` and the codec build recipes.
 - **The image pipeline runs locally in the browser.** No server, no upload.
   The WASM decode/preprocess/process/encode paths run through the generated
   SvelteKit worker surface.
-- **Single-thread is the SvelteKit launch baseline.** The generated worker
-  surface currently forces single-thread encode for AVIF, JPEG XL, and
-  OxiPNG. WebP has a generated SIMD asset path. Threaded artifacts still exist
-  under `codecs/`, but threaded runtime enablement is post-launch
-  performance/platform work, not current launch behavior.
+- **Threading is enabled (multi-core), with single-thread fallback.** AVIF,
+  JPEG XL, and OxiPNG encode multi-core when the page is cross-origin-isolated
+  (COOP/COEP via the `sqush-cross-origin-isolation` Vite plugin for dev/preview +
+  `static/_headers` on the host), falling back to single-thread when threads /
+  `SharedArrayBuffer` are unavailable. WebP runs a SIMD build. The production
+  build emits the threaded helper assets, `audit:static-output` asserts them, and
+  e2e (`oxipng-threads.spec.ts`, `emscripten-threads.spec.ts`) confirms real
+  multi-core encode in Chromium + WebKit. See `docs/threading-enablement.md`.
 
 ## Processors & preprocessors
 
