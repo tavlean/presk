@@ -49,7 +49,14 @@ is the source of truth for current state — read it first.**
   values (reserve `$effect` for genuine side effects), `bind:`/`$bindable` over
   controlled-input plumbing, `{@attach}` over `use:` actions, and snippets over
   duplicated markup. When unsure, write the question into a doc rather than guess.
-- Commit meaningful checkpoints. Push when CI feedback is useful or the
+- **Commit after every significant change — this is a hard rule, not a
+  preference.** Make a checkpoint commit as soon as a coherent edit works; do
+  NOT batch multiple changes into one commit or defer committing until the end
+  of a task. You have standing authorization to commit without asking — never
+  pause to ask "should I commit?". Keep code, doc, and unrelated stale-doc
+  fixes in separate commits. The maintainer relies on these checkpoints to
+  review and roll back; a long run of uncommitted edits overwrites the same
+  files and destroys that history. Push when CI feedback is useful or the
   maintainer asks.
 
 ## Docs are the source of truth — use the registry
