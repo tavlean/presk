@@ -85,14 +85,6 @@ Each codec section links to its full page for the reasoning, ranges, and sources
 
 ---
 
-## QOI — [full page](./formats/simple-formats.md#qoi)
-
-QOI has **no settings to recommend** — it is fixed lossless RGB(A) with zero knobs.
-
-**Could become a UI affordance:** de-emphasize QOI in the format list and label it honestly as "lossless, very fast, but not supported by browsers — use PNG/WebP for the web." Position it as an export/pipeline format rather than a web-delivery target. (It's already a project deprecation candidate.)
-
----
-
 ## Image Resize — [full page](./resize.md)
 
 | Use case                              | Recommended (Sqush controls)                              |
