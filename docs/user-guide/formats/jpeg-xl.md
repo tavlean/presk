@@ -1,10 +1,10 @@
-# JPEG XL (beta)
+# JPEG XL
 
-> A modern image format with excellent quality-per-byte and a true lossless mode — Sqush exposes a full set of controls, from a simple Quality slider to advanced tuning like edge filtering and synthetic film grain.
+> A modern image format with excellent quality-per-byte and a true lossless mode — Sqush exposes a full set of controls, from a simple Quality slider to advanced tuning like edge filtering and synthetic film grain. Encoded with **libjxl** (shown as **JPEG XL** in the menu; the encoder name appears as a hover tooltip).
 
 ## Overview / When to use it
 
-JPEG XL (file extension `.jxl`) is a newer image format designed to do everything older JPEG does, but better: it makes photos smaller at the same quality, and it also has a genuine _lossless_ mode (a perfect, pixel-for-pixel copy) that competes with PNG. In Sqush it is marked **beta**, and there is one big real-world catch: most web browsers still cannot _display_ `.jxl` files (see [Browser support reality](#browser-support-reality)). Reach for JPEG XL when you want to experiment with a forward-looking format, archive masters losslessly, or when you control where the images will be opened (for example an Apple-only audience). For images you need to publish on the open web today, WebP or AVIF are the safer choices.
+JPEG XL (file extension `.jxl`) is a newer image format designed to do everything older JPEG does, but better: it makes photos smaller at the same quality, and it also has a genuine _lossless_ mode (a perfect, pixel-for-pixel copy) that competes with PNG. There is one big real-world catch: most web browsers still cannot _display_ `.jxl` files (see [Browser support reality](#browser-support-reality)). Reach for JPEG XL when you want to experiment with a forward-looking format, archive masters losslessly, or when you control where the images will be opened (for example an Apple-only audience). For images you need to publish on the open web today, WebP or AVIF are the safer choices.
 
 A note on how this panel behaves: there is no separate "lossless flag" stored in the file. Internally, **Lossless is simply Quality turned all the way up to 100** — ticking the Lossless box is the same as setting Quality to its maximum, and unticking it returns you to a normal lossy quality.
 
@@ -110,7 +110,7 @@ _(Only shown when Lossless is off.)_
 
 - **Effort 7 ("squirrel") is the sweet spot.** It sits on the Pareto front; Effort 8–9 give tiny extra savings for a large time cost. Don't waste minutes at 9 for a marginal gain.
 - **JXL's killer feature is lossless JPEG transcoding.** On the command line, feeding `cjxl` a `.jpg` losslessly re-packs it ~20% smaller, reversibly, with zero quality change. Sqush re-encodes from decoded pixels rather than doing this bit-exact transcode, so to mimic it, keep an existing JPEG at high quality and compare.
-- **Browser support is the catch.** Native only in Safari 17+; Chrome/Firefox keep it behind a flag or removed it — hence the **beta** label. Great for archiving, Safari-targeted, or controlled pipelines; not general web delivery yet.
+- **Browser support is the catch.** Native only in Safari 17+; Chrome/Firefox keep it behind a flag or removed it. Great for archiving, Safari-targeted, or controlled pipelines; not general web delivery yet.
 - **Quality numbers aren't comparable across formats.** A JXL "75" is not a WebP "75". Judge by the preview.
 - **JXL shines at high quality, not extreme size reduction.** For the very smallest flat-graphic files at the lowest bitrates, AVIF can edge it out; JXL's strength is photographic and high-fidelity/archival work.
 
@@ -121,7 +121,7 @@ _Sources: [cjxl man page](https://manpages.debian.org/unstable/libjxl-tools/cjxl
 - **Lossless is just Quality = 100.** There's no separate lossless flag in the file. Ticking Lossless maxes out quality; the Quality slider only goes to 99.9 precisely so the two states stay distinct.
 - **The lossy controls vanish in lossless mode.** If you can't find Quality, Alternative lossy mode, Edge filter, decoding speed, or ISO noise, check whether Lossless is on — it hides all of them and shows only "Slight loss".
 - **Very low quality locks Alternative lossy mode on.** Below Quality 7 the "Alternative lossy mode" checkbox is forced on and greyed out; that's expected.
-- **Quality numbers aren't comparable across formats.** A JPEG XL "75" is not the same as a MozJPEG "75" or a WebP "75". Judge by the preview, not by matching numbers.
+- **Quality numbers aren't comparable across formats.** A JPEG XL "75" is not the same as a JPEG "75" or a WebP "75". Judge by the preview, not by matching numbers.
 - **Effort changes file size, not the look.** Two files at the same Quality but different Effort should look the same; the higher-Effort one is just smaller (and took longer to make).
 - **"Slight loss" only does anything in lossless mode.** In lossy mode the panel forces it off, so toggling it there has no effect.
 - **Watch the encode time on big images.** High Effort plus a large image is the slowest combination, since the work happens on your own device.
@@ -136,7 +136,7 @@ This is the single most important thing to know before you ship JPEG XL. Sqush _
 
 (src: caniuse.com/jpegxl; developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Image_types)
 
-In practice, if you put a `.jxl` on a public website, most visitors won't see it. Treat JPEG XL as great for **archiving, personal use, or Apple-centric audiences**, and prefer **WebP or AVIF** when you need images that just work for everyone today. Sqush flags this format as **beta** for exactly these reasons.
+In practice, if you put a `.jxl` on a public website, most visitors won't see it. Treat JPEG XL as great for **archiving, personal use, or Apple-centric audiences**, and prefer **WebP or AVIF** when you need images that just work for everyone today.
 
 ## Under the hood
 

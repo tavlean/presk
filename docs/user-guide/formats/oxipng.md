@@ -1,6 +1,6 @@
-# OxiPNG
+# PNG
 
-> Squeeze the most out of a PNG without changing a single pixel — a fully lossless way to shrink PNG files.
+> Squeeze the most out of a PNG without changing a single pixel — a fully lossless way to shrink PNG files. Encoded with **OxiPNG** (shown as **PNG** in the menu; the encoder name appears as a hover tooltip).
 
 ## Overview / When to use it
 

@@ -1,10 +1,10 @@
-# MozJPEG
+# JPEG
 
-> The universal lossy "photo" format — a smarter JPEG encoder that squeezes the most quality out of every kilobyte, with a full bag of advanced tricks if you want them.
+> The universal lossy "photo" format — a smarter JPEG encoder that squeezes the most quality out of every kilobyte, with a full bag of advanced tricks if you want them. Encoded with **MozJPEG** (shown as **JPEG** in the menu; the encoder name appears as a hover tooltip).
 
 ## Overview / When to use it
 
-**MozJPEG** is the workhorse format for photographs and other rich, continuous-tone images (sunsets, portraits, textures). It produces ordinary `.jpg` files that open everywhere, but uses a more careful (Mozilla-built) encoder that typically beats a regular JPEG at the same visible quality. Reach for it whenever you have a photo and don't need transparency. (JPEG has no transparency — if your image has see-through areas, use PNG, WebP, or AVIF instead.) For most people the only control that matters is the **Quality** slider; everything else lives under **Advanced settings** and can be safely ignored unless you're chasing the last few percent.
+**JPEG** is the workhorse format for photographs and other rich, continuous-tone images (sunsets, portraits, textures). Sqush encodes it with **MozJPEG**. It produces ordinary `.jpg` files that open everywhere, but uses a more careful (Mozilla-built) encoder that typically beats a regular JPEG at the same visible quality. Reach for it whenever you have a photo and don't need transparency. (JPEG has no transparency — if your image has see-through areas, use PNG, WebP, or AVIF instead.) For most people the only control that matters is the **Quality** slider; everything else lives under **Advanced settings** and can be safely ignored unless you're chasing the last few percent.
 
 ## Controls / Settings
 

@@ -55,7 +55,9 @@ Each codec section links to its full page for the reasoning, ranges, and sources
 
 ---
 
-## MozJPEG — [full page](./formats/mozjpeg.md)
+## JPEG — [full page](./formats/mozjpeg.md)
+
+Encoded with **MozJPEG** (shown as **JPEG** in the menu; the encoder name appears as a hover tooltip).
 
 | Use case                              | Recommended (Sqush controls)                                              |
 | ------------------------------------- | ------------------------------------------------------------------------ |
@@ -71,7 +73,9 @@ Each codec section links to its full page for the reasoning, ranges, and sources
 
 ---
 
-## OxiPNG — [full page](./formats/oxipng.md)
+## PNG — [full page](./formats/oxipng.md)
+
+Encoded with **OxiPNG** (shown as **PNG** in the menu; the encoder name appears as a hover tooltip).
 
 | Use case                              | Recommended (Sqush controls)      |
 | ------------------------------------- | --------------------------------- |
@@ -121,7 +125,7 @@ Each codec section links to its full page for the reasoning, ranges, and sources
 | WebP              | **Yes (since 2026-06-03)** — default is now Quality 80 / Effort 6, matching the web consensus. |
 | AVIF              | Quality 50 is conservative; community leans ~60–70 for photos. Effort under-surfaced.    |
 | JPEG XL           | **Yes** — Effort 7 is the Pareto-front sweet spot; Quality 75 is reasonable.             |
-| MozJPEG           | Quality 75 is a touch low; Trellis off is the notable gap vs the codec's whole point.    |
-| OxiPNG            | **Yes** — Effort 2 matches OxiPNG's own default and suits interactive use.               |
+| JPEG              | Quality 75 is a touch low; Trellis off is the notable gap vs the codec's whole point.    |
+| PNG               | **Yes** — Effort 2 matches OxiPNG's own default and suits interactive use.               |
 | Image Resize      | **Yes** — Lanczos3 + Linear RGB + Premultiply is the recommended photographic default.   |
 | Reduce palette    | Partly — Colors 256 is a safe default; Dithering 1.0 hurts the flat-graphic common case. |

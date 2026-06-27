@@ -37,9 +37,9 @@ The versions below come straight from the project's build recipes, recorded in `
 | ---------------------------- | -------------------------------- | --------------------------------- | ------------- | ------------------------------------------------------------------------ |
 | **WebP**                     | libwebp (`webmproject/libwebp`)  | commit `d2e245ea…`                | SIMD          | Broadly supported modern format; great all-rounder.                      |
 | **AVIF**                     | libavif + libaom (+ libsharpyuv) | libavif `v1.0.1`, libaom `v3.7.0` | Threads       | Excellent compression for photos; slower to encode.                      |
-| **JPEG XL (beta)**           | libjxl                           | commit `9f544641…`                | Threads, SIMD | Newer high-efficiency format; labelled **beta** in the app.              |
-| **MozJPEG**                  | `mozilla/mozjpeg`                | `v3.3.1`                          | —             | Highly optimized classic JPEG encoder.                                   |
-| **OxiPNG**                   | `oxipng` (crates.io)             | `9.0`                             | —             | Lossless PNG optimizer; shrinks PNGs without quality loss.               |
+| **JPEG XL**                  | libjxl                           | commit `9f544641…`                | Threads, SIMD | Newer high-efficiency format.                                            |
+| **JPEG**                     | `mozilla/mozjpeg`                | `v3.3.1`                          | —             | Highly optimized classic JPEG encoder (MozJPEG; encoder in the tooltip). |
+| **PNG**                      | `oxipng` (crates.io)             | `9.0`                             | —             | Lossless PNG optimizer (OxiPNG; encoder in the tooltip).                 |
 
 All five output codecs are bundled WebAssembly and **always available** — there is nothing to feature-detect.
 
@@ -76,7 +76,7 @@ The service worker only activates on the **real deployed site**. During developm
 
 - **Privacy is structural, not a promise.** Because there is no server in the compression path, there is no upload to opt out of — your image physically cannot leave your device during compression.
 - **Encoding speed depends on your browser and CPU, not on Sqush settings alone.** A browser without thread/SIMD support will still produce identical output; it just takes longer. AVIF and JPEG XL are the most compute-heavy, so they feel slowest on older machines.
-- **Beta labels mean what they say.** JPEG XL is marked **(beta)**. It works, but it's newer and less universally supported by other apps and browsers, so prefer WebP or AVIF for files you need to share widely.
+- **Newer formats aren't always safe to ship.** JPEG XL works, but it's newer and less universally supported by other apps and browsers, so prefer WebP or AVIF for files you need to share widely.
 - **First offline use requires one online visit.** Offline reload can only work _after_ the service worker has cached the app, so open Sqush online once before relying on it without a connection.
 
 ## Under the hood

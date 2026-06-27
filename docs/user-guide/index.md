@@ -35,9 +35,9 @@ Each output format has its own page covering what it's good at and what every op
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | [WebP](./formats/webp.md)                               | A great all-round default — good compression, broad browser support, lossy and lossless modes. |
 | [AVIF](./formats/avif.md)                               | Excellent compression for photos; modern browsers.                                             |
-| [JPEG XL (beta)](./formats/jpeg-xl.md)                  | High-quality, flexible format with a lossless mode; limited browser support today.             |
-| [MozJPEG](./formats/mozjpeg.md)                         | A finely tuned JPEG encoder — maximum compatibility for photographs.                           |
-| [OxiPNG](./formats/oxipng.md)                           | Lossless PNG optimisation for graphics, screenshots, and transparency.                         |
+| [JPEG XL](./formats/jpeg-xl.md)                         | High-quality, flexible format with a lossless mode; limited browser support today.             |
+| [JPEG](./formats/mozjpeg.md)                            | A finely tuned JPEG encoder (MozJPEG) — maximum compatibility for photographs.                 |
+| [PNG](./formats/oxipng.md)                              | Lossless PNG optimisation (OxiPNG) for graphics, screenshots, and transparency.                |
 
 ## Editing
 

@@ -45,7 +45,7 @@ _Sources: [pngquant / libimagequant](https://pngquant.org/lib/); [ImageOptim/lib
 
 ## Tips & pitfalls
 
-- **Photos: usually skip this panel.** Palette reduction is built for flat-color graphics. For photographs, lean on a lossy format's own quality slider (WebP, AVIF, JPEG XL, MozJPEG) instead — they handle smooth color far better than a 256-color palette.
+- **Photos: usually skip this panel.** Palette reduction is built for flat-color graphics. For photographs, lean on a lossy format's own quality slider (WebP, AVIF, JPEG XL, JPEG) instead — they handle smooth color far better than a 256-color palette.
 - **Order matters: pair it with PNG.** Reduce palette pays off most when the output is **PNG**, which can store an indexed palette efficiently and which Sqush further squeezes with OxiPNG. Re-quantizing before a lossy photo codec gives little benefit and can even hurt.
 - **The two sliders push against each other.** Fewer colors _plus_ heavy dithering can paradoxically grow the file, because dithering replaces clean regions with hard-to-compress noise. If a low color count with dithering on isn't shrinking the file, turn dithering down.
 - **Watch the preview and the size number, not just the slider.** The "right" settings depend entirely on the image. Drag, look, compare — the live preview is the fastest way to find the lowest colors / lowest dithering you can tolerate.

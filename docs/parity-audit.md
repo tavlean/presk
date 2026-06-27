@@ -227,12 +227,12 @@ formatting.
 
 Minor/trivial: document-title filename + hourglass · open pushes a history entry
 · Back uses `history.back()` · immediate first encode · non-image-file rejection
-message · drop an image anywhere (not just the dropzone) · "Original Image
-(filename)" option label · save-side snackbar (with try/catch) · import-side
-snackbar + Undo · invalid-import message + basic validation · versioned saved
+message · drop an image anywhere (not just the dropzone) · save-side snackbar
+(with try/catch) · import-side snackbar + Undo · invalid-import message + basic
+validation · versioned saved
 settings · 300ms reveal animations · zoom step 1.25 · download-icon rotate
-animation · zoom readout width 7rem / grey · JXL "(beta)" label · 100ms debounce
-· reset view on a new same-size file.
+animation · zoom readout width 7rem / grey · 100ms debounce · reset view on a new
+same-size file.
 
 ### Also fixed (second pass)
 
@@ -243,6 +243,13 @@ alignment · history via SvelteKit shallow routing. (See §B "Resolved".)
 
 Pinch-zoom re-fits on dimension change · WebP 2 removed entirely (2026-06-02) ·
 shared decode (post-launch performance) · share-target (PWA).
+
+Format-picker labelling (2026-06-28, intentional, differs from upstream Squoosh):
+(a) JPEG XL is no longer labelled "(beta)"; (b) the picker shows plain format
+names (JPEG, PNG) instead of Squoosh's encoder names (MozJPEG, OxiPNG) — the
+encoder is surfaced as a hover tooltip (title attribute) instead; (c) the
+"Original Image" entry no longer appends the source filename (a richer
+source-image info display is planned separately).
 
 ### Deferred / N-A (see §D)
 

@@ -32,18 +32,22 @@ Notes that apply throughout:
 | Original Image     | `identity`    | (original) | (original)    | passthrough        | n/a (no Compress options)                 |
 | WebP               | `webP`        | `webp`     | `image/webp`  | both               | yes                                       |
 | AVIF               | `avif`        | `avif`     | `image/avif`  | both               | yes                                       |
-| JPEG XL (beta)     | `jxl`         | `jxl`      | `image/jxl`   | both               | yes                                       |
-| MozJPEG            | `mozJPEG`     | `jpg`      | `image/jpeg`  | lossy              | yes                                       |
-| OxiPNG             | `oxiPNG`      | `png`      | `image/png`   | lossless           | yes                                       |
+| JPEG XL            | `jxl`         | `jxl`      | `image/jxl`   | both               | yes                                       |
+| JPEG               | `mozJPEG`     | `jpg`      | `image/jpeg`  | lossy              | yes                                       |
+| PNG                | `oxiPNG`      | `png`      | `image/png`   | lossless           | yes                                       |
 
 - The label/ext for `jxl` are read from `encoderMap.jxl.meta` so they stay in
-  sync (hence "JPEG XL (beta)"). `webP`, `avif`, `mozJPEG`, and `oxiPNG` use
-  hard-coded labels in `OUTPUT_FORMATS`.
+  sync (hence "JPEG XL"). `webP` and `avif` use hard-coded labels in
+  `OUTPUT_FORMATS`. `mozJPEG` and `oxiPNG` are overridden to the plain format
+  names **JPEG** and **PNG** (rather than the encoder names MozJPEG/OxiPNG); the
+  underlying encoder is surfaced as a hover tooltip (title attribute) on the
+  picker — JPEG→MozJPEG, PNG→OxiPNG, JPEG XL→libjxl, WebP→libwebp, AVIF→libaom.
 - **Every output format is an always-available WASM codec** — there is no runtime
   feature detection. (QOI and the canvas/browser encoders were removed from the
   picker on 2026-06-27; QOI's decoder remains for import.)
-- The format `<select>` always prepends an **"Original Image (<filename>)"** entry
-  whose value is `identity`.
+- The format `<select>` always prepends an **"Original Image"** entry whose value
+  is `identity`. (It no longer appends the source filename; a richer source-image
+  info display is planned separately.)
 
 ---
 
@@ -152,7 +156,7 @@ no effective difference. `qualityAlpha = -1` sentinel is never shown as a number
 
 ---
 
-## JPEG XL (`jxl`) — "JPEG XL (beta)"
+## JPEG XL (`jxl`) — "JPEG XL"
 
 Panel: `JxlOptions.svelte`. `lossless` derived from `quality===100`. `epf === -1`
 means "auto edge filter".
@@ -188,7 +192,9 @@ coerced to `true` whenever `quality < 7` (apply() override, checkbox also disabl
 
 ---
 
-## MozJPEG (`mozJPEG`)
+## JPEG (`mozJPEG`)
+
+Menu label is **JPEG**; encoded with **MozJPEG** (shown as a hover tooltip on the picker).
 
 Panel: `MozjpegOptions.svelte`. Always lossy. Booleans bind directly. Channels select
 uses the `MozJpegColorSpace` enum (GRAYSCALE 1 / RGB 2 / YCbCr 3).
@@ -224,7 +230,9 @@ codec `EncodeOptions` and `meta.defaultOptions` but is **never rendered in the p
 
 ---
 
-## OxiPNG (`oxiPNG`)
+## PNG (`oxiPNG`)
+
+Menu label is **PNG**; encoded with **OxiPNG** (shown as a hover tooltip on the picker).
 
 Panel: `OxipngOptions.svelte`. Lossless PNG optimizer; only two fields total and both
 are exposed.
