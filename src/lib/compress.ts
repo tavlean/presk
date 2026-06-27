@@ -57,7 +57,10 @@ export const OUTPUT_FORMATS: {
   },
   { id: 'mozJPEG', label: 'MozJPEG', ext: encoderMap.mozJPEG.meta.extension },
   { id: 'oxiPNG', label: 'OxiPNG', ext: encoderMap.oxiPNG.meta.extension },
-  { id: 'qoi', label: 'QOI', ext: encoderMap.qoi.meta.extension },
+  // QOI is intentionally not offered as an output: it's a fast/simple lossless
+  // format with effectively no support outside specialised tools, so it isn't a
+  // useful target for a compression tool. The QOI *decoder* stays wired up, so
+  // importing .qoi files still works.
   // Browser-native encoders (canvas-based, main thread). Offered like the
   // original; feature-detected at runtime via getSupportedFormatIds() since
   // canvas.toBlob support varies (notably GIF is usually unavailable).
