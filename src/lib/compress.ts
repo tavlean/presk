@@ -78,6 +78,20 @@ export const OUTPUT_FORMATS: {
   },
 ];
 
+/**
+ * Formats probed by the per-side "Compare sizes" action — the main encoder
+ * chips. The long tail (QOI, browser encoders) is excluded: QOI is a curiosity
+ * and the browser encoders are strictly-worse baselines, so paying an encode
+ * for them by default would be wasted work.
+ */
+export const COMPARE_FORMAT_IDS: OutputFormat[] = [
+  'avif',
+  'webP',
+  'jxl',
+  'mozJPEG',
+  'oxiPNG',
+];
+
 /** Canvas MIME types for the browser-native encoders (for feature detection). */
 const BROWSER_ENCODER_MIME: Partial<Record<OutputFormat, string>> = {
   browserJPEG: 'image/jpeg',

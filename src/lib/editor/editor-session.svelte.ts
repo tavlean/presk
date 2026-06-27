@@ -2,6 +2,7 @@ import { untrack } from 'svelte';
 import { SvelteSet } from 'svelte/reactivity';
 import {
   BROWSER_ENCODER_IDS,
+  COMPARE_FORMAT_IDS,
   compressFile,
   getDefaultOptions,
   getSupportedFormatIds,
@@ -25,7 +26,6 @@ export type SideStatus = 'idle' | 'working' | 'done' | 'error';
 export interface SideState {
   format: SideFormat;
   optionsByFormat: Record<string, Record<string, unknown>>;
-  processorState: ProcessorState;
 }
 
 type SavedSide = {
@@ -38,7 +38,10 @@ type SavedSide = {
 // the new defaults (e.g. a stale AVIF-on-both-sides config). Old keys are simply
 // ignored; a fresh default (left = Original, right = WebP) loads instead.
 const STORAGE_KEY = 'sqush:settings:v3';
-const SAVE_VERSION = 1;
+// v2 (2026-06-11): side presets no longer capture processorState — resize/
+// palette is image-specific job state, not part of a reusable format recipe.
+// v1 payloads still import (their processorState is simply ignored).
+const SAVE_VERSION = 2;
 const IMAGE_UPDATE_DELAY = 100;
 const SPINNER_DELAY = 500;
 const SETTINGS_PERSIST_DELAY = 200;
@@ -48,6 +51,17 @@ const sideSaveKey = (index: SideIndex) =>
 
 const sideLabel = (index: SideIndex) => (index === 0 ? 'Left' : 'Right');
 
+/** Compact SI size for snackbar messages (matches Results' 3-sig-fig style). */
+function prettyBytes(bytes: number): string {
+  if (bytes < 1) return '0 B';
+  const units = ['B', 'kB', 'MB', 'GB'];
+  const exponent = Math.min(
+    Math.floor(Math.log10(bytes) / 3),
+    units.length - 1,
+  );
+  return `${(bytes / 1000 ** exponent).toPrecision(3)} ${units[exponent]}`;
+}
+
 function canUseLocalStorage(): boolean {
   return typeof localStorage !== 'undefined';
 }
@@ -55,22 +69,6 @@ function canUseLocalStorage(): boolean {
 function isValidFormat(format: unknown): format is SideFormat {
   return (
     format === IDENTITY || OUTPUT_FORMATS.some((option) => option.id === format)
-  );
-}
-
-function isValidProcessorState(value: unknown): value is ProcessorState {
-  const state = value as ProcessorState | undefined;
-  return (
-    !!state &&
-    typeof state === 'object' &&
-    !!state.resize &&
-    typeof state.resize.enabled === 'boolean' &&
-    // Match the original: every inner value must be present (reject a partial
-    // payload like { enabled: true, width: null }).
-    Object.values(state.resize).every((v) => v != null) &&
-    !!state.quantize &&
-    typeof state.quantize.enabled === 'boolean' &&
-    Object.values(state.quantize).every((v) => v != null)
   );
 }
 
@@ -86,7 +84,6 @@ function readSaved(): { sides?: SavedSide[] } {
 type ParsedSide = {
   format: SideFormat;
   optionsByFormat?: Record<string, Record<string, unknown>>;
-  processorState: ProcessorState;
 };
 
 /** Parse + validate a stored side payload; null if absent, corrupt, or invalid. */
@@ -105,18 +102,13 @@ function parseSavedSide(raw: string | null): ParsedSide | null {
   const incoming = (data?.settings ?? data) as {
     format?: unknown;
     optionsByFormat?: Record<string, Record<string, unknown>>;
-    processorState?: unknown;
   };
-  if (
-    !isValidFormat(incoming.format) ||
-    !isValidProcessorState(incoming.processorState)
-  ) {
-    return null;
-  }
+  if (!isValidFormat(incoming.format)) return null;
+  // v1 payloads also carried a processorState — ignored since v2 (presets are
+  // format recipes; resize/palette is per-image job state).
   return {
     format: incoming.format,
     optionsByFormat: incoming.optionsByFormat,
-    processorState: incoming.processorState,
   };
 }
 
@@ -147,7 +139,6 @@ function buildSide(
       ? (saved!.format as SideFormat)
       : fallback,
     optionsByFormat,
-    processorState: structuredClone(defaultProcessorState),
   };
 }
 
@@ -181,6 +172,11 @@ export class EditorSession {
   sides = $state<[SideState, SideState]>(buildInitialSides());
 
   preprocessorState = $state(structuredClone(defaultPreprocessorState));
+  // ONE Adjust (resize / reduce-palette) state shared by both sides. Resizing
+  // is a property of the job ("I want this 1200px wide"), not of a side —
+  // per-side copies (the Squoosh model) made users wonder which side they had
+  // set and skewed format A/B comparisons. Both panels bind this same object.
+  processorState = $state(structuredClone(defaultProcessorState));
   file = $state<File | null>(null);
   loadId = $state(0);
   // Raw, not deeply proxied: each CompressOutcome holds heavy browser host
@@ -215,6 +211,27 @@ export class EditorSession {
   );
   canImport = $state<[boolean, boolean]>([hasSavedSide(0), hasSavedSide(1)]);
 
+  // "Compare sizes": per-side encoded byte-size of each COMPARE_FORMAT_IDS
+  // format at that side's current settings — the numbers shown on the format
+  // chips. Cleared (and any in-flight run aborted) whenever anything that
+  // would change the outcome changes (file, rotate, adjust, any option).
+  compareSizes = $state<
+    [
+      Partial<Record<OutputFormat, number>>,
+      Partial<Record<OutputFormat, number>>,
+    ]
+  >([{}, {}]);
+  compareBusy = $state<[boolean, boolean]>([false, false]);
+  // "Fit to size": true while a side's quality binary-search is running.
+  fitting = $state<[boolean, boolean]>([false, false]);
+
+  private compareControllers: [AbortController | null, AbortController | null] =
+    [null, null];
+  private fitControllers: [AbortController | null, AbortController | null] = [
+    null,
+    null,
+  ];
+
   private lastUrls: [string | null, string | null] = [null, null];
   // Bookkeeping keyed to `loadId` (bumped on every new file). Comparing against
   // the live loadId replaces the old mutable prevFiles/dimsSeeded guards, so a
@@ -248,8 +265,12 @@ export class EditorSession {
     OUTPUT_FORMATS.filter((format) => this.supportedFormatIds.has(format.id)),
   );
 
-  leftContain = $derived(this.sideContains(0));
-  rightContain = $derived(this.sideContains(1));
+  contain = $derived(
+    this.processorState.resize.enabled &&
+      this.processorState.resize.fitMethod === 'contain',
+  );
+  leftContain = $derived(this.contain);
+  rightContain = $derived(this.contain);
   firstError = $derived(this.errors.find((error) => error) ?? '');
 
   docTitle = $derived(
@@ -267,8 +288,33 @@ export class EditorSession {
       for (const index of [0, 1] as const) {
         $effect(() => this.encodeSide(index));
         $effect(() => this.updateSpinner(index));
+        // Invalidate that side's compare sizes whenever any input that shaped
+        // them changes (file, rotate, adjust, any encoder option) — stale
+        // numbers on the chips would be worse than none. The cleanup itself is
+        // UNtracked: it reads (and clears) compareSizes, and tracking that
+        // read would re-trigger the effect on the compare run's own writes,
+        // aborting it after its first result.
+        $effect(() => {
+          void this.compareKey(index);
+          untrack(() => {
+            this.cancelCompare(index);
+            if (Object.keys(this.compareSizes[index]).length) {
+              this.compareSizes[index] = {};
+            }
+          });
+        });
       }
     });
+  }
+
+  /** Reactive fingerprint of everything a side's compare sizes depend on. */
+  private compareKey(index: SideIndex): string {
+    return JSON.stringify([
+      this.loadId,
+      $state.snapshot(this.preprocessorState),
+      $state.snapshot(this.processorState),
+      $state.snapshot(this.sides[index].optionsByFormat),
+    ]);
   }
 
   async loadSupportedFormats(): Promise<void> {
@@ -281,7 +327,7 @@ export class EditorSession {
     const request = {
       format: side.format,
       options: $state.snapshot(side.optionsByFormat[side.format] ?? {}),
-      processorState: snapshotProcessorStateForEncode(side.processorState),
+      processorState: snapshotProcessorStateForEncode(this.processorState),
       preprocessorState: $state.snapshot(this.preprocessorState),
     };
     // A new file bumps loadId; compare against the loadId this side last encoded
@@ -360,10 +406,9 @@ export class EditorSession {
     if (!result || this.seededLoadId === this.loadId) return;
 
     this.seededLoadId = this.loadId;
-    for (const side of this.sides) {
-      if (side.processorState.resize.enabled) continue;
-      side.processorState.resize.width = result.preprocessedWidth;
-      side.processorState.resize.height = result.preprocessedHeight;
+    if (!this.processorState.resize.enabled) {
+      this.processorState.resize.width = result.preprocessedWidth;
+      this.processorState.resize.height = result.preprocessedHeight;
     }
   }
 
@@ -427,21 +472,21 @@ export class EditorSession {
     this.spinnerDelayPassed = [false, false];
     this.preprocessorState = structuredClone(defaultPreprocessorState);
 
-    const isVector = next.type === 'image/svg+xml';
-    for (const side of this.sides) {
-      side.processorState = structuredClone(defaultProcessorState);
-      // Match the original: vector (SVG) sources default the resize method to
-      // "vector" so re-rasterising at a new size stays crisp.
-      if (isVector) {
-        (side.processorState.resize as unknown as ResizeOptionsState).method =
-          'vector';
-      }
+    this.processorState = structuredClone(defaultProcessorState);
+    // Match the original: vector (SVG) sources default the resize method to
+    // "vector" so re-rasterising at a new size stays crisp.
+    if (next.type === 'image/svg+xml') {
+      (this.processorState.resize as unknown as ResizeOptionsState).method =
+        'vector';
     }
 
     if (opening) pushEditorHistory();
   }
 
   clearFile(): void {
+    this.cancelCompare(0);
+    this.cancelCompare(1);
+    this.fitControllers.forEach((c) => c?.abort());
     this.file = null;
     this.results = [null, null];
     this.errors = ['', ''];
@@ -452,6 +497,9 @@ export class EditorSession {
   }
 
   dispose(): void {
+    this.cancelCompare(0);
+    this.cancelCompare(1);
+    this.fitControllers.forEach((c) => c?.abort());
     // Tear down the encode/spinner effects this instance set up in its
     // constructor.
     this.stopEffects?.();
@@ -467,16 +515,14 @@ export class EditorSession {
     const next = ((previous + 90) % 360) as 0 | 90 | 180 | 270;
     this.preprocessorState.rotate.rotate = next;
 
-    // Match the original: on an orientation-changing rotate (90/270), swap each
-    // side's resize width/height so the Resize fields + preset stay aligned with
-    // the now-rotated source. Done for both sides regardless of resize.enabled.
+    // Match the original: on an orientation-changing rotate (90/270), swap the
+    // resize width/height so the Resize fields + preset stay aligned with the
+    // now-rotated source. Done regardless of resize.enabled.
     if (previous % 180 !== next % 180) {
-      for (const side of this.sides) {
-        const resize = side.processorState.resize;
-        const { width, height } = resize;
-        resize.width = height;
-        resize.height = width;
-      }
+      const resize = this.processorState.resize;
+      const { width, height } = resize;
+      resize.width = height;
+      resize.height = width;
     }
   }
 
@@ -507,7 +553,6 @@ export class EditorSession {
           settings: {
             format: this.sides[index].format,
             optionsByFormat: $state.snapshot(this.sides[index].optionsByFormat),
-            processorState: $state.snapshot(this.sides[index].processorState),
           },
         }),
       );
@@ -542,7 +587,6 @@ export class EditorSession {
         ...structuredClone(incoming.optionsByFormat),
       };
     }
-    this.sides[index].processorState = structuredClone(incoming.processorState);
     snackbar
       .show(`${label} side settings imported`, {
         actions: ['undo'],
@@ -551,6 +595,175 @@ export class EditorSession {
       .then((action) => {
         if (action === 'undo') this.applySide(index, previous);
       });
+  }
+
+  /**
+   * "Compare sizes": encode this image through every COMPARE_FORMAT_IDS
+   * encoder at this side's current per-format settings and record the byte
+   * sizes (shown on the format chips). Semantics are deliberately "what would
+   * I get if I clicked that chip" — each format uses ITS OWN current options,
+   * not a normalized quality. Runs sequentially so it never starves the live
+   * encode; aborted + cleared by the compareKey effect when inputs change.
+   */
+  async runCompare(index: SideIndex): Promise<void> {
+    const file = this.file;
+    if (!file || this.compareBusy[index]) return;
+
+    this.cancelCompare(index);
+    const controller = new AbortController();
+    this.compareControllers[index] = controller;
+    this.compareBusy[index] = true;
+
+    const side = this.sides[index];
+    const processorState = snapshotProcessorStateForEncode(this.processorState);
+    const preprocessorState = $state.snapshot(this.preprocessorState);
+
+    try {
+      for (const format of COMPARE_FORMAT_IDS) {
+        if (controller.signal.aborted) return;
+        if (!this.supportedFormatIds.has(format)) continue;
+
+        // The side's own live result already answers its current format.
+        if (
+          format === side.format &&
+          this.statuses[index] === 'done' &&
+          this.results[index]
+        ) {
+          this.compareSizes[index][format] = this.results[index]!.outputSize;
+          continue;
+        }
+
+        try {
+          const outcome = await compressFile(
+            file,
+            {
+              format,
+              options: $state.snapshot(side.optionsByFormat[format] ?? {}),
+              processorState,
+              preprocessorState,
+            },
+            controller.signal,
+          );
+          URL.revokeObjectURL(outcome.outputUrl);
+          if (controller.signal.aborted) return;
+          this.compareSizes[index][format] = outcome.outputSize;
+        } catch {
+          // A format that fails to encode simply shows no size.
+          if (controller.signal.aborted) return;
+        }
+      }
+    } finally {
+      if (this.compareControllers[index] === controller) {
+        this.compareControllers[index] = null;
+        this.compareBusy[index] = false;
+      }
+    }
+  }
+
+  private cancelCompare(index: SideIndex): void {
+    this.compareControllers[index]?.abort();
+    this.compareControllers[index] = null;
+    this.compareBusy[index] = false;
+  }
+
+  /**
+   * "Fit to size": binary-search this side's quality until the output fits
+   * under `targetBytes`, then commit the found quality. Only meaningful for
+   * formats with a numeric `quality` option. ~7 probe encodes.
+   */
+  async fitToSize(index: SideIndex, targetBytes: number): Promise<void> {
+    const file = this.file;
+    const side = this.sides[index];
+    const format = side.format;
+    if (!file || format === IDENTITY || this.fitting[index]) return;
+    if (!Number.isFinite(targetBytes) || targetBytes <= 0) return;
+
+    const base = $state.snapshot(side.optionsByFormat[format] ?? {});
+    if (typeof base.quality !== 'number') return;
+
+    // Per-format quality ceilings: AVIF/JXL treat max quality as lossless
+    // (a different mode), and browser JPEG runs on a 0–1 scale.
+    const isFractional = format === 'browserJPEG';
+    const maxQ =
+      format === 'avif' || format === 'jxl' ? 99 : isFractional ? 1 : 100;
+    const step = isFractional ? 0.01 : 1;
+    const round = (q: number) => Math.round(q / step) * step;
+
+    this.fitControllers[index]?.abort();
+    const controller = new AbortController();
+    this.fitControllers[index] = controller;
+    this.fitting[index] = true;
+
+    const processorState = snapshotProcessorStateForEncode(this.processorState);
+    const preprocessorState = $state.snapshot(this.preprocessorState);
+    const encodeAt = async (quality: number): Promise<number> => {
+      const outcome = await compressFile(
+        file,
+        {
+          format,
+          options: { ...base, quality },
+          processorState,
+          preprocessorState,
+        },
+        controller.signal,
+      );
+      URL.revokeObjectURL(outcome.outputUrl);
+      return outcome.outputSize;
+    };
+
+    try {
+      let lo = 0;
+      let hi = maxQ;
+      let best: number | null = null;
+      let bestSize = 0;
+
+      // Floor probe first: if even the lowest quality overshoots, say so
+      // honestly instead of silently committing a too-big result.
+      const floorSize = await encodeAt(0);
+      if (floorSize > targetBytes) {
+        snackbar.show(
+          `Can't fit under ${prettyBytes(targetBytes)} — the lowest quality is ${prettyBytes(floorSize)}. Try resizing.`,
+          { timeout: 5000 },
+        );
+        return;
+      }
+      best = 0;
+      bestSize = floorSize;
+
+      for (let i = 0; i < 7 && hi - lo > step; i++) {
+        const mid = round((lo + hi) / 2);
+        if (mid === lo || mid === hi) break;
+        const size = await encodeAt(mid);
+        if (size <= targetBytes) {
+          best = mid;
+          bestSize = size;
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+
+      if (controller.signal.aborted) return;
+      // Replace the options OBJECT (not mutate) so {#key options} remounts the
+      // panel and seeded-state panels (AVIF/JXL) re-derive their UI.
+      side.optionsByFormat = {
+        ...side.optionsByFormat,
+        [format]: { ...base, quality: best },
+      };
+      const shownQ = isFractional ? Math.round(best! * 100) : best;
+      snackbar.show(`Quality ${shownQ} fits: ${prettyBytes(bestSize)}`, {
+        timeout: 4000,
+      });
+    } catch {
+      if (!controller.signal.aborted) {
+        snackbar.show('Size search failed — try again.', { timeout: 3000 });
+      }
+    } finally {
+      if (this.fitControllers[index] === controller) {
+        this.fitControllers[index] = null;
+        this.fitting[index] = false;
+      }
+    }
   }
 
   downloadName(index: SideIndex): string {
@@ -566,14 +779,6 @@ export class EditorSession {
     this.sides[index].format = snapshot.format;
     this.sides[index].optionsByFormat = structuredClone(
       snapshot.optionsByFormat,
-    );
-    this.sides[index].processorState = structuredClone(snapshot.processorState);
-  }
-
-  private sideContains(index: SideIndex): boolean {
-    return (
-      this.sides[index].processorState.resize.enabled &&
-      this.sides[index].processorState.resize.fitMethod === 'contain'
     );
   }
 
