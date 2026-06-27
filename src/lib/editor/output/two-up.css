@@ -93,6 +93,10 @@ two-up[orientation='vertical'] .scrubber {
   transform: translate(-50%, -50%) rotate(-90deg);
 }
 
+two-up[orientation='vertical'] .two-up-handle:hover .scrubber {
+  transform: translate(-50%, -50%) rotate(-90deg) scale(1.08);
+}
+
 two-up > :nth-child(1):not(.two-up-handle) {
   -webkit-clip-path: inset(0 calc(100% - var(--split-point)) 0 0);
   clip-path: inset(0 calc(100% - var(--split-point)) 0 0);
