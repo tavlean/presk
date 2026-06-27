@@ -84,7 +84,7 @@
     Preset:
     <Select value={String(preset)} onchange={onPreset}>
       {#each sizePresets as p (p)}
-        <option value={String(p)}>{Math.round(p * 100)}%</option>
+        <option value={String(p)}>{+(p * 100).toFixed(2)}%</option>
       {/each}
       <option value="custom">Custom</option>
     </Select>
