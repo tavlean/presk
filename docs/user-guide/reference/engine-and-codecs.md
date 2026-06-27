@@ -8,8 +8,7 @@ and provenance come from `docs/codec-provenance.md` and the codec build recipes.
 
 - **The image pipeline runs locally in the browser.** No server, no upload.
   The WASM decode/preprocess/process/encode paths run through the generated
-  SvelteKit worker surface. Browser-native JPEG / PNG / GIF encode through
-  `canvas.toBlob()` on the main thread because they use browser APIs.
+  SvelteKit worker surface.
 - **Single-thread is the SvelteKit launch baseline.** The generated worker
   surface currently forces single-thread encode for AVIF, JPEG XL, and
   OxiPNG. WebP has a generated SIMD asset path. Threaded artifacts still exist
@@ -82,13 +81,8 @@ JS/WASM artifacts). Each codec is wired through `src/features/{encoders,decoders
 | imagequant (quantize)  | libimagequant (ImageOptim)       | `2.12.1` (`--disable-sse`)                                          | no                    | no                      | quantize processor                                                                                             |
 | resize (worker resize) | `resize` crate (crates.io)       | `0.5.5` (wrapper `squoosh-resize` 0.1.0)                            | no                    | no                      | resize processor                                                                                               |
 | hqx (pixel-art resize) | CryZe/wasmboy-rs `hqx` crate     | git tag `v0.1.3` (wrapper `squooshhqx` 0.1.0)                       | no                    | no                      | resize processor (`hqx` method)                                                                                |
-| QOI enc/dec            | phoboslab/qoi                    | commit `8d35d93cdca85d2868246c2a8a80a1e2c16ba2a8`                   | no                    | no                      | enc+dec, `image/qoi`                                                                                           |
+| QOI dec (enc unused)   | phoboslab/qoi                    | commit `8d35d93cdca85d2868246c2a8a80a1e2c16ba2a8`                   | no                    | no                      | dec wired for import; encoder built but removed from `OUTPUT_FORMATS` (2026-06-27)                            |
 | rotate (preprocessor)  | local Rust (`squoosh-rotate`)    | local `0.1.0` (WABT `1.0.11` + `wasm-opt`)                          | no                    | no                      | rotate preprocessor                                                                                            |
-
-### Browser-native (no WASM) encoders
-
-- **Browser PNG** (`image/png`), **Browser JPEG** (`image/jpeg`, quality 0-1
-  default 0.75), **Browser GIF** (`image/gif`) — canvas `toBlob`/`convertToBlob`.
 
 ### Codec assets present but not wired as app features
 
@@ -96,6 +90,8 @@ JS/WASM artifacts). Each codec is wired through `src/features/{encoders,decoders
   imported by browser features. (The dead `codecs/png/` Rust PNG helper and
   `codecs/visdif/` butteraugli visual-diff utility were deleted in the
   codec-cleanup pass; active PNG optimization uses OxiPNG.)
+- The canvas/browser encoders (Browser JPEG/PNG/GIF) were removed entirely on
+  2026-06-27 — see `docs/codec-surface-cleanup.md` §3.
 
 ### Product direction (per provenance doc)
 
