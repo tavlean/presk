@@ -33,13 +33,13 @@ The versions below come straight from the project's build recipes, recorded in `
 
 ### Output formats (what you can compress _to_)
 
-| Format in the menu           | Underlying library               | Recorded version                  | Speed boosts  | Notes                                                                    |
-| ---------------------------- | -------------------------------- | --------------------------------- | ------------- | ------------------------------------------------------------------------ |
-| **WebP**                     | libwebp (`webmproject/libwebp`)  | commit `d2e245ea…`                | SIMD          | Broadly supported modern format; great all-rounder.                      |
-| **AVIF**                     | libavif + libaom (+ libsharpyuv) | libavif `v1.0.1`, libaom `v3.7.0` | Threads       | Excellent compression for photos; slower to encode.                      |
-| **JPEG XL**                  | libjxl                           | commit `9f544641…`                | Threads, SIMD | Newer high-efficiency format.                                            |
-| **JPEG**                     | `mozilla/mozjpeg`                | `v3.3.1`                          | —             | Highly optimized classic JPEG encoder (MozJPEG; encoder in the tooltip). |
-| **PNG**                      | `oxipng` (crates.io)             | `9.0`                             | —             | Lossless PNG optimizer (OxiPNG; encoder in the tooltip).                 |
+| Format in the menu           | Underlying library               | Recorded version                   | Speed boosts  | Notes                                                                    |
+| ---------------------------- | -------------------------------- | ---------------------------------- | ------------- | ------------------------------------------------------------------------ |
+| **WebP**                     | libwebp (`webmproject/libwebp`)  | `v1.6.0`                           | SIMD          | Broadly supported modern format; great all-rounder.                      |
+| **AVIF**                     | libavif + libaom (+ libsharpyuv) | libavif `v1.4.2`, libaom `v3.12.1` | Threads       | Excellent compression for photos; slower to encode.                      |
+| **JPEG XL**                  | libjxl                           | `v0.8.5`                           | Threads, SIMD | Newer high-efficiency format.                                            |
+| **JPEG**                     | `mozilla/mozjpeg`                | `v4.1.5`                           | —             | Highly optimized classic JPEG encoder (MozJPEG; encoder in the tooltip). |
+| **PNG**                      | `oxipng` (crates.io)             | `10.1.1`                           | Threads       | Lossless PNG optimizer (OxiPNG; encoder in the tooltip).                 |
 
 All five output codecs are bundled WebAssembly and **always available** — there is nothing to feature-detect.
 
@@ -56,8 +56,8 @@ So you can open GIF, BMP, SVG, and QOI files even though none of them are output
 
 Two more libraries power the editing options rather than an output format:
 
-- **Resize** uses the Rust `resize` crate (`0.5.5`) for its high-quality methods, plus the **hqx** pixel-art scaler (`v0.1.3`).
-- **Reduce palette / quantize** uses **imagequant** (libimagequant `2.12.1`).
+- **Resize** uses the Rust `resize` crate (`0.8.9`) for its high-quality methods, plus the **hqx** pixel-art scaler (`v0.1.3`).
+- **Reduce palette / quantize** uses **imagequant** (libimagequant `2.18.0`).
 - **Rotate** uses a small local Rust module (`squoosh-rotate`) that runs before everything else.
 
 These are documented in their own guides; they're listed here so you can see the full set of engines Sqush ships.

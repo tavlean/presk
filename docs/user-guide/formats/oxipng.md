@@ -68,4 +68,4 @@ _Sources: [OxiPNG README](https://github.com/oxipng/oxipng/blob/master/README.md
 
 ## Under the hood
 
-OxiPNG is a lossless PNG optimizer that runs entirely in your browser as a WebAssembly module — your image never leaves the page. The repository also carries OxiPNG's parallel build, but the current SvelteKit app uses the proven single-thread path. It works by re-trying PNG's row filters and recompressing the pixel data more tightly; the Effort level decides how many strategies it tries, with the top levels switching to the slower, higher-ratio Zopfli compressor (src: github.com/oxipng/oxipng).
+OxiPNG is a lossless PNG optimizer that runs entirely in your browser as a WebAssembly module — your image never leaves the page. The app uses OxiPNG's parallel build to engage multiple CPU cores when the browser supports it, with a correct single-thread fallback otherwise. It works by re-trying PNG's row filters and recompressing the pixel data more tightly; the Effort level decides how many strategies it tries, with the top levels switching to the slower, higher-ratio Zopfli compressor (src: github.com/oxipng/oxipng).
