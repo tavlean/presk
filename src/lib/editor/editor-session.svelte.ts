@@ -220,6 +220,10 @@ export class EditorSession {
   // Resize recipe signature each side last encoded with, to tell a resize edit
   // apart from any other re-encode (see encodeSide / activities).
   private lastResizeSig: [string | null, string | null] = [null, null];
+  // The full effective-request signature that produced the result currently on
+  // screen for each side (set only on a successful encode). A pass whose signature
+  // matches is redundant and skipped — see encodeSide.
+  private encodedSig: [string | null, string | null] = [null, null];
   // Disposes the per-side encode/spinner effects this instance owns (constructor).
   private stopEffects: (() => void) | null = null;
   // Debounced localStorage write for persistSettings (see flushSettings).
@@ -280,15 +284,27 @@ export class EditorSession {
     const fileChanged = this.loadId !== this.encodedLoadId[index];
     this.encodedLoadId[index] = this.loadId;
 
-    // Label the badge by WHAT changed this pass, not by what's enabled: diff the
-    // resize recipe against the previous pass. A resize-control change → "Resizing";
-    // anything else (quality/format/palette/rotate) → "Optimizing". While resize is
-    // OFF its width/height are irrelevant (and get seeded after the first result),
-    // so collapse the disabled state to a constant signature — otherwise those
-    // background dim writes would masquerade as a resize edit. A new file always
-    // reads as 'optimize' (fileChanged short-circuits before the diff can fire).
+    // A resize only counts as a *real* resize when it targets a size different from
+    // the (preprocessed) source. At the source's own dimensions the default
+    // interpolating filters are an identity pass, so "enabled at 100%" changes
+    // nothing — it shouldn't run, nor read as "Resizing". Source dims are read
+    // untracked so this never makes the encode depend on `results`.
     const resize = request.processorState.resize;
-    const resizeSig = resize.enabled ? JSON.stringify(resize) : 'off';
+    const [srcW, srcH] = untrack(() => [this.naturalWidth, this.naturalHeight]);
+    const resizeIsReal =
+      resize.enabled &&
+      srcW > 0 &&
+      srcH > 0 &&
+      (resize.width !== srcW || resize.height !== srcH);
+
+    // Label the badge by WHAT changed this pass: diff the *effective* resize recipe
+    // against the previous pass. A real resize-control change → "Resizing"; anything
+    // else (quality/format/palette/rotate, or an identity resize) → "Optimizing".
+    // Collapsing "no real resize" to a constant means toggling resize on at 100% —
+    // or flipping Premultiply/Linear RGB, which only matter while actually scaling —
+    // never masquerades as a resize edit. A new file always reads as 'optimize'
+    // (fileChanged short-circuits before the diff can fire).
+    const resizeSig = resizeIsReal ? JSON.stringify(resize) : 'off';
     const prevSig = this.lastResizeSig[index];
     this.lastResizeSig[index] = resizeSig;
     this.activities[index] =
@@ -298,6 +314,28 @@ export class EditorSession {
 
     if (!current) {
       this.statuses[index] = 'idle';
+      return;
+    }
+
+    // Skip a redundant pass. These five fields are the complete input to
+    // compressFile (the source file aside, guarded by fileChanged) — with the
+    // resize recipe folded in only when it actually changes the image. If they
+    // match the signature that produced the result already on screen, re-encoding
+    // would reproduce identical bytes, so we don't: no wasted work, no badge flash.
+    // This is what makes "enable resize at 100%" (and Premultiply/Linear RGB toggles
+    // at 100%) a true no-op. `encodedSig` is recorded only on success, so a prior
+    // error or abort still retries.
+    const encodeSig = JSON.stringify({
+      format: request.format,
+      options: request.options,
+      preprocessor: request.preprocessorState,
+      quantize: request.processorState.quantize,
+      resize: resizeIsReal ? resize : null,
+    });
+    if (!fileChanged && encodeSig === this.encodedSig[index]) {
+      // Settle to the finished result that already matches these settings.
+      this.statuses[index] = 'done';
+      this.errors[index] = '';
       return;
     }
 
@@ -322,6 +360,8 @@ export class EditorSession {
             [this.results[0], this.results[1]];
           nextResults[index] = outcome;
           this.results = nextResults;
+          // Remember what produced this result so an identical later pass can skip.
+          this.encodedSig[index] = encodeSig;
           this.statuses[index] = 'done';
         })
         .catch((error: unknown) => {

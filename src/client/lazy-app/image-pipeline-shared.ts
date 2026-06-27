@@ -161,15 +161,20 @@ export async function processImage(
   assertSignal(signal);
   let result = source.preprocessed;
 
-  if (processorState.resize.enabled) {
-    result = await resize(signal, source, processorState.resize, workerBridge);
+  const { resize: resizeState, quantize: quantizeState } = processorState;
+  // Only resize when the target differs from the source's own dimensions. At
+  // identical dimensions the interpolating filters (Lanczos3 default, Catmull-Rom,
+  // Triangle) are a mathematical identity, so running the pass would burn CPU — and
+  // for a smoothing filter like Mitchell, needlessly soften the image — just to
+  // reproduce the pixels we already have.
+  const resizeChangesSize =
+    resizeState.width !== source.preprocessed.width ||
+    resizeState.height !== source.preprocessed.height;
+  if (resizeState.enabled && resizeChangesSize) {
+    result = await resize(signal, source, resizeState, workerBridge);
   }
-  if (processorState.quantize.enabled) {
-    result = await workerBridge.quantize(
-      signal,
-      result,
-      processorState.quantize,
-    );
+  if (quantizeState.enabled) {
+    result = await workerBridge.quantize(signal, result, quantizeState);
   }
   return result;
 }

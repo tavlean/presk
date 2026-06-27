@@ -23,9 +23,10 @@ The screen has three parts: the big image area in the middle, and two settings p
 - **Range & default:** Appears automatically over whichever side is working (left pill over the left half, right pill over the right half; top/bottom on a narrow screen). It only shows after a short delay, so quick passes don't flash it — which is why on a fast format you may not see it at all.
 - **How to use it / how to read it:** The label reflects **what you just changed**, not just "busy":
   - The first time a side runs it reads **"Optimizing…"** (settling into **"Optimized"**).
-  - Change a resize control (dimensions, preset, method…) and that side reads **"Resizing…" → "Resized"** — a reminder that resizing is what's driving this pass, even though the image is always re-encoded too.
+  - Change a resize control to an actually different size (width/height, a preset, the method) and that side reads **"Resizing…" → "Resized"** — a reminder that resizing is what's driving this pass, even though the image is always re-encoded too.
   - Any other change after the first pass — quality, format, palette reduction, rotation — reads **"Re-optimizing…" → "Re-optimized"**.
   In every case the previous result stays on screen, crisp, while the new one is computed, so you're never left looking at nothing. The pill is the single, consistent "this side is working" signal; when it disappears, the result you're looking at is final.
+- **No pill for a no-op:** If a change wouldn't alter the output, Sqush doesn't re-encode and no pill appears. The clearest case is **turning Resize on while it's still at 100%** (its default when enabled): at the source's own size the default scaler is an identity pass, so nothing happens. The same is true of toggling **Premultiply alpha** or **Linear RGB** while at 100% — those only affect the math _during_ actual scaling, so at 100% they change nothing. You'll only see "Resizing…" once you set a size that genuinely differs.
 - **Recommended starting point:** Nothing to set — just know that a pill over a side means "still working," and a side with no pill is showing its finished result.
 
 ### Zoom (in / out / type a percentage)
