@@ -59,14 +59,17 @@
   const leftDraw = $derived(leftImage ?? rightImage);
   const rightDraw = $derived(rightImage ?? leftImage);
 
-  // When a side is "contain"-resized, pin the canvas's CSS box to the original
-  // source dims and let object-fit letterbox the smaller raster inside it, so
-  // both sides occupy the same footprint. Ported from the original's
-  // getOutputPreviewImageState.
-  const containStyle = (active: boolean) =>
-    active && containWidth && containHeight
-      ? `width:${containWidth}px;height:${containHeight}px;object-fit:contain;`
-      : '';
+  // Pin both canvases' CSS box to the original (preprocessed) source dims so a
+  // resized-down output keeps the same on-screen footprint as the other side and
+  // the two-up split stays aligned. Faithful to the original's
+  // getOutputPreviewImageState, which set width/height UNCONDITIONALLY and only
+  // toggled object-fit. The box dims are identical for both sides (same source),
+  // so they're shared; `object-fit:contain` is added per-side in the template
+  // (only when that side is "contain"-resized) to letterbox without distortion —
+  // otherwise the default `fill` stretches the smaller raster to the box (the
+  // expected soft/pixelated look). Null when dims are unknown → property removed.
+  const boxWidth = $derived(containWidth ? `${containWidth}px` : null);
+  const boxHeight = $derived(containHeight ? `${containHeight}px` : null);
 
   let twoUp = $state<HTMLElement>();
   let pinchLeft = $state<PinchZoom>();
@@ -88,16 +91,12 @@
   const fitTarget = $derived.by(() => {
     const image = leftImage ?? rightImage;
     if (!image) return null;
-    const containActive = leftImage ? leftContain : rightContain;
+    // The displayed footprint is always the original source box when known (see
+    // boxWidth/boxHeight), so fit + centre against that, not the resized raster.
+    const usableBox = containWidth && containHeight;
     return {
-      width:
-        containActive && containWidth && containHeight
-          ? containWidth
-          : image.width,
-      height:
-        containActive && containWidth && containHeight
-          ? containHeight
-          : image.height,
+      width: usableBox ? containWidth : image.width,
+      height: usableBox ? containHeight : image.height,
     };
   });
 
@@ -209,7 +208,9 @@
         class:pixelated
         width={leftDraw?.width}
         height={leftDraw?.height}
-        style={containStyle(leftContain)}
+        style:width={boxWidth}
+        style:height={boxHeight}
+        style:object-fit={leftContain ? 'contain' : null}
         bind:this={canvasLeft}
       ></canvas>
     </pinch-zoom>
@@ -219,7 +220,9 @@
         class:pixelated
         width={rightDraw?.width}
         height={rightDraw?.height}
-        style={containStyle(rightContain)}
+        style:width={boxWidth}
+        style:height={boxHeight}
+        style:object-fit={rightContain ? 'contain' : null}
         bind:this={canvasRight}
       ></canvas>
     </pinch-zoom>
