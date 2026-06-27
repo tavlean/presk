@@ -405,6 +405,18 @@ export class EditorSession {
     // Reset the spinner delay so the new file re-earns the 500ms grace; loadId
     // (bumped above) re-arms the encode + seed bookkeeping with no manual reset.
     this.spinnerDelayPassed = [false, false];
+
+    // New-file reset policy — applies to a fresh open AND an in-place drag-drop
+    // replace. The ENCODER recipe is KEPT: each side's `format` + `optionsByFormat`
+    // (quality, effort, …) are left untouched, so swapping photos preserves your
+    // compression target. The per-image settings are RESET below: rotation (a new
+    // photo's orientation is unrelated to the last one) and the whole
+    // processorState — resize (its dims re-seed to the new image anyway) and
+    // palette reduction. Palette reduction is per-image and often *increases* size,
+    // so silently carrying it onto an unrelated image is a footgun; deliberate
+    // cross-image palette work belongs in bulk edit. This is an intentional
+    // divergence from upstream Squoosh, which preserved rotation + palette across a
+    // replace — don't "restore" that without revisiting this decision.
     this.preprocessorState = structuredClone(defaultPreprocessorState);
 
     const isVector = next.type === 'image/svg+xml';
