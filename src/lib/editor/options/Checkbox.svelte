@@ -1,6 +1,7 @@
 <script lang="ts">
-  // Ported from src/client/lazy-app/Compress/Options/Checkbox. A real (hidden)
-  // checkbox drives an icon-rendered box, with a focus ripple.
+  // A real (hidden) checkbox driving a drawn box. Originally ported from
+  // Squoosh's Options/Checkbox; restyled as a rounded square that fills with
+  // the side's accent colour and shows a white check.
   interface Props {
     checked?: boolean;
     disabled?: boolean;
@@ -17,35 +18,6 @@
 </script>
 
 <div class="checkbox">
-  {#if checked}
-    <svg
-      class="icon"
-      class:checked={!disabled}
-      class:disabled
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        d="M21.3 0H2.7A2.7 2.7 0 0 0 0 2.7v18.6A2.7 2.7 0 0 0 2.7 24h18.6a2.7 2.7 0 0 0 2.7-2.7V2.7A2.7 2.7 0 0 0 21.3 0zm-12 18.7L2.7 12l1.8-1.9L9.3 15 19.5 4.8l1.8 1.9z"
-      />
-    </svg>
-  {:else}
-    <svg
-      class="icon"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        d="M21.3 2.7v18.6H2.7V2.7h18.6m0-2.7H2.7A2.7 2.7 0 0 0 0 2.7v18.6A2.7 2.7 0 0 0 2.7 24h18.6a2.7 2.7 0 0 0 2.7-2.7V2.7A2.7 2.7 0 0 0 21.3 0z"
-      />
-    </svg>
-  {/if}
   <input
     class="real-checkbox"
     type="checkbox"
@@ -54,6 +26,18 @@
     bind:checked
     onchange={(e) => onchange?.(e.currentTarget.checked)}
   />
+  <div class="box" class:disabled>
+    <svg class="tick" viewBox="0 0 12 12" aria-hidden="true">
+      <path
+        d="M2.5 6.5L5 9l4.5-5.5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </div>
 </div>
 
 <style>
@@ -63,43 +47,55 @@
     --size: 17px;
   }
 
-  .checkbox::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 200%;
-    height: 200%;
-    background-color: var(--main-theme-color);
-    border-radius: 999px;
-    opacity: 0.25;
-    transform: translate(-50%, -50%) scale(0);
-    transition-property: transform;
-    transition-duration: 250ms;
-  }
-
-  .checkbox:focus-within::before {
-    transform: translate(-50%, -50%) scale(1);
-  }
-
   .real-checkbox {
     top: 0;
     position: absolute;
     opacity: 0;
     pointer-events: none;
+    margin: 0;
   }
 
-  .icon {
-    display: block;
+  .box {
+    box-sizing: border-box;
     width: var(--size);
     height: var(--size);
+    border-radius: 5px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    background: var(--field-bg, rgba(255, 255, 255, 0.06));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
   }
 
-  .checked {
-    fill: var(--main-theme-color);
+  .checkbox:focus-within .box {
+    outline: 2px solid var(--main-theme-color);
+    outline-offset: 2px;
   }
 
-  .disabled {
-    fill: var(--dark-gray);
+  .tick {
+    width: 11px;
+    height: 11px;
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 150ms ease,
+      transform 150ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+
+  .real-checkbox:checked + .box {
+    background: var(--main-theme-color);
+    border-color: transparent;
+  }
+
+  .real-checkbox:checked + .box .tick {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .box.disabled {
+    opacity: 0.45;
   }
 </style>

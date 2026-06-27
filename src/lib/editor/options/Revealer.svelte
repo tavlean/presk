@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Ported from src/client/lazy-app/Compress/Options/Revealer — a checkbox shown
-  // as a rotating arrow, used to reveal "Advanced settings".
+  // A checkbox shown as a rotating chevron, used to reveal "Advanced settings".
+  // Originally ported from Squoosh's Options/Revealer.
   interface Props {
     checked?: boolean;
     name?: string;
@@ -30,7 +30,7 @@
   .arrow {
     width: 10px;
     height: 10px;
-    fill: var(--white);
+    fill: currentColor;
     transition: transform 200ms ease;
     transform: rotate(-90deg);
   }

@@ -1,6 +1,7 @@
 <script lang="ts">
-  // Ported from src/client/lazy-app/Compress/Options/Select — a styled native
-  // select with a custom arrow. `value` is bindable; children supply <option>s.
+  // A styled native select with a custom chevron. Originally ported from
+  // Squoosh's Options/Select; restyled as a soft glass field. `value` is
+  // bindable; children supply <option>s.
   import type { Snippet } from 'svelte';
 
   interface Props {
@@ -48,26 +49,45 @@
   }
 
   .builtin-select {
-    background: var(--black);
-    border-radius: 4px;
+    background: var(--field-bg, rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--stroke, rgba(255, 255, 255, 0.08));
+    border-radius: 9px;
     font: inherit;
     padding: 7px 0;
-    padding-right: 25px;
+    padding-right: 26px;
     padding-left: 10px;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border: none;
-    color: #fff;
+    color: var(--text-1, #fafafa);
     width: 100%;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .builtin-select:hover {
+    background: var(--field-bg-hover, rgba(255, 255, 255, 0.1));
+  }
+
+  .builtin-select:focus-visible {
+    outline: none;
+    border-color: var(--main-theme-color);
+  }
+
+  /* Native dropdown list renders on the OS side; keep its text legible. */
+  .builtin-select option {
+    background: #18181b;
+    color: #fafafa;
   }
 
   .arrow {
     position: absolute;
-    right: 8px;
+    right: 9px;
     top: 50%;
     transform: translateY(-50%);
-    fill: #fff;
+    fill: var(--text-2, #a1a1aa);
     width: 10px;
     pointer-events: none;
   }
@@ -78,8 +98,11 @@
   }
 
   .large {
-    padding: 10px 35px 10px 10px;
-    background: var(--dark-gray);
+    padding: 10px 35px 10px 12px;
+    font-weight: 600;
+    background: var(--field-bg, rgba(255, 255, 255, 0.06));
+    border-color: var(--stroke-strong, rgba(255, 255, 255, 0.16));
+    border-radius: 10px;
   }
 
   .large + .arrow {

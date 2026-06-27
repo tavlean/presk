@@ -1,8 +1,9 @@
 <script lang="ts">
-  // Ported from src/client/lazy-app/Compress/Options/Range + its <range-input>
-  // custom element. A native range input (transparent) drives a styled track,
-  // thumb, and a value bubble that appears while dragging; a number input mirrors
-  // the value. `value` is bindable; label text comes from children.
+  // Originally ported from Squoosh's Options/Range + its <range-input> custom
+  // element; restyled as a modern slider. A native range input (transparent)
+  // drives a styled track, thumb, and a value pill that appears while dragging;
+  // a number input mirrors the value. `value` is bindable; label text comes
+  // from children.
   import type { Snippet } from 'svelte';
 
   interface Props {
@@ -75,7 +76,7 @@
       class="range-input"
       class:active
       class:disabled
-      style="--value-percent: {percent}%; --value-width: {displayValue.length}"
+      style="--value-percent: {percent}%"
     >
       <input
         class="input"
@@ -91,14 +92,7 @@
       />
       <div class="thumb-wrapper">
         <div class="thumb"></div>
-        <div class="value-display">
-          <svg width="32" height="62" aria-hidden="true">
-            <path
-              d="M27.3 27.3C25 29.6 17 35.8 17 43v3c0 3 2.5 5 3.2 5.8a6 6 0 1 1-8.5 0C12.6 51 15 49 15 46v-3c0-7.2-8-13.4-10.3-15.7A16 16 0 0 1 16 0a16 16 0 0 1 11.3 27.3z"
-            />
-          </svg>
-          <span>{displayValue}</span>
-        </div>
+        <div class="value-display">{displayValue}</div>
       </div>
     </div>
   </div>
@@ -120,10 +114,12 @@
     z-index: 0;
     display: grid;
     grid-template-columns: 1fr auto;
+    align-items: center;
+    row-gap: 2px;
   }
 
   .label-text {
-    color: #fff;
+    color: var(--text-2, #a1a1aa);
   }
 
   .range-wc-container {
@@ -136,7 +132,7 @@
   .range-input {
     position: relative;
     display: flex;
-    height: 18px;
+    height: 20px;
     width: 100%;
     margin: 2px 0;
     font: inherit;
@@ -144,6 +140,7 @@
     overflow: visible;
   }
 
+  /* The track: a soft groove with the filled portion in the side's accent. */
   .range-input::before {
     content: '';
     display: block;
@@ -151,13 +148,14 @@
     top: 8px;
     left: 0;
     width: 100%;
-    height: 2px;
-    border-radius: 1px;
+    height: 4px;
+    border-radius: 2px;
     background: linear-gradient(
-        var(--main-theme-color),
+        90deg,
+        color-mix(in srgb, var(--main-theme-color) 65%, transparent),
         var(--main-theme-color)
       )
-      0 / var(--value-percent, 0%) 100% no-repeat var(--medium-light-gray);
+      0 / var(--value-percent, 0%) 100% no-repeat rgba(255, 255, 255, 0.12);
   }
 
   .input {
@@ -174,21 +172,28 @@
     position: absolute;
     bottom: 3px;
     left: 0;
-    margin-left: -6px;
-    background: var(--main-theme-color);
+    margin-left: -7px;
+    background: #fff;
     border-radius: 50%;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.45),
+      0 0 0 0 var(--accent-soft, rgba(255, 255, 255, 0.15));
+    transition: box-shadow 150ms ease;
   }
 
-  .range-input:focus-within .thumb {
-    outline: white solid 2px;
+  .range-input:focus-within .thumb,
+  .range-input.active .thumb {
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.45),
+      0 0 0 5px var(--accent-soft, rgba(255, 255, 255, 0.15));
   }
 
   .thumb-wrapper {
     position: absolute;
-    left: 6px;
-    right: 6px;
+    left: 7px;
+    right: 7px;
     bottom: 0;
     height: 0;
     overflow: visible;
@@ -196,55 +201,52 @@
     pointer-events: none;
   }
 
+  /* Value pill shown above the thumb while dragging. */
   .value-display {
     position: absolute;
     box-sizing: border-box;
     left: 0;
-    bottom: 3px;
-    width: 32px;
-    height: 62px;
-    text-align: center;
-    padding: 8px 3px 0;
-    margin: 0 0 0 -16px;
-    transform-origin: 50% 90%;
-    opacity: 0.0001;
-    transform: scale(0.2);
+    bottom: 24px;
+    transform: translateX(-50%) translateY(4px) scale(0.8);
+    transform-origin: 50% 100%;
+    opacity: 0;
+    background: var(--main-theme-color);
     color: #fff;
-    font: inherit;
-    font-size: calc(100% - var(--value-width, 3) / 5 * 0.2em);
-    text-overflow: clip;
-    text-shadow: 0 -0.5px 0 rgba(0, 0, 0, 0.4);
-    transition: all 200ms ease;
-    transition-property: opacity, transform;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.95em;
+    line-height: 1;
+    padding: 5px 8px;
+    border-radius: 7px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+    transition:
+      opacity 150ms ease,
+      transform 150ms cubic-bezier(0.34, 1.3, 0.64, 1);
     will-change: transform;
     pointer-events: none;
-    overflow: hidden;
   }
 
-  .value-display > svg {
+  .value-display::after {
+    content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    fill: var(--main-theme-color);
-  }
-
-  .value-display > span {
-    position: relative;
+    left: 50%;
+    bottom: -3px;
+    width: 7px;
+    height: 7px;
+    background: inherit;
+    transform: translateX(-50%) rotate(45deg);
+    border-radius: 1px;
   }
 
   .range-input.active .value-display {
     opacity: 1;
-    transform: scale(1);
-  }
-
-  .range-input.active .thumb {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    transform: translateX(-50%) translateY(0) scale(1);
   }
 
   .range-input.disabled {
     filter: grayscale(1);
+    opacity: 0.5;
     cursor: default;
   }
 
@@ -252,26 +254,30 @@
     grid-row: 1 / 2;
     grid-column: 2 / 3;
     text-align: right;
-    background: transparent;
+    background: var(--field-bg, rgba(255, 255, 255, 0.06));
     color: inherit;
     font: inherit;
-    border: none;
-    padding: 2px 5px;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 2px 6px;
     box-sizing: border-box;
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    text-decoration-color: var(--main-theme-color);
-    text-underline-position: under;
     width: 54px;
-    position: relative;
-    left: 5px;
     -moz-appearance: textfield;
     appearance: textfield;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .text-input:hover {
+    background: var(--field-bg-hover, rgba(255, 255, 255, 0.1));
   }
 
   .text-input:focus {
-    background: #fff;
-    color: #000;
+    outline: none;
+    border-color: var(--main-theme-color);
+    background: var(--field-bg-hover, rgba(255, 255, 255, 0.1));
   }
 
   .text-input::-webkit-outer-spin-button,
