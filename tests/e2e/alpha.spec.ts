@@ -17,7 +17,6 @@ const ALPHA_FORMATS = [
   { id: 'webP', label: 'WebP' },
   { id: 'avif', label: 'AVIF' },
   { id: 'oxiPNG', label: 'OxiPNG' },
-  { id: 'browserPNG', label: 'Browser PNG' },
 ];
 
 for (const fmt of ALPHA_FORMATS) {

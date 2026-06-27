@@ -14,8 +14,8 @@ test('Reduce palette quantizes to the requested colour count', async ({
   await page.setInputFiles('input[type=file]', photo);
 
   const panel = page.locator('.options-2');
-  // A lossless output preserves the quantized palette exactly.
-  await panel.locator('select.builtin-select').selectOption('browserPNG');
+  // A lossless output (OxiPNG) preserves the quantized palette exactly.
+  await panel.locator('select.builtin-select').selectOption('oxiPNG');
 
   // Enable "Reduce palette" and request 4 colours, driven in-page (the styled
   // Toggle intercepts synthetic clicks). Returns a diagnostic so a wrong

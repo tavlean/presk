@@ -50,7 +50,6 @@ const CODECS = [
   { id: 'jxl', label: 'JPEG XL' },
   { id: 'mozJPEG', label: 'MozJPEG' },
   { id: 'oxiPNG', label: 'OxiPNG' },
-  { id: 'qoi', label: 'QOI' },
 ];
 
 const median = (xs: number[]) => {

@@ -35,20 +35,10 @@ const FORMATS: Fmt[] = [
     label: 'OxiPNG',
     magic: (h) => h[0] === 0x89 && ascii(h, 1, 4) === 'PNG',
   },
-  { id: 'qoi', label: 'QOI', magic: (h) => ascii(h, 0, 4) === 'qoif' },
-  {
-    id: 'browserPNG',
-    label: 'Browser PNG',
-    magic: (h) => h[0] === 0x89 && ascii(h, 1, 4) === 'PNG',
-  },
-  {
-    id: 'browserJPEG',
-    label: 'Browser JPEG',
-    magic: (h) => h[0] === 0xff && h[1] === 0xd8 && h[2] === 0xff,
-  },
-  // Browser GIF is intentionally omitted: canvas.toBlob('image/gif') is
-  // unsupported in Chromium, so the app correctly feature-detects it out of the
-  // format dropdown (getSupportedFormatIds). Its availability is browser-specific.
+  // QOI and the canvas/browser encoders (Browser JPEG/PNG/GIF) were removed from
+  // the output picker on 2026-06-27, so they're no longer selectable here. The
+  // QOI encoder stays wired for decode/import + the /diagnostics probe; QOI
+  // encode timings are covered by benchmarks/, not this UI-driven suite.
 ];
 
 for (const fmt of FORMATS) {
