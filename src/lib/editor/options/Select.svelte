@@ -6,6 +6,8 @@
   interface Props {
     value?: string | number;
     name?: string;
+    /** Hover tooltip on the collapsed control (e.g. the active encoder). */
+    title?: string;
     large?: boolean;
     disabled?: boolean;
     onchange?: (value: string) => void;
@@ -15,6 +17,7 @@
   let {
     value = $bindable(),
     name,
+    title,
     large = false,
     disabled = false,
     onchange,
@@ -27,6 +30,7 @@
     class="builtin-select"
     class:large
     {name}
+    {title}
     {disabled}
     bind:value
     onchange={(e) => onchange?.(e.currentTarget.value)}

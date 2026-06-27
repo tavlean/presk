@@ -42,19 +42,46 @@ export const IDENTITY: 'identity' = 'identity';
  */
 export const OUTPUT_FORMATS: {
   id: OutputFormat;
+  /** User-facing format name (what the output file actually is). */
   label: string;
+  /** Underlying encoder/engine, surfaced as a tooltip — not in the label. */
+  tooltip: string;
   ext: string;
 }[] = [
-  { id: 'webP', label: 'WebP', ext: encoderMap.webP.meta.extension },
-  { id: 'avif', label: 'AVIF', ext: encoderMap.avif.meta.extension },
-  // Use the engine's own label so it stays in sync (e.g. "JPEG XL (beta)").
+  {
+    id: 'webP',
+    label: 'WebP',
+    tooltip: 'libwebp',
+    ext: encoderMap.webP.meta.extension,
+  },
+  {
+    id: 'avif',
+    label: 'AVIF',
+    tooltip: 'libaom',
+    ext: encoderMap.avif.meta.extension,
+  },
+  // JXL's format name matches its codec label, so pull it from meta (kept in
+  // sync there). MozJPEG/OxiPNG below are overridden to the plain format name
+  // since the encoder brand (MozJPEG/OxiPNG) isn't what the user gets — a
+  // standard JPEG/PNG is. The encoder brand lives in the tooltip instead.
   {
     id: 'jxl',
     label: encoderMap.jxl.meta.label,
+    tooltip: 'libjxl',
     ext: encoderMap.jxl.meta.extension,
   },
-  { id: 'mozJPEG', label: 'MozJPEG', ext: encoderMap.mozJPEG.meta.extension },
-  { id: 'oxiPNG', label: 'OxiPNG', ext: encoderMap.oxiPNG.meta.extension },
+  {
+    id: 'mozJPEG',
+    label: 'JPEG',
+    tooltip: 'MozJPEG',
+    ext: encoderMap.mozJPEG.meta.extension,
+  },
+  {
+    id: 'oxiPNG',
+    label: 'PNG',
+    tooltip: 'OxiPNG',
+    ext: encoderMap.oxiPNG.meta.extension,
+  },
   // QOI is intentionally not offered as an output: it's a fast/simple lossless
   // format with effectively no support outside specialised tools, so it isn't a
   // useful target for a compression tool. The QOI *decoder* stays wired up, so

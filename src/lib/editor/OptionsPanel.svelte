@@ -38,13 +38,14 @@
     side: 'left' | 'right';
     format: SideFormat;
     /** Encoder choices to list (already filtered to those the browser supports). */
-    formats?: { id: string; label: string; ext: string }[];
+    formats?: { id: string; label: string; tooltip?: string; ext: string }[];
     /** The current format's option object (live $state proxy from the parent). */
     options: Record<string, unknown>;
     processorState: ProcessorState;
     naturalWidth: number;
     naturalHeight: number;
-    /** Source filename, shown on the "Original Image (…)" option. */
+    /** Source filename. Reserved for an upcoming source-image info display;
+     *  intentionally not rendered in the format picker anymore. */
     sourceName?: string;
     /** True when the source is a vector (SVG) — enables the Vector resize method. */
     isVector?: boolean;
@@ -80,6 +81,8 @@
 
   const isOriginal = $derived(format === 'identity');
   const typeLabel = $derived(formats.find((f) => f.id === format)?.label ?? '');
+  // Encoder/engine for the active format, shown as the picker's hover tooltip.
+  const formatTooltip = $derived(formats.find((f) => f.id === format)?.tooltip);
 </script>
 
 <div class="options-scroller" class:original-image={isOriginal}>
@@ -177,15 +180,12 @@
     <Select
       large
       value={format}
+      title={formatTooltip}
       onchange={(v) => onFormatChange(v as SideFormat)}
     >
-      <option value="identity"
-        >{sourceName
-          ? `Original Image (${sourceName})`
-          : 'Original Image'}</option
-      >
+      <option value="identity">Original Image</option>
       {#each formats as option (option.id)}
-        <option value={option.id}>{option.label}</option>
+        <option value={option.id} title={option.tooltip}>{option.label}</option>
       {/each}
     </Select>
   </section>
