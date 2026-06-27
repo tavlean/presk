@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
+import { pickFormat } from './helpers';
 
 // The core codec-regression suite: load an image, switch the right side to each
 // output format, and assert the encode produces a downloadable blob with the
@@ -59,9 +60,7 @@ for (const fmt of FORMATS) {
     await page.goto('/');
     await page.setInputFiles('input[type=file]', sample);
 
-    const rightSelect = page.locator('.options-2 select.builtin-select');
-    await expect(rightSelect).toBeVisible();
-    await rightSelect.selectOption(fmt.id);
+    await pickFormat(page.locator('.options-2'), fmt.id);
 
     // Encode settled: the working spinner (⏳ in the title) has cleared and the
     // right-side download points at a fresh blob.

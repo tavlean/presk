@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
+import { pickFormat } from './helpers';
 
 // Functionally exercises the quantize processor (libimagequant / "Reduce
 // palette"): reduce a photo to N colours, encode lossless PNG, decode the
@@ -15,7 +16,7 @@ test('Reduce palette quantizes to the requested colour count', async ({
 
   const panel = page.locator('.options-2');
   // A lossless output preserves the quantized palette exactly.
-  await panel.locator('select.builtin-select').selectOption('browserPNG');
+  await pickFormat(panel, 'browserPNG');
 
   // Enable "Reduce palette" and request 4 colours, driven in-page (the styled
   // Toggle intercepts synthetic clicks). Returns a diagnostic so a wrong

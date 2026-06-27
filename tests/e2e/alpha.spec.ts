@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
+import { pickFormat } from './helpers';
 
 // Alpha-channel preservation. Encodes the transparent fixture and re-decodes the
 // output to confirm a transparent source pixel stays transparent and an opaque
@@ -25,9 +26,7 @@ for (const fmt of ALPHA_FORMATS) {
     await page.goto('/');
     await page.setInputFiles('input[type=file]', transparent);
 
-    const rightSelect = page.locator('.options-2 select.builtin-select');
-    await expect(rightSelect).toBeVisible();
-    await rightSelect.selectOption(fmt.id);
+    await pickFormat(page.locator('.options-2'), fmt.id);
 
     await expect
       .poll(async () => (await page.title()).includes('⏳'), {

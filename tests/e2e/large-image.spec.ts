@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
+import { pickFormat } from './helpers';
 
 // Large-input smoke: a 4000×3000 (12 MP) photo must encode without crashing or
 // running out of memory. WebP is fast enough at this size to keep the suite
@@ -18,9 +19,7 @@ test('encodes a large 12 MP image without crashing (WebP)', async ({
   await page.goto('/');
   await page.setInputFiles('input[type=file]', large);
 
-  const rightSelect = page.locator('.options-2 select.builtin-select');
-  await expect(rightSelect).toBeVisible();
-  await rightSelect.selectOption('webP');
+  await pickFormat(page.locator('.options-2'), 'webP');
 
   await expect
     .poll(async () => (await page.title()).includes('⏳'), { timeout: 120_000 })

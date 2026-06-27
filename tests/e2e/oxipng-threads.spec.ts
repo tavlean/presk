@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
+import { pickFormat } from './helpers';
 
 const photo = fileURLToPath(new URL('../fixtures/photo.jpg', import.meta.url));
 
@@ -42,11 +43,7 @@ test('oxipng threading engages (no single-thread fallback)', async ({
 
   await page.goto('/');
   await page.setInputFiles('input[type=file]', photo);
-  await page
-    .locator('.options-2')
-    .locator('select.builtin-select')
-    .first()
-    .selectOption('oxiPNG');
+  await pickFormat(page.locator('.options-2'), 'oxiPNG');
   await page
     .locator('.options-2 a.download[href^="blob:"]')
     .waitFor({ state: 'visible', timeout: 60_000 });

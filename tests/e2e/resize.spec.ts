@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
+import { pickFormat } from './helpers';
 
 // Functionally exercises the WASM resize processor (Rust `resize` crate, lanczos3):
 // resize a photo, encode lossless PNG, decode the output and assert the dimensions
@@ -16,10 +17,7 @@ test('WASM resize outputs the requested size and a valid image', async ({
 
   const panel = page.locator('.options-2');
   // Lossless PNG preserves the resized pixels exactly.
-  await panel
-    .locator('select.builtin-select')
-    .first()
-    .selectOption('browserPNG');
+  await pickFormat(panel, 'browserPNG');
 
   const setup = await page.evaluate(async () => {
     const root = document.querySelector('.options-2')!;
@@ -48,6 +46,18 @@ test('WASM resize outputs the requested size and a valid image', async ({
       fire(cb, 'input', 'change');
     }
     await sleep(400); // let the {#if} mount ResizeOptions
+
+    // The Method select now lives behind the resize "Advanced settings"
+    // reveal — open every unopened reveal in the panel so it mounts.
+    for (const revealCb of root.querySelectorAll<HTMLInputElement>(
+      'label.option-reveal input[type="checkbox"]',
+    )) {
+      if (!revealCb.checked) {
+        setVal(revealCb, 'checked', true);
+        fire(revealCb, 'input', 'change');
+      }
+    }
+    await sleep(400); // let the reveal slide-mount its content
 
     // Method -> lanczos3 (the WASM path) — the select that offers it.
     const methodSel = [
