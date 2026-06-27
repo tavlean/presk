@@ -54,7 +54,7 @@ The format chooser is the dropdown at the top of each side's **Compress** panel.
 
 - **What it does:** A modern format designed to replace JPEG, with excellent quality-per-byte, true lossless, transparency, and even lossless re-compression of existing JPEGs. Encoded with **libjxl** (shown as **JPEG XL** in the menu; the encoder name appears as a hover tooltip).
 - **Range & default:** id `jxl`, extension `.jxl`, MIME `image/jxl`. Supports both lossy and lossless. Its label is read from the codec, hence "JPEG XL". (MozJPEG and OxiPNG are instead overridden to the plain format names **JPEG** and **PNG**, with the encoder shown in the tooltip.)
-- **How to choose:** Excellent compression and quality, but browser support is the catch: as of 2025 it ships in Safari, while Chrome and Firefox do not enable it by default. Treat output as great for archiving or supported pipelines, not for general web delivery yet. (src: caniuse.com — jpegxl)
+- **How to choose:** Excellent compression and quality, but browser support is the catch: as of 2026 it ships in Safari, while Chrome and Firefox do not enable it by default. Treat output as great for archiving or supported pipelines, not for general web delivery yet. (src: caniuse.com — jpegxl)
 - **Recommended starting point:** **Use for archival, experiments, or Safari-targeted delivery.** Deviate to WebP/AVIF when you need broad browser support today.
 
 ### JPEG
