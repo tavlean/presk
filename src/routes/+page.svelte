@@ -83,15 +83,9 @@
       {/if}
 
       <button class="back" onclick={back} title="Back" aria-label="Back">
-        <svg viewBox="0 0 61 53.3">
-          <title>Back</title>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
-            class="back-blob"
-            d="M0 25.6c-.5-7.1 4.1-14.5 10-19.1S23.4.1 32.2 0c8.8 0 19 1.6 24.4 8s5.6 17.8 1.7 27a29.7 29.7 0 01-20.5 18c-8.4 1.5-17.3-2.6-24.5-8S.5 32.6.1 25.6z"
-          />
-          <path
-            class="back-x"
-            d="M41.6 17.1l-2-2.1-8.3 8.2-8.2-8.2-2 2 8.2 8.3-8.3 8.2 2.1 2 8.2-8.1 8.3 8.2 2-2-8.2-8.3z"
+            d="M18.3 5.7a1 1 0 0 0-1.4 0L12 10.6 7.1 5.7a1 1 0 0 0-1.4 1.4l4.9 4.9-4.9 4.9a1 1 0 1 0 1.4 1.4l4.9-4.9 4.9 4.9a1 1 0 0 0 1.4-1.4L13.4 12l4.9-4.9a1 1 0 0 0 0-1.4z"
           />
         </svg>
       </button>
@@ -105,16 +99,24 @@
             options={session.sides[index].optionsByFormat[
               session.sides[index].format
             ] ?? {}}
-            processorState={session.sides[index].processorState}
+            processorState={session.processorState}
             naturalWidth={session.naturalWidth}
             naturalHeight={session.naturalHeight}
             sourceName={session.file.name}
             isVector={session.isVectorSource}
+            sharedAdjust={session.sides[index === 0 ? 1 : 0].format !==
+              'identity'}
             result={session.results[index]}
             working={session.showSpinner[index]}
             canImport={session.canImport[index]}
             downloadName={session.downloadName(index)}
+            originalSize={session.file.size}
+            compareSizes={session.compareSizes[index]}
+            compareBusy={session.compareBusy[index]}
+            fitting={session.fitting[index]}
             onFormatChange={(f) => session.setFormat(index, f)}
+            onCompare={() => session.runCompare(index)}
+            onFitToSize={(bytes) => session.fitToSize(index, bytes)}
             onCopy={() => session.copyToOther(index)}
             onSave={() => session.saveSide(index)}
             onImport={() => session.importSide(index)}
@@ -135,7 +137,7 @@
     height: 100%;
   }
   :global(body) {
-    background: #18181b;
+    background: #0b0b0d;
     color: #fff;
   }
 
@@ -151,7 +153,7 @@
     z-index: 20;
   }
   .intro-diag a {
-    color: #5fb4e4;
+    color: #38bdf8;
   }
 
   /* App wrapper — the drop target spanning both intro and editor. */
@@ -162,29 +164,34 @@
   /* Full-bleed editor */
   .compress {
     --mobile-options-height: min(44dvh, 360px);
-    --fit-inset-left: 300px;
-    --fit-inset-right: 300px;
+    --fit-inset-left: 344px;
+    --fit-inset-right: 344px;
     --fit-inset-top: 0px;
     --fit-inset-bottom: 0px;
     position: relative;
     width: 100vw;
     height: 100dvh;
     overflow: hidden;
-    background: #1a1a1a;
+    background: #131316;
   }
 
-  /* Drag-to-replace feedback, ported from Squoosh's .drop-valid overlay. The
-     `drop-valid` class is toggled by the fileDrop attachment while an image is
-     dragged anywhere over the app. */
+  /* Drag-to-replace feedback: an accent dashed frame with a soft tint while an
+     image is dragged anywhere over the app (class toggled by fileDrop). */
   .app-root::after {
     content: '';
     position: fixed;
-    inset: 10px;
-    border: 2px dashed var(--pink, #ff3385);
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+    inset: 12px;
+    border: 2px dashed var(--pink, #f472b6);
+    background:
+      radial-gradient(
+        60% 60% at 50% 50%,
+        rgba(244, 114, 182, 0.08),
+        transparent
+      ),
+      rgba(0, 0, 0, 0.25);
+    border-radius: 18px;
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.97);
     transition:
       opacity 200ms ease-in,
       transform 200ms ease-in;
@@ -199,68 +206,94 @@
 
   .status-pill {
     position: absolute;
-    top: 14px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
     margin: 0;
-    padding: 6px 14px;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.7);
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(19, 19, 23, 0.88);
+    border: 1px solid var(--stroke, rgba(255, 255, 255, 0.08));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     color: #fff;
     z-index: 8;
     pointer-events: none;
     max-width: 70vw;
   }
   .status-pill.error {
-    color: #ff8a8a;
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.35);
     font-weight: 600;
   }
 
-  /* Back button (pink blob X), ported from Compress/style.css */
+  /* Back button: a frosted circle with an X, top-left. */
   .back {
     position: absolute;
-    top: 0;
-    left: 0;
-    margin: 14px;
-    background: none;
-    border: none;
+    top: 16px;
+    left: 16px;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    background: rgba(19, 19, 23, 0.78);
+    border: 1px solid var(--stroke, rgba(255, 255, 255, 0.08));
+    border-radius: 50%;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 0;
     cursor: pointer;
+    color: #fafafa;
     z-index: 10;
+    transition:
+      background-color 150ms ease,
+      transform 150ms ease;
+  }
+  .back:hover {
+    background: rgba(40, 40, 46, 0.85);
+    transform: scale(1.05);
+  }
+  .back:focus-visible {
+    outline: 2px solid var(--pink, #f472b6);
+    outline-offset: 2px;
   }
   .back svg {
-    width: 58px;
-    overflow: visible;
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
     display: block;
   }
-  .back-blob {
-    fill: var(--hot-pink);
-    opacity: 0.77;
-  }
-  .back-x {
-    fill: var(--white);
-  }
 
-  /* Bottom-anchored option cards, ported from Compress/style.css.
-     Each side is a content-height card in a bottom corner; the canvas shows
-     above and between them. */
+  /* Floating glass option cards, one per bottom corner; the compare canvas
+     shows above and between them. */
   .options {
     position: absolute;
-    bottom: 0;
-    width: 300px;
-    max-height: calc(100% - 64px);
+    bottom: 16px;
+    width: 312px;
+    max-height: calc(100% - 88px);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     color: #fff;
     font-size: 1.2rem;
     z-index: 5;
+    background: var(--surface, rgba(19, 19, 23, 0.88));
+    border: 1px solid var(--stroke, rgba(255, 255, 255, 0.08));
+    border-radius: var(--options-radius, 16px);
+    box-shadow: var(
+      --shadow-panel,
+      0 24px 48px -12px rgba(0, 0, 0, 0.55),
+      0 4px 12px rgba(0, 0, 0, 0.35)
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
   }
   .options-1 {
-    left: 0;
+    left: 16px;
   }
   .options-2 {
-    right: 0;
+    right: 16px;
   }
 
   @media (max-width: 760px) {
@@ -270,20 +303,24 @@
     }
 
     :global(.sqush-editor .output) {
-      bottom: var(--mobile-options-height);
+      bottom: calc(var(--mobile-options-height) + 8px);
     }
 
     :global(.sqush-editor .controls) {
-      bottom: calc(var(--mobile-options-height) + 8px);
+      bottom: calc(var(--mobile-options-height) + 16px);
       padding: 0 56px;
       box-sizing: border-box;
     }
 
     .back {
-      margin: 8px;
+      top: 8px;
+      left: 8px;
+      width: 36px;
+      height: 36px;
     }
     .back svg {
-      width: 48px;
+      width: 16px;
+      height: 16px;
     }
 
     .status-pill {
@@ -293,21 +330,22 @@
     }
 
     .options {
-      width: 50vw;
+      bottom: 8px;
+      width: calc(50vw - 11px);
       /* Fixed (not just max) height so both bottom cards are the SAME height —
          otherwise the short "Original" side and the tall encoder side bottom-
          align at different heights and read as broken. The inner scroller grows
-         to fill and scrolls (see OptionsPanel), keeping the download bubble
+         to fill and scrolls (see OptionsPanel), keeping the download footer
          pinned at the bottom of each card. */
       height: var(--mobile-options-height);
       max-height: var(--mobile-options-height);
       font-size: 0.95rem;
     }
     .options-1 {
-      left: 0;
+      left: 8px;
     }
     .options-2 {
-      right: 0;
+      right: 8px;
     }
   }
 
@@ -317,7 +355,7 @@
     }
 
     :global(.sqush-editor .controls) {
-      bottom: calc(var(--mobile-options-height) + 6px);
+      bottom: calc(var(--mobile-options-height) + 14px);
       padding: 0 48px;
     }
   }
