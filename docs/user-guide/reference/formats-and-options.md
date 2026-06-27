@@ -13,6 +13,12 @@ in the Sqush editor. Sources:
 - `codecs/<id>/enc/<id>_enc.d.ts` — the raw `EncodeOptions` interface for each WASM
   codec (the source of truth for _hidden_ options).
 
+> **2026-06-11 restructure:** option KEYS/ranges below are unchanged, but some
+> controls moved tiers (WebP `exact`, JXL progressive/epf/decoding-speed/noise →
+> Advanced; resize Method/premultiply/linearRGB → Advanced; OxiPNG Effort first;
+> Quality now precedes Effort). The full placement delta is in
+> [parity-audit.md](../../parity-audit.md) §A.9.
+
 Notes that apply throughout:
 
 - **Range step default**: `Range.svelte` defaults `step = 1` when none is passed.
@@ -49,8 +55,11 @@ Notes that apply throughout:
   `getSupportedFormatIds()`; a side is offered only if the canvas actually returns
   that MIME type (browsers fall back to PNG for unsupported types, which is filtered
   out by checking `blob.type === mime`). `browserGIF` is usually unavailable.
-- The format `<select>` always prepends an **"Original Image (<filename>)"** entry
-  whose value is `identity`.
+- The format picker is a **chip grid** (2026-06-11): Original + AVIF/WebP/JPEG XL/
+  JPEG (MozJPEG)/PNG (OxiPNG) as `data-format` buttons, with QOI and the browser
+  encoders behind a "More…" chip. Chips show real encoded sizes once known (the
+  selected chip live, the rest via "Compare sizes"), plus a "best" badge.
+  Formats with a numeric `quality` also get a "Fit under N kB" quality search.
 
 ---
 
@@ -71,10 +80,13 @@ struct. Lossless vs lossy splits the whole panel.
 
 **Always visible**
 
-| UI label                  | key        | control  | range / values | default |
-| ------------------------- | ---------- | -------- | -------------- | ------- |
-| Lossless                  | `lossless` | checkbox | 0/1            | 0 (off) |
-| Preserve transparent data | `exact`    | checkbox | 0/1            | 0 (off) |
+| UI label | key        | control  | range / values | default |
+| -------- | ---------- | -------- | -------------- | ------- |
+| Lossless | `lossless` | checkbox | 0/1            | 0 (off) |
+
+("Preserve transparent data" / `exact` moved into the lossy Advanced fold on
+2026-06-11; it stays visible in lossless mode, which has no Advanced fold.
+Lossy order is now Quality above Effort.)
 
 **Lossy mode (`lossless` off)**
 
@@ -256,11 +268,12 @@ Lossless. `EncodeOptions = {}` and `defaultOptions = {}`. No panel; not in
 ## Browser JPEG (`browserJPEG`)
 
 Panel: `BrowserJpegOptions.svelte`. Canvas-based (`canvas.toBlob('image/jpeg', q)`),
-main thread. Single field on a **0–1** scale (distinct from WASM encoders' 0–100).
+main thread. The codec field is **0–1**, but since 2026-06-11 the slider
+**displays 0–100** (mapped ÷100 underneath) to match every other quality slider.
 
-| UI label | key       | control | range          | default |
-| -------- | --------- | ------- | -------------- | ------- |
-| Quality  | `quality` | range   | 0–1, step 0.01 | 0.75    |
+| UI label | key       | control | range (UI)            | default          |
+| -------- | --------- | ------- | --------------------- | ---------------- |
+| Quality  | `quality` | range   | 0–100, step 1 (UI); stored 0–1 | 0.75 (UI 75) |
 
 Feature-detected at runtime; only offered if `canvas.toBlob('image/jpeg')` works.
 

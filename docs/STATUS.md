@@ -1,6 +1,6 @@
 # Sqush Status
 
-Last updated: 2026-06-10.
+Last updated: 2026-06-11.
 
 Read this first. Sqush is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
@@ -19,6 +19,25 @@ browser, the build is static, and offline reload must work after load.
   [svelte-hardening-plan.md](svelte-hardening-plan.md).
 - Bulk UI is not part of this cleanup. Bulk and other product additions are
   tracked in [road-map.md](road-map.md).
+- **Visual redesign landed (2026-06-11):** the whole UI moved from the ported
+  Squoosh 2018 look to a frosted-glass dark theme ("Sqush 2.0") — floating
+  glass panels, modern controls (switches, gradient sliders with drag pills,
+  glass selects), a stats footer with percent pill + accent-gradient Download,
+  frosted toolbars/back button, hairline two-up divider, redesigned intro hero.
+  **Visual-only**: zero feature/option/behavior changes; side identity stays
+  left-pink / right-sky via the same `--main-theme-color` plumbing. Deviation
+  record: [parity-audit.md](parity-audit.md) §A.8. `npm run check` green.
+- **UX restructure landed (2026-06-11, same day):** first-principles redesign
+  of the control surface. Format picker is now a **chip grid with real encoded
+  sizes** ("Compare sizes" encodes all five main codecs and badges the
+  smallest); **"Fit under N kB"** binary-searches quality to a byte target;
+  **Adjust (resize/palette) is one state shared by both sides**; side presets
+  store format+options only (SAVE_VERSION 2); rarely-used options re-tiered
+  into Advanced folds (WebP exact, JXL progressive/epf/…, resize Method);
+  Browser JPEG quality shown 0–100; intro gained a local "Try a sample"
+  generator. All behavior deltas + rationale: [parity-audit.md](parity-audit.md)
+  §A.9. e2e specs updated to chip-based format picking
+  (`tests/e2e/helpers.ts`); `npm run check` + full e2e green (41 passed).
 - Repo hygiene (2026-06-01): the ambient Emscripten type declaration now lives
   at `src/emscripten-types.d.ts`, alongside the other `src/*.d.ts` ambient
   files, instead of sitting loose at the repo root (its `///` reference in

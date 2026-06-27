@@ -1,6 +1,6 @@
 # Editor parity audit & deviation log
 
-Last updated: 2026-06-03.
+Last updated: 2026-06-11.
 
 Goal: the Svelte editor must not **lose** any feature or gain any bug relative
 to the original Preact Squoosh editor. This doc tracks (a) deliberate deviations
@@ -97,6 +97,60 @@ behavior parity is preserved.
    bumped `sqush:settings:v2 → v3` so pre-existing saved side-settings (which
    would otherwise mask the new default) are discarded and the fresh default
    (left = Original, right = WebP) loads.
+8. **Visual redesign — "Sqush 2.0" frosted-glass theme (2026-06-11).** The
+   editor and landing screen no longer copy Squoosh's 2018 look; this is a
+   *visual-only* deviation — every feature, option, control and behavior is
+   unchanged. What changed: the per-side full-colour header bars, blob-shaped
+   back/download buttons and the speech-bubble results were replaced by
+   floating frosted-glass panels (16px radius, `backdrop-filter`, hairline
+   strokes), uppercase section labels with a per-side accent dot, a stats
+   footer with a green/red percent pill + an accent-gradient pill Download
+   button, a frosted round "X" back button, frosted pill toolbars, a hairline
+   two-up divider with a smaller frosted handle, and a redesigned intro hero
+   (gradient disc CTA, ambient glows, format chips). The side identity is
+   KEPT (left pink / right sky — now `#f472b6`/`#38bdf8`) because every
+   control inherits `--main-theme-color`. Variable names in `theme.css` are
+   unchanged; only values + the shared layout classes were restyled, so the
+   encoder panels needed no edits. Files: `theme.css`, the five option
+   primitives (`Range/Select/Toggle/Checkbox/Revealer`), `OptionsPanel`,
+   `Results`, `Output`, `two-up.css`, `+page.svelte`, `Intro`, `Snackbar`.
+9. **UX restructure — first-principles pass (2026-06-11).** Deliberate
+   *behavioral* deviations from Squoosh, each with rationale:
+   - **Format picker = chip grid, not a dropdown** (`data-format` buttons:
+     Original + AVIF/WebP/JPEG XL/JPEG/PNG; QOI + browser encoders behind
+     "More…"). Friendly names (JPEG, PNG) with the encoder name in the
+     tooltip. Chips show real encoded sizes (see next).
+   - **NEW: "Compare sizes"** (`EditorSession.runCompare`) — encodes the image
+     through the five main encoders at the side's current per-format settings
+     and prints each chip's byte size, with a green "best" badge on the
+     smallest. Cached per side; invalidated (and any in-flight run aborted) by
+     a reactive fingerprint of loadId/preprocessor/processor/options. The
+     selected chip always shows its live result size for free.
+   - **NEW: "Fit under N kB"** (`EditorSession.fitToSize`) — binary-searches
+     the quality option (~7 probe encodes + a floor probe) and commits the
+     found quality; reports honestly when even quality 0 overshoots. Shown for
+     formats with a numeric `quality`.
+   - **Adjust (resize/quantize) is ONE shared state** (`session.processorState`),
+     not per-side: resizing is job-level intent; per-side copies confused users
+     and skewed format A/B comparisons. Both panels bind the same object (the
+     header reads "Adjust · both sides" when both sides encode). The encode
+     pipeline itself is unchanged. *Lost on purpose:* comparing different
+     resize settings side-by-side.
+   - **Side presets no longer capture processorState** (SAVE_VERSION 1→2; v1
+     payloads import with their processorState ignored): a "my WebP recipe"
+     preset should not drag image-specific dimensions along. Copy-to-other-side
+     likewise copies format+options only.
+   - **Option re-tiering:** WebP `exact` → Advanced (lossy mode; still visible
+     in lossless, which has no Advanced fold), Quality above Effort; JXL
+     progressive/epf/decoding-speed/noise/alternative-lossy → Advanced; resize
+     Method/premultiply/linearRGB → Advanced (Lanczos3 default); OxiPNG Effort
+     above Interlace; Browser JPEG quality DISPLAYS 0–100 (stored 0–1).
+   - **NEW: intro "Try a sample"** — generates a sunset scene locally on a
+     canvas (gradients + silhouette layers + deterministic grain) and feeds it
+     through the normal pickFiles path; zero network, zero shipped bytes.
+   - e2e specs select formats via chips now (`tests/e2e/helpers.ts`
+     `pickFormat`), and resize.spec opens the Advanced reveal before driving
+     the Method select.
 
 > NOTE (import gotcha): shared `.svelte.ts` stores must be imported by the SAME
 > specifier everywhere (we use `$lib/editor/snackbar-store.svelte`). A mix of

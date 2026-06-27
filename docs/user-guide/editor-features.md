@@ -55,22 +55,36 @@ The screen has three parts: the big image area in the middle, and two settings p
 
 ### Copy settings to the other side
 
-- **What it does:** Copies this panel's complete settings (its format, that format's options, and its Resize/Reduce-palette state) onto the _other_ side in one click. The button is an arrow that points toward the side it will copy to.
-- **Range & default:** Action button; lives in the **Edit** header (so it is hidden on a side set to "Original Image"). After copying, a "Settings copied across" message appears with an **Undo** option for a few seconds.
+- **What it does:** Copies this panel's format and that format's options onto the _other_ side in one click (Resize/Reduce-palette is shared between the sides, so it doesn't need copying). The button is an arrow that points toward the side it will copy to.
+- **Range & default:** Action button; lives in the **Format** header (so it is hidden on a side set to Original). After copying, a "Settings copied across" message appears with an **Undo** option for a few seconds.
 - **How to choose:** Use it to A/B two encoders from the same baseline — set one side up the way you like, copy it across, then change just the format on the other side to compare them fairly.
 - **Recommended starting point:** Use whenever you want both sides to start from identical settings.
 
 ### Save side settings / Import saved side settings
 
-- **What it does:** **Save** (the gear button) remembers this side's full setup — format, that format's options, and the Resize/Reduce-palette state — in your browser so it survives reloads and future images. **Import** (the gear-with-arrow button) applies your saved setup back onto this side.
-- **Range & default:** Two action buttons in the **Edit** header (hidden on the "Original Image" side). Saving confirms with a "<Left/Right> side settings saved" message. Importing confirms with a "<Left/Right> side settings imported" message and offers **Undo**. **Import is greyed out until a valid saved setup exists** for that side — and it only enables if the stored data actually passes validation, not merely because something was saved.
+- **What it does:** **Save** (the gear button) remembers this side's setup — format and that format's options — in your browser so it survives reloads and future images. **Import** (the gear-with-arrow button) applies your saved setup back onto this side. (Resize/Reduce-palette is deliberately NOT part of a preset: it's per-image job state, not a reusable recipe.)
+- **Range & default:** Two action buttons in the **Format** header (hidden on the Original side). Saving confirms with a "<Left/Right> side settings saved" message. Importing confirms with a "<Left/Right> side settings imported" message and offers **Undo**. **Import is greyed out until a valid saved setup exists** for that side — and it only enables if the stored data actually passes validation, not merely because something was saved.
 - **How to choose:** Save the encoder + options you reach for most (your house WebP or AVIF recipe), then Import it on any new image instead of re-dialling every slider. Save is stored separately per side (left vs. right).
 - **Recommended starting point:** Save once you've found settings you like; Import them on each new image.
 
+### Format chips & Compare sizes
+
+- **What it does:** Each panel picks its output with a grid of format chips — **Original**, **AVIF**, **WebP**, **JPEG XL**, **JPEG** (MozJPEG), and **PNG** (OxiPNG), with QOI and the browser-native encoders behind **More…**. The **Compare sizes** button encodes your image through all five main formats at that side's current settings and prints the real output size on every chip, with a green **best** badge on the smallest — so picking a format becomes reading a price list instead of guessing.
+- **Range & default:** The chip for the selected format always shows its live result size. Compared sizes are cached and cleared automatically the moment anything that shaped them changes (new image, rotate, resize/palette, any option) so they can never lie. Each format is compared at *its own* current settings — the numbers answer "what would I get if I clicked this chip".
+- **How to choose:** Hit Compare sizes once per image, click the best-looking trade-off, then fine-tune quality.
+- **Recommended starting point:** Compare, click the **best** badge, eyeball the two-up for artifacts.
+
+### Fit to a size target
+
+- **What it does:** "Fit under … kB" finds the highest quality that keeps the output under your byte budget (an upload limit, an email cap, a page-weight budget) by binary-searching the quality slider — about seven quick probe encodes.
+- **Range & default:** Shown for formats with a quality slider. The target defaults to roughly half the original's size. If even the lowest quality can't fit the budget, it says so (and suggests resizing) instead of silently overshooting.
+- **How to choose:** Type the limit you were given and press **Fit**; the quality slider jumps to the found value and the normal preview re-encodes so you can sanity-check how it looks.
+- **Recommended starting point:** Use it whenever the constraint is a number ("must be under 500 kB") rather than a look.
+
 ### Download
 
-- **What it does:** Downloads that side's result. The blob-shaped button is a real download link pointing at the freshly encoded file.
-- **Range & default:** One download button per side, inside the results bubble. It is **disabled** (icon hidden, no link) while that side is still encoding or before its first result exists. A spinner appears over it while encoding — but only after a short delay, so quick encodes don't flash it.
+- **What it does:** Downloads that side's result. The **Download** pill button (tinted in that side's accent colour) is a real download link pointing at the freshly encoded file.
+- **Range & default:** One download button per side, in the results footer at the bottom of the panel (next to the output size and the percent-change pill). It is **disabled** (greyed out, no link) while that side is still encoding or before its first result exists. A spinner appears on it while encoding — but only after a short delay, so quick encodes don't flash it.
 - **How to choose:** The filename uses your original name with the new format's extension swapped in (for example `photo.webp`). The **Original** side downloads the untouched original file under its original name.
 - **Recommended starting point:** Compare both sides first, then download the side with the best size/quality balance for you.
 
@@ -83,7 +97,7 @@ The screen has three parts: the big image area in the middle, and two settings p
 
 ### Back
 
-- **What it does:** Closes the editor and returns to the intro/landing screen. It's the pink-blob "X" button in the top-left.
+- **What it does:** Closes the editor and returns to the intro/landing screen. It's the round "X" button in the top-left.
 - **Range & default:** Action button, shown while an image is open. It uses the browser's history, so the browser **Back button** (or a back-swipe gesture) does the same thing — returns you to the intro screen.
 - **How to choose:** Use it to drop the current image and start over.
 - **Recommended starting point:** Use when you're done with the current image.
@@ -96,7 +110,7 @@ The screen has three parts: the big image area in the middle, and two settings p
 - **Rotate affects both sides and your resize numbers.** A quarter-turn swaps width/height in the Resize fields automatically, so don't be surprised to see those values flip.
 - **Copy and Import both offer Undo, but only for a few seconds.** If you overwrite a side by mistake, grab the Undo before the message disappears.
 - **Import stays greyed until you've Saved a valid setup** for that side — and Save/Import are per-side and per-browser; clearing site data forgets them.
-- **The Original ("Original Image") side has no Edit header**, so Copy/Save/Import aren't shown there, and its download is the raw, unchanged file.
+- **The Original side shows no encoder options or Adjust section**, Copy/Save/Import aren't shown there, and its download is the raw, unchanged file.
 - **Wheel zoom works even over the drag handle.** Scrolling always zooms the image; only click-dragging on the handle moves the split.
 - **Auto-fit only re-runs on real changes** — a new file, a dimension/orientation change, or a window resize. Re-compressing at the same size keeps your current zoom and pan.
 
