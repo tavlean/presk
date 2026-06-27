@@ -7,6 +7,7 @@
   import type { EncodeOptions } from 'features/encoders/jxl/shared/meta';
   import Range from './Range.svelte';
   import Checkbox from './Checkbox.svelte';
+  import AdvancedSection from './AdvancedSection.svelte';
 
   let { options }: { options: EncodeOptions } = $props();
 
@@ -24,7 +25,6 @@
   let decodingSpeedTier = $state(o.decodingSpeedTier);
   let photonNoiseIso = $state(o.photonNoiseIso);
   let alternativeLossy = $state(o.lossyModular);
-  let showAdvanced = $state(false);
 
   function apply() {
     options.effort = effort;
@@ -62,19 +62,34 @@
       />
     </label>
   {:else}
-    <div transition:slide={{ duration: 300 }}>
-      <div class="option-one-cell">
-        <Range
-          min={0}
-          max={99.9}
-          step={0.1}
-          value={quality}
-          oninput={(v) => {
-            quality = v;
-            apply();
-          }}>Quality:</Range
-        >
-      </div>
+    <div class="option-one-cell" transition:slide={{ duration: 300 }}>
+      <Range
+        min={0}
+        max={99.9}
+        step={0.1}
+        value={quality}
+        oninput={(v) => {
+          quality = v;
+          apply();
+        }}>Quality:</Range
+      >
+    </div>
+  {/if}
+
+  <div class="option-one-cell">
+    <Range
+      min={1}
+      max={9}
+      value={effort}
+      oninput={(v) => {
+        effort = v;
+        apply();
+      }}>Effort:</Range
+    >
+  </div>
+
+  <AdvancedSection>
+    {#if !lossless}
       <label class="option-toggle">
         Alternative lossy mode
         <Checkbox
@@ -132,28 +147,16 @@
           }}>Noise equivalent to ISO:</Range
         >
       </div>
-    </div>
-  {/if}
-
-  <label class="option-toggle">
-    Progressive rendering
-    <Checkbox
-      checked={progressive}
-      onchange={(value) => {
-        progressive = value;
-        apply();
-      }}
-    />
-  </label>
-  <div class="option-one-cell">
-    <Range
-      min={1}
-      max={9}
-      value={effort}
-      oninput={(v) => {
-        effort = v;
-        apply();
-      }}>Effort:</Range
-    >
-  </div>
+    {/if}
+    <label class="option-toggle">
+      Progressive rendering
+      <Checkbox
+        checked={progressive}
+        onchange={(value) => {
+          progressive = value;
+          apply();
+        }}
+      />
+    </label>
+  </AdvancedSection>
 </form>

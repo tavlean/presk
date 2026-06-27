@@ -10,9 +10,15 @@
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
+  <!-- The codec runs on 0–1, but every other quality slider in the app reads
+       0–100 — present the same scale and map underneath. -->
   <OptionRow>
-    <Range min={0} max={1} step={0.01} bind:value={options.quality}
-      >Quality:</Range
+    <Range
+      min={0}
+      max={100}
+      step={1}
+      value={Math.round(options.quality * 100)}
+      oninput={(v) => (options.quality = v / 100)}>Quality:</Range
     >
   </OptionRow>
 </form>
