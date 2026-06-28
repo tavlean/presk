@@ -8,6 +8,8 @@ export interface ResizeOptionsState {
   enabled: boolean;
   width: number;
   height: number;
+  // catrom / triangle are valid worker methods kept for the code path (catrom
+  // finishes an hqx pass) but no longer offered in the Method dropdown.
   method:
     | 'lanczos3'
     | 'mitchell'
@@ -15,9 +17,6 @@ export interface ResizeOptionsState {
     | 'triangle'
     | 'hqx'
     | 'browser-pixelated'
-    | 'browser-low'
-    | 'browser-medium'
-    | 'browser-high'
     | 'vector';
   fitMethod: 'stretch' | 'contain';
   premultiply: boolean;

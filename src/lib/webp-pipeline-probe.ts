@@ -93,7 +93,10 @@ const pipelineSettings: BulkImageSettings = {
       enabled: true,
       width: 3,
       height: 3,
-      method: 'browser-high',
+      // Exercises the browser-canvas resize path (the worker path is covered
+      // separately below). Was 'browser-high' before the canvas quality levels
+      // were removed; 'browser-pixelated' is the surviving browser scaler.
+      method: 'browser-pixelated',
     },
     quantize: {
       ...defaultProcessorState.quantize,

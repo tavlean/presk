@@ -11,11 +11,10 @@
  * limitations under the License.
  */
 
-type BrowserResizeMethods =
-  | 'browser-pixelated'
-  | 'browser-low'
-  | 'browser-medium'
-  | 'browser-high';
+// Only the nearest-neighbour ('pixelated') browser scaler is exposed; the
+// canvas quality levels (low/medium/high) were dropped — strictly lower
+// quality than the worker filters and inconsistent across browsers/OSes.
+type BrowserResizeMethods = 'browser-pixelated';
 type WorkerResizeMethods =
   | 'triangle'
   | 'catrom'

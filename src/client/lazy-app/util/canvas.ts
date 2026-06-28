@@ -87,7 +87,10 @@ export function drawableToImageData(
   return ctx.getImageData(0, 0, width, height);
 }
 
-export type BuiltinResizeMethod = 'pixelated' | 'low' | 'medium' | 'high';
+// Only the nearest-neighbour scaler is used; the smooth canvas quality levels
+// (low/medium/high) were removed in favour of the worker (Lanczos3/Mitchell/…)
+// filters, which are higher quality and consistent across machines.
+export type BuiltinResizeMethod = 'pixelated';
 
 export function builtinResize(
   data: ImageData,
@@ -97,7 +100,7 @@ export function builtinResize(
   sh: number,
   dw: number,
   dh: number,
-  method: BuiltinResizeMethod,
+  _method: BuiltinResizeMethod,
 ): ImageData {
   const canvasSource = document.createElement('canvas');
   canvasSource.width = data.width;
@@ -110,11 +113,8 @@ export function builtinResize(
   const ctx = canvasDest.getContext('2d');
   if (!ctx) throw new Error('Could not create canvas context');
 
-  if (method === 'pixelated') {
-    ctx.imageSmoothingEnabled = false;
-  } else {
-    ctx.imageSmoothingQuality = method;
-  }
+  // Nearest-neighbour: hard, blocky pixels with no smoothing.
+  ctx.imageSmoothingEnabled = false;
 
   ctx.drawImage(canvasSource, sx, sy, sw, sh, 0, 0, dw, dh);
   return ctx.getImageData(0, 0, dw, dh);
