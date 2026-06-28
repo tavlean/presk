@@ -53,7 +53,12 @@ function clamp(
   return Math.min(Math.max(num, min), max);
 }
 
-/** Resize methods by index */
+// Positional map: the array index IS the filter id passed to the WASM `resize`
+// crate (Type::Triangle=0, Catrom=1, Mitchell=2, Lanczos3=3). The ORDER is an
+// ABI contract with the Rust enum — do NOT reorder, and do NOT replace this with
+// shared/meta's `workerResizeMethods` (that list also contains `hqx`, which is
+// not a crate filter: hqx is handled separately above and rewritten to `catrom`
+// before it reaches here).
 const resizeMethods: WorkerResizeOptions['method'][] = [
   'triangle',
   'catrom',

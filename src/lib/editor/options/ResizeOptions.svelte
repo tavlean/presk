@@ -7,6 +7,7 @@
     getResizePresetSize,
     getMatchingResizePreset,
   } from 'features/processors/resize/client/preset-state';
+  import { workerResizeMethods } from 'features/processors/resize/shared/meta';
   import Select from './Select.svelte';
   import Checkbox from './Checkbox.svelte';
   import ToggleRow from './ToggleRow.svelte';
@@ -27,9 +28,14 @@
 
   let maintainAspect = $state(true);
 
-  const workerMethods = ['triangle', 'catrom', 'mitchell', 'lanczos3', 'hqx'];
   const aspect = $derived(inputWidth / inputHeight || 1);
-  const isWorker = $derived(workerMethods.includes(options.method));
+  // Worker methods (the ones that expose Premultiply / Linear RGB) come from the
+  // single source of truth in shared/meta.ts. Cast to string[] because
+  // options.method is the wider UI superset union (same pattern as the
+  // isWorkerOptions guard in resize/client/runtime.ts).
+  const isWorker = $derived(
+    (workerResizeMethods as string[]).includes(options.method),
+  );
   const preset = $derived(
     getMatchingResizePreset(
       { width: options.width, height: options.height },
