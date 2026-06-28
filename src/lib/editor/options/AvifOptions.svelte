@@ -85,6 +85,18 @@
     </div>
   {/if}
 
+  <div class="option-one-cell">
+    <Range
+      min={0}
+      max={MAX_EFFORT}
+      value={effort}
+      oninput={(v) => {
+        effort = v;
+        apply();
+      }}>Effort:</Range
+    >
+  </div>
+
   <AdvancedSection>
     {#if !lossless}
       <div>
@@ -209,16 +221,4 @@
       >
     </div>
   </AdvancedSection>
-
-  <div class="option-one-cell">
-    <Range
-      min={0}
-      max={MAX_EFFORT}
-      value={effort}
-      oninput={(v) => {
-        effort = v;
-        apply();
-      }}>Effort:</Range
-    >
-  </div>
 </form>

@@ -85,12 +85,19 @@
     </ToggleRow>
   {:else}
     <OptionRow>
-      <Range min={0} max={6} bind:value={options.method}>Effort:</Range>
-    </OptionRow>
-    <OptionRow>
       <Range min={0} max={100} bind:value={options.quality}>Quality:</Range>
     </OptionRow>
+    <OptionRow>
+      <Range min={0} max={6} bind:value={options.method}>Effort:</Range>
+    </OptionRow>
     <AdvancedSection>
+      <ToggleRow label="Preserve transparent data">
+        <Checkbox
+          bind:checked={
+            () => !!options.exact, (v) => (options.exact = v ? 1 : 0)
+          }
+        />
+      </ToggleRow>
       <ToggleRow label="Compress alpha">
         <Checkbox
           bind:checked={
@@ -175,9 +182,13 @@
     </AdvancedSection>
   {/if}
 
-  <ToggleRow label="Preserve transparent data">
-    <Checkbox
-      bind:checked={() => !!options.exact, (v) => (options.exact = v ? 1 : 0)}
-    />
-  </ToggleRow>
+  {#if options.lossless}
+    <!-- Lossless mode has no Advanced fold, so the (alpha-related) exact flag
+         stays visible here; in lossy mode it lives under Advanced. -->
+    <ToggleRow label="Preserve transparent data">
+      <Checkbox
+        bind:checked={() => !!options.exact, (v) => (options.exact = v ? 1 : 0)}
+      />
+    </ToggleRow>
+  {/if}
 </form>

@@ -10,6 +10,7 @@
   import Select from './Select.svelte';
   import Checkbox from './Checkbox.svelte';
   import ToggleRow from './ToggleRow.svelte';
+  import AdvancedSection from './AdvancedSection.svelte';
   import type { ResizeOptionsState } from './processor-types';
 
   type ResizeMethod = ResizeOptionsState['method'];
@@ -61,26 +62,6 @@
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
   <label class="option-text-first">
-    Method:
-    <Select
-      value={options.method}
-      onchange={(v) => (options.method = v as ResizeMethod)}
-    >
-      {#if isVector}
-        <option value="vector">Vector</option>
-      {/if}
-      <option value="lanczos3">Lanczos3</option>
-      <option value="mitchell">Mitchell</option>
-      <option value="catrom">Catmull-Rom</option>
-      <option value="triangle">Triangle (bilinear)</option>
-      <option value="hqx">hqx (pixel art)</option>
-      <option value="browser-pixelated">Browser pixelated</option>
-      <option value="browser-low">Browser low quality</option>
-      <option value="browser-medium">Browser medium quality</option>
-      <option value="browser-high">Browser high quality</option>
-    </Select>
-  </label>
-  <label class="option-text-first">
     Preset:
     <Select value={String(preset)} onchange={onPreset}>
       {#each sizePresets as p (p)}
@@ -107,16 +88,6 @@
       bind:value={() => options.height, (v) => setHeight(Number(v))}
     />
   </label>
-  {#if isWorker}
-    <div transition:slide={{ duration: 300 }}>
-      <ToggleRow label="Premultiply alpha channel">
-        <Checkbox bind:checked={options.premultiply} />
-      </ToggleRow>
-      <ToggleRow label="Linear RGB">
-        <Checkbox bind:checked={options.linearRGB} />
-      </ToggleRow>
-    </div>
-  {/if}
   <ToggleRow label="Maintain aspect ratio">
     <Checkbox checked={maintainAspect} onchange={setMaintainAspect} />
   </ToggleRow>
@@ -132,4 +103,38 @@
       </Select>
     </label>
   {/if}
+  <!-- Lanczos3 is the right default for ~every photo; the scaler choice (and
+       its colour-space companions) is expert territory, so it folds away. -->
+  <AdvancedSection>
+    <label class="option-text-first">
+      Method:
+      <Select
+        value={options.method}
+        onchange={(v) => (options.method = v as ResizeMethod)}
+      >
+        {#if isVector}
+          <option value="vector">Vector</option>
+        {/if}
+        <option value="lanczos3">Lanczos3</option>
+        <option value="mitchell">Mitchell</option>
+        <option value="catrom">Catmull-Rom</option>
+        <option value="triangle">Triangle (bilinear)</option>
+        <option value="hqx">hqx (pixel art)</option>
+        <option value="browser-pixelated">Browser pixelated</option>
+        <option value="browser-low">Browser low quality</option>
+        <option value="browser-medium">Browser medium quality</option>
+        <option value="browser-high">Browser high quality</option>
+      </Select>
+    </label>
+    {#if isWorker}
+      <div transition:slide={{ duration: 300 }}>
+        <ToggleRow label="Premultiply alpha channel">
+          <Checkbox bind:checked={options.premultiply} />
+        </ToggleRow>
+        <ToggleRow label="Linear RGB">
+          <Checkbox bind:checked={options.linearRGB} />
+        </ToggleRow>
+      </div>
+    {/if}
+  </AdvancedSection>
 </form>

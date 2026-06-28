@@ -10,10 +10,10 @@
 </script>
 
 <form class="options-section" onsubmit={(e) => e.preventDefault()}>
-  <ToggleRow label="Interlace">
-    <Checkbox bind:checked={options.interlace} />
-  </ToggleRow>
   <OptionRow>
     <Range min={0} max={6} step={1} bind:value={options.level}>Effort:</Range>
   </OptionRow>
+  <ToggleRow label="Interlace">
+    <Checkbox bind:checked={options.interlace} />
+  </ToggleRow>
 </form>
