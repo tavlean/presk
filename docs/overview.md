@@ -37,7 +37,8 @@ service.
 
 1. `src/routes/+page.svelte` accepts a file.
 2. `src/lib/editor/editor-session.svelte.ts` owns side state, saved settings,
-   object URL cleanup, and encode scheduling.
+   undo/redo history, a shared result cache (with object-URL cleanup), and encode
+   scheduling.
 3. `src/lib/compress.ts` decodes, preprocesses, processes, and encodes through
    the shared image pipeline.
 4. `src/lib/sveltekit-worker-bridge.ts` calls the generated worker surface for

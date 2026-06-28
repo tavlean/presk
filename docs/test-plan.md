@@ -117,6 +117,8 @@ mocking.
 | `output-filename.test.ts` | ~9 | **Reserved Windows names** (`con`, `nul`, `com1` → `-file`), illegal/control chars, dotfiles, path stripping. Cross-OS download safety. |
 | `urls.test.ts` | ~5 | Dedup collect + revoke spy counts (leak prevention). |
 | `size.test.ts` | ~4 | `getPercentChange` incl. divide-by-zero (orig 0 → 0, not NaN). |
+| `result-cache.test.ts` | ~8 | `ResultCache` (`src/lib/result-cache.ts`, plain TS — no DOM, ideal unit target): LRU recency on `get`, byte-budget + entry-cap eviction, **pinned keys never evicted**, `clear()` revokes every URL (spy counts), no double-insert. |
+| `editor-history.test.ts` | ~8 | `EditorHistory` (`editor-history.svelte.ts` — needs the Svelte test env for runes): commit/undo/redo pointer math, signature dedup (no-op commit), redo-tail truncation on a new commit, `#limit` front-trim, `reset`/`clear`. |
 | `detail/strip/summary.test.ts` | ~6 | Light composition smoke only — these are mostly selectors; **don't over-test**. |
 | `changes.test.ts` | (folded) | "change a global setting → only stale jobs requeue, overrides preserved" — the core bulk promise. |
 
@@ -165,9 +167,11 @@ template is the gold standard):
   handled in `image-decode.ts`.)
 - **Unsupported/corrupt file → graceful error (Medium).** Feed a non-image →
   assert a user-facing error/snackbar, no crash.
-- **Object-URL lifecycle regression (Medium).** Assert replacing a side's
-  result / clearing / aborting revokes the previous blob URL (the host-object
-  mitigation is correct but silently breakable).
+- **Object-URL lifecycle regression (Medium).** Object-URLs are now owned by
+  `ResultCache`: assert that LRU eviction and `clear()` (new file / back / dispose)
+  revoke URLs, that a **displayed** result's URL is never revoked while pinned, and
+  that an aborted/duplicate encode revokes its own orphaned URL. (The host-object
+  mitigation is correct but silently breakable.)
 
 ### Templates for features as they land (write the test *with* the feature)
 
@@ -179,6 +183,11 @@ template is the gold standard):
   this; the E2E just covers the wiring.)
 - **Multi-Format Compare** → import one image → parallel encodes across formats
   → comparison table populated; bound concurrency to `hardwareConcurrency`.
+- **Undo/redo + result cache** (landed 2026-06-28) → edit a side → Undo/Redo
+  (buttons + `⌘/Ctrl+Z` / `⇧⌘Z`) restores settings _and_ image; assert a revisited
+  recipe shows with **no** re-encode (time it: cache hit ≪ encode) and that copying
+  one side's settings onto the other hits the shared cache instantly. Unit-cover
+  the math via `editor-history.test.ts` + `result-cache.test.ts` above.
 
 ---
 

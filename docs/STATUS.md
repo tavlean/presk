@@ -7,6 +7,25 @@ browser, the build is static, and offline reload must work after load.
 
 ## Current State
 
+- **Undo/redo + instant result cache (2026-06-28), landed on `main`.** The editor
+  gained backward/forward history over the editable document (`{ sides,
+  preprocessorState }`) plus a shared, memory-bounded cache of finished encodes —
+  so returning to any recipe you've tried (Undo/Redo, toggling Lossless back off,
+  or one side matching the other) is **instant** instead of a re-encode. New
+  `EditorHistory` (`src/lib/editor/editor-history.svelte.ts` — `$state.raw`
+  history + derived `canUndo`/`canRedo`, signature-deduped) and `ResultCache`
+  (`src/lib/result-cache.ts` — LRU keyed by the encode signature, **shared across
+  both sides** since a result is a pure function of its inputs, byte-budgeted with
+  displayed results pinned). `EditorSession` wires a debounced history watcher +
+  `undo`/`redo`, and `encodeSide` serves cache hits synchronously (the old
+  single-slot `encodedSig`/`lastUrls` are subsumed; the cache owns object-URL
+  lifecycle). UI: Undo/Redo glass buttons beside Back + `⌘/Ctrl+Z` and
+  `⇧⌘Z`/`Ctrl+Y`, suppressed in typeable fields. History is per-image (reset on
+  load). Deviation logged in [parity-audit.md](parity-audit.md) §A.14; user-guide
+  + reference reconciled. Svelte MCP docs consulted + autofixer clean. `npm run
+  check` 0/0; browser-verified (≈470ms encode vs ≈20ms cached return; undo/redo +
+  cross-side copy instant; no console errors).
+
 - **Resize Method dropdown trimmed (2026-06-28), landed on `main`.** The Method
   picker dropped from nine options to four distinct scalers — **Lanczos3** (photos),
   **Mitchell** (graphics / less ringing), **hqx** (pixel-art upscale), **Browser
@@ -273,6 +292,10 @@ end rather than kept for the now-closed migration parity (see
   workers, WASM assets, pipeline probes, and shared helpers.
 - `src/lib/editor/editor-session.svelte.ts` — rune-backed editor state and
   encode orchestration.
+- `src/lib/editor/editor-history.svelte.ts` — undo/redo history stack
+  (signature-deduped snapshots in `$state.raw`).
+- `src/lib/result-cache.ts` — LRU cache of finished encodes, shared across sides;
+  makes undo/redo and revisiting a recipe instant.
 - `src/lib/editor/options/` — Svelte option controls and per-format panels.
 - `src/lib/editor/output/` — two-up output view and local pointer/zoom helpers.
 - `src/lib/compress.ts` — Svelte adapter over the shared image pipeline.

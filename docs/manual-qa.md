@@ -42,6 +42,23 @@ Open `http://127.0.0.1:5189` in a fresh browser context when possible.
 - Download the generated output and verify the extension/bytes are plausible.
 - Use the back button and confirm the app returns to the import screen.
 
+## Undo / Redo & Instant Revisit
+
+- Make several distinct changes (format, quality, resize, rotate). Confirm **Undo**
+  is greyed before the first change and **Redo** is greyed at the newest state.
+- Step back/forward with the buttons _and_ with `⌘/Ctrl+Z` / `⇧⌘Z` (or `Ctrl+Y`).
+  Confirm the controls **and** the image both revert each step.
+- Confirm returning to a prior recipe is **instant** — no "Optimizing…" pill, no
+  wait (it replays a kept result). Toggle **Lossless** off then on and watch the
+  on-result come back immediately.
+- Make both sides identical (or use "Copy settings to other side"); confirm the
+  second side lands on the result instantly (the cache is shared across sides).
+- Focus a number field (e.g. Quality) and press `⌘/Ctrl+Z`; confirm it does the
+  field's own text-undo, not an app undo (typeable fields are excluded).
+- Drag a slider continuously, release, then Undo once; confirm it jumps back past
+  the whole drag (coalesced into one step), not value-by-value.
+- Load or replace the image; confirm Undo resets (history is per-image).
+
 ## Format Spot Checks
 
 At minimum before launch:

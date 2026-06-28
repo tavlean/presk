@@ -153,8 +153,10 @@ behavior parity is preserved.
    it onto an unrelated image is a footgun, and deliberate cross-image palette work
    will live in bulk edit. The rationale is pinned in a `pickFiles` code comment
    (commit `984788b1`) so a future audit doesn't "restore" the upstream behavior.
-   (A future Undo should make open/replace one checkpoint that snapshots the full
-   session, so the reset is recoverable in a single step.)
+   (Undo/redo now exists — see §A.14 — but it is deliberately **per-image**:
+   loading or replacing the image resets the history, so an in-place replace is
+   _not_ itself undoable. The per-image reset is the intended scope, not an
+   oversight.)
 
 10. **Resize UX cleanup — shrink-only presets, context-aware badge, 100% no-op
     (2026-06-28).** Three deliberate departures from upstream Squoosh's resize panel:
@@ -244,6 +246,27 @@ behavior parity is preserved.
       the four options, Premultiply/Linear RGB appear for Lanczos3 and hide for
       Browser pixelated, and a browser-pixelated resize re-encodes cleanly with no
       console errors.
+
+14. **Undo/redo + a shared, instant result cache (2026-06-28).** Squoosh has
+    neither; Sqush adds both, as one feature. The editable document
+    (`{ sides, preprocessorState }`) is snapshotted into a signature-deduped
+    history (`EditorHistory`, `$state.raw` entries + `$state` index) by a debounced
+    `$effect` watcher in `EditorSession`; **Undo/Redo** restore a snapshot and let
+    the encode effect re-run. A separate `ResultCache` (LRU, byte-budgeted, **shared
+    across both sides** because a result is a pure function of its inputs) keys
+    finished `CompressOutcome`s by their encode signature — so restoring, revisiting
+    any prior recipe (e.g. toggling Lossless back off), or one side matching the
+    other shows the image **instantly** instead of re-encoding. The old single-slot
+    `encodedSig`/`lastUrls` are subsumed; the cache now owns object-URL lifecycle
+    (revoke on eviction/clear, displayed results pinned).
+    - **Scope decisions:** global (both-side) timeline; **per-image** history (reset
+      on load — a replace is not undoable, see §A.9); slider drags coalesce into one
+      step (350ms settle); keyboard **⌘/Ctrl+Z** + **⇧⌘Z / Ctrl+Y**, suppressed in
+      typeable fields so native text-undo survives.
+    - Built as a `.svelte.ts` history module + plain-TS cache; Svelte MCP docs were
+      consulted and the autofixer is clean. `npm run check` 0/0; browser-verified
+      (≈470ms encode vs ≈20ms cached return; undo/redo and a cross-side settings
+      copy both instant; no console errors). User-guide + reference reconciled.
 
 > NOTE (import gotcha): shared `.svelte.ts` stores must be imported by the SAME
 > specifier everywhere (we use `$lib/editor/snackbar-store.svelte`). A mix of

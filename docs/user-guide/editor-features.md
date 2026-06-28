@@ -1,6 +1,6 @@
 # Editor features
 
-> Everything you can do once an image is open: compare before vs. after, zoom and pan, rotate, inspect pixels, copy settings between the two sides, save your favourite settings, download, and load or replace images by drag-and-drop.
+> Everything you can do once an image is open: compare before vs. after, zoom and pan, rotate, inspect pixels, step backward and forward through your changes (undo/redo), copy settings between the two sides, save your favourite settings, download, and load or replace images by drag-and-drop.
 
 ## Overview / When to use it
 
@@ -27,6 +27,7 @@ The screen has three parts: the big image area in the middle, and two settings p
   - Any other change after the first pass — quality, format, palette reduction, rotation — reads **"Re-optimizing…" → "Re-optimized"**.
   In every case the previous result stays on screen, crisp, while the new one is computed, so you're never left looking at nothing. The pill is the single, consistent "this side is working" signal; when it disappears, the result you're looking at is final.
 - **No pill for a no-op:** If a change wouldn't alter the output, Sqush doesn't re-encode and no pill appears. The clearest case is **turning Resize on while it's still at 100%** (its default when enabled): at the source's own size the default scaler is an identity pass, so nothing happens. The same is true of toggling **Premultiply alpha** or **Linear RGB** while at 100% — those only affect the math _during_ actual scaling, so at 100% they change nothing. You'll only see "Resizing…" once you set a size that genuinely differs.
+- **Revisiting a setting is instant — no pill.** Sqush remembers the results it has already computed for the current image, so returning to a recipe you've already tried — by **Undo/Redo**, by toggling a switch like **Lossless** back off, or by dialling the same values again — shows that finished image immediately instead of re-compressing. This also works **across the two sides**: if one side lands on settings the other already produced, it appears instantly. (The memory is per-image and bounded; very old or very large variants are eventually dropped and would re-compute if revisited.)
 - **Recommended starting point:** Nothing to set — just know that a pill over a side means "still working," and a side with no pill is showing its finished result.
 
 ### Zoom (in / out / type a percentage)
@@ -86,6 +87,14 @@ The screen has three parts: the big image area in the middle, and two settings p
 - **How to choose:** Drag from your file manager straight onto the page — faster than the "Select an image" button. Drop a new file mid-edit to swap images while keeping the editor open.
 - **Recommended starting point:** Use it as the quick way to start or switch images.
 
+### Undo / Redo
+
+- **What it does:** Steps backward and forward through the changes you've made to the current image — format, quality and every encoder option, Resize, Reduce-palette, and rotation, across **both** sides. Returning to an earlier state is **instant**: Sqush keeps the already-compressed image for the settings you've visited, so stepping back shows that exact result again with no re-compression wait (see "Revisiting a setting is instant" above).
+- **Range & default:** Two round buttons — a back-arrow (Undo) and a forward-arrow (Redo) — in the top-left, just right of the **Back (X)** button, shown while an image is open. **Undo** is greyed out until you've made a change; **Redo** is greyed out unless you've just undone something. Keyboard: **⌘Z / Ctrl+Z** to undo, **⇧⌘Z / Ctrl+Shift+Z** (or **Ctrl+Y**) to redo. History is **per-image** — loading or replacing the image starts fresh.
+- **How to use it:** Make a few changes, then Undo to walk them back one step at a time, Redo to re-apply. Rapid tweaks to the same control (dragging a slider) collapse into a **single** step, so one Undo takes you back to before that whole adjustment rather than through every intermediate value.
+- **How to choose:** Use it to experiment without fear — try a more aggressive setting, and if it isn't worth it, Undo to snap straight back to the version you liked, instantly.
+- **Recommended starting point:** Nothing to set; reach for it whenever you want to return to, or compare against, an earlier version.
+
 ### Back
 
 - **What it does:** Closes the editor and returns to the intro/landing screen. It's the round "X" button in the top-left.
@@ -99,7 +108,8 @@ The screen has three parts: the big image area in the middle, and two settings p
 - **Smoothing and background are preview-only.** Toggling them changes what _you_ see, not the saved file. Don't worry about leaving "pixelated" on before you download.
 - **The hidden 1 / 2 / 3 split shortcut is suppressed while typing.** If a number field (like the zoom % or a resize input) has focus, those keys type digits instead of moving the split — click the image area first.
 - **Rotate affects both sides and your resize numbers.** A quarter-turn swaps width/height in the Resize fields automatically, so don't be surprised to see those values flip.
-- **Copy and Import both offer Undo, but only for a few seconds.** If you overwrite a side by mistake, grab the Undo before the message disappears.
+- **Copy and Import both offer Undo, but only for a few seconds.** If you overwrite a side by mistake, grab the snackbar Undo before the message disappears — or just use the main **Undo** button, which also reverses a copy or import.
+- **Undo/Redo is per-image and instant.** Stepping back never re-compresses — it replays a result Sqush already has. But loading or replacing the image clears the history, so undo can't reach across to a previous image (a replace itself can't be undone).
 - **Import stays greyed until you've Saved a valid setup** for that side — and Save/Import are per-side and per-browser; clearing site data forgets them.
 - **The Original ("Original Image") side has no Edit header**, so Copy/Save/Import aren't shown there, and its download is the raw, unchanged file.
 - **Wheel zoom works even over the drag handle.** Scrolling always zooms the image; only click-dragging on the handle moves the split.
