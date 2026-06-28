@@ -88,9 +88,7 @@
       <Range min={0} max={6} bind:value={options.method}>Effort:</Range>
     </OptionRow>
     <OptionRow>
-      <Range min={0} max={100} step={0.1} bind:value={options.quality}
-        >Quality:</Range
-      >
+      <Range min={0} max={100} bind:value={options.quality}>Quality:</Range>
     </OptionRow>
     <AdvancedSection>
       <ToggleRow label="Compress alpha">
