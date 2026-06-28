@@ -19,6 +19,8 @@ A quick note on jargon: **resampling** (or **interpolation**) is the process of 
 
 The methods fall into three families. The five "worker" methods (Lanczos3, Mitchell, Catmull-Rom, Triangle, hqx) run in high-quality WebAssembly code and unlock the **Premultiply alpha channel** and **Linear RGB** toggles. The four "Browser" methods hand the work to your browser's built-in canvas scaler (fast, but lower quality and no extra toggles). Vector is its own thing for SVGs.
 
+The Method dropdown (and its Premultiply / Linear RGB companions) lives under the **Advanced settings** expander — Lanczos3, the default, is the right pick for almost every photo, so the panel leads with Preset / Width / Height instead. Open Advanced to change the scaling math.
+
 #### Lanczos3 (`lanczos3`)
 
 - **What it is:** A high-quality resampling filter that looks at a wide neighborhood of surrounding pixels using a windowed sinc function. It is the sharpest of the general-purpose options here.
@@ -151,6 +153,7 @@ _Sources: [encoding/resampling guide](https://guideencodemoe-mkdocs.readthedocs.
 - **Resize first, then compress.** Shrinking to the display size is the highest-impact thing you can do for file size — often bigger than any quality-slider change in the format panel.
 - **Enlarging never adds detail.** Scaling above 100% just spreads existing pixels over a bigger area; it can't recover detail that isn't there. That's why the presets only go down to 100% — to enlarge at all you have to type larger Width/Height values yourself. For pixel art you want to blow up, use **hqx** or **Browser pixelated** instead of a photo filter.
 - **At 100% there's nothing to do.** With Resize enabled but left at the source's own size (100%), the default scaler is an identity pass, so Sqush skips it entirely — no re-encode and no "Resizing" pill. You only get a resize once you set a size that's actually different.
+- **Method, Premultiply, and Linear RGB are under Advanced settings.** Open the **Advanced settings** expander to reach them; the panel leads with Preset/Width/Height because the default Lanczos3 is right for almost everything.
 - **The Premultiply and Linear RGB toggles only show up for the worker methods.** Switch the Method to Lanczos3/Mitchell/Catmull-Rom/Triangle/hqx and they appear; pick a Browser method or Vector and they're hidden (those paths don't use them). They also only _do_ anything while you're actually scaling — they correct the color math during pixel blending, so at 100% (no blending) toggling them changes nothing.
 - **Browser methods can look different on different computers.** They rely on your browser/OS scaler, so the result isn't guaranteed to match across machines. For consistent, controllable output, prefer the worker methods.
 - **Ringing vs blur is a real trade-off.** If Lanczos3 gives you faint halos around sharp edges, step down to **Mitchell** (less ringing) or **Triangle** (no ringing, but softer). If everything looks too soft, step up toward Catmull-Rom or Lanczos3.

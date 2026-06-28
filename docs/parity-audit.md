@@ -198,6 +198,29 @@ behavior parity is preserved.
       `snap={false}` forces it off. Commit `59781001`. Browser-verified
       (89.3→90, 84.7→85, 83.0→83); `svelte-check` 0/0.
 
+12. **Consistent Quality → Effort → Advanced tiering across option panels
+    (2026-06-28).** Squoosh shows every encoder knob at one flat level; Sqush now
+    leads each panel with its headline controls and folds the expert surface under
+    the shared `AdvancedSection`. Ported from the "Modern UI redesign 2" branch
+    (`clever-swartz-2b34ed`) idea, but made internally consistent (the branch left
+    AVIF out) and kept on integer Quality (the branch still had fractional steps):
+    - **JXL** had _no_ Advanced fold — Alternative-lossy, Auto/Edge-preserving
+      filter, decoding-speed, photon-noise, and Progressive were all inline. They
+      now live under Advanced; only Lossless, Quality, Effort stay primary. Dead
+      `showAdvanced` state removed.
+    - **WebP** lossy now reads Quality → Effort (was Effort → Quality); "Preserve
+      transparent data" moves from a loose bottom toggle into Advanced in lossy
+      mode, and stays directly visible in lossless mode (which has no fold).
+    - **AVIF** Effort moves above Advanced (it was stranded _below_ it — the lone
+      panel that broke the pattern, in the redesign branch too).
+    - **Resize** Method + Premultiply + Linear RGB fold into Advanced; Preset /
+      Width / Height / aspect / fit stay primary (Lanczos3 is the right default).
+    - **OxiPNG** Effort before Interlace.
+    Quality stays integer-only (§A.11 preserved — no fractional `step` reintroduced
+    from the source branch). `WebpOptions / AvifOptions / JxlOptions /
+    ResizeOptions / OxipngOptions.svelte`, commit `abebdfaf`. Browser-verified all
+    panels (collapsed + expanded); `svelte-check` 0/0.
+
 > NOTE (import gotcha): shared `.svelte.ts` stores must be imported by the SAME
 > specifier everywhere (we use `$lib/editor/snackbar-store.svelte`). A mix of
 > `$lib/…` and relative `./…` makes Vite instantiate the store twice, so writes

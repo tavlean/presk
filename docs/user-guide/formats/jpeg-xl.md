@@ -10,6 +10,8 @@ A note on how this panel behaves: there is no separate "lossless flag" stored in
 
 ## Controls / Settings
 
+The panel leads with just **Lossless**, **Quality**, and **Effort**; the rest of the lossy tuning (Alternative lossy mode, Auto/Edge-preserving filter, Optimise-for-decoding-speed, Noise-equivalent-to-ISO, and Progressive rendering) folds away under an **Advanced settings** expander. They're all documented in feature order below regardless of where they sit in the panel.
+
 ### Lossless
 
 - **What it does:** Switches the encoder into perfect, no-quality-loss mode — the saved image is mathematically identical to the input. When it is on, the Quality slider (and most of the lossy tuning) is replaced by a single "Slight loss" option.
@@ -119,7 +121,7 @@ _Sources: [cjxl man page](https://manpages.debian.org/unstable/libjxl-tools/cjxl
 ## Tips & pitfalls
 
 - **Lossless is just Quality = 100.** There's no separate lossless flag in the file. Ticking Lossless maxes out quality; the Quality slider only goes to 99 precisely so the two states stay distinct.
-- **The lossy controls vanish in lossless mode.** If you can't find Quality, Alternative lossy mode, Edge filter, decoding speed, or ISO noise, check whether Lossless is on — it hides all of them and shows only "Slight loss".
+- **Most lossy tuning lives under Advanced — and all of it vanishes in lossless mode.** If you can't find Alternative lossy mode, Edge filter, decoding speed, ISO noise, or Progressive, open **Advanced settings** (only Quality and Effort sit up front). If even those are gone, Lossless is on — it hides the lossy controls and shows only "Slight loss".
 - **Very low quality locks Alternative lossy mode on.** Below Quality 7 the "Alternative lossy mode" checkbox is forced on and greyed out; that's expected.
 - **Quality numbers aren't comparable across formats.** A JPEG XL "75" is not the same as a JPEG "75" or a WebP "75". Judge by the preview, not by matching numbers.
 - **Effort changes file size, not the look.** Two files at the same Quality but different Effort should look the same; the higher-Effort one is just smaller (and took longer to make).

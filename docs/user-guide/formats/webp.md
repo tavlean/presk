@@ -23,6 +23,7 @@ The panel changes shape depending on the **Lossless** toggle. Two controls are a
 
 - **What it does:** Keeps the color values of fully transparent pixels instead of letting the encoder clear them. Normally invisible (transparent) pixels can be recolored freely to compress better; turning this on preserves them exactly, which matters if something downstream reads those hidden colors.
 - **Range & default:** Off / On toggle, default **Off** (`exact`).
+- **Where it lives:** Under **Advanced settings** in lossy mode; in lossless mode (which has no Advanced fold) it appears directly in the panel.
 - **How to choose:** Almost always leave it off — it makes files larger for no visible benefit. Turn it on only in the rare case you need the original RGB values behind transparent areas preserved.
 - **Recommended starting point:** **Off** (the default).
 

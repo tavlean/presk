@@ -7,6 +7,18 @@ browser, the build is static, and offline reload must work after load.
 
 ## Current State
 
+- **Option-panel re-tiering (2026-06-28), landed on `main`.** Every encoder/
+  processor panel now reads **headline knobs → Advanced** consistently: the mode
+  toggle, Quality, and Effort stay up front; the expert surface folds under the
+  shared `AdvancedSection`. JXL gained an Advanced fold it never had (all its
+  lossy tuning was inline); WebP now leads Quality→Effort and tucks "Preserve
+  transparent data" away in lossy mode; AVIF's Effort moved above Advanced; Resize
+  folds Method + Premultiply + Linear RGB; OxiPNG leads with Effort. Ported from
+  the "Modern UI redesign 2" branch idea but made consistent (the branch left AVIF
+  out) and kept integer-only Quality. Commit `abebdfaf`; deviation logged in
+  [parity-audit.md](parity-audit.md) §A.12; user-guide reconciled. `svelte-check`
+  0/0; all panels browser-verified (collapsed + expanded).
+
 - **Quality sliders integer + magnetic snapping (2026-06-28).** On branch
   `slider-snapping` (not yet merged). (1) The WebP, JXL, and generic-fallback
   Quality sliders dropped `step=0.1` → whole numbers (AVIF/MozJPEG were already
