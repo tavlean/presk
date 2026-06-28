@@ -100,13 +100,13 @@ _(Only shown when Lossless is off.)_
 
 > The settings below are **community recommendations** from the libjxl docs and Cloudinary's Pareto-front analysis. JPEG XL's native quality knob on the command line is `--distance` (0 = lossless, ~1.0 = visually lossless); Sqush exposes the friendlier 0–99 **Quality** slider instead, where **~90 ≈ distance 1.0**. These are advice, not new defaults; the factual ranges above are unchanged. Sources are listed at the end.
 
-| Use case                                | Suggested settings                                                       | Why                                                                                                                                              |
-| --------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Web photo (lossy), high quality**     | Quality **~90** (≈ distance 1.0), Effort **7**                           | "Visually lossless" — looks identical for most photos. At medium-high quality JXL is ~20% smaller than AVIF and keeps fine texture better.      |
-| **Lighter web weight**                  | Quality **75–85** (≈ distance 1.5–2.5), Effort **7**                     | The useful lossy band; trades a little fidelity for noticeably smaller files while staying clean on detailed images.                            |
-| **Graphics / screenshots / line art**   | **Lossless** on, Effort **7** (Effort 5 is also fine if speed matters)   | JXL auto-selects its modular mode for flat/synthetic content; lossless on screenshots and line art is both small and artifact-free.             |
-| **Transparency / alpha cutouts**        | **Lossless** on, or Quality **~90**, Effort **7**                        | JXL handles alpha natively in both modes; high quality keeps mask edges clean. No special flags needed.                                         |
-| **Archival / master files**             | **Lossless** on, Effort **7–9**                                          | The strongest archival pick here: lossless is ~35% smaller than optimized PNG and supports up to 32-bit and wide gamut.                          |
+| Use case                              | Suggested settings                                                     | Why                                                                                                                                        |
+| ------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Web photo (lossy), high quality**   | Quality **~90** (≈ distance 1.0), Effort **7**                         | "Visually lossless" — looks identical for most photos. At medium-high quality JXL is ~20% smaller than AVIF and keeps fine texture better. |
+| **Lighter web weight**                | Quality **75–85** (≈ distance 1.5–2.5), Effort **7**                   | The useful lossy band; trades a little fidelity for noticeably smaller files while staying clean on detailed images.                       |
+| **Graphics / screenshots / line art** | **Lossless** on, Effort **7** (Effort 5 is also fine if speed matters) | JXL auto-selects its modular mode for flat/synthetic content; lossless on screenshots and line art is both small and artifact-free.        |
+| **Transparency / alpha cutouts**      | **Lossless** on, or Quality **~90**, Effort **7**                      | JXL handles alpha natively in both modes; high quality keeps mask edges clean. No special flags needed.                                    |
+| **Archival / master files**           | **Lossless** on, Effort **7–9**                                        | The strongest archival pick here: lossless is ~35% smaller than optimized PNG and supports up to 32-bit and wide gamut.                    |
 
 **Community tips**
 

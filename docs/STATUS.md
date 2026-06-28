@@ -47,8 +47,8 @@ browser, the build is static, and offline reload must work after load.
 - **Editor port re-audit + resize-compare fix (2026-06-28).** A user-reported
   regression — resizing the output made the two-up compare "resize in place" so
   the split stopped aligning — traced to the contain-alignment commit narrowing
-  the original's *unconditional* canvas-box pinning to the `contain` fit method
-  only. Fixed: the box is pinned to the source dims for *all* resizes again, with
+  the original's _unconditional_ canvas-box pinning to the `contain` fit method
+  only. Fixed: the box is pinned to the source dims for _all_ resizes again, with
   `object-fit: contain` only on a Contain side (commit `596661e2`, + an e2e
   footprint guard `resize-twoup-footprint.spec.ts`). A 3-agent re-audit (display /
   options / session layers) found **no other major regression**. Also: the

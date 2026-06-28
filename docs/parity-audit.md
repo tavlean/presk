@@ -50,7 +50,7 @@ mid-encode and clearing on done), and reset-view-on-a-new-file. No regressions.
 A user report (resizing the output made the two-up "resize in place" so the split
 stopped aligning) traced — via `git log -S` — to commit `6718bbc9` ("Align
 contain-resized output…", §B): the port had **narrowed** the original's
-*unconditional* canvas-box pinning to fire only when the resize fitMethod is
+_unconditional_ canvas-box pinning to fire only when the resize fitMethod is
 `contain`, so the default `stretch` downscale rendered the output canvas at its
 intrinsic (smaller) size and the two halves no longer shared a footprint.
 **Fixed (commit `596661e2`):** restored the original `getOutputPreviewImageState`
@@ -94,20 +94,20 @@ behavior parity is preserved.
    download blob fit the 300px panel without overflowing the viewport.
 6. **Preview in-progress UX — restored fallback + new per-side badge
    (2026-06-03).** Two parts:
-   - *Parity restoration:* the original Squoosh Output falls back to
+   - _Parity restoration:_ the original Squoosh Output falls back to
      `source.preprocessed` so a side is never blank while it encodes
      (`rightDrawable() = rightCompressed || source.preprocessed`). The Svelte
      port had **lost** this — the right panel sat BLANK through the whole first
      encode (very visible on slow codecs). Restored: each side now borrows the
      other side's image (`leftDraw/rightDraw = own ?? other`) until it has its
      own result. `Output.svelte`.
-   - *Deliberate enhancement (beyond parity):* a per-side in-progress **badge**
+   - _Deliberate enhancement (beyond parity):_ a per-side in-progress **badge**
      over the relevant half — **"Optimising…"** on the first encode,
      **"Re-optimising…"** once a result exists and a setting change re-runs the
      encoder (the prior result stays on screen, crisp, while the new one
      computes). The original showed no in-canvas indicator and swapped silently.
      Gated by the same 500ms `showSpinner` delay as the download spinner, so fast
-     encodes never flash it. **Design decision:** the badge is the *single*
+     encodes never flash it. **Design decision:** the badge is the _single_
      consistent "this side is working" signal — an earlier draft also blurred the
      placeholder, but that was inconsistent (blur on first encode, none on
      re-encode) and read as a bug; a clear text label is more honest than a blur,
@@ -146,10 +146,10 @@ behavior parity is preserved.
 9. **In-place file replace resets per-image state but keeps the encoder
    (2026-06-28).** Dropping a new image over the open editor (or opening a fresh
    one) keeps each side's `format` + `optionsByFormat` (quality/effort/…) but
-   **resets rotation and the whole processorState** — resize *and* palette
+   **resets rotation and the whole processorState** — resize _and_ palette
    reduction. Upstream Squoosh preserved rotation + palette across an in-place
    replace; resetting them is a deliberate product decision (user, 2026-06-28):
-   palette reduction is per-image and often *increases* size, so silently carrying
+   palette reduction is per-image and often _increases_ size, so silently carrying
    it onto an unrelated image is a footgun, and deliberate cross-image palette work
    will live in bulk edit. The rationale is pinned in a `pickFiles` code comment
    (commit `984788b1`) so a future audit doesn't "restore" the upstream behavior.
@@ -168,7 +168,7 @@ behavior parity is preserved.
       top — that preset no longer exists.
     - **Context-aware in-progress badge** (extends §A.6). The pill reads
       **"Resizing…" → "Resized"** when a pass is driven by a real resize edit, vs
-      "(Re-)optimizing" otherwise; the call diffs each side's *effective* resize
+      "(Re-)optimizing" otherwise; the call diffs each side's _effective_ resize
       recipe against the previous pass. `ProcessingBadge.svelte`,
       `editor-session.svelte.ts` (commit `059251c5`).
     - **Resize at 100% is a true no-op.** Squoosh always ran the resampler when
@@ -216,11 +216,11 @@ behavior parity is preserved.
     - **Resize** Method + Premultiply + Linear RGB fold into Advanced; Preset /
       Width / Height / aspect / fit stay primary (Lanczos3 is the right default).
     - **OxiPNG** Effort before Interlace.
-    Quality stays integer-only (§A.11 preserved — no fractional `step` reintroduced
-    from the source branch). Touches the five panel files (`WebpOptions`,
-    `AvifOptions`, `JxlOptions`, `ResizeOptions`, `OxipngOptions`); commit
-    `abebdfaf`. Browser-verified all panels (collapsed + expanded); `svelte-check`
-    0/0.
+      Quality stays integer-only (§A.11 preserved — no fractional `step` reintroduced
+      from the source branch). Touches the five panel files (`WebpOptions`,
+      `AvifOptions`, `JxlOptions`, `ResizeOptions`, `OxipngOptions`); commit
+      `abebdfaf`. Browser-verified all panels (collapsed + expanded); `svelte-check`
+      0/0.
 
 > NOTE (import gotcha): shared `.svelte.ts` stores must be imported by the SAME
 > specifier everywhere (we use `$lib/editor/snackbar-store.svelte`). A mix of
@@ -245,7 +245,7 @@ Resolved 2026-05-31 (user: "restore them; for the rest, make the best call"):
   (canvas `object-fit: contain`), aligned at the two-up split. **Correction
   (2026-06-28):** the commit that added this over-narrowed the box-pinning to the
   `contain` case only, regressing the default `stretch` downscale; the box is now
-  pinned for *all* resizes, with `object-fit: contain` layered on only for Contain
+  pinned for _all_ resizes, with `object-fit: contain` layered on only for Contain
   (see the 2026-06-28 re-run at the top).
 - **DONE — History → SvelteKit shallow routing** (`pushState`/`page.state` from
   `$app/navigation`), replacing the raw `history` API (no more router warning).
