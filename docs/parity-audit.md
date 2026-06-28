@@ -273,6 +273,31 @@ behavior parity is preserved.
 > `$lib/…` and relative `./…` makes Vite instantiate the store twice, so writes
 > from one component never reach the other. Cost us a debugging cycle.
 
+15. **Preview smoothing + background grouped into a "View options" popover
+    (2026-06-28).** Squoosh (and Sqush until now) put the two preview-only display
+    toggles — smoothing (`image-rendering: pixelated`) and the alternate
+    background — as two always-visible buttons on the output control bar. They now
+    sit behind a single **View options** affordance (a tune/sliders pill next to
+    Rotate) that opens a small popover above the bar.
+    - **Why:** both are preview-only (they change what you see, not the saved
+      file) and low-frequency — smoothing is even a no-op until you zoom past 1:1 —
+      so they didn't earn permanent space beside the zoom/rotate actions. Grouping
+      them also removes a cross-browser wart: the smoothing toggle is omitted on
+      Safari (`image-rendering: pixelated` is a no-op in WebKit), which used to give
+      the bar a different button count there; the popover absorbs it (on Safari it
+      simply shows the single Background row).
+    - **Behaviour kept:** the underlying `pixelated` / `altBackground` state and the
+      canvas wiring are unchanged; each row is still a toggle that reflects state via
+      `aria-pressed` and shows its current value (On/Pixelated, Dark/Light).
+    - **Added:** a dirty dot on the trigger whenever either toggle is in its
+      non-default state (so a change stays discoverable while the popover is shut);
+      light-dismiss via outside-`pointerdown` + Escape (Escape restores focus to the
+      trigger).
+    - `Output.svelte` only; commit `cadfaa16`. `svelte-check` 0/0 via `npm run
+      check`; browser-verified desktop + mobile (toggles apply to both canvases,
+      click-outside + Escape dismiss, no clipping at 375px, no console errors).
+      User-guide + reference reconciled.
+
 ---
 
 ## B. Resolved decisions + still-open items

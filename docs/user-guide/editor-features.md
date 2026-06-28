@@ -45,19 +45,13 @@ The screen has three parts: the big image area in the middle, and two settings p
 - **How to choose:** Use it to straighten a sideways photo before you download. If you have **Resize** turned on, rotating a quarter-turn automatically swaps your width and height values so your resize settings stay correct for the new orientation (this happens for both sides whether or not resize is currently on).
 - **Recommended starting point:** Only when the image needs straightening.
 
-### Toggle smoothing (pixelated)
+### View options (smoothing & background)
 
-- **What it does:** Switches the on-screen preview between smooth scaling and **crisp, pixelated** scaling. It does **not** change the saved file — it only affects how the preview is drawn so you can see individual pixels.
-- **Range & default:** On/off toggle, **off** by default (smooth). Note: this button is **not shown in Safari**.
-- **How to choose:** Turn it on when you are zoomed in and want to inspect exact pixels (for pixel art, sharp edges, or to study compression blocks) without the browser blurring them.
-- **Recommended starting point:** **Off** for normal viewing; turn **on** when zoomed in to inspect pixels.
+The two **preview-only** display toggles live together behind a single **View options** button — the sliders icon next to Rotate in the bottom bar. Click it to open a small menu above the bar; click anywhere else or press **Esc** to close it. Neither toggle changes the saved file — they only change how the preview is drawn. Each row shows its current value, and a small dot appears on the View options button whenever either toggle is set away from its default, so you can tell at a glance that a preview setting is changed even with the menu closed.
 
-### Toggle background
-
-- **What it does:** Turns the dark backdrop behind the image on or off (it fades over about half a second). Useful for judging how a result — especially one with transparency — looks against a light vs. dark background.
-- **Range & default:** On/off toggle; the dark backdrop is **on** by default (an 80%-opacity black). Toggling it off reveals the lighter app background.
-- **How to choose:** Flip it when you are checking edges, halos, or transparent areas that might look fine on one background but bad on the other.
-- **Recommended starting point:** Default (dark). Toggle to **light** to check transparency and edge fringing.
+- **Smoothing:** Switches the on-screen preview between smooth scaling and **crisp, pixelated** scaling — the row reads _On_ (default) → _Pixelated_. Turn it to Pixelated when you are zoomed in and want to inspect exact pixels (for pixel art, sharp edges, or to study compression blocks) without the browser blurring them. It only makes a visible difference once you are zoomed past 100%. **This row is not shown in Safari**, where the browser can't render the pixelated preview.
+- **Background:** Turns the dark backdrop behind the image on or off — the row reads _Dark_ (default) → _Light_, and it fades over about half a second. Useful for judging how a result, especially one with transparency, looks against a light vs. dark background — flip it when checking edges, halos, or transparent areas that might look fine on one background but bad on the other.
+- **Recommended starting point:** Leave both at their defaults for normal viewing. Open **View options** to switch Smoothing to Pixelated when zoomed in to inspect pixels, or Background to Light to check transparency and edge fringing.
 
 ### Copy settings to the other side
 
@@ -105,7 +99,7 @@ The screen has three parts: the big image area in the middle, and two settings p
 ## Tips & pitfalls
 
 - **The two sides always zoom, pan, and rotate together.** You drive one side and the other mirrors it exactly — that's deliberate, so before/after stays pixel-aligned. You can't zoom only one side.
-- **Smoothing and background are preview-only.** Toggling them changes what _you_ see, not the saved file. Don't worry about leaving "pixelated" on before you download.
+- **Smoothing and background are preview-only.** Both live under the **View options** button (the sliders icon next to Rotate). Toggling them changes what _you_ see, not the saved file — don't worry about leaving "pixelated" on before you download. The dot on the View options button just means one of them is away from its default.
 - **The hidden 1 / 2 / 3 split shortcut is suppressed while typing.** If a number field (like the zoom % or a resize input) has focus, those keys type digits instead of moving the split — click the image area first.
 - **Rotate affects both sides and your resize numbers.** A quarter-turn swaps width/height in the Resize fields automatically, so don't be surprised to see those values flip.
 - **Copy and Import both offer Undo, but only for a few seconds.** If you overwrite a side by mistake, grab the snackbar Undo before the message disappears — or just use the main **Undo** button, which also reverses a copy or import.

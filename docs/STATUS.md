@@ -7,6 +7,24 @@ browser, the build is static, and offline reload must work after load.
 
 ## Current State
 
+- **Preview toggles grouped into a "View options" popover (2026-06-28), landed on
+  `main`.** The two preview-only display toggles — smoothing
+  (`image-rendering: pixelated`) and the alternate background — no longer sit
+  permanently on the output control bar next to zoom/rotate. A single **View
+  options** pill (next to Rotate) now opens a small popover holding both. Both are
+  preview-only (they change what you see, not the saved file) and low-frequency —
+  smoothing is a no-op until you zoom past 1:1 — and grouping them also removes a
+  cross-browser wart: the smoothing toggle is omitted on Safari, which used to give
+  the bar a different button count there (the popover absorbs it). State and canvas
+  wiring are unchanged; added a dirty dot on the trigger (so a changed setting
+  stays visible while the popover is closed) plus light-dismiss (outside-
+  `pointerdown` + Escape, focus returned to the trigger), each row reflecting state
+  via `aria-pressed`. `Output.svelte` only; commit `cadfaa16`; deviation logged in
+  [parity-audit.md](parity-audit.md) §A.15; user-guide + reference reconciled. `npm
+  run check` 0/0; browser-verified desktop + mobile (toggles apply to both
+  canvases, click-outside + Escape dismiss, no clipping at 375px, no console
+  errors).
+
 - **Undo/redo + instant result cache (2026-06-28), landed on `main`.** The editor
   gained backward/forward history over the editable document (`{ sides,
   preprocessorState }`) plus a shared, memory-bounded cache of finished encodes —
