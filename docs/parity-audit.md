@@ -217,9 +217,10 @@ behavior parity is preserved.
       Width / Height / aspect / fit stay primary (Lanczos3 is the right default).
     - **OxiPNG** Effort before Interlace.
     Quality stays integer-only (§A.11 preserved — no fractional `step` reintroduced
-    from the source branch). `WebpOptions / AvifOptions / JxlOptions /
-    ResizeOptions / OxipngOptions.svelte`, commit `abebdfaf`. Browser-verified all
-    panels (collapsed + expanded); `svelte-check` 0/0.
+    from the source branch). Touches the five panel files (`WebpOptions`,
+    `AvifOptions`, `JxlOptions`, `ResizeOptions`, `OxipngOptions`); commit
+    `abebdfaf`. Browser-verified all panels (collapsed + expanded); `svelte-check`
+    0/0.
 
 > NOTE (import gotcha): shared `.svelte.ts` stores must be imported by the SAME
 > specifier everywhere (we use `$lib/editor/snackbar-store.svelte`). A mix of
