@@ -7,13 +7,18 @@ import {
   type CompressOutcome,
   type SideFormat,
 } from '$lib/compress';
+import { ResultCache } from '$lib/result-cache';
 import type { ResizeOptionsState } from './options/processor-types';
+import { EditorHistory } from './editor-history.svelte';
 import { snackbar } from './snackbar-store.svelte';
 import {
   defaultPreprocessorState,
   defaultProcessorState,
 } from 'client/lazy-app/feature-meta';
-import type { ProcessorState } from 'client/lazy-app/feature-meta';
+import type {
+  PreprocessorState,
+  ProcessorState,
+} from 'client/lazy-app/feature-meta';
 
 export type SideIndex = 0 | 1;
 export type SideStatus = 'idle' | 'working' | 'done' | 'error';
@@ -27,6 +32,17 @@ export interface SideState {
   format: SideFormat;
   optionsByFormat: Record<string, Record<string, unknown>>;
   processorState: ProcessorState;
+}
+
+/**
+ * The editor's editable "document": both sides' encoder recipes plus the shared
+ * preprocessor (rotation). This — and only this — is what undo/redo captures and
+ * restores. The source file, encoded results, and transient status all live
+ * outside it (a result is derived from a document, not part of it).
+ */
+export interface DocSnapshot {
+  sides: [SideState, SideState];
+  preprocessorState: PreprocessorState;
 }
 
 type SavedSide = {
@@ -43,6 +59,10 @@ const SAVE_VERSION = 1;
 const IMAGE_UPDATE_DELAY = 100;
 const SPINNER_DELAY = 500;
 const SETTINGS_PERSIST_DELAY = 200;
+// How long the document must sit unchanged before a new undo step is committed.
+// Slightly longer than the encode debounce so a slider DRAG coalesces into ONE
+// undo step (its settled value) rather than dozens of intermediate ones.
+const HISTORY_COMMIT_DELAY = 350;
 
 const sideSaveKey = (index: SideIndex) =>
   `sqush:side-settings:${index === 0 ? 'left' : 'right'}`;
@@ -208,7 +228,24 @@ export class EditorSession {
   errors = $state<[string, string]>(['', '']);
   canImport = $state<[boolean, boolean]>([hasSavedSide(0), hasSavedSide(1)]);
 
-  private lastUrls: [string | null, string | null] = [null, null];
+  // Undo/redo over the editable document (see DocSnapshot). The UI reads
+  // `history.canUndo` / `history.canRedo` to drive the toolbar buttons.
+  history = new EditorHistory<DocSnapshot>();
+
+  // Finished encode results keyed by their input signature, so stepping back to
+  // a previous recipe (or just reverting a toggle) shows its image INSTANTLY
+  // instead of re-running the pipeline. Owns the object-URL lifecycle for every
+  // result it holds — revoked on eviction and on clear().
+  private cache = new ResultCache();
+  // The signature of the result currently displayed per side (set whenever a
+  // result lands on screen, from a fresh encode OR a cache hit). Replaces the old
+  // single-slot `encodedSig`: a pass whose signature still matches is redundant.
+  private displayedSig: [string | null, string | null] = [null, null];
+  // True only while restoreDocument() is writing the document back during an
+  // undo/redo, so the history watcher ignores its own restore writes.
+  private restoringHistory = false;
+  // Debounced commit timer for the history watcher (see watchHistory).
+  private historyTimer: ReturnType<typeof setTimeout> | null = null;
   // Bookkeeping keyed to `loadId` (bumped on every new file). Comparing against
   // the live loadId replaces the old mutable prevFiles/dimsSeeded guards, so a
   // new file is detected automatically with no hand-reset in pickFiles/clearFile:
@@ -220,10 +257,6 @@ export class EditorSession {
   // Resize recipe signature each side last encoded with, to tell a resize edit
   // apart from any other re-encode (see encodeSide / activities).
   private lastResizeSig: [string | null, string | null] = [null, null];
-  // The full effective-request signature that produced the result currently on
-  // screen for each side (set only on a successful encode). A pass whose signature
-  // matches is redundant and skipped — see encodeSide.
-  private encodedSig: [string | null, string | null] = [null, null];
   // Disposes the per-side encode/spinner effects this instance owns (constructor).
   private stopEffects: (() => void) | null = null;
   // Debounced localStorage write for persistSettings (see flushSettings).
@@ -267,6 +300,8 @@ export class EditorSession {
         $effect(() => this.encodeSide(index));
         $effect(() => this.updateSpinner(index));
       }
+      // One watcher commits debounced undo steps as the document changes.
+      $effect(() => this.watchHistory());
     });
   }
 
@@ -317,14 +352,10 @@ export class EditorSession {
       return;
     }
 
-    // Skip a redundant pass. These five fields are the complete input to
-    // compressFile (the source file aside, guarded by fileChanged) — with the
-    // resize recipe folded in only when it actually changes the image. If they
-    // match the signature that produced the result already on screen, re-encoding
-    // would reproduce identical bytes, so we don't: no wasted work, no badge flash.
-    // This is what makes "enable resize at 100%" (and Premultiply/Linear RGB toggles
-    // at 100%) a true no-op. `encodedSig` is recorded only on success, so a prior
-    // error or abort still retries.
+    // The signature of this pass's inputs. These five fields are the complete
+    // input to compressFile (the source file aside, guarded by fileChanged), with
+    // the resize recipe folded in only when it actually changes the image. It both
+    // (a) detects a redundant pass and (b) keys the result cache.
     const encodeSig = JSON.stringify({
       format: request.format,
       options: request.options,
@@ -332,10 +363,28 @@ export class EditorSession {
       quantize: request.processorState.quantize,
       resize: resizeIsReal ? resize : null,
     });
-    if (!fileChanged && encodeSig === this.encodedSig[index]) {
-      // Settle to the finished result that already matches these settings.
+
+    // Already on screen for this side? Re-encoding would reproduce identical
+    // bytes, so we don't: no wasted work, no badge flash. This is what makes
+    // "enable resize at 100%" (and Premultiply/Linear RGB toggles at 100%) a true
+    // no-op. `displayedSig` is set only when a result actually lands, so a prior
+    // error or abort still retries.
+    if (!fileChanged && this.displayedSig[index] === encodeSig) {
       this.statuses[index] = 'done';
       this.errors[index] = '';
+      return;
+    }
+
+    // Computed before? Show it instantly from cache — the heart of "return to a
+    // previous snapshot without re-optimizing". Settings the user revisits (undo,
+    // redo, or toggling lossless off again) land here. The key is the signature
+    // ALONE — no side index — because a result is purely a function of its inputs;
+    // an encode the RIGHT side already produced is byte-identical on the LEFT, so
+    // matching the other side's recipe loads instantly too.
+    const cacheKey = encodeSig;
+    const cached = this.cache.get(cacheKey);
+    if (cached) {
+      this.showResult(index, cached, encodeSig);
       return;
     }
 
@@ -352,17 +401,16 @@ export class EditorSession {
             URL.revokeObjectURL(outcome.outputUrl);
             return;
           }
-          this.revokeSideUrl(index);
-          this.lastUrls[index] = outcome.outputUrl;
-          // results is $state.raw, so reassign the array rather than mutating an
-          // element in place — only reassignment triggers reactive updates.
-          const nextResults: [CompressOutcome | null, CompressOutcome | null] =
-            [this.results[0], this.results[1]];
-          nextResults[index] = outcome;
-          this.results = nextResults;
-          // Remember what produced this result so an identical later pass can skip.
-          this.encodedSig[index] = encodeSig;
-          this.statuses[index] = 'done';
+          // A concurrent identical pass may have cached this key first; if so,
+          // discard our duplicate (revoke its URL) and show the cached one.
+          const existing = this.cache.get(cacheKey);
+          if (existing) {
+            URL.revokeObjectURL(outcome.outputUrl);
+            this.showResult(index, existing, encodeSig);
+            return;
+          }
+          this.cache.set(cacheKey, outcome);
+          this.showResult(index, outcome, encodeSig);
         })
         .catch((error: unknown) => {
           if (controller.signal.aborted) return;
@@ -384,6 +432,40 @@ export class EditorSession {
     };
   }
 
+  /**
+   * Put a result (fresh or cached) on screen for a side and record what produced
+   * it. `results` is `$state.raw`, so we reassign the array rather than mutate an
+   * element in place — only reassignment triggers reactive updates.
+   */
+  private showResult(
+    index: SideIndex,
+    outcome: CompressOutcome,
+    sig: string,
+  ): void {
+    const nextResults: [CompressOutcome | null, CompressOutcome | null] = [
+      this.results[0],
+      this.results[1],
+    ];
+    nextResults[index] = outcome;
+    this.results = nextResults;
+    this.displayedSig[index] = sig;
+    this.statuses[index] = 'done';
+    this.errors[index] = '';
+    this.pinDisplayedResults();
+  }
+
+  /**
+   * Tell the cache which results are currently on screen so it never evicts (and
+   * revokes the URL of) something the editor is still showing.
+   */
+  private pinDisplayedResults(): void {
+    const keys: string[] = [];
+    if (this.displayedSig[0] !== null) keys.push(this.displayedSig[0]);
+    if (this.displayedSig[1] !== null) keys.push(this.displayedSig[1]);
+    // A Set in ResultCache dedupes the two when both sides show the same recipe.
+    this.cache.setPinned(keys);
+  }
+
   updateSpinner(index: SideIndex): (() => void) | void {
     // Manages only the 500ms delay; showSpinner is the $derived AND-gate above.
     if (this.statuses[index] !== 'working') {
@@ -396,6 +478,133 @@ export class EditorSession {
     }, SPINNER_DELAY);
 
     return () => clearTimeout(timer);
+  }
+
+  // ── Undo / redo ──────────────────────────────────────────────────────────
+  // The document (DocSnapshot) is captured into `history` as it settles, and
+  // written back on undo/redo. Restoring re-runs the encode effect, which finds
+  // the matching result in `cache` and shows it instantly — so stepping through
+  // history never waits on a re-encode.
+
+  /** A detached, immutable snapshot of the current document. */
+  private captureDocument(): DocSnapshot {
+    return {
+      sides: [this.snapshotSide(0), this.snapshotSide(1)],
+      preprocessorState: $state.snapshot(
+        this.preprocessorState,
+      ) as PreprocessorState,
+    };
+  }
+
+  private snapshotSide(index: SideIndex): SideState {
+    const side = this.sides[index];
+    return {
+      format: side.format,
+      optionsByFormat: $state.snapshot(side.optionsByFormat) as Record<
+        string,
+        Record<string, unknown>
+      >,
+      processorState: $state.snapshot(side.processorState) as ProcessorState,
+    };
+  }
+
+  /**
+   * A fingerprint of the document's OUTPUT-AFFECTING fields, used to dedupe undo
+   * steps. Deliberately narrower than the raw snapshot: only the active format's
+   * options matter (inactive formats can't be edited from the UI), and a disabled
+   * resize folds to null so seeding its width/height — which doesn't change the
+   * output — never spawns a phantom undo step.
+   */
+  private docSig(doc: DocSnapshot): string {
+    return JSON.stringify({
+      pre: doc.preprocessorState,
+      sides: doc.sides.map((side) => ({
+        format: side.format,
+        options: side.optionsByFormat[side.format] ?? {},
+        quantize: side.processorState.quantize,
+        resize: side.processorState.resize.enabled
+          ? side.processorState.resize
+          : null,
+      })),
+    });
+  }
+
+  /**
+   * Reactive watcher: commits a debounced undo step whenever the document
+   * settles. The synchronous `captureDocument()` read registers every nested
+   * field as a dependency (Svelte effects don't track deep mutations otherwise),
+   * so slider drags re-run this. The commit itself is deferred — and skipped
+   * during a restore, and de-duped by signature — so it never loops.
+   */
+  private watchHistory(): (() => void) | void {
+    const doc = this.captureDocument();
+    // Undo is scoped to an open image, and must ignore our own restore writes.
+    if (!this.file || this.restoringHistory) return;
+    const sig = this.docSig(doc);
+
+    if (this.historyTimer !== null) clearTimeout(this.historyTimer);
+    this.historyTimer = setTimeout(() => {
+      this.historyTimer = null;
+      this.history.commit(doc, sig);
+    }, HISTORY_COMMIT_DELAY);
+
+    return () => {
+      if (this.historyTimer !== null) {
+        clearTimeout(this.historyTimer);
+        this.historyTimer = null;
+      }
+    };
+  }
+
+  /**
+   * Force any pending debounced step to commit NOW. Called before undo/redo so an
+   * edit the user just made (still inside the debounce window) is captured first
+   * and remains reachable via redo.
+   */
+  private flushHistory(): void {
+    if (this.historyTimer !== null) {
+      clearTimeout(this.historyTimer);
+      this.historyTimer = null;
+    }
+    if (!this.file) return;
+    const doc = this.captureDocument();
+    this.history.commit(doc, this.docSig(doc));
+  }
+
+  /** Seed a fresh history baseline for a newly loaded image. */
+  private resetHistory(): void {
+    if (this.historyTimer !== null) {
+      clearTimeout(this.historyTimer);
+      this.historyTimer = null;
+    }
+    const doc = this.captureDocument();
+    this.history.reset(doc, this.docSig(doc));
+  }
+
+  /** Write a snapshot back into the live document without re-entering history. */
+  private restoreDocument(doc: DocSnapshot): void {
+    this.restoringHistory = true;
+    this.applySide(0, doc.sides[0]);
+    this.applySide(1, doc.sides[1]);
+    this.preprocessorState = structuredClone(doc.preprocessorState);
+    // Clear the guard in a microtask, after the watcher effect has reacted to the
+    // writes above (effects flush in a microtask). The signature dedupe is the
+    // real safety net; this just avoids a wasted debounce cycle.
+    queueMicrotask(() => {
+      this.restoringHistory = false;
+    });
+  }
+
+  undo(): void {
+    this.flushHistory();
+    const doc = this.history.undo();
+    if (doc) this.restoreDocument(doc);
+  }
+
+  redo(): void {
+    this.flushHistory();
+    const doc = this.history.redo();
+    if (doc) this.restoreDocument(doc);
   }
 
   syncRouteState(editorOpen: boolean): void {
@@ -463,7 +672,10 @@ export class EditorSession {
     }
 
     const opening = !this.file;
-    this.revokeAllUrls();
+    // Drop the previous image's cached results (and revoke their URLs); a new
+    // source invalidates every one of them.
+    this.cache.clear();
+    this.displayedSig = [null, null];
     this.file = next;
     this.loadId += 1;
     this.results = [null, null];
@@ -497,6 +709,10 @@ export class EditorSession {
       }
     }
 
+    // Seed undo with this image's starting recipe as the baseline. Per-image
+    // scope: loading a new image discards the previous one's history.
+    this.resetHistory();
+
     if (opening) pushEditorHistory();
   }
 
@@ -507,7 +723,9 @@ export class EditorSession {
     this.statuses = ['idle', 'idle'];
     this.spinnerDelayPassed = [false, false];
     this.preprocessorState = structuredClone(defaultPreprocessorState);
-    this.revokeAllUrls();
+    this.displayedSig = [null, null];
+    this.cache.clear();
+    this.history.clear();
   }
 
   dispose(): void {
@@ -515,10 +733,14 @@ export class EditorSession {
     // constructor.
     this.stopEffects?.();
     this.stopEffects = null;
+    if (this.historyTimer !== null) {
+      clearTimeout(this.historyTimer);
+      this.historyTimer = null;
+    }
     // Persist any pending settings change before teardown so the debounce never
     // drops the user's last edit.
     this.flushSettings();
-    this.revokeAllUrls();
+    this.cache.clear();
   }
 
   rotate(): void {
@@ -634,17 +856,5 @@ export class EditorSession {
       this.sides[index].processorState.resize.enabled &&
       this.sides[index].processorState.resize.fitMethod === 'contain'
     );
-  }
-
-  private revokeSideUrl(index: SideIndex): void {
-    const url = this.lastUrls[index];
-    if (!url) return;
-    URL.revokeObjectURL(url);
-    this.lastUrls[index] = null;
-  }
-
-  private revokeAllUrls(): void {
-    this.revokeSideUrl(0);
-    this.revokeSideUrl(1);
   }
 }
