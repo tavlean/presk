@@ -28,16 +28,20 @@ Shapes: `src/features/processors/resize/shared/meta.ts`,
 
 | Field            | Values / range                                                                                                                                | Notes                                                                 |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `method`         | `lanczos3` (default), `mitchell`, `catrom`, `triangle`, `hqx`, `browser-pixelated`, `browser-low`, `browser-medium`, `browser-high`, `vector` | Three families: worker (Rust `resize`/`hqx`), browser-canvas, vector. |
+| `method`         | `lanczos3` (default), `mitchell`, `catrom`, `triangle`, `hqx`, `browser-pixelated`, `vector` | Three families: worker (Rust `resize`/`hqx`), browser-canvas, vector. `catrom`/`triangle` are valid worker values kept for the code path (catrom finishes hqx) but not offered in the UI dropdown; the browser low/medium/high quality levels were removed. |
 | `width`/`height` | int >= 1                                                                                                                                      | Defaults to source size; aspect lock in UI (`maintainAspect`).        |
 | `fitMethod`      | `stretch` (default), `contain`                                                                                                                | Only surfaced when aspect lock is off.                                |
 | `premultiply`    | bool (default true)                                                                                                                           | Worker methods only (premultiply alpha).                              |
 | `linearRGB`      | bool (default true)                                                                                                                           | Worker methods only (resize in linear light).                         |
 
 - **Worker methods** (`triangle`, `catrom`, `mitchell`, `lanczos3`, `hqx`) run
-  in WASM and expose `premultiply` + `linearRGB`.
+  in WASM and expose `premultiply` + `linearRGB`. Only `lanczos3`/`mitchell`/`hqx`
+  are user-selectable; `catrom`/`triangle` stay in the set for the code path
+  (catrom finishes an hqx pass) but aren't offered in the dropdown.
 - **`hqx`** is the pixel-art scaler (Rust `hqx` crate / `squooshhqx`).
-- **`browser-*`** map to canvas `imageSmoothingQuality` (pixelated/low/medium/high).
+- **`browser-pixelated`** is the only browser scaler: canvas with smoothing off
+  (nearest-neighbour). The smooth `imageSmoothingQuality` low/medium/high methods
+  were removed (lower quality than the worker filters, inconsistent across browsers).
 - **`vector`** rasterises an SVG source at the target size; only offered when the
   input is SVG (`isVector`).
 - **Presets** (`resize/client/preset-state.ts`): `0.25, 0.5, 1`

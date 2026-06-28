@@ -94,7 +94,7 @@ Encoded with **OxiPNG** (shown as **PNG** in the menu; the encoder name appears 
 | Use case                              | Recommended (Sqush controls)                              |
 | ------------------------------------- | --------------------------------------------------------- |
 | Downscaling photographs               | Lanczos3, Premultiply on, Linear RGB on                   |
-| Flat graphics / illustrations         | Mitchell (or Catmull-Rom), Premultiply on, Linear RGB on  |
+| Flat graphics / illustrations         | Mitchell, Premultiply on, Linear RGB on                   |
 | Upscaling / enlarging                 | Lanczos3 generally; Mitchell if halos appear              |
 | Pixel art / sprites                   | hqx (pixel art), or Browser pixelated — integer scale only |
 

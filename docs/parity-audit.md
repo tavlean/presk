@@ -222,6 +222,29 @@ behavior parity is preserved.
       `abebdfaf`. Browser-verified all panels (collapsed + expanded); `svelte-check`
       0/0.
 
+13. **Resize Method dropdown trimmed to four scalers (2026-06-28).** Upstream
+    Squoosh exposes nine resampling methods — five worker filters (Lanczos3,
+    Mitchell, Catmull-Rom, Triangle, hqx) plus four browser-canvas scalers
+    (pixelated + low/medium/high) — and Vector for SVG. Sqush deliberately cuts the
+    menu to four distinct jobs: **Lanczos3** (photos), **Mitchell** (graphics /
+    less ringing), **hqx** (pixel-art upscale), **Browser pixelated** (nearest
+    neighbour), plus **Vector** (auto for SVG). Rationale: `browser-low/medium/high`
+    are strictly lower quality than the worker filters and vary by browser/OS;
+    Catmull-Rom and Triangle are redundant middle points that Lanczos3 + Mitchell
+    already bracket.
+    - `catrom`/`triangle` stay in the worker code path (catrom finishes an hqx
+      pass) and in the type unions — just no longer user-selectable.
+    - `browser-low/medium/high` were removed outright: the type unions, plus the
+      canvas helper (`BuiltinResizeMethod` → `'pixelated'`, `builtinResize` no
+      longer branches on `imageSmoothingQuality`). The `/diagnostics` probe's
+      browser-canvas leg moved `browser-high` → `browser-pixelated` (worker leg
+      unchanged).
+      Commits `d07aed17` (UI) + `5404d783` (types/code); user-guide + reference
+      reconciled. `svelte-check` 0/0; browser-verified — the dropdown shows exactly
+      the four options, Premultiply/Linear RGB appear for Lanczos3 and hide for
+      Browser pixelated, and a browser-pixelated resize re-encodes cleanly with no
+      console errors.
+
 > NOTE (import gotcha): shared `.svelte.ts` stores must be imported by the SAME
 > specifier everywhere (we use `$lib/editor/snackbar-store.svelte`). A mix of
 > `$lib/…` and relative `./…` makes Vite instantiate the store twice, so writes

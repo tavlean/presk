@@ -17,7 +17,7 @@ A quick note on jargon: **resampling** (or **interpolation**) is the process of 
 - **How to choose:** See the per-method breakdown below. In short: leave it on Lanczos3 for photos; switch to **hqx (pixel art)** for crisp game sprites/pixel art; use **Browser pixelated** if you want hard, blocky pixels with no smoothing; use **Vector** to rasterize an SVG cleanly at the exact target size.
 - **Recommended starting point:** **Lanczos3** for almost all photographic and general-purpose images.
 
-The methods fall into three families. The five "worker" methods (Lanczos3, Mitchell, Catmull-Rom, Triangle, hqx) run in high-quality WebAssembly code and unlock the **Premultiply alpha channel** and **Linear RGB** toggles. The four "Browser" methods hand the work to your browser's built-in canvas scaler (fast, but lower quality and no extra toggles). Vector is its own thing for SVGs.
+The methods fall into three families. The **worker** methods (Lanczos3, Mitchell, hqx) run in high-quality WebAssembly code and unlock the **Premultiply alpha channel** and **Linear RGB** toggles. The one **Browser** method (Browser pixelated) hands the work to your browser's built-in canvas scaler (fast, no extra toggles). Vector is its own thing for SVGs.
 
 The Method dropdown (and its Premultiply / Linear RGB companions) lives under the **Advanced settings** expander — Lanczos3, the default, is the right pick for almost every photo, so the panel leads with Preset / Width / Height instead. Open Advanced to change the scaling math.
 
@@ -35,24 +35,10 @@ The Method dropdown (and its Premultiply / Linear RGB companions) lives under th
 - **Speed:** Fast — cubic filters like this balance quality and efficiency well.
 - **Pick it for:** Photos where you want clean edges without ringing artifacts, or when downscaling images with lots of sharp contrast.
 
-#### Catmull-Rom (`catrom`)
-
-- **What it is:** A cubic interpolation filter (Catmull-Rom spline). Sharper than Mitchell, in between Mitchell and Lanczos3.
-- **Sharpness vs smoothness vs ringing:** Crisp and detailed, but can introduce a small negative "halo" ringing on high-contrast edges (src: pixinsight.com Interpolation Algorithms).
-- **Speed:** Fast.
-- **Pick it for:** Photos when you want a touch more sharpness than Mitchell but a bit less ringing than Lanczos3. Note: this is also the filter Sqush uses internally to finish an **hqx** resize.
-
-#### Triangle (bilinear) (`triangle`)
-
-- **What it is:** Bilinear interpolation — it blends only the 2x2 block of pixels immediately around each new pixel (a "triangle" / tent filter).
-- **Sharpness vs smoothness vs ringing:** The softest of the worker filters, and the most blurring, but it never produces ringing. Detail is lost compared to the cubic/Lanczos options.
-- **Speed:** The fastest of the high-quality worker methods.
-- **Pick it for:** When you want a smooth, artifact-free result and don't mind some softness, or when speed matters more than crispness.
-
 #### hqx (pixel art) (`hqx`)
 
 - **What it is:** A specialized **magnification** scaler built for pixel art (retro game sprites, low-resolution icons). It detects edges and enlarges by clean integer factors while keeping outlines crisp instead of blurry.
-- **Sharpness vs smoothness vs ringing:** Designed to keep hard pixel-art edges sharp and avoid the blur that normal photo filters cause. It only enlarges by a factor of 2x, 3x, or 4x (capped at 4x); the result is then resized the rest of the way with Catmull-Rom to hit your exact target. If your target isn't actually larger than the source, hqx leaves the pixels untouched and just resizes normally.
+- **Sharpness vs smoothness vs ringing:** Designed to keep hard pixel-art edges sharp and avoid the blur that normal photo filters cause. It only enlarges by a factor of 2x, 3x, or 4x (capped at 4x); the result is then resized the rest of the way with Catmull-Rom (a high-quality cubic filter, used internally only) to hit your exact target. If your target isn't actually larger than the source, hqx leaves the pixels untouched and just resizes normally.
 - **Speed:** Fast.
 - **Pick it for:** **Pixel art and sprites you are scaling up.** Do not use it for photos.
 
@@ -62,13 +48,6 @@ The Method dropdown (and its Premultiply / Linear RGB companions) lives under th
 - **Sharpness vs smoothness vs ringing:** No blending at all — every pixel stays a crisp square. Great for a deliberate blocky look; terrible for photos (jagged staircase edges).
 - **Speed:** Very fast (runs natively in the browser).
 - **Pick it for:** Pixel art where you want an exact, no-smoothing blow-up, or an intentional "lo-fi" aesthetic.
-
-#### Browser low / medium / high quality (`browser-low`, `browser-medium`, `browser-high`)
-
-- **What it is:** The browser's own built-in smooth scaling, at three quality levels. These map directly to the canvas `imageSmoothingQuality` setting (low / medium / high).
-- **Sharpness vs smoothness vs ringing:** Smooth, blurry-ish results. The exact look depends on your browser and operating system, so output is not guaranteed identical across machines. Generally softer and lower quality than the worker filters above.
-- **Speed:** Very fast (native browser code, no WebAssembly).
-- **Pick it for:** Quick previews, or when you specifically want to match what a browser would do anyway. For final output, the worker methods (Lanczos3/Mitchell/etc.) give you more control and consistency.
 
 #### Vector (`vector`)
 
@@ -116,7 +95,7 @@ The Method dropdown (and its Premultiply / Linear RGB companions) lives under th
 
 ### Premultiply alpha channel
 
-- **What it does:** A correctness fix for images with **transparency** (an alpha channel). It tells the resizer to blend the color and transparency together correctly so you don't get ugly dark or bright fringes ("halos") around the edges of transparent regions. Only appears for the worker methods (Lanczos3, Mitchell, Catmull-Rom, Triangle, hqx).
+- **What it does:** A correctness fix for images with **transparency** (an alpha channel). It tells the resizer to blend the color and transparency together correctly so you don't get ugly dark or bright fringes ("halos") around the edges of transparent regions. Only appears for the worker methods (Lanczos3, Mitchell, hqx).
 - **Range & default:** Checkbox, **on by default** (option key `premultiply`).
 - **How to choose:** When pixels are blended during resizing, the color hiding "behind" fully-transparent pixels can leak into visible edges if alpha isn't handled first. Premultiplying the alpha before blending prevents that, so edges of logos, icons, and cut-outs stay clean (src: ssp.impulsetrain.com/gamma-premult.html; lomont.org/posts/2023/correctalphagammaforimages). It has no effect on fully opaque images.
 - **Recommended starting point:** **On.** Leave it on for anything with transparency; there's rarely a reason to disable it.
@@ -135,7 +114,7 @@ The Method dropdown (and its Premultiply / Linear RGB companions) lives under th
 | Use case                                      | Suggested method                                         | Why                                                                                                                                                                                     |
 | --------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Downscaling photographs (the common case)** | **Lanczos3**, Premultiply on, Linear RGB on              | Lanczos is the community standard for high-quality downscaling — best anti-aliasing and detail retention, sharper than Mitchell, at the cost of slight ringing.                         |
-| **Flat graphics / illustrations / gradients** | **Mitchell** (or **Catmull-Rom** for more bite)          | Mitchell trades a hair of sharpness for far fewer ringing halos than Lanczos — preferable on synthetic imagery and smooth gradients where overshoot is visible.                         |
+| **Flat graphics / illustrations / gradients** | **Mitchell**                                             | Mitchell trades a hair of sharpness for far fewer ringing halos than Lanczos — preferable on synthetic imagery and smooth gradients where overshoot is visible.                         |
 | **Upscaling / enlarging**                     | **Lanczos3** generally; **Mitchell** if halos appear     | Lanczos enlarges at high quality but rings more; Mitchell gives smoother, halo-free enlargements. (Upscaling in a compressor is usually a mistake — it adds bytes without real detail.) |
 | **Pixel art / sprites**                       | **hqx (pixel art)** to enlarge, or **Browser pixelated** | Any smoothing filter destroys crisp pixel-art edges; nearest-neighbor / hqx are the only correct choices, and only at integer scale factors.                                            |
 
@@ -154,12 +133,11 @@ _Sources: [encoding/resampling guide](https://guideencodemoe-mkdocs.readthedocs.
 - **Enlarging never adds detail.** Scaling above 100% just spreads existing pixels over a bigger area; it can't recover detail that isn't there. That's why the presets only go down to 100% — to enlarge at all you have to type larger Width/Height values yourself. For pixel art you want to blow up, use **hqx** or **Browser pixelated** instead of a photo filter.
 - **At 100% there's nothing to do.** With Resize enabled but left at the source's own size (100%), the default scaler is an identity pass, so Sqush skips it entirely — no re-encode and no "Resizing" pill. You only get a resize once you set a size that's actually different.
 - **Method, Premultiply, and Linear RGB are under Advanced settings.** Open the **Advanced settings** expander to reach them; the panel leads with Preset/Width/Height because the default Lanczos3 is right for almost everything.
-- **The Premultiply and Linear RGB toggles only show up for the worker methods.** Switch the Method to Lanczos3/Mitchell/Catmull-Rom/Triangle/hqx and they appear; pick a Browser method or Vector and they're hidden (those paths don't use them). They also only _do_ anything while you're actually scaling — they correct the color math during pixel blending, so at 100% (no blending) toggling them changes nothing.
-- **Browser methods can look different on different computers.** They rely on your browser/OS scaler, so the result isn't guaranteed to match across machines. For consistent, controllable output, prefer the worker methods.
-- **Ringing vs blur is a real trade-off.** If Lanczos3 gives you faint halos around sharp edges, step down to **Mitchell** (less ringing) or **Triangle** (no ringing, but softer). If everything looks too soft, step up toward Catmull-Rom or Lanczos3.
+- **The Premultiply and Linear RGB toggles only show up for the worker methods.** Switch the Method to Lanczos3/Mitchell/hqx and they appear; pick Browser pixelated or Vector and they're hidden (those paths don't use them). They also only _do_ anything while you're actually scaling — they correct the color math during pixel blending, so at 100% (no blending) toggling them changes nothing.
+- **Ringing vs blur is a real trade-off.** If Lanczos3 gives you faint halos around sharp edges, switch to **Mitchell** — softer, with much less ringing. If Mitchell looks too soft, step back up to Lanczos3 for maximum detail.
 - **Fit method only matters with aspect ratio off.** While "Maintain aspect ratio" is on, fit method is irrelevant (and hidden) because proportions can't change. **Contain** crops; it does not letterbox — expect to lose the edges that don't fit the new shape.
 - **Don't use hqx or Browser pixelated for photos.** They're built for hard-edged pixel art and will look bad on photographic content.
 
 ## Under the hood
 
-The five worker methods run in WebAssembly: Triangle, Catmull-Rom, Mitchell, and Lanczos3 use the Rust `resize` crate (via the `squoosh-resize` wrapper), while **hqx** uses the Rust `hqx` crate (`squooshhqx`). hqx enlarges only by integer factors of 2x-4x and then finishes the resize to your exact dimensions using Catmull-Rom. The four Browser methods call the canvas API and map straight onto `imageSmoothingQuality` (pixelated / low / medium / high). The Vector method rasterizes the SVG by drawing it onto a canvas at the target size. The **Contain** fit method center-crops the source (via `getContainOffsets`) before scaling, so you get a proportional fill rather than a stretched one.
+The worker methods run in WebAssembly: Mitchell and Lanczos3 use the Rust `resize` crate (via the `squoosh-resize` wrapper), while **hqx** uses the Rust `hqx` crate (`squooshhqx`). hqx enlarges only by integer factors of 2x-4x and then finishes the resize to your exact dimensions using Catmull-Rom — one of two extra filters (with Triangle/bilinear) that the `resize` crate still provides but that Sqush no longer offers as its own menu entry. **Browser pixelated** is the lone browser scaler kept: it calls the canvas API with smoothing turned off (nearest-neighbor); the smooth `imageSmoothingQuality` low/medium/high levels were removed because the worker filters are higher quality and consistent across machines. The Vector method rasterizes the SVG by drawing it onto a canvas at the target size. The **Contain** fit method center-crops the source (via `getContainOffsets`) before scaling, so you get a proportional fill rather than a stretched one.

@@ -7,6 +7,19 @@ browser, the build is static, and offline reload must work after load.
 
 ## Current State
 
+- **Resize Method dropdown trimmed (2026-06-28), landed on `main`.** The Method
+  picker dropped from nine options to four distinct scalers — **Lanczos3** (photos),
+  **Mitchell** (graphics / less ringing), **hqx** (pixel-art upscale), **Browser
+  pixelated** (nearest neighbour), plus **Vector** (auto for SVG). The three browser
+  quality levels (`browser-low/medium/high`) were removed outright (lower quality
+  than the worker filters, inconsistent across machines); Catmull-Rom and Triangle
+  are no longer offered but stay in the worker code path (`catrom` finishes an hqx
+  pass). Commits `d07aed17` (UI) + `5404d783` (types/code); deviation logged in
+  [parity-audit.md](parity-audit.md) §A.13; user-guide + reference reconciled.
+  `svelte-check` 0/0; browser-verified (dropdown shows exactly four options;
+  Premultiply/Linear RGB show for Lanczos3, hide for Browser pixelated; a
+  browser-pixelated resize re-encodes cleanly, no console errors).
+
 - **Option-panel re-tiering (2026-06-28), landed on `main`.** Every encoder/
   processor panel now reads **headline knobs → Advanced** consistently: the mode
   toggle, Quality, and Effort stay up front; the expert surface folds under the
