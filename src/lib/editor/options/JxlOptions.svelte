@@ -66,8 +66,7 @@
       <div class="option-one-cell">
         <Range
           min={0}
-          max={99.9}
-          step={0.1}
+          max={99}
           value={quality}
           oninput={(v) => {
             quality = v;

@@ -214,7 +214,6 @@
             <Range
               min={0}
               max={100}
-              step={0.1}
               value={Number(options.quality)}
               oninput={(v) => (options.quality = v)}>Quality:</Range
             >
