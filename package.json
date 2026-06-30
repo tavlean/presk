@@ -12,11 +12,12 @@
   "scripts": {
     "audit:static-output": "node scripts/audit-static-output.mjs",
     "build": "npm run sync && vite build",
-    "check": "npm run format:check && npm run sync && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && npm run build && npm run audit:static-output",
+    "check": "npm run sync && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && npm run build && npm run audit:static-output",
     "audit": "npm audit --audit-level=low",
     "dev": "vite dev",
     "format": "prettier --write \"**/*.{js,css,json,ts,tsx,svelte}\"",
     "format:check": "prettier --check \"**/*.{js,css,json,ts,tsx,svelte}\"",
+    "prepare": "node scripts/install-git-hooks.mjs",
     "preview": "vite preview",
     "sync": "node scripts/sync-sveltekit-app.mjs",
     "test": "npm run check && npm run test:e2e",
@@ -30,9 +31,11 @@
     "@sveltejs/kit": "2.61.1",
     "@sveltejs/vite-plugin-svelte": "7.1.2",
     "comlink": "^4.4.2",
+    "lint-staged": "^17.0.8",
     "pointer-tracker": "^2.5.3",
     "prettier": "^3.8.3",
     "prettier-plugin-svelte": "^4.0.1",
+    "simple-git-hooks": "^2.13.1",
     "svelte": "5.55.9",
     "svelte-check": "^4.6.0",
     "typescript": "6.0.3",
@@ -41,6 +44,12 @@
   },
   "overrides": {
     "cookie": "1.1.1"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,css,json,ts,tsx,svelte}": "prettier --write"
   },
   "prettier": {
     "endOfLine": "lf",
