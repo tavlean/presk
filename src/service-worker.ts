@@ -121,6 +121,11 @@ worker.addEventListener('install', (event) => {
       ]).map((url) => new URL(url, worker.location.origin).toString());
       const cache = await caches.open(cacheName);
       await cache.addAll(precacheUrls);
+      // Activate this build immediately instead of waiting for every open tab
+      // to close. Paired with clients.claim() (below) and a controllerchange
+      // reload in the registration code, a deploy reaches users on their next
+      // load rather than staying stuck behind the previously-installed worker.
+      await worker.skipWaiting();
     })(),
   );
 });

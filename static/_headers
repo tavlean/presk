@@ -1,3 +1,9 @@
 /*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
+
+# Never let the edge or browser serve a stale worker script: it gates every
+# deploy, so it must always be revalidated against the origin. (no-cache means
+# "may store, must revalidate" — not "never store".)
+/service-worker.js
+  Cache-Control: no-cache

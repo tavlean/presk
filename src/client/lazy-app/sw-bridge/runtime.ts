@@ -13,6 +13,29 @@ function getServiceWorkerContainer(
   return navigator.serviceWorker;
 }
 
+let autoReloadBound = false;
+
+/**
+ * Reload the page once when a freshly-deployed worker takes over an
+ * already-controlled tab (it activates via skipWaiting + clients.claim). Without
+ * this the running document keeps referencing the previous build's hashed
+ * chunks, which the just-activated worker has already purged from the cache.
+ *
+ * Bound only when a controller already exists: on a first visit there is no
+ * controller yet, so the initial clients.claim() must not trigger a refresh for
+ * every new visitor. Those visitors pick up auto-updates from their next load on.
+ */
+function bindControllerReload(container: ServiceWorkerContainer): void {
+  if (autoReloadBound || !container.controller) return;
+  autoReloadBound = true;
+  let reloading = false;
+  container.addEventListener('controllerchange', () => {
+    if (reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+}
+
 export async function registerServiceWorkerUrl(
   serviceWorkerUrl: string,
   {
@@ -22,5 +45,9 @@ export async function registerServiceWorkerUrl(
 ): Promise<ServiceWorkerRegistration | undefined> {
   const container = getServiceWorkerContainer(serviceWorker);
   if (!isProduction || !container) return undefined;
-  return container.register(serviceWorkerUrl);
+  bindControllerReload(container);
+  // `updateViaCache: 'none'` forces the browser to revalidate service-worker.js
+  // against the network on every check, so a stale copy in the HTTP/edge cache
+  // can't hide a new deploy.
+  return container.register(serviceWorkerUrl, { updateViaCache: 'none' });
 }
