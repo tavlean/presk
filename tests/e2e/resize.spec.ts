@@ -46,6 +46,19 @@ test('WASM resize outputs the requested size and a valid image', async ({
     }
     await sleep(400); // let the {#if} mount ResizeOptions
 
+    // The scaler Method lives behind the "Advanced settings" disclosure since
+    // the option re-tiering (abebdfaf) — open every revealer in the panel so
+    // the select is in the DOM.
+    for (const reveal of root.querySelectorAll<HTMLInputElement>(
+      'label.option-reveal input[type="checkbox"]',
+    )) {
+      if (!reveal.checked) {
+        setVal(reveal, 'checked', true);
+        fire(reveal, 'input', 'change');
+      }
+    }
+    await sleep(400); // slide transition
+
     // Method -> lanczos3 (the WASM path) — the select that offers it.
     const methodSel = [
       ...root.querySelectorAll<HTMLSelectElement>('select.builtin-select'),
