@@ -39,6 +39,8 @@
 
   // Half the visual thumb width; the thumb centre travels inset by this much, so
   // pointer-to-value mapping must use the same inset to stay aligned with it.
+  // Fallback for the `--thumb-half` CSS var (the single source of truth for the
+  // inset — the drag math reads it live so JS and CSS can't drift apart).
   const THUMB_HALF = 7;
   // Catch radii (value units) for the cubic magnet. Multiples of 10 pull harder
   // than the in-between multiples of 5; outside the radius the mapping is linear.
@@ -92,14 +94,20 @@
   }
 
   function valueFromClientX(clientX: number): number {
+    const thumbHalf =
+      Number.parseFloat(
+        getComputedStyle(inputEl.parentElement!).getPropertyValue(
+          '--thumb-half',
+        ),
+      ) || THUMB_HALF;
     const lo = Number(min);
     const hi = Number(max);
     const stepSize = Number(step) || 1;
     const rect = inputEl.getBoundingClientRect();
-    const travel = rect.width - THUMB_HALF * 2;
+    const travel = rect.width - thumbHalf * 2;
     const frac = Math.min(
       1,
-      Math.max(0, (clientX - rect.left - THUMB_HALF) / travel),
+      Math.max(0, (clientX - rect.left - thumbHalf) / travel),
     );
     let v = lo + frac * (hi - lo);
     if (magnetic) v = magnetize(v);
@@ -207,6 +215,9 @@
   }
 
   .range-input {
+    /* Half the thumb width — single source of truth for the thumb inset, read
+       by both the CSS below and the pointer-to-value math in the script. */
+    --thumb-half: 7px;
     position: relative;
     display: flex;
     height: 22px;
@@ -255,7 +266,7 @@
     left: 0;
     width: 14px;
     height: 14px;
-    margin-left: -7px;
+    margin-left: calc(var(--thumb-half) * -1);
     transform: translateY(-50%);
     background: var(--main-theme-color, #fff);
     border: 2.5px solid #fff;
@@ -285,8 +296,8 @@
        element's own width, so the thumb lands exactly under the native input's
        thumb position. */
     position: absolute;
-    left: 7px;
-    right: 7px;
+    left: var(--thumb-half);
+    right: var(--thumb-half);
     top: 0;
     bottom: 0;
     overflow: visible;
