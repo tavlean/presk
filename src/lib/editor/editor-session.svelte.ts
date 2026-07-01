@@ -21,8 +21,22 @@ import type {
   PreprocessorState,
   ProcessorState,
 } from 'client/lazy-app/feature-meta';
+import {
+  SAVE_VERSION,
+  canUseLocalStorage,
+  hasSavedSide,
+  isValidFormat,
+  parseSavedSide,
+  readSaved,
+  sanitizeSavedOptions,
+  sideSaveKey,
+  writeSettings,
+  writeSideSettings,
+  type SavedSide,
+  type SideIndex,
+} from './settings-storage';
 
-export type SideIndex = 0 | 1;
+export type { SideIndex };
 export type SideStatus = 'idle' | 'working' | 'done' | 'error';
 // What a side's current pass is doing, for the badge wording. 'resize' when the
 // pass was triggered by a resize-control change; 'optimize' for everything else
@@ -47,17 +61,6 @@ export interface DocSnapshot {
   preprocessorState: PreprocessorState;
 }
 
-type SavedSide = {
-  format?: string;
-  optionsByFormat?: Record<string, Record<string, unknown>>;
-};
-
-// Bumped v2 → v3 when the default WebP options changed (quality 80 / method 6)
-// and to discard pre-existing persisted side settings that would otherwise mask
-// the new defaults (e.g. a stale AVIF-on-both-sides config). Old keys are simply
-// ignored; a fresh default (left = Original, right = WebP) loads instead.
-const STORAGE_KEY = 'sqush:settings:v3';
-const SAVE_VERSION = 1;
 const IMAGE_UPDATE_DELAY = 100;
 const SPINNER_DELAY = 500;
 const SETTINGS_PERSIST_DELAY = 200;
@@ -65,9 +68,6 @@ const SETTINGS_PERSIST_DELAY = 200;
 // Slightly longer than the encode debounce so a slider DRAG coalesces into ONE
 // undo step (its settled value) rather than dozens of intermediate ones.
 const HISTORY_COMMIT_DELAY = 350;
-
-const sideSaveKey = (index: SideIndex) =>
-  `sqush:side-settings:${index === 0 ? 'left' : 'right'}`;
 
 const sideLabel = (index: SideIndex) => (index === 0 ? 'Left' : 'Right');
 
@@ -115,112 +115,6 @@ function sideRecipe(
     quantize: processorState.quantize,
     resize: resizeCounts ? processorState.resize : null,
   };
-}
-
-function canUseLocalStorage(): boolean {
-  return typeof localStorage !== 'undefined';
-}
-
-function isValidFormat(format: unknown): format is SideFormat {
-  return (
-    format === IDENTITY || OUTPUT_FORMATS.some((option) => option.id === format)
-  );
-}
-
-function isValidProcessorState(value: unknown): value is ProcessorState {
-  const state = value as ProcessorState | undefined;
-  return (
-    !!state &&
-    typeof state === 'object' &&
-    !!state.resize &&
-    typeof state.resize.enabled === 'boolean' &&
-    // Match the original: every inner value must be present (reject a partial
-    // payload like { enabled: true, width: null }).
-    Object.values(state.resize).every((v) => v != null) &&
-    !!state.quantize &&
-    typeof state.quantize.enabled === 'boolean' &&
-    Object.values(state.quantize).every((v) => v != null)
-  );
-}
-
-function readSaved(): { sides?: SavedSide[] } {
-  if (!canUseLocalStorage()) return {};
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') ?? {};
-  } catch {
-    return {};
-  }
-}
-
-type ParsedSide = {
-  format: SideFormat;
-  optionsByFormat?: Record<string, Record<string, unknown>>;
-  processorState: ProcessorState;
-};
-
-/** Parse + validate a stored side payload; null if absent, corrupt, or invalid. */
-function parseSavedSide(raw: string | null): ParsedSide | null {
-  if (!raw) return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  const data = parsed as {
-    version?: number;
-    settings?: Record<string, unknown>;
-  } & Record<string, unknown>;
-  const incoming = (data?.settings ?? data) as {
-    format?: unknown;
-    optionsByFormat?: Record<string, Record<string, unknown>>;
-    processorState?: unknown;
-  };
-  if (
-    !isValidFormat(incoming.format) ||
-    !isValidProcessorState(incoming.processorState)
-  ) {
-    return null;
-  }
-  return {
-    format: incoming.format,
-    optionsByFormat: incoming.optionsByFormat,
-    processorState: incoming.processorState,
-  };
-}
-
-function hasSavedSide(index: SideIndex): boolean {
-  // Validate the payload (not just key presence) so a corrupt entry correctly
-  // reports as not-importable and the Import button stays disabled.
-  if (!canUseLocalStorage()) return false;
-  return parseSavedSide(localStorage.getItem(sideSaveKey(index))) !== null;
-}
-
-/**
- * Coerce saved option values back to whole numbers wherever the format's
- * default for that field is an integer. Older builds let the magnetic sliders
- * persist fractional values (e.g. WebP `quality: 88.7`); the current sliders
- * round on input, but a stale decimal already in localStorage would otherwise
- * load and render as a decimal forever. Fields whose default is genuinely
- * fractional are left untouched.
- */
-function sanitizeSavedOptions(
-  defaults: Record<string, unknown>,
-  saved: Record<string, unknown>,
-): Record<string, unknown> {
-  const merged: Record<string, unknown> = { ...defaults, ...saved };
-  for (const [key, value] of Object.entries(merged)) {
-    const fallback = defaults[key];
-    if (
-      typeof value === 'number' &&
-      !Number.isInteger(value) &&
-      typeof fallback === 'number' &&
-      Number.isInteger(fallback)
-    ) {
-      merged[key] = Math.round(value);
-    }
-  }
-  return merged;
 }
 
 function buildSide(
@@ -800,11 +694,7 @@ export class EditorSession {
     if (this.pendingSettings === null) return;
     const payload = this.pendingSettings;
     this.pendingSettings = null;
-    try {
-      localStorage.setItem(STORAGE_KEY, payload);
-    } catch {
-      // Storage may be unavailable in private browsing modes.
-    }
+    writeSettings(payload);
   }
 
   pickFiles(
@@ -934,21 +824,19 @@ export class EditorSession {
     if (!canUseLocalStorage()) return;
     const label = sideLabel(index);
 
-    try {
-      localStorage.setItem(
-        sideSaveKey(index),
-        JSON.stringify({
-          version: SAVE_VERSION,
-          settings: {
-            format: this.sides[index].format,
-            optionsByFormat: $state.snapshot(this.sides[index].optionsByFormat),
-            processorState: $state.snapshot(this.sides[index].processorState),
-          },
-        }),
-      );
+    const payload = JSON.stringify({
+      version: SAVE_VERSION,
+      settings: {
+        format: this.sides[index].format,
+        optionsByFormat: $state.snapshot(this.sides[index].optionsByFormat),
+        processorState: $state.snapshot(this.sides[index].processorState),
+      },
+    });
+
+    if (writeSideSettings(index, payload)) {
       this.canImport[index] = true;
       snackbar.show(`${label} side settings saved`, { timeout: 1500 });
-    } catch {
+    } else {
       snackbar.show(`${label} side settings could not be saved`, {
         timeout: 3000,
       });
