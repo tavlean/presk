@@ -145,79 +145,77 @@ function buildEncoderState(request: CompressRequest): EncoderState {
 
 /**
  * Compress one file. Caller owns `outputUrl` and must revoke it when done.
+ *
+ * The caller also owns `bridge` and its lifecycle. The bridge runtime is built
+ * to be long-lived — lazy worker start, idle-timeout reclaim, terminate-on-abort
+ * with lazy restart — so passing a persistent per-side bridge means consecutive
+ * passes reuse a warm worker (WASM already instantiated, pthread pool already
+ * spawned) instead of paying full startup on every debounced option tweak.
  */
 export async function compressFile(
   file: File,
   request: CompressRequest,
   signal: AbortSignal,
+  bridge: SvelteKitWorkerBridge,
 ): Promise<CompressOutcome> {
-  const bridge = new SvelteKitWorkerBridge();
   const pipelineBridge = bridge as unknown as ImagePipelineWorkerBridge;
-  try {
-    const decodedSource = await decodeSourceImage(signal, file, pipelineBridge);
-    const preprocessed = await preprocessImage(
-      signal,
-      decodedSource.decoded,
-      request.preprocessorState,
-      pipelineBridge,
-    );
+  const decodedSource = await decodeSourceImage(signal, file, pipelineBridge);
+  const preprocessed = await preprocessImage(
+    signal,
+    decodedSource.decoded,
+    request.preprocessorState,
+    pipelineBridge,
+  );
 
-    // Original/identity side: no processing or encoding. Show the preprocessed
-    // source on both before/after, and download the original file as-is.
-    if (request.format === IDENTITY) {
-      const outputUrl = URL.createObjectURL(file);
-      return {
-        outputFile: file,
-        outputUrl,
-        outputSize: file.size,
-        originalSize: file.size,
-        percentChange: 0,
-        sourceImageData: preprocessed,
-        outputImageData: preprocessed,
-        isOriginal: true,
-        preprocessedWidth: preprocessed.width,
-        preprocessedHeight: preprocessed.height,
-      };
-    }
-
-    const processed = await processImage(
-      signal,
-      { ...decodedSource, preprocessed },
-      request.processorState,
-      pipelineBridge,
-    );
-
-    const outputFile = await imagePipeline.compressImage(
-      signal,
-      processed,
-      buildEncoderState(request),
-      file.name,
-      pipelineBridge,
-    );
-    // Decode the output back to pixels so the editor can show the real codec
-    // result (artifacts and all), the way Squoosh does. Same dimensions as the
-    // processed source, so the two-up before/after view aligns.
-    const outputImageData = await decodeImage(
-      signal,
-      outputFile,
-      pipelineBridge,
-    );
-    const outputUrl = URL.createObjectURL(outputFile);
-
+  // Original/identity side: no processing or encoding. Show the preprocessed
+  // source on both before/after, and download the original file as-is.
+  if (request.format === IDENTITY) {
+    const outputUrl = URL.createObjectURL(file);
     return {
-      outputFile,
+      outputFile: file,
       outputUrl,
-      outputSize: outputFile.size,
+      outputSize: file.size,
       originalSize: file.size,
-      percentChange:
-        Math.round(getPercentChange(file.size, outputFile.size) * 10) / 10,
-      sourceImageData: processed,
-      outputImageData,
-      isOriginal: false,
+      percentChange: 0,
+      sourceImageData: preprocessed,
+      outputImageData: preprocessed,
+      isOriginal: true,
       preprocessedWidth: preprocessed.width,
       preprocessedHeight: preprocessed.height,
     };
-  } finally {
-    bridge.dispose();
   }
+
+  const processed = await processImage(
+    signal,
+    { ...decodedSource, preprocessed },
+    request.processorState,
+    pipelineBridge,
+  );
+
+  const outputFile = await imagePipeline.compressImage(
+    signal,
+    processed,
+    buildEncoderState(request),
+    file.name,
+    pipelineBridge,
+  );
+  // Decode the output back to pixels so the editor can show the real codec
+  // result (artifacts and all), the way Squoosh does. Same dimensions as the
+  // processed source, so the two-up before/after view aligns.
+  const outputImageData = await decodeImage(signal, outputFile, pipelineBridge);
+  const outputUrl = URL.createObjectURL(outputFile);
+
+  return {
+    outputFile,
+    outputUrl,
+    outputSize: outputFile.size,
+    originalSize: file.size,
+    percentChange:
+      Math.round(getPercentChange(file.size, outputFile.size) * 10) / 10,
+    sourceImageData: processed,
+    outputImageData,
+    isOriginal: false,
+    preprocessedWidth: preprocessed.width,
+    preprocessedHeight: preprocessed.height,
+  };
 }

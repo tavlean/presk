@@ -8,6 +8,7 @@ import {
   type SideFormat,
 } from '$lib/compress';
 import { ResultCache } from '$lib/result-cache';
+import SvelteKitWorkerBridge from '$lib/sveltekit-worker-bridge';
 import type { ResizeOptionsState } from './options/processor-types';
 import { EditorHistory } from './editor-history.svelte';
 import { snackbar } from './snackbar-store.svelte';
@@ -286,6 +287,16 @@ export class EditorSession {
   // Resize recipe signature each side last encoded with, to tell a resize edit
   // apart from any other re-encode (see encodeSide / activities).
   private lastResizeSig: [string | null, string | null] = [null, null];
+  // One persistent codec-worker bridge per side, created lazily on first encode
+  // and kept for the session's lifetime. The bridge runtime is built for this:
+  // lazy worker start, idle-timeout reclaim, terminate-on-abort with lazy
+  // restart — so consecutive passes reuse a warm worker (WASM instantiated,
+  // pthread pool spawned) instead of paying full startup per debounced tweak.
+  // Per SIDE (not shared) so one side's abort never kills the other's pass.
+  private bridges: [
+    SvelteKitWorkerBridge | null,
+    SvelteKitWorkerBridge | null,
+  ] = [null, null];
   // Disposes the per-side encode/spinner effects this instance owns (constructor).
   private stopEffects: (() => void) | null = null;
   // Debounced localStorage write for persistSettings (see flushSettings).
@@ -424,7 +435,7 @@ export class EditorSession {
     const run = () => {
       this.statuses[index] = 'working';
       this.errors[index] = '';
-      compressFile(current, request, controller.signal)
+      compressFile(current, request, controller.signal, this.bridgeFor(index))
         .then((outcome) => {
           if (controller.signal.aborted) {
             URL.revokeObjectURL(outcome.outputUrl);
@@ -459,6 +470,11 @@ export class EditorSession {
       clearTimeout(timer);
       controller.abort();
     };
+  }
+
+  /** The side's persistent bridge, created on first use (see `bridges`). */
+  private bridgeFor(index: SideIndex): SvelteKitWorkerBridge {
+    return (this.bridges[index] ??= new SvelteKitWorkerBridge());
   }
 
   /**
@@ -770,6 +786,8 @@ export class EditorSession {
     // drops the user's last edit.
     this.flushSettings();
     this.cache.clear();
+    for (const bridge of this.bridges) bridge?.dispose();
+    this.bridges = [null, null];
   }
 
   rotate(): void {
