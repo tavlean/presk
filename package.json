@@ -30,6 +30,7 @@
     "@sveltejs/adapter-static": "3.0.10",
     "@sveltejs/kit": "2.61.1",
     "@sveltejs/vite-plugin-svelte": "7.1.2",
+    "@types/node": "^24.13.2",
     "comlink": "^4.4.2",
     "lint-staged": "^17.0.8",
     "pointer-tracker": "^2.5.3",
