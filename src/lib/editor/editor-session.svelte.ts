@@ -324,9 +324,6 @@ export class EditorSession {
   // across" makes this a one-click situation). Not reactive; cleared with the
   // cache on a new file (the signature doesn't include file identity).
   private inflight = new Map<string, Promise<CompressOutcome>>();
-  // True only while restoreDocument() is writing the document back during an
-  // undo/redo, so the history watcher ignores its own restore writes.
-  private restoringHistory = false;
   // Debounced commit timer for the history watcher (see watchHistory).
   private historyTimer: ReturnType<typeof setTimeout> | null = null;
   // Bookkeeping keyed to `loadId` (bumped on every new file). Comparing against
@@ -685,13 +682,15 @@ export class EditorSession {
    * Reactive watcher: commits a debounced undo step whenever the document
    * settles. The synchronous `captureDocument()` read registers every nested
    * field as a dependency (Svelte effects don't track deep mutations otherwise),
-   * so slider drags re-run this. The commit itself is deferred — and skipped
-   * during a restore, and de-duped by signature — so it never loops.
+   * so slider drags re-run this. The commit itself is deferred and de-duped by
+   * signature, so it never loops: the watcher DOES re-run on restoreDocument's
+   * own writes, but the recomputed sig matches the entry undo/redo just moved
+   * to, and EditorHistory.commit() no-ops on a matching signature.
    */
   private watchHistory(): (() => void) | void {
     const doc = this.captureDocument();
-    // Undo is scoped to an open image, and must ignore our own restore writes.
-    if (!this.file || this.restoringHistory) return;
+    // Undo is scoped to an open image.
+    if (!this.file) return;
     const sig = this.docSig(doc);
 
     if (this.historyTimer !== null) clearTimeout(this.historyTimer);
@@ -733,18 +732,15 @@ export class EditorSession {
     this.history.reset(doc, this.docSig(doc));
   }
 
-  /** Write a snapshot back into the live document without re-entering history. */
+  /**
+   * Write a snapshot back into the live document. Doesn't re-enter history:
+   * the watcher reacts to these writes, but its debounced commit recomputes a
+   * signature equal to the entry undo/redo just moved to, so it no-ops.
+   */
   private restoreDocument(doc: DocSnapshot): void {
-    this.restoringHistory = true;
     this.applySide(0, doc.sides[0]);
     this.applySide(1, doc.sides[1]);
     this.preprocessorState = structuredClone(doc.preprocessorState);
-    // Clear the guard in a microtask, after the watcher effect has reacted to the
-    // writes above (effects flush in a microtask). The signature dedupe is the
-    // real safety net; this just avoids a wasted debounce cycle.
-    queueMicrotask(() => {
-      this.restoringHistory = false;
-    });
   }
 
   undo(): void {
