@@ -153,9 +153,14 @@ worker.addEventListener('activate', (event) => {
 worker.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  // Let the browser handle cross-origin GETs natively: never respondWith them,
+  // so they can't be runtime-cached and a foreign URL with a colliding pathname
+  // can't be served from the app cache (assetPathnames keys on pathname alone).
+  const url = new URL(event.request.url);
+  if (url.origin !== worker.location.origin) return;
+
   event.respondWith(
     (async () => {
-      const url = new URL(event.request.url);
       const cache = await caches.open(cacheName);
 
       if (assetPathnames.has(url.pathname)) {
