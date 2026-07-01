@@ -72,7 +72,12 @@
 
   function commit(raw: string) {
     if (!raw.trim()) return;
-    emit(Number(raw));
+    const next = Number(raw);
+    if (Number.isNaN(next)) return;
+    // The mirrored number input accepts out-of-range text; clamp before it
+    // reaches options state / localStorage / the encoder. No step rounding —
+    // fractional-step fields (labelPrecision) are legitimate.
+    emit(Math.min(Number(max), Math.max(Number(min), next)));
   }
 
   // Warp a raw value toward the nearest multiple of 5/10: flat near the magnet
