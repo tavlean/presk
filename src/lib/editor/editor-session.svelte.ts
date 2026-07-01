@@ -12,6 +12,7 @@ import SvelteKitWorkerBridge from '$lib/sveltekit-worker-bridge';
 import type { ResizeOptionsState } from './options/processor-types';
 import { EditorHistory } from './editor-history.svelte';
 import { snackbar } from './snackbar-store.svelte';
+import { isAbortError } from 'client/lazy-app/abort';
 import {
   defaultPreprocessorState,
   defaultProcessorState,
@@ -271,6 +272,12 @@ export class EditorSession {
   // result lands on screen, from a fresh encode OR a cache hit). Replaces the old
   // single-slot `encodedSig`: a pass whose signature still matches is redundant.
   private displayedSig: [string | null, string | null] = [null, null];
+  // Encodes currently running, keyed by the same signature as the cache, so a
+  // side whose recipe matches the other side's in-flight pass piggybacks on it
+  // instead of burning the identical multi-second encode twice ("Copy settings
+  // across" makes this a one-click situation). Not reactive; cleared with the
+  // cache on a new file (the signature doesn't include file identity).
+  private inflight = new Map<string, Promise<CompressOutcome>>();
   // True only while restoreDocument() is writing the document back during an
   // undo/redo, so the history watcher ignores its own restore writes.
   private restoringHistory = false;
@@ -432,32 +439,78 @@ export class EditorSession {
     this.errors[index] = '';
 
     const controller = new AbortController();
-    const run = () => {
-      this.statuses[index] = 'working';
-      this.errors[index] = '';
-      compressFile(current, request, controller.signal, this.bridgeFor(index))
+
+    // A pass this side OWNS: runs the pipeline on this side's bridge and
+    // publishes itself in `inflight` so the other side can piggyback.
+    const startOwnPass = () => {
+      const pass = compressFile(
+        current,
+        request,
+        controller.signal,
+        this.bridgeFor(index),
+      );
+      this.inflight.set(cacheKey, pass);
+      const settle = () => {
+        if (this.inflight.get(cacheKey) === pass)
+          this.inflight.delete(cacheKey);
+      };
+      pass
         .then((outcome) => {
-          if (controller.signal.aborted) {
-            URL.revokeObjectURL(outcome.outputUrl);
-            return;
-          }
-          // A concurrent identical pass may have cached this key first; if so,
-          // discard our duplicate (revoke its URL) and show the cached one.
+          settle();
+          // Cache even when this side has already moved on (aborted between
+          // completion and here): the finished result is valid, a piggybacking
+          // side may be about to display it, and undo can reuse it. Revoking
+          // here would race the other side; the cache owns the URL lifecycle.
           const existing = this.cache.get(cacheKey);
           if (existing) {
+            // A concurrent identical pass cached this key first; drop ours.
             URL.revokeObjectURL(outcome.outputUrl);
-            this.showResult(index, existing, encodeSig);
+            if (!controller.signal.aborted)
+              this.showResult(index, existing, encodeSig);
             return;
           }
           this.cache.set(cacheKey, outcome);
-          this.showResult(index, outcome, encodeSig);
+          if (!controller.signal.aborted)
+            this.showResult(index, outcome, encodeSig);
         })
         .catch((error: unknown) => {
+          settle();
           if (controller.signal.aborted) return;
           this.errors[index] =
             error instanceof Error ? error.message : String(error);
           this.statuses[index] = 'error';
         });
+    };
+
+    const run = () => {
+      this.statuses[index] = 'working';
+      this.errors[index] = '';
+
+      // The other side already computing this exact recipe? Await its pass. If
+      // the OWNER aborts (its recipe changed) while this side still wants the
+      // result, fall back to a pass of our own; a genuine encode error would
+      // reproduce identically, so surface it instead of retrying.
+      const shared = this.inflight.get(cacheKey);
+      if (shared) {
+        shared
+          .then((outcome) => {
+            if (controller.signal.aborted) return;
+            this.showResult(index, outcome, encodeSig);
+          })
+          .catch((error: unknown) => {
+            if (controller.signal.aborted) return;
+            if (isAbortError(error)) {
+              startOwnPass();
+              return;
+            }
+            this.errors[index] =
+              error instanceof Error ? error.message : String(error);
+            this.statuses[index] = 'error';
+          });
+        return;
+      }
+
+      startOwnPass();
     };
 
     if (fileChanged) {
@@ -718,8 +771,11 @@ export class EditorSession {
 
     const opening = !this.file;
     // Drop the previous image's cached results (and revoke their URLs); a new
-    // source invalidates every one of them.
+    // source invalidates every one of them. The in-flight map goes with it —
+    // its keys don't include file identity either (the old passes still abort
+    // via the encode effects' cleanup; their settle() guard tolerates this).
     this.cache.clear();
+    this.inflight.clear();
     this.displayedSig = [null, null];
     this.file = next;
     this.loadId += 1;
@@ -770,6 +826,7 @@ export class EditorSession {
     this.preprocessorState = structuredClone(defaultPreprocessorState);
     this.displayedSig = [null, null];
     this.cache.clear();
+    this.inflight.clear();
     this.history.clear();
   }
 
