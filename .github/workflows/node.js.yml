@@ -49,3 +49,33 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run format:check
+
+  # The Playwright e2e suite. Exists because a spec sat silently red for four
+  # days — nothing ran it automatically, so a real regression shipped unnoticed
+  # (fixed in 1009a486). This job closes that hole: every push/PR now runs it.
+  # One runner (ubuntu-latest) is deliberate — this job's coverage is browser
+  # ENGINE (chromium + webkit, the JavaScriptCore vs V8 split the WASM codecs
+  # care about), not the OS. OS coverage is the build matrix's job.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Cache the downloaded browser binaries, keyed on the Playwright version so
+      # a version bump busts the cache. playwright.config.ts's webServer builds
+      # and previews the app itself, so there's no separate build step here.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test
