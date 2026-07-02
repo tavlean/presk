@@ -26,11 +26,11 @@ browser, the build is static, and offline reload must work after load.
   bulk-engine/helper cases covering the [test-plan.md](test-plan.md) §4 top-8
   targets plus the new normalized per-job staleness contract. UI design options
   + phased roadmap: [bulk-ui-design-options.md](bulk-ui-design-options.md).
-  Current dev lab at `/lab/bulk`: one consolidated UI with grid as the top
-  vertical picker mode and L/M/S focus-strip modes below it, one engine-backed
-  store, two persistent WebP worker bridges, real encodes, per-image and
-  multi-select overrides with dot signaling + per-control reset, an image-info
-  panel with inferred aspect ratio, and one 12-image sample loader. The lab now
+  Current dev lab at `/lab/bulk`: one consolidated UI with the rich strip
+  (L/M/S sizes) + Stack resting stage (grid mode was tried and removed,
+  `a100891d`), one engine-backed store, two persistent WebP worker bridges,
+  real encodes, per-image and multi-select overrides with dot signaling +
+  per-control reset, and an image-info panel with inferred aspect ratio. The lab now
   mirrors the production editor's no-wasted-work discipline: normalized
   per-job recipe hashes, percentage resize resolved per image, per-job output
   cache, debounced override/global applies, and delayed working badges. Save-all
@@ -158,8 +158,8 @@ browser, the build is static, and offline reload must work after load.
   [parity-audit.md](parity-audit.md) §A.12; user-guide reconciled. `svelte-check`
   0/0; all panels browser-verified (collapsed + expanded).
 
-- **Quality sliders integer + magnetic snapping (2026-06-28).** On branch
-  `slider-snapping` (not yet merged). (1) The WebP, JXL, and generic-fallback
+- **Quality sliders integer + magnetic snapping (2026-06-28).** Landed on
+  `main` via PR #6 (merge `b1effc61`; follow-ups `59781001`, `b9940949`). (1) The WebP, JXL, and generic-fallback
   Quality sliders dropped `step=0.1` → whole numbers (AVIF/MozJPEG were already
   integer); JXL Quality max is now **99** (was `99.9`); Lossless is still the only
   path to 100. (2) `Range.svelte` adds subtle magnetic snapping toward multiples
@@ -259,11 +259,10 @@ browser, the build is static, and offline reload must work after load.
     COOP `same-origin` + COEP `require-corp` ship via a Vite middleware plugin
     (dev + preview) and `static/_headers` (host). Verified in the production
     preview: `self.crossOriginIsolated === true`, `SharedArrayBuffer` available —
-    and the e2e suite now **asserts** it so it can't regress. NOTE: the threaded
-    `_mt` runtime itself is still off — the code generator deliberately stubs it
-    (`supportsThreads: () => false`), so re-enabling it is a separate focused
-    subsystem task (Emscripten/Safari nested workers). See
-    [threading-enablement.md](threading-enablement.md).
+    and the e2e suite now **asserts** it so it can't regress. (The threaded
+    `_mt` runtime was still stubbed at the time of this entry; MT threading has
+    since landed and been verified — see the 2026-06-03 threading entry and
+    [threading-enablement.md](threading-enablement.md).)
   - **WebP 2 removed completely (commit `962bdd0f`)** — encoder and decoder,
     `codecs/wp2/`, the features/options wiring, and all data-driven references.
     See [codec-surface-cleanup.md](codec-surface-cleanup.md).
