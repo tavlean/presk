@@ -13,11 +13,13 @@ Last updated: 2026-07-02.
 > (Undo = production TODO); duplicates allowed pending renditions;
 > per-image percentage resize semantics; divider-follows-the-image;
 > Satoshi as the app typeface (shipped to production); the engine carries
-> the normalized no-wasted-work recipe contract (63 unit tests). NEXT:
-> the Phase-2 promotion spec (top-model session), then the build — ZIP
-> export, app-boundary multi-file entry, folder import, and the lab→app
-> migration with the cleanup list (blank state + Stack toggle removal,
-> removal-Undo, parity-audit entry for the divider rule).
+> the normalized no-wasted-work recipe contract (63 unit tests). The
+> **Phase-2 promotion spec is WRITTEN (2026-07-02):**
+> [specs/2026-07-02-bulk-phase-2-promotion.md](specs/2026-07-02-bulk-phase-2-promotion.md)
+> — ZIP export, app-boundary multi-file entry, folder import, and the
+> lab→app migration with the cleanup list (blank state + Stack toggle
+> removal, removal-Undo, parity-audit entry for the divider rule).
+> NEXT: execute the spec.
 Status: in design → lab. Round 1: options written. Round 2 (same day):
 maintainer confirmed **no separate `/bulk` route (A2 out)**, **ZIP in v1**,
 and the **size-increase guardrail in v1**; concept images generated to

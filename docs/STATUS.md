@@ -34,7 +34,10 @@ browser, the build is static, and offline reload must work after load.
   mirrors the production editor's no-wasted-work discipline: normalized
   per-job recipe hashes, percentage resize resolved per image, per-job output
   cache, debounced override/global applies, and delayed working badges. Save-all
-  ZIP remains a stubbed toast.
+  ZIP remains a stubbed toast. **The Phase-2 promotion spec is written
+  (2026-07-02):**
+  [specs/2026-07-02-bulk-phase-2-promotion.md](specs/2026-07-02-bulk-phase-2-promotion.md)
+  — executing it is the next step.
 
 - **Review-hardening follow-ups (2026-07-02), landed on `main`.** Closes the
   gaps the batch below exposed. (1) **CI now runs the full Playwright e2e suite**
