@@ -1,12 +1,11 @@
 <script lang="ts">
-  // Size-adjustable rich strip. The top lab control chooses grid/S/M/L; this
-  // component only renders the current focus-strip size.
+  // Size-adjustable rich strip. The picker chooses S/M/L thumbnail scale.
   import { labBulk } from './store.svelte';
   import StripCell from './StripCell.svelte';
   import { createStripSelectionController } from './strip-selection';
 
   const items = $derived(labBulk.stripItems);
-  const size = $derived(labBulk.focusStripSize);
+  const size = $derived(labBulk.stripSize);
   const selection = createStripSelectionController();
   const thumbCount = $derived(labBulk.thumbs.size);
 

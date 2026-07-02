@@ -4,9 +4,8 @@
   const OPTIONS: {
     id: StripSize;
     title: string;
-    glyph: 'grid' | { w: number; h: number };
+    glyph: { w: number; h: number };
   }[] = [
-    { id: 'grid', title: 'Grid view', glyph: 'grid' },
     { id: 'l', title: 'Large thumbnails', glyph: { w: 16, h: 12 } },
     { id: 'm', title: 'Medium thumbnails', glyph: { w: 12, h: 9 } },
     { id: 's', title: 'Small thumbnails', glyph: { w: 8, h: 6 } },
@@ -29,59 +28,16 @@
       onclick={() => setMode(option.id)}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        {#if option.glyph === 'grid'}
-          <rect
-            x="5"
-            y="5"
-            width="5"
-            height="5"
-            rx="1.2"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-          <rect
-            x="14"
-            y="5"
-            width="5"
-            height="5"
-            rx="1.2"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-          <rect
-            x="5"
-            y="14"
-            width="5"
-            height="5"
-            rx="1.2"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-          <rect
-            x="14"
-            y="14"
-            width="5"
-            height="5"
-            rx="1.2"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-        {:else}
-          <rect
-            x={(24 - option.glyph.w) / 2}
-            y={(24 - option.glyph.h) / 2}
-            width={option.glyph.w}
-            height={option.glyph.h}
-            rx="2"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-        {/if}
+        <rect
+          x={(24 - option.glyph.w) / 2}
+          y={(24 - option.glyph.h) / 2}
+          width={option.glyph.w}
+          height={option.glyph.h}
+          rx="2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        />
       </svg>
     </button>
   {/each}

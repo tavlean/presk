@@ -627,8 +627,8 @@
       {#if labBulk.hasJobs}
         <!-- Dev-only resting-stage experiment toggle. STACK (default) fans the
              batch onto the stage; BLANK keeps the original quiet empty state for
-             side-by-side comparison. The Grid/L/M/S view picker moved DOWN next
-             to the stage's bottom toolbar (see FocusView / GridView). -->
+             side-by-side comparison. The L/M/S thumbnail picker sits next to
+             the stage's bottom toolbar (see FocusView). -->
         <div
           class="stage-toggle"
           role="radiogroup"

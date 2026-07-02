@@ -83,9 +83,8 @@ export interface LabThumb {
 }
 
 export type BulkPanelScope = 'global' | 'image';
-/** Bulk lab view mode: grid overview, or focus view with S/M/L strip zoom. */
-export type StripSize = 'grid' | 's' | 'm' | 'l';
-export type FocusStripSize = Exclude<StripSize, 'grid'>;
+/** Bulk lab thumbnail size for the focus strip. */
+export type StripSize = 's' | 'm' | 'l';
 /**
  * Resting-stage experiment toggle. `stack` = the fanned STACK composition that
  * fills the global/multi-select stage with presence; `blank` = the original
@@ -286,10 +285,9 @@ function omitOverridePath(
 export class LabBulk {
   // The immutable engine session; reassigned on every reducer call.
   session = $state.raw<BulkSession>(emptySession());
-  // Grid overview or focus strip zoom (S/M/L). Session-scoped: persists across
-  // selections but not reloads, matching the store's other in-memory lab state.
+  // Focus strip zoom (S/M/L). Session-scoped: persists across selections but
+  // not reloads, matching the store's other in-memory lab state.
   stripSize = $state<StripSize>('m');
-  #lastFocusStripSize: FocusStripSize = 'm';
   // Resting-stage experiment: the fanned STACK (default) or the original blank.
   stageMode = $state<StageMode>('stack');
   // Multi-select layer over the engine's single selectedJobId. The engine value
@@ -357,9 +355,6 @@ export class LabBulk {
       this.selectedIds.size === this.session.jobs.length,
   );
   readonly hasJobs = $derived(this.session.jobs.length > 0);
-  readonly focusStripSize = $derived<FocusStripSize>(
-    this.stripSize === 'grid' ? this.#lastFocusStripSize : this.stripSize,
-  );
   /**
    * The images the STACK resting stage fans out, anchor-first. Nothing selected
    * → every job (anchor = the first image). A multi-selection (N>1) → exactly
@@ -419,11 +414,6 @@ export class LabBulk {
 
   setStripSize(next: StripSize): void {
     this.stripSize = next;
-    if (next !== 'grid') this.#lastFocusStripSize = next;
-  }
-
-  openFocusFromGrid(): void {
-    this.stripSize = this.#lastFocusStripSize;
   }
 
   select(id: string): void {
@@ -1286,7 +1276,7 @@ export class LabBulk {
         h: natH,
       });
     } catch {
-      // Undecodable source: leave the strip/grid to show a placeholder.
+      // Undecodable source: leave the strip to show a placeholder.
     } finally {
       bitmap?.close();
     }

@@ -1,9 +1,8 @@
 <script lang="ts">
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
   import FocusView from './FocusView.svelte';
-  import GridView from './GridView.svelte';
   import RichStrip from './RichStrip.svelte';
-  import { labBulk, type FocusStripSize } from './store.svelte';
+  import { labBulk, type StripSize } from './store.svelte';
 
   interface Props {
     focusSession: EditorSession;
@@ -12,19 +11,15 @@
 
   let { focusSession, onReseed }: Props = $props();
 
-  const STRIP_HEIGHT: Record<FocusStripSize, number> = {
+  const STRIP_HEIGHT: Record<StripSize, number> = {
     s: 104,
     m: 148,
     l: 210,
   };
-  const stripHeight = $derived(STRIP_HEIGHT[labBulk.focusStripSize]);
+  const stripHeight = $derived(STRIP_HEIGHT[labBulk.stripSize]);
 </script>
 
-{#if labBulk.stripSize === 'grid'}
-  <GridView {focusSession} {onReseed} />
-{:else}
-  <FocusView {focusSession} {onReseed} {stripHeight} strip={richStrip} />
-{/if}
+<FocusView {focusSession} {onReseed} {stripHeight} strip={richStrip} />
 
 {#snippet richStrip()}
   <RichStrip />

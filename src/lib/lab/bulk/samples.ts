@@ -16,7 +16,7 @@ interface SampleSpec {
   type: 'image/jpeg' | 'image/png';
 }
 
-// A spread of shapes and sizes so the strip/grid, aspect chip, and letterboxed
+// A spread of shapes and sizes so the strip, aspect chip, and letterboxed
 // SplitCompare geometry all get exercised. Cycled if n exceeds the list.
 const SAMPLE_SPECS: readonly SampleSpec[] = [
   { long: 2400, aspect: [16, 9], type: 'image/jpeg' },
