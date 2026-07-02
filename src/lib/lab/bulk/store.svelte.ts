@@ -306,15 +306,15 @@ export class LabBulk {
   readonly thumbs = new SvelteMap<string, LabThumb>();
 
   // Full-size object URLs of the source Files, keyed by job id. Minted lazily
-  // (only the stack's top card needs one, for its full-quality "original" half —
-  // the thumbnails are ~320px and read as low quality at stage size) and revoked
-  // alongside the thumbnails on job removal / lab reset, so they never leak on
-  // card cycling or teardown. Deliberately a PLAIN Map, not a SvelteMap:
-  // `sourceUrlFor` is called from a `$derived` (StackStage.topSourceUrl) and
-  // creates + caches the URL in the SAME synchronous call, returning it
-  // directly. A reactive map would be MUTATED during that derivation — an unsafe
-  // reactive write inside a derived that stalls Svelte's scheduler (it froze the
-  // whole lab). The URL is returned immediately, so no reactive re-run is needed.
+  // for StackStage's visible cards (top + capped peeks) because the thumbnails
+  // are ~320px and read as low quality at stage size. Revoked alongside the
+  // thumbnails on job removal / lab reset, so they never leak on card cycling or
+  // teardown. Deliberately a PLAIN Map, not a SvelteMap: `sourceUrlFor` is
+  // called from a `$derived` and creates + caches the URL in the SAME
+  // synchronous call, returning it directly. A reactive map would be MUTATED
+  // during that derivation — an unsafe reactive write inside a derived that
+  // stalls Svelte's scheduler (it froze the whole lab). The URL is returned
+  // immediately, so no reactive re-run is needed.
   readonly #sourceUrls = new Map<string, string>();
 
   // The processing driver (two persistent bridges + abort control).
@@ -936,9 +936,9 @@ export class LabBulk {
 
   /**
    * A full-size object URL for a job's SOURCE File, minted on first request and
-   * cached in `#sourceUrls`. The stack's top card uses this for its "original"
-   * half so it renders at full quality instead of the ~320px thumbnail. Owned by
-   * the store: revoked in `#revokeRemovedJobs` (card removal) and `#revokeAll`
+   * cached in `#sourceUrls`. StackStage uses this for its visible cards so they
+   * render at full quality instead of the ~320px thumbnail. Owned by the store:
+   * revoked in `#revokeRemovedJobs` (card removal) and `#revokeAll`
    * (reset/dispose), so cycling the fan or removing images never leaks a URL.
    * Safe to call from a `$derived`: the cache is a plain (non-reactive) Map and
    * the URL is minted + returned synchronously, so nothing reactive is mutated

@@ -6,7 +6,7 @@
   // original vs optimized), the rest peek out behind it, alternating left/right
   // with growing offset + rotation so depth reads at a glance. It is a resting
   // COMPOSITION, not the production inspector — the split is a lightweight
-  // CSS-clipped pairing of the existing thumbnail (original) and the engine's
+  // CSS-clipped pairing of the full source image (original) and the engine's
   // output download URL (optimized), never the pinch-zoom two-up.
   //
   // Which images: nothing selected → the whole batch (anchor = first image);
@@ -32,28 +32,23 @@
 
   let { items, zoom = 1, pixelated = false }: Props = $props();
 
-  // The stage's free width shrinks between the two docked side panels in the
-  // mid desktop band (901–~1240px). We track the viewport so the fan's CARD
-  // size AND horizontal peek spread scale to fit that corridor — below 901px the
-  // panels become bottom sheets and the whole width frees up again.
+  // Track viewport width so the top card can stay in the usable centre corridor
+  // while the peeks fan out toward the real stage edges.
   let viewportWidth = $state(1280);
-  const PANEL_BAND_MIN = 901;
-  const PANEL_BAND_MAX = 1240;
-  const inPanelBand = $derived(
-    viewportWidth >= PANEL_BAND_MIN && viewportWidth <= PANEL_BAND_MAX,
-  );
-  // Horizontal spread multiplier for the peeks: full in the roomy states,
-  // tucked in when the side panels squeeze the corridor.
-  const spread = $derived(inPanelBand ? 0.4 : 1);
+  let viewportHeight = $state(800);
+  const DESKTOP_PANEL_CORRIDOR = 680;
+  const MAX_CARD_WIDTH = 680;
+  const MIN_CARD_WIDTH = 180;
+  const FAN_EDGE_INSET = 34;
+  const MAX_BASE_PEEK_OFFSET = 66;
+  const COMPACT_STRIP_HEIGHT = 148;
+  const COMPACT_STAGE_TOP_PAD = 72;
+  const COMPACT_STAGE_TOOLBAR_PAD = 44;
+  const COMPACT_OPTIONS_HEIGHT_RATIO = 0.44;
+  const COMPACT_OPTIONS_HEIGHT_MAX = 360;
 
-  const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB'];
-  function prettySize(bytes: number): string {
-    if (bytes < 1) return '0 B';
-    const exponent = Math.min(
-      Math.floor(Math.log10(bytes) / 3),
-      SIZE_UNITS.length - 1,
-    );
-    return `${(bytes / 1000 ** exponent).toPrecision(3)} ${SIZE_UNITS[exponent]}`;
+  function clamp(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, value));
   }
 
   // How many cards peek behind the top one before the rest collapse into a
@@ -96,9 +91,6 @@
   const topThumb = $derived(
     topItem ? labBulk.thumbs.get(topItem.id)?.url : undefined,
   );
-  // Full-quality source object URL for the top card's ORIGINAL half. The
-  // ~320px thumbnail looked low-quality blown up to stage size; the store mints
-  // (and owns/revokes) a full-size URL of the source File instead.
   const topSourceUrl = $derived(
     topItem ? labBulk.sourceUrlFor(topItem.id) : undefined,
   );
@@ -118,6 +110,41 @@
       items.filter((item) => item.statusGroup === 'active').map((i) => i.id),
     ),
   );
+
+  const topCardWidth = $derived.by(() => {
+    const desired =
+      viewportWidth <= 620
+        ? clamp(viewportWidth * 0.58, MIN_CARD_WIDTH, 300)
+        : clamp(viewportWidth * 0.48, 240, MAX_CARD_WIDTH);
+    if (viewportWidth <= 900) {
+      if (viewportWidth <= 620 || viewportHeight <= 500) return desired;
+      const stageHeight = viewportHeight - COMPACT_STRIP_HEIGHT;
+      const optionsHeight = Math.min(
+        viewportHeight * COMPACT_OPTIONS_HEIGHT_RATIO,
+        COMPACT_OPTIONS_HEIGHT_MAX,
+      );
+      const freeHeight =
+        stageHeight -
+        COMPACT_STAGE_TOP_PAD -
+        optionsHeight -
+        COMPACT_STAGE_TOOLBAR_PAD;
+      return Math.min(desired, Math.max(MIN_CARD_WIDTH, freeHeight * (4 / 3)));
+    }
+    const corridor = Math.max(240, viewportWidth - DESKTOP_PANEL_CORRIDOR);
+    return Math.min(desired, corridor);
+  });
+  const fanTargetWidth = $derived(
+    Math.max(topCardWidth, viewportWidth - FAN_EDGE_INSET * 2),
+  );
+  const fanSpread = $derived.by(() => {
+    const deepestStep = Math.ceil(Math.max(1, peeks.length) / 2);
+    const deepestScale = Math.max(0.8, 1 - deepestStep * 0.055);
+    const baseOffset =
+      34 + (deepestStep - 1) * ((MAX_BASE_PEEK_OFFSET - 34) / 2);
+    const targetRatio = fanTargetWidth / topCardWidth;
+    const neededOffset = (targetRatio / 2 - deepestScale / 2) * 100;
+    return clamp(neededOffset / baseOffset, 0.38, 2.75);
+  });
   const shimmerIds = new SvelteSet<string>();
   $effect(() => {
     const current = activeIds;
@@ -147,9 +174,10 @@
   function peekTransform(depth: number): string {
     const side = depth % 2 === 1 ? -1 : 1; // 1st behind-left, 2nd behind-right…
     const step = Math.ceil(depth / 2); // 1,1,2,2,3,3…
-    // First pair juts ~34% of the card out; each deeper pair adds ~16%. `spread`
-    // tucks this in when the mid-desktop side panels squeeze the corridor.
-    const xPct = side * (34 + (step - 1) * 16) * spread;
+    // First pair juts ~34% of the card out; each deeper pair adds ~16%. The
+    // spread multiplier is computed so the deepest visible peeks target the
+    // stage edges, while the top card itself remains within the centre corridor.
+    const xPct = side * (34 + (step - 1) * 16) * fanSpread;
     const y = step * 16;
     const rot = side * (2.6 + step * 1.2);
     const scale = Math.max(0.8, 1 - step * 0.055);
@@ -272,17 +300,26 @@
   }
 </script>
 
-<svelte:window onkeydown={onKeydown} bind:innerWidth={viewportWidth} />
+<svelte:window
+  onkeydown={onKeydown}
+  bind:innerWidth={viewportWidth}
+  bind:innerHeight={viewportHeight}
+/>
 
 {#if topItem}
   <div class="stack-stage" role="group" aria-label="Batch stack">
-    <div class="stack" style:--card-count={total} style:--stack-zoom={zoom}>
+    <div
+      class="stack"
+      style:--card-count={total}
+      style:--stack-zoom={zoom}
+      style:--stack-card-width={`${topCardWidth}px`}
+    >
       <!-- Peeking cards, deepest painted first so the top card overlays them.
            Rendered in reverse so DOM order matches paint order. -->
       {#each [...peeks].reverse() as item, revIndex (item.id)}
         {@const depth = peeks.length - revIndex}
         {@const isDeepest = depth === peeks.length && hiddenCount > 0}
-        {@const peekThumb = labBulk.thumbs.get(item.id)?.url}
+        {@const peekSource = labBulk.sourceUrlFor(item.id)}
         <button
           type="button"
           class="card peek"
@@ -294,8 +331,8 @@
           aria-label={`Bring ${item.fileName} to front`}
           onclick={() => bringToTop(item.id)}
         >
-          {#if peekThumb}
-            <img src={peekThumb} alt="" draggable="false" class:pixelated />
+          {#if peekSource}
+            <img src={peekSource} alt="" draggable="false" class:pixelated />
           {:else}
             <span class="placeholder" aria-hidden="true"></span>
           {/if}
@@ -413,84 +450,6 @@
         {/if}
       </div>
     </div>
-
-    <div class="caption">
-      <span class="filename" title={topItem.fileName}>{topItem.fileName}</span>
-      {#if topHasOutput}
-        <span class="sizes">
-          {prettySize(topItem.originalSize)}
-          <span class="arrow" aria-hidden="true">→</span>
-          {prettySize(topItem.outputSize!)}
-        </span>
-      {:else if shimmerIds.has(topItem.id) || topItem.statusGroup === 'active'}
-        <span class="pending">Encoding…</span>
-      {:else}
-        <span class="pending">Queued</span>
-      {/if}
-    </div>
-
-    <!-- Hint, redesigned as a compact iconic pill row rather than a sentence:
-         the glyphs carry the meaning, whisper-sized labels annotate. -->
-    <div class="hint" aria-label="Stack controls">
-      {#if total > 1}
-        <span class="hint-item">
-          <svg class="hint-glyph" viewBox="0 0 24 24" aria-hidden="true">
-            <rect
-              x="6"
-              y="8"
-              width="13"
-              height="11"
-              rx="2"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-            />
-            <path
-              d="M9 5.5h9A2.5 2.5 0 0 1 20.5 8v8"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-          </svg>
-          <span class="hint-count">{total}</span>
-        </span>
-        <span class="hint-sep" aria-hidden="true"></span>
-        <span class="hint-item">
-          <span class="keycap" aria-hidden="true">←</span>
-          <span class="keycap" aria-hidden="true">→</span>
-          <span class="hint-label">leaf</span>
-        </span>
-        <span class="hint-sep" aria-hidden="true"></span>
-        <span class="hint-item">
-          <svg class="hint-glyph" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M9 11V6.5a2 2 0 0 1 4 0V11m0-2a2 2 0 0 1 4 0v3.5a6 6 0 0 1-6 6h-1.2a4 4 0 0 1-3-1.4L2.8 15a1.6 1.6 0 0 1 2.4-2l1.8 1.8V8a2 2 0 0 1 4 0"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="hint-label">open</span>
-        </span>
-      {:else}
-        <span class="hint-item">
-          <svg class="hint-glyph" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M9 11V6.5a2 2 0 0 1 4 0V11m0-2a2 2 0 0 1 4 0v3.5a6 6 0 0 1-6 6h-1.2a4 4 0 0 1-3-1.4L2.8 15a1.6 1.6 0 0 1 2.4-2l1.8 1.8V8a2 2 0 0 1 4 0"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="hint-label">open</span>
-        </span>
-      {/if}
-    </div>
   </div>
 {/if}
 
@@ -502,7 +461,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 22px;
     padding: 24px;
     box-sizing: border-box;
     /* Let the strip / panels above/below stay reachable; the fan itself is the
@@ -511,15 +469,12 @@
   }
 
   /* The fan lives in a fixed-height positioning frame so the absolutely-placed
-     cards have a stable centre to orbit, and the caption/hint below never jump
-     as cards cycle. Width/height scale with the viewport for presence. */
+     cards have a stable centre to orbit. The top card's width is supplied by
+     JS so the fan can span the stage while the divider remains reachable. */
   .stack {
     position: relative;
-    /* Command the stage: the top card is sized to the free corridor like the
-       focus image would be. Larger than round 1 at every band (was 46vw/520px),
-       within reason. The stage-toolbar zoom scales the whole fan on top. */
-    width: min(56vw, 640px);
-    height: min(52vh, 460px);
+    width: var(--stack-card-width, 640px);
+    height: calc(var(--stack-card-width, 640px) * 0.75);
     transform: scale(var(--stack-zoom, 1));
     transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
     pointer-events: none;
@@ -817,123 +772,6 @@
     }
   }
 
-  /* ── Caption + hint ──────────────────────────────────────────────────────
-     Both set in the lab's established type scale (matches the left-panel /
-     filmstrip caption register): filename in the text-1 body weight, sizes in
-     the text-2 tabular caption, all one deliberate rhythm. */
-  .caption {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    max-width: min(90vw, 620px);
-    pointer-events: none;
-    font-variant-numeric: tabular-nums;
-  }
-  .filename {
-    color: var(--text-1, #f5f5f7);
-    font-size: 0.95rem;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .sizes {
-    flex: none;
-    color: var(--text-2, rgba(235, 235, 245, 0.62));
-    font-size: 0.85rem;
-    font-weight: 550;
-    white-space: nowrap;
-  }
-  .arrow {
-    color: var(--text-3, rgba(235, 235, 245, 0.38));
-    margin: 0 2px;
-  }
-  .pending {
-    flex: none;
-    color: var(--text-3, rgba(235, 235, 245, 0.5));
-    font-size: 0.85rem;
-    font-weight: 550;
-  }
-
-  /* Hint pill row: a single designed element in the left-panel's quality
-     register — one quiet glass pill holding iconic segments separated by
-     hairlines. The glyphs carry the meaning; whisper-sized labels annotate. */
-  .hint {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: var(--surface-raise, rgba(255, 255, 255, 0.05));
-    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-    color: var(--text-2, rgba(235, 235, 245, 0.62));
-    pointer-events: none;
-  }
-  .hint-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .hint-glyph {
-    width: 17px;
-    height: 17px;
-    color: var(--text-3, rgba(235, 235, 245, 0.5));
-  }
-  .hint-count {
-    font-size: 0.85rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: var(--text-1, #f5f5f7);
-  }
-  .hint-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: lowercase;
-    color: var(--text-3, rgba(235, 235, 245, 0.5));
-  }
-  .keycap {
-    display: inline-grid;
-    place-items: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 3px;
-    border-radius: 5px;
-    background: var(--surface-raise-2, rgba(255, 255, 255, 0.09));
-    border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.16));
-    color: var(--text-2, rgba(235, 235, 245, 0.72));
-    font-size: 0.72rem;
-    line-height: 1;
-    font-weight: 700;
-  }
-  .hint-sep {
-    width: 1px;
-    height: 16px;
-    background: var(--border, rgba(255, 255, 255, 0.08));
-  }
-
-  /* ── Mid desktop band: fit between the two docked side panels ────────────────
-     From 901–1240px the left BatchInfoPanel and right settings panel are tall
-     side cards (312px + insets each), leaving a corridor of ~(100vw − 680px) in
-     the middle. Size the card to that corridor (the JS also halves the peek
-     spread here) so the fan never reaches over either panel. */
-  @media (min-width: 901px) and (max-width: 1240px) {
-    .stack {
-      /* Card sized to the corridor between the two 340px-footprint side panels,
-         with slack for the rotated peek corners' bounding box. The peeks now jut
-         a PERCENTAGE of the card (and `spread` halves that here), so the fan's
-         bounding box stays inside the corridor as the card scales. */
-      width: min(calc(100vw - 760px), 480px);
-      height: min(40vh, 360px);
-    }
-    /* Keep the caption inside the same corridor so it doesn't slide under the
-       side panels. */
-    .caption {
-      max-width: calc(100vw - 720px);
-    }
-  }
   /* ── Compact (≤900px): the two settings panels dock as bottom SHEETS ─────────
      They occupy the bottom ~var(--mobile-options-height) of the stage region, so
      centre the fan in the free space ABOVE them (add matching bottom padding)
@@ -944,56 +782,22 @@
          (--mobile-options-height = min(44dvh,360px)) and the lab dev-controls pill
          sits at the very top, so the fan lives in a shallow corridor between them.
          Reserve both — top for the controls pill, bottom for the panels + the
-         picker/toolbar lane above them — and keep the fan centred in what's left.
-         The card is sized small enough (with flex:none so the cramped column can't
-         crush it) that the whole fan + caption + hint clears both edges. */
+         picker/toolbar lane above them — and keep the fan centred in what's left. */
       /* Top padding clears the lab-controls pill; bottom padding reserves the
          docked panels + the toolbar/picker lane above them. The fan centres in
-         the shallow corridor between (caption + hint are dropped at this band —
-         see below). */
+         that shallow corridor. */
       padding-top: 72px;
       padding-bottom: calc(var(--mobile-options-height, 360px) + 44px);
-      gap: 8px;
     }
-    /* NB: the card's on-screen HEIGHT is driven by its WIDTH (aspect-ratio 4/3),
-       not by `.stack`'s height — so the WIDTH is what's tuned to fit the shallow
-       corridor here (card height ≈ 0.75 × width). Kept modest so the rotated top
-       card clears the top controls pill and the docked panels below. */
     .stack {
       flex: none;
-      width: min(44vw, 280px);
-      height: min(20vw, 150px);
-    }
-  }
-  /* 621–900px compact band ONLY: the two settings panels dock as tall bottom
-     sheets and leave a shallow corridor, so the fan + toolbar already fill it.
-     The caption + hint would be buried behind the panels here — drop them (the
-     toolbar carries the affordances; the fan is the content). They return on
-     phone (≤620, panels are on-demand sheets → stage frees up) and desktop. */
-  @media (min-width: 621px) and (max-width: 900px) {
-    .stack-stage .caption,
-    .stack-stage .hint {
-      display: none;
     }
   }
   @media (max-width: 620px), (max-height: 500px) {
     /* Phone: the panels become on-demand bottom sheets (hidden by default), so
        the stage is free again — drop the reserved bottom padding and re-centre. */
     .stack-stage {
-      gap: 14px;
       padding-bottom: 24px;
-    }
-    .stack {
-      width: min(82vw, 380px);
-      height: min(38vh, 300px);
-    }
-  }
-  /* Short viewports (landscape phones) genuinely lack the vertical room for the
-     hint pill under the fan — hide it there only; narrow-but-tall phones keep it
-     (it's a compact pill now, not a sentence). */
-  @media (max-height: 500px) {
-    .hint {
-      display: none;
     }
   }
 

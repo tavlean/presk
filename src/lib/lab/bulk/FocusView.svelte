@@ -285,6 +285,7 @@
     }
 
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    if (showStack) return;
     if (typeable || target?.getAttribute('role') === 'slider') return;
 
     event.preventDefault();
