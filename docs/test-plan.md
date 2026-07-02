@@ -1,6 +1,6 @@
 # Test strategy & plan
 
-**Status: proposal (awaiting approval). Last updated: 2026-06-03.**
+**Status: in progress. Last updated: 2026-07-02.**
 
 A prioritized plan to give Sqush a test safety net that protects the working
 app while we add **bulk processing, crop, vector optimization, and new codecs**.
@@ -91,11 +91,13 @@ this — we're filling the holes around it.**
 
 ## 4. Unit-test plan (Layer 1 — the new work)
 
-**Tooling:** add **Vitest** (integrates natively with the existing Vite config;
-fast, ESM-native, jsdom available for the few helpers that touch `File`). Add
-`npm run test:unit` and fold it into `npm run check` (or a new `test:fast`) so it
-runs in CI on every push. A shared `fixtures.ts` (fake `File` + job/session
-builders) makes most cases one-liners.
+**Tooling:** **Vitest landed 2026-07-02** for the pure unit layer, with
+`npm run test:unit` (`vitest run`), a minimal `vitest.config.ts` scoped to
+`tests/unit/**/*.test.ts`, and shared `fixtures.ts` fake-`File` / job / session
+builders. jsdom is not used; the current bulk-engine tests run in the default
+Node environment with lightweight `File` fixtures. Folding `test:unit` into
+`npm run check` or CI remains a separate decision so `npm test` continues to
+mean `check + e2e` until the integration cadence is changed deliberately.
 
 The bulk engine is **clean to test**: every function is a pure reducer
 (`(session, …) => newSession`), there is **no hidden `Date.now`/`Math.random`/
@@ -106,32 +108,32 @@ mocking.
 
 ### Proposed test files (~73 cases total)
 
-| File | ~Cases | Covers (highest-value contracts) |
-|---|---|---|
-| `queue.test.ts` | ~16 | Scheduler gate (`getRunnableJobs`) + **counter integrity** across `startJob`/`completeJob`/`failJob`/`requeue*`/`cancelActiveJobs`. Where silent active-count drift would live. |
-| `export.test.ts` | ~14 | `getBulkExportEntries` **duplicate-name dedup** (case-insensitive, extension-preserving), size/export summaries, stale-output export gate, filename derivation. |
-| `snapshot.test.ts` | ~10 | `parseBulkSessionSnapshot` rejection matrix (malformed JSON, wrong version, partial/bad job) + restore **status demotion** (active/encoded/exported → queued, counters zeroed, selection fallback). |
-| `import.test.ts` | ~9 | `isSupportedBulkImage`, sync vs MIME-sniffed partition (sniffer throws → `unreadable`; non-image → `unsupported-type`), import summary. |
-| `settings.test.ts` | ~8 | `mergeDeep` override merging, `settingsHash` stability (this decides what's stale → what reprocesses), override-path detection. |
-| `session.test.ts` | ~12 | Counter normalization, unique job-ID dedup, `markJobsExported` stale guard, select-next/prev edges, add/remove. |
-| `output-filename.test.ts` | ~9 | **Reserved Windows names** (`con`, `nul`, `com1` → `-file`), illegal/control chars, dotfiles, path stripping. Cross-OS download safety. |
-| `urls.test.ts` | ~5 | Dedup collect + revoke spy counts (leak prevention). |
-| `size.test.ts` | ~4 | `getPercentChange` incl. divide-by-zero (orig 0 → 0, not NaN). |
-| `result-cache.test.ts` | ~8 | `ResultCache` (`src/lib/result-cache.ts`, plain TS — no DOM, ideal unit target): LRU recency on `get`, byte-budget + entry-cap eviction, **pinned keys never evicted**, `clear()` revokes every URL (spy counts), no double-insert. |
-| `editor-history.test.ts` | ~8 | `EditorHistory` (`editor-history.svelte.ts` — needs the Svelte test env for runes): commit/undo/redo pointer math, signature dedup (no-op commit), redo-tail truncation on a new commit, `#limit` front-trim, `reset`/`clear`. |
-| `detail/strip/summary.test.ts` | ~6 | Light composition smoke only — these are mostly selectors; **don't over-test**. |
-| `changes.test.ts` | (folded) | "change a global setting → only stale jobs requeue, overrides preserved" — the core bulk promise. |
+| File | ~Cases | Status | Covers (highest-value contracts) |
+|---|---|---|---|
+| `queue.test.ts` | ~16 | **Implemented: 8 cases** | Scheduler gate (`getRunnableJobs`) + **counter integrity** across `startJob`/`completeJob`/`failJob`/`requeue*`. Includes stale stored-counter normalization, stale requeue, incomplete requeue, exported-job requeue, and queue-state math. `cancelActiveJobs` remains planned. |
+| `export.test.ts` | ~14 | **Implemented: 6 cases** | `getBulkExportEntries` **duplicate-name dedup** (case-insensitive, extension-preserving), size/export/output summaries, stale-output export gate, archive/output filename derivation, and marking export-plan entries exported. |
+| `snapshot.test.ts` | ~10 | **Implemented: 5 cases** | `parseBulkSessionSnapshot` rejection matrix (malformed JSON, wrong version, missing settings, bad job/status/file/output) + restore **status demotion** (active/encoded/exported → queued, counters zeroed, selection fallback). |
+| `import.test.ts` | ~9 | **Implemented: 5 cases** | `isSupportedBulkImage`, sync vs MIME-sniffed partition (sniffer throws → `unreadable`; non-image → `unsupported-type`), import summary, session creation, and append-to-session. |
+| `settings.test.ts` | ~8 | **Implemented: 5 cases** | Deep override merging, encoder override replacement, `settingsHash` stability, override detection, and override-path reporting. |
+| `session.test.ts` | ~12 | **Implemented: 9 cases** | Counter normalization, unique job-ID dedup, remove/selection fallback, select-next/prev edges, global settings + overrides, `markJobsExported`, selected context, progress, and action-state selectors. |
+| `output-filename.test.ts` | ~9 | **Implemented: 5 cases** | **Reserved Windows names** (`con`, `nul`, `com1`, `lpt9` → `-file`), illegal/control chars, path stripping, dotfiles, fallback names, and extension normalization. |
+| `urls.test.ts` | ~5 | **Implemented: 3 cases** | Dedup collect + per-job/session revoke spy counts (leak prevention). |
+| `size.test.ts` | ~4 | **Implemented: 2 cases** | `getPercentChange` shrink/growth and divide-by-zero (orig 0 → 0, not NaN). |
+| `result-cache.test.ts` | ~8 | Planned | `ResultCache` (`src/lib/result-cache.ts`, plain TS — no DOM, ideal unit target): LRU recency on `get`, byte-budget + entry-cap eviction, **pinned keys never evicted**, `clear()` revokes every URL (spy counts), no double-insert. |
+| `editor-history.test.ts` | ~8 | Planned | `EditorHistory` (`editor-history.svelte.ts` — needs the Svelte test env for runes): commit/undo/redo pointer math, signature dedup (no-op commit), redo-tail truncation on a new commit, `#limit` front-trim, `reset`/`clear`. |
+| `detail/strip/summary.test.ts` | ~6 | Planned | Light composition smoke only — these are mostly selectors; **don't over-test**. |
+| `changes.test.ts` | (folded) | Planned | "change a global setting → only stale jobs requeue, overrides preserved" — the core bulk promise. Partially covered through `queue.test.ts` + `settings.test.ts`, but not yet as the dedicated change reducer. |
 
 ### Top 8 highest-value targets (do these first)
 
-1. `completeJob`/`failJob`/`startJob` — transition counter integrity.
-2. `requeueStaleJobs` — "settings changed → rebuild only what's stale."
-3. `parseBulkSessionSnapshot` — the only untrusted-input boundary; must never throw.
-4. Restore status demotion — reload behavior.
-5. `getBulkExportEntries` duplicate-name dedup — silent file overwrite risk.
-6. `getBulkJobSizeSummary` + `getBulkExportSummary` — feed the whole UI dashboard.
-7. `getSafeFileNameBase` — reserved names + sanitization.
-8. `getRunnableJobs` + `getPercentChange` — scheduler math + the everywhere-used percentage.
+1. ✅ `completeJob`/`failJob`/`startJob` — transition counter integrity.
+2. ✅ `requeueStaleJobs` — "settings changed → rebuild only what's stale."
+3. ✅ `parseBulkSessionSnapshot` — the only untrusted-input boundary; must never throw.
+4. ✅ Restore status demotion — reload behavior.
+5. ✅ `getBulkExportEntries` duplicate-name dedup — silent file overwrite risk.
+6. ✅ `getBulkJobSizeSummary` + `getBulkExportSummary` — feed the whole UI dashboard.
+7. ✅ `getSafeFileNameBase` — reserved names + sanitization.
+8. ✅ `getRunnableJobs` + `getPercentChange` — scheduler math + the everywhere-used percentage.
 
 ### Extraction-for-testability (small refactors that unlock unit tests)
 

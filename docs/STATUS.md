@@ -15,13 +15,16 @@ browser, the build is static, and offline reload must work after load.
   import, stale-gated export, snapshots, strip/detail/summary view-models; the
   diagnostics probe runs `processBulkImageJob` end-to-end). Remaining work is
   UI, multi-file entry wiring (`pickFiles` keeps only `list[0]` today), a
-  worker-bridge pool instance, thumbnails/memory management, ZIP, and tests.
+  worker-bridge pool instance, thumbnails/memory management, ZIP, and broader
+  tests. **Phase 0 unit safety net landed 2026-07-02:** Vitest +
+  `npm run test:unit`, scoped to `tests/unit/`, with 58 passing
+  bulk-engine/helper cases covering the [test-plan.md](test-plan.md) §4 top-8
+  targets.
   UI design options + phased roadmap:
   [bulk-ui-design-options.md](bulk-ui-design-options.md) — **awaiting
   maintainer shortlist** (grid vs filmstrip home, left-side treatment,
-  ZIP-in-v1, mixed-size resize default). Phase 0 (Vitest engine tests,
-  [test-plan.md](test-plan.md) §4) has no design dependency and can start any
-  time. UPDATE, same day: the two-variant layout LAB is BUILT and running at
+  ZIP-in-v1, mixed-size resize default). UPDATE, same day: the two-variant
+  layout LAB is BUILT and running at
   `/lab/bulk` (dev-only route, commit `99ac5495`): L1 focus-first home vs L2
   grid home, sharing one engine-backed store, two persistent WebP worker
   bridges, real encodes, per-image overrides with dot signaling + per-control
