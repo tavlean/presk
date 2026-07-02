@@ -1148,7 +1148,7 @@ export class BulkStore {
   }
 
   /** Tear down the whole bulk session: cancel, revoke every URL, start fresh. */
-  resetLab(): void {
+  reset(): void {
     this.runtime.cancelProcessing(this);
     this.#revokeAll();
     this.session = emptySession();

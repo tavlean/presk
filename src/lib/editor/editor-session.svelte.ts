@@ -710,7 +710,7 @@ export class EditorSession {
   }
 
   pickFiles(
-    list: FileList | null | undefined,
+    list: ArrayLike<File> | null | undefined,
     pushEditorHistory: () => void,
   ): void {
     const next = list?.[0];

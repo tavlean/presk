@@ -100,6 +100,7 @@
     {@attach captureInput}
     type="file"
     accept="image/*"
+    multiple
     onchange={onFileChange}
   />
 

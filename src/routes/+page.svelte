@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { dev } from '$app/environment';
   import { pushState } from '$app/navigation';
   import { resolve } from '$app/paths';
@@ -12,9 +12,12 @@
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
   import Snackbar from '$lib/editor/Snackbar.svelte';
   import Intro from '$lib/editor/intro/Intro.svelte';
+  import BulkMode from '$lib/bulk/BulkMode.svelte';
+  import { bulkStore } from '$lib/bulk/store.svelte';
   import { snackbar } from '$lib/editor/snackbar-store.svelte';
   import { fileDrop } from '$lib/editor/file-drop';
   import { EditorSession } from '$lib/editor/editor-session.svelte';
+  import { isSupportedBulkImage } from 'client/lazy-app/bulk';
   import '$lib/editor/theme.css';
 
   const session = new EditorSession();
@@ -55,11 +58,59 @@
   // in its constructor, disposed in dispose()); the page keeps only the effects
   // that depend on page/route state or write back to shared session state.
   $effect(() => session.syncRouteState(!!page.state.editor));
+  // Bulk mirror of syncRouteState: leaving the editor history state while a
+  // batch is open tears the batch down (browser back = exit bulk); an editor
+  // history state left behind after the batch emptied (last image removed) is
+  // unwound so the intro doesn't sit on a stale entry.
+  $effect(() => {
+    const editorOpen = !!page.state.editor;
+    const hasJobs = bulkStore.hasJobs;
+    const hasFile = !!session.file;
+    untrack(() => {
+      if (!editorOpen && hasJobs) {
+        bulkStore.reset();
+        bulkStore.runtime.disposeBridges();
+      } else if (editorOpen && !hasJobs && !hasFile) {
+        history.back();
+      }
+    });
+  });
   $effect(() => session.seedResizeDimensions());
   $effect(() => session.persistSettings());
 
-  function pickFiles(list: FileList | null | undefined) {
+  function pickFiles(list: ArrayLike<File> | null | undefined) {
     session.pickFiles(list, () => pushState('', { editor: true }));
+  }
+
+  function routeFiles(list: FileList | File[] | null | undefined): void {
+    const files = Array.from(list ?? []).filter(isSupportedBulkImage);
+    if (files.length === 0) {
+      void snackbar.show('No supported images found.');
+      return;
+    }
+    if (bulkStore.hasJobs) {
+      void bulkStore.importFiles(files);
+      return;
+    }
+    if (files.length > 1) {
+      void bulkStore.importFiles(files);
+      // A previously open single image is abandoned (NOT added to the batch);
+      // reuse its editor history entry rather than stacking a second one, so
+      // one Back press exits bulk cleanly.
+      if (session.file) session.clearFile();
+      if (!page.state.editor) pushState('', { editor: true });
+      return;
+    }
+    pickFiles(files);
+  }
+
+  function exitBulk() {
+    if (page.state.editor) {
+      history.back();
+    } else {
+      bulkStore.reset();
+      bulkStore.runtime.disposeBridges();
+    }
   }
 
   function back() {
@@ -108,15 +159,10 @@
 <!-- The whole app is a drop target so an image dropped ANYWHERE (intro padding,
      or over the open editor) loads/replaces it instead of the browser opening
      the file — Squoosh wraps everything in <file-drop> the same way. -->
-<div class="app-root" {@attach fileDrop((files) => pickFiles(files))}>
-  {#if !session.file}
-    <Intro onFiles={pickFiles} onMessage={(t) => snackbar.show(t)} />
-    {#if dev}
-      <p class="intro-diag">
-        <a href={resolve('/diagnostics')}>Pipeline diagnostics →</a>
-      </p>
-    {/if}
-  {:else}
+<div class="app-root" {@attach fileDrop((files) => routeFiles(files))}>
+  {#if bulkStore.hasJobs}
+    <BulkMode onExit={exitBulk} />
+  {:else if session.file}
     <div class="compress sqush-editor">
       <Output
         leftImage={session.runtime[0].result?.outputImageData}
@@ -216,6 +262,13 @@
         </aside>
       {/each}
     </div>
+  {:else}
+    <Intro onFiles={routeFiles} onMessage={(t) => snackbar.show(t)} />
+    {#if dev}
+      <p class="intro-diag">
+        <a href={resolve('/diagnostics')}>Pipeline diagnostics →</a>
+      </p>
+    {/if}
   {/if}
 
   <Snackbar />
