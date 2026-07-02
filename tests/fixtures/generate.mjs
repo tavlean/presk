@@ -41,6 +41,26 @@ function encodePng(w, h, rgba) {
   ]);
 }
 
+function encodePngGray1(w, h, value) {
+  const stride = Math.ceil(w / 8);
+  const raw = Buffer.alloc((stride + 1) * h);
+  for (let y = 0; y < h; y++) {
+    raw[y * (stride + 1)] = 0; // filter: none
+    raw.fill(value ? 0xff : 0x00, y * (stride + 1) + 1, (y + 1) * (stride + 1));
+  }
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr[8] = 1; // bit depth
+  ihdr[9] = 0; // color type: grayscale
+  return Buffer.concat([
+    SIG,
+    chunk('IHDR', ihdr),
+    chunk('IDAT', deflateSync(raw, { level: 9 })),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
+}
+
 const canvas = (w, h, [r, g, b, a]) => {
   const buf = Buffer.alloc(w * h * 4);
   for (let i = 0; i < w * h; i++) buf.set([r, g, b, a], i * 4);
@@ -87,6 +107,12 @@ const H = 512;
   }
   writeFileSync(here('./transparent.png'), encodePng(W, H, buf));
   console.log('wrote transparent.png');
+}
+
+// --- tiny-flat: tiny single-colour PNG for keep-original export guards ---
+{
+  writeFileSync(here('./tiny-flat.png'), encodePngGray1(256, 256, 1));
+  console.log('wrote tiny-flat.png');
 }
 
 // ---------------------------------------------------------------------------

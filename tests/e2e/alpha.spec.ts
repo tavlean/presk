@@ -22,7 +22,7 @@ const ALPHA_FORMATS = [
 for (const fmt of ALPHA_FORMATS) {
   test(`${fmt.label} preserves transparency`, async ({ page }) => {
     await page.goto('/');
-    await page.setInputFiles('input[type=file]', transparent);
+    await page.setInputFiles('input[type=file][accept="image/*"]', transparent);
 
     const rightSelect = page.locator('.options-2 select.builtin-select');
     await expect(rightSelect).toBeVisible();
