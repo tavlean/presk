@@ -9,9 +9,9 @@
 // job id, decoded lazily off the source File. Object URLs (thumbnails AND
 // engine output download URLs) are revoked on remove/reset.
 //
-// The two layout variants (L1 focus-first, L2 grid) are built on top of this
-// store. The store + runtime are the shared scaffold; the focused image itself
-// is rendered by a real EditorSession in the route.
+// The layout variants are built on top of this store. The store + runtime are
+// the shared scaffold; the focused image itself is rendered by a real
+// EditorSession in the route.
 
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import {
@@ -52,6 +52,10 @@ import {
   type EncoderState,
   type EncoderType,
 } from 'client/lazy-app/feature-meta';
+import {
+  getMatchingResizePreset,
+  getResizePresetSize,
+} from 'features/processors/resize/client/preset-state';
 // The lab is WebP-locked, so use the CONCRETE WebP option type (which has
 // `quality`/`method`) rather than the wide `EncoderOptions` union (whose members
 // share no common keys — it can't be indexed by encoder-specific fields, and
@@ -70,7 +74,7 @@ export interface LabThumb {
   h: number;
 }
 
-export type LabVariant = 'l1' | 'l2' | 'l3' | 'l4';
+export type LabVariant = 'l2' | 'l3';
 export type BulkPanelScope = 'global' | 'image';
 /** L3's strip zoom (persists for the session in the store). */
 export type StripSize = 's' | 'm' | 'l';
@@ -269,7 +273,7 @@ export class LabBulk {
   // The immutable engine session; reassigned on every reducer call.
   session = $state.raw<BulkSession>(emptySession());
   // Which layout variant the lab is showing (bound to the top-bar toggle).
-  variant = $state<LabVariant>('l1');
+  variant = $state<LabVariant>('l3');
   // L3's strip zoom (S/M/L). Session-scoped: persists across selections but not
   // reloads, matching the store's other in-memory lab state.
   stripSize = $state<StripSize>('m');
@@ -333,6 +337,12 @@ export class LabBulk {
   // ── Actions ───────────────────────────────────────────────────────────────
   #syncingGlobalSide = false;
   #globalApplyTimer: ReturnType<typeof setTimeout> | null = null;
+  #globalResizeSeededJobId: string | null = null;
+  #globalResizeReference: {
+    jobId: string;
+    width: number;
+    height: number;
+  } | null = null;
 
   /**
    * Import Files into the session, decode thumbnails, auto-select the first job
@@ -615,6 +625,59 @@ export class LabBulk {
     });
   }
 
+  seedGlobalResizeDimensions(width: number, height: number): void {
+    const firstJobId = this.session.jobs[0]?.id;
+    if (
+      !firstJobId ||
+      !Number.isFinite(width) ||
+      !Number.isFinite(height) ||
+      width < 1 ||
+      height < 1
+    ) {
+      return;
+    }
+
+    const resize = this.globalSide.processorState.resize;
+    const alreadySeeded = this.#globalResizeSeededJobId === firstJobId;
+    const stillDefaultSize = resize.width === 1 && resize.height === 1;
+    if (alreadySeeded && !stillDefaultSize) return;
+    if (resize.enabled && !stillDefaultSize) return;
+
+    resize.width = Math.round(width);
+    resize.height = Math.round(height);
+    this.#globalResizeSeededJobId = firstJobId;
+    this.#globalResizeReference = {
+      jobId: firstJobId,
+      width: Math.round(width),
+      height: Math.round(height),
+    };
+  }
+
+  processingGlobalSettingsForJob(job: ImageJob): BulkImageSettings {
+    const settings = structuredClone(this.session.globalSettings);
+    const resize = settings.processorState.resize;
+    const reference = this.#globalResizeReference;
+    const thumb = this.thumbs.get(job.id);
+    const hasResizeOverride =
+      job.overrides?.processorState?.resize !== undefined;
+
+    if (!resize.enabled || !reference || !thumb || hasResizeOverride) {
+      return settings;
+    }
+
+    const preset = getMatchingResizePreset(
+      { width: resize.width, height: resize.height },
+      reference.width,
+      reference.height,
+    );
+    if (preset === 'custom') return settings;
+
+    const size = getResizePresetSize(thumb.w, thumb.h, preset);
+    resize.width = size.width;
+    resize.height = size.height;
+    return settings;
+  }
+
   setGlobalFormat(format: SideFormat): void {
     if (format === 'identity') return;
     this.globalSide.format = format;
@@ -717,6 +780,8 @@ export class LabBulk {
     this.selectedIds.clear();
     this.#selectionOrder = [];
     this.panelScope = 'global';
+    this.#globalResizeSeededJobId = null;
+    this.#globalResizeReference = null;
     this.refreshGlobalSideFromSession();
   }
 

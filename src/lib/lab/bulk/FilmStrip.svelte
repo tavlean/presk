@@ -1,7 +1,6 @@
 <script lang="ts">
-  // Horizontal strip of job thumbnails (design doc §5). Selection is delegated
-  // at the container level so click, range, and drag-select stay identical to
-  // the richer L3/L4 strips.
+  // Horizontal strip of job thumbnails. Selection is delegated at the container
+  // level so click, range, and drag-select stay identical to the richer strip.
   import { labBulk } from './store.svelte';
   import StripCell from './StripCell.svelte';
   import { createStripSelectionController } from './strip-selection';

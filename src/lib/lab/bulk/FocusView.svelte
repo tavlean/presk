@@ -16,13 +16,13 @@
     onBack?: (() => void) | null;
     onReseed?: (() => void) | null;
     /**
-     * Optional custom strip renderer (L3/L4). When omitted, FocusView renders
-     * the baseline FilmStrip — so L1/L2 are untouched.
+     * Optional custom strip renderer. When omitted, FocusView renders the
+     * baseline FilmStrip used by L2 focus mode.
      */
     strip?: Snippet | null;
     /**
-     * Strip-region height in CSS px. Lets a variant grow the dock (L3's L size,
-     * L4's dense two-row mode). Defaults to the baseline 104px.
+     * Strip-region height in CSS px. Lets a variant grow the dock. Defaults to
+     * the baseline 104px.
      */
     stripHeight?: number;
   }
@@ -573,8 +573,8 @@
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
-    /* Smooth the dock resize when L3's S/M/L or L4's count-driven mode changes,
-       so the stage grows/shrinks without jank. */
+    /* Smooth the dock resize when L3's S/M/L changes, so the stage
+       grows/shrinks without jank. */
     transition: height 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 

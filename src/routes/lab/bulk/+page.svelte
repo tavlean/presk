@@ -15,10 +15,8 @@
   import { LAB_FONT_OPTIONS, fontLab } from '$lib/lab/bulk/font-lab.svelte';
   import { toast } from '$lib/lab/bulk/Toast.svelte';
   import Toast from '$lib/lab/bulk/Toast.svelte';
-  import L1Home from '$lib/lab/bulk/L1Home.svelte';
   import L2Home from '$lib/lab/bulk/L2Home.svelte';
   import L3Home from '$lib/lab/bulk/L3Home.svelte';
-  import L4Home from '$lib/lab/bulk/L4Home.svelte';
   import {
     getEffectiveSettings,
     settingsHash,
@@ -612,25 +610,18 @@
 <svelte:head>
   <title>Bulk UI Lab</title>
   {#if dev}
-    <!-- Dev-lab font-experiment webfonts (per-family links so one unknown
-         family can't 400 the rest). Nothing here ships to production. -->
+    <!-- Dev-lab font-experiment webfonts. Nothing here ships to production. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
-    />
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin="" />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&display=swap"
     />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400..700&display=swap"
-    />
-    <link
-      rel="stylesheet"
       href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap"
+      crossorigin=""
     />
   {/if}
 </svelte:head>
@@ -644,15 +635,6 @@
   >
     <div class="lab-controls" aria-label="Lab controls">
       <div class="variant-toggle" role="radiogroup" aria-label="Layout variant">
-        <button
-          type="button"
-          class:active={labBulk.variant === 'l1'}
-          role="radio"
-          aria-checked={labBulk.variant === 'l1'}
-          onclick={() => setVariant('l1')}
-        >
-          L1
-        </button>
         <button
           type="button"
           class:active={labBulk.variant === 'l2'}
@@ -670,15 +652,6 @@
           onclick={() => setVariant('l3')}
         >
           L3
-        </button>
-        <button
-          type="button"
-          class:active={labBulk.variant === 'l4'}
-          role="radio"
-          aria-checked={labBulk.variant === 'l4'}
-          onclick={() => setVariant('l4')}
-        >
-          L4
         </button>
       </div>
 
@@ -737,14 +710,10 @@
     </div>
 
     {#if labBulk.hasJobs}
-      {#if labBulk.variant === 'l1'}
-        <L1Home {focusSession} onReseed={seedFocusFromSelected} />
-      {:else if labBulk.variant === 'l2'}
+      {#if labBulk.variant === 'l2'}
         <L2Home {focusSession} onReseed={seedFocusFromSelected} />
-      {:else if labBulk.variant === 'l3'}
-        <L3Home {focusSession} onReseed={seedFocusFromSelected} />
       {:else}
-        <L4Home {focusSession} onReseed={seedFocusFromSelected} />
+        <L3Home {focusSession} onReseed={seedFocusFromSelected} />
       {/if}
     {:else}
       <main class="dropzone">

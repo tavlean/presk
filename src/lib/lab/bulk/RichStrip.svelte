@@ -1,5 +1,5 @@
 <script lang="ts">
-  // L3 "Rich strip": the L1 filmstrip, but size-adjustable. A quiet S/M/L
+  // L3 "Rich strip": the baseline strip, but size-adjustable. A quiet S/M/L
   // control sits in the strip's right corner and persists (session-scoped) in
   // the store. The chosen size drives both the cell footprint (via StripCell)
   // and the strip-region height (via the CSS var FocusView reads back).

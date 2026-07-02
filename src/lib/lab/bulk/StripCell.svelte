@@ -1,5 +1,5 @@
 <script lang="ts">
-  // One strip thumbnail cell, shared by L3's Rich strip and L4's Adaptive dock.
+  // One strip thumbnail cell, shared by the lab strips.
   // The `mode` drives how many pixels the cell earns and how rich its caption is
   // — but the affordances are identical everywhere:
   //   • azure selection RING (selection only, never "overridden");
@@ -10,18 +10,17 @@
   // Click selects. The parent keys on job id.
   //
   // Caption richness by mode:
-  //   s     → size + bare delta (the L1 baseline caption)
+  //   s     → size + bare delta
   //   m     → name; "251 kB → 26.2 kB" + delta pill
   //   l     → two lines: name; sizes + delta pill (browsing-first)
-  //   dense → just the delta pill; name + sizes live in the title tooltip
   import type { BulkStripItem } from 'client/lazy-app/bulk';
   import { labBulk } from './store.svelte';
   import DeltaPill from './DeltaPill.svelte';
 
   interface Props {
     item: BulkStripItem;
-    /** Presentation size. `dense` = L4's two-row small-thumb mode. */
-    mode: 's' | 'm' | 'l' | 'dense';
+    /** Presentation size. */
+    mode: 's' | 'm' | 'l';
   }
 
   let { item, mode }: Props = $props();
@@ -54,16 +53,6 @@
       : '',
   );
 
-  // A full one-line summary for the dense mode's tooltip (name is on the button
-  // title too, but the dense caption hides sizes so the title carries them).
-  const denseTitle = $derived(
-    hasOutput
-      ? `${item.fileName} — ${transform}`
-      : processing
-        ? `${item.fileName} — encoding…`
-        : `${item.fileName} — queued`,
-  );
-
   // The download anchor must not also trigger selection.
   function stopSelect(event: Event): void {
     event.stopPropagation();
@@ -79,7 +68,7 @@
       class:anchor
       role="option"
       aria-selected={selected}
-      title={mode === 'dense' ? denseTitle : item.fileName}
+      title={item.fileName}
     >
       {#if thumbUrl}
         <img src={thumbUrl} alt="" draggable="false" />
@@ -127,38 +116,27 @@
     {/if}
   </div>
 
-  {#if mode !== 'dense'}
-    <div class="caption">
-      {#if mode === 'l'}
-        <span class="name" title={item.fileName}>{item.fileName}</span>
-      {/if}
+  <div class="caption">
+    {#if mode === 'l'}
+      <span class="name" title={item.fileName}>{item.fileName}</span>
+    {/if}
 
-      {#if hasOutput}
-        {#if mode === 's'}
-          <span class="size">{prettySize(item.outputSize!)}</span>
-          <DeltaPill percent={item.percentChange!} variant="bare" />
-        {:else}
-          <span class="line">
-            <span class="transform">{transform}</span>
-            <DeltaPill percent={item.percentChange!} variant="pill" />
-          </span>
-        {/if}
-      {:else if processing}
-        <span class="pending">Encoding…</span>
+    {#if hasOutput}
+      {#if mode === 's'}
+        <span class="size">{prettySize(item.outputSize!)}</span>
+        <DeltaPill percent={item.percentChange!} variant="bare" />
       {:else}
-        <span class="pending">Queued</span>
+        <span class="line">
+          <span class="transform">{transform}</span>
+          <DeltaPill percent={item.percentChange!} variant="pill" />
+        </span>
       {/if}
-    </div>
-  {:else if hasOutput}
-    <!-- Dense: only the delta pill under the thumb; name + sizes on hover. -->
-    <div class="caption dense-caption">
-      <DeltaPill percent={item.percentChange!} variant="pill" />
-    </div>
-  {:else}
-    <div class="caption dense-caption">
-      <span class="pending">{processing ? '…' : '–'}</span>
-    </div>
-  {/if}
+    {:else if processing}
+      <span class="pending">Encoding…</span>
+    {:else}
+      <span class="pending">Queued</span>
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -181,11 +159,6 @@
     width: 240px;
     gap: 8px;
   }
-  .cell.dense {
-    width: 92px;
-    gap: 4px;
-  }
-
   .thumb-wrap {
     position: relative;
   }
@@ -315,12 +288,6 @@
       border-color 150ms ease;
     text-decoration: none;
   }
-  .cell.dense .download {
-    width: 26px;
-    height: 26px;
-    top: 4px;
-    right: 4px;
-  }
   .cell:hover .download,
   .thumb-wrap:focus-within .download,
   .download:focus-visible {
@@ -341,10 +308,6 @@
     height: 15px;
     display: block;
   }
-  .cell.dense .download svg {
-    width: 13px;
-    height: 13px;
-  }
 
   /* ── Captions ───────────────────────────────────────────────────────────── */
   .caption {
@@ -361,10 +324,6 @@
     align-items: stretch;
     gap: 4px;
   }
-  .dense-caption {
-    justify-content: center;
-  }
-
   .name {
     color: var(--text-1, #f5f5f7);
     font-size: 0.9rem;

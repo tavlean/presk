@@ -17,7 +17,9 @@ import {
   startJob,
   cancelActiveJobs,
   defaultBulkConcurrency,
+  getEffectiveSettings,
   processBulkImageJob,
+  settingsHash,
   type ImageJob,
   type ImageOutput,
 } from 'client/lazy-app/bulk';
@@ -31,6 +33,9 @@ import type { LabBulk } from './store.svelte';
 export interface LabRunnerHost {
   session: LabBulk['session'];
   createOutputDownloadUrl(file: File): string;
+  processingGlobalSettingsForJob?(
+    job: ImageJob,
+  ): LabBulk['session']['globalSettings'];
 }
 
 export class LabRuntime {
@@ -114,15 +119,23 @@ export class LabRuntime {
   ): Promise<void> {
     try {
       if (signal.aborted) return;
+      const canonicalSettingsHash = settingsHash(
+        getEffectiveSettings(host.session.globalSettings, job.overrides),
+      );
       const output: ImageOutput = await processBulkImageJob({
         job,
-        globalSettings: host.session.globalSettings,
+        globalSettings:
+          host.processingGlobalSettingsForJob?.(job) ??
+          host.session.globalSettings,
         workerBridge: this.#bridgeFor(slot),
         signal,
         createDownloadUrl: (file) => host.createOutputDownloadUrl(file),
       });
       if (signal.aborted) return;
-      host.session = completeJob(host.session, job.id, output);
+      host.session = completeJob(host.session, job.id, {
+        ...output,
+        settingsHash: canonicalSettingsHash,
+      });
     } catch (error) {
       // An abort is a clean cancel, not a job failure: leave the reducer to
       // cancelActiveJobs() (called from cancel()) so the job returns to queued.

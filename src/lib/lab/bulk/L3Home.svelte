@@ -1,5 +1,5 @@
 <script lang="ts">
-  // L3 "Rich strip": L1's focus-first layout with a size-adjustable dock. The
+  // L3 "Rich strip": focus-first layout with a size-adjustable dock. The
   // strip height follows the S/M/L choice so the stage shrinks/grows to match.
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
   import { labBulk } from './store.svelte';
@@ -13,7 +13,7 @@
 
   let { focusSession, onReseed }: Props = $props();
 
-  // Strip-region height per size. S ≈ the L1 baseline; M taller; L browsing-first.
+  // Strip-region height per size. S is compact; M taller; L browsing-first.
   // Each pairs the StripCell thumb (16/10 at the cell width) with its caption.
   const STRIP_HEIGHT: Record<'s' | 'm' | 'l', number> = {
     s: 104,

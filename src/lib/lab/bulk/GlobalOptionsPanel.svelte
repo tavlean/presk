@@ -24,6 +24,16 @@
 
   const totalJobs = $derived(labBulk.summary.totalJobs);
 
+  $effect(() => {
+    const width = naturalWidth;
+    const height = naturalHeight;
+    const resize = labBulk.globalSide.processorState.resize;
+    resize.enabled;
+    resize.width;
+    resize.height;
+    labBulk.seedGlobalResizeDimensions(width, height);
+  });
+
   function applyFormat(format: string): void {
     if (format === 'identity') return;
     labBulk.setGlobalFormat(format as typeof labBulk.globalSide.format);
