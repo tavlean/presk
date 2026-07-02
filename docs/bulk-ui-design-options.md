@@ -27,7 +27,14 @@ space; the view picker re-homed beside the stage toolbar (top-right
 rejected); and the **STACK resting stage experiment** (Stack|Blank toggle,
 Stack default): the global/multi-selection stage shows a fanned stack of
 the scope's images with a before/after split top card — the stage always
-shows the work. Awaiting maintainer verdict on Stack vs Blank.
+shows the work. **VERDICT (maintainer, 2026-07-02): STACK WINS over Blank**
+— it is the resting stage for Phase 2 (remove the Blank state + toggle at
+promotion). Iterations same day: same production dot-grid backdrop, a
+WORKING stage toolbar (zoom/fit/background/smoothing), a REAL draggable
+divider on the top card, full-size sources for every visible card (crisp
+peeks), near-edge fan width, no hint/caption chrome, and (in progress)
+space-driven peek density, even-count balancing, and eased leaf-through
+motion.
 This is the "Design First" step required by [road-map.md](road-map.md) before
 any production bulk UI. Engine reference: [bulk-image-architecture.md](bulk-image-architecture.md).
 
