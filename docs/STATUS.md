@@ -7,6 +7,11 @@ browser, the build is static, and offline reload must work after load.
 
 ## Current State
 
+- **App typeface: Satoshi (2026-07-02, `c6ac6706`).** Chosen over Outfit and
+  Geist via the bulk-lab font comparison. Self-hosted variable woff2
+  (wght 300-900) + italic face in `static/fonts/`, same-origin + SW-precached
+  as before; Outfit subsets removed.
+
 - **Bulk optimization — design phase opened (2026-07-02).** Bulk is now the
   **top product priority** (maintainer decision; Multi-Format Compare moves
   after it). A full audit found the bulk **engine already complete and proven
