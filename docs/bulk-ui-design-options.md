@@ -124,6 +124,10 @@ So the two variants share the focus view itself; the lab question is **what
 you land on and how navigating scope feels**. B3 (table) stays rejected as
 primary; candidate for a grid density toggle later.
 
+Reference images for the lab live in-repo at
+[references/bulk-lab/](references/bulk-lab/) (`bulk-focus-mode.webp`,
+`bulk-grid-dashboard.webp`, `override-signaling-dots.webp`).
+
 ## 4. Decision C — what the left side becomes
 
 **DECIDED (maintainer, 2026-07-02): the left side is a DYNAMIC, contextual
