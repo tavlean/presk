@@ -46,6 +46,7 @@ export interface ImageOutput {
 export interface ImageJob {
   id: string;
   sourceFile: File;
+  relativePath?: string;
   status: ImageJobStatus;
   originalSize: number;
   sourceWidth?: number;
@@ -131,13 +132,21 @@ export function createBulkSession(
   };
 }
 
-export function createImageJob(id: string, sourceFile: File): ImageJob {
-  return {
+export function createImageJob(
+  id: string,
+  sourceFile: File,
+  relativePath?: string,
+): ImageJob {
+  const job: ImageJob = {
     id,
     sourceFile,
     status: 'queued',
     originalSize: sourceFile.size,
   };
+
+  if (relativePath) job.relativePath = relativePath;
+
+  return job;
 }
 
 export function getJobSourceDimensions(

@@ -29,6 +29,7 @@ export interface BulkOutputSnapshot {
 export interface BulkJobSnapshot {
   id: string;
   sourceFile: BulkFileSnapshot;
+  relativePath?: string;
   status: ImageJobStatus;
   originalSize: number;
   output?: BulkOutputSnapshot;
@@ -87,6 +88,7 @@ function createJobSnapshot(job: ImageJob): BulkJobSnapshot {
   return {
     id: job.id,
     sourceFile: createFileSnapshot(job.sourceFile),
+    relativePath: job.relativePath,
     status: job.status,
     originalSize: job.originalSize,
     output: job.output ? createOutputSnapshot(job.output) : undefined,
@@ -142,6 +144,7 @@ function parseJobSnapshot(value: unknown): BulkJobSnapshot | undefined {
   if (
     typeof value.id !== 'string' ||
     !sourceFile ||
+    !isOptionalString(value.relativePath) ||
     !isImageJobStatus(value.status) ||
     !isFiniteNumber(value.originalSize) ||
     (value.output !== undefined && !output) ||
@@ -153,6 +156,7 @@ function parseJobSnapshot(value: unknown): BulkJobSnapshot | undefined {
   return {
     id: value.id,
     sourceFile,
+    relativePath: value.relativePath || undefined,
     status: value.status,
     originalSize: value.originalSize,
     output,
@@ -185,6 +189,7 @@ function restoreJobSnapshot(snapshot: BulkJobSnapshot): ImageJob {
   return {
     id: snapshot.id,
     sourceFile: restoreFileSnapshot(snapshot.sourceFile),
+    relativePath: snapshot.relativePath,
     status: getRestoredJobStatus(snapshot.status),
     originalSize: snapshot.originalSize,
     overrides: snapshot.overrides,

@@ -25,6 +25,7 @@ export interface BulkImportSummary {
 }
 
 export type BulkMimeSniffer = (file: File) => Promise<string>;
+export type BulkRelativePathGetter = (file: File) => string | undefined;
 
 const supportedImageExtensions = new Set([
   'avif',
@@ -65,9 +66,21 @@ function createBulkImportResult(): BulkImportResult {
   };
 }
 
-function acceptBulkImportFile(result: BulkImportResult, file: File): void {
+function getDefaultRelativePath(file: File): string | undefined {
+  return file.webkitRelativePath || undefined;
+}
+
+function acceptBulkImportFile(
+  result: BulkImportResult,
+  file: File,
+  relativePath?: string,
+): void {
   result.accepted.push(
-    createImageJob(createImageJobId(file, result.accepted.length), file),
+    createImageJob(
+      createImageJobId(file, result.accepted.length),
+      file,
+      relativePath,
+    ),
   );
 }
 
@@ -80,7 +93,10 @@ function rejectBulkImportFile(
   result.rejections.push({ file, reason });
 }
 
-export function createImageJobs(files: Iterable<File>): BulkImportResult {
+export function createImageJobs(
+  files: Iterable<File>,
+  getRelativePath: BulkRelativePathGetter = getDefaultRelativePath,
+): BulkImportResult {
   const result = createBulkImportResult();
 
   for (const file of files) {
@@ -89,7 +105,7 @@ export function createImageJobs(files: Iterable<File>): BulkImportResult {
       continue;
     }
 
-    acceptBulkImportFile(result, file);
+    acceptBulkImportFile(result, file, getRelativePath(file) || undefined);
   }
 
   return result;
@@ -98,12 +114,13 @@ export function createImageJobs(files: Iterable<File>): BulkImportResult {
 export async function createImageJobsWithMimeSniffing(
   files: Iterable<File>,
   sniffMimeType: BulkMimeSniffer,
+  getRelativePath: BulkRelativePathGetter = getDefaultRelativePath,
 ): Promise<BulkImportResult> {
   const result = createBulkImportResult();
 
   for (const file of files) {
     if (isSupportedBulkImage(file)) {
-      acceptBulkImportFile(result, file);
+      acceptBulkImportFile(result, file, getRelativePath(file) || undefined);
       continue;
     }
 
@@ -120,7 +137,7 @@ export async function createImageJobsWithMimeSniffing(
       continue;
     }
 
-    acceptBulkImportFile(result, file);
+    acceptBulkImportFile(result, file, getRelativePath(file) || undefined);
   }
 
   return result;

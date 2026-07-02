@@ -35,6 +35,43 @@ describe('bulk import helpers', () => {
     ]);
   });
 
+  it('uses webkitRelativePath as the default relative path', () => {
+    const file = fakeFile('photo.jpg');
+    Object.defineProperty(file, 'webkitRelativePath', {
+      value: 'album/photo.jpg',
+    });
+
+    const result = createImageJobs([file]);
+
+    expect(result.accepted[0].relativePath).toBe('album/photo.jpg');
+  });
+
+  it('prefers explicit relative path getters over file metadata', () => {
+    const file = fakeFile('photo.jpg');
+    Object.defineProperty(file, 'webkitRelativePath', {
+      value: 'ignored/photo.jpg',
+    });
+
+    const result = createImageJobs([file], () => 'chosen/photo.jpg');
+
+    expect(result.accepted[0].relativePath).toBe('chosen/photo.jpg');
+  });
+
+  it('omits empty relative paths', async () => {
+    const file = fakeFile('photo.jpg');
+    Object.defineProperty(file, 'webkitRelativePath', { value: '' });
+
+    const syncResult = createImageJobs([file]);
+    const sniffedResult = await createImageJobsWithMimeSniffing(
+      [file],
+      async () => 'image/jpeg',
+      () => '',
+    );
+
+    expect('relativePath' in syncResult.accepted[0]).toBe(false);
+    expect('relativePath' in sniffedResult.accepted[0]).toBe(false);
+  });
+
   it('uses MIME sniffing for extensionless files and records sniffer failures', async () => {
     const detected = fakeFile('camera-data', { size: 10, type: '' });
     const rejected = fakeFile('text-data', { size: 20, type: '' });

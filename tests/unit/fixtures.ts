@@ -116,6 +116,7 @@ export function job(
     thumbnailUrl,
     sourceWidth,
     sourceHeight,
+    relativePath,
   }: {
     fileName?: string;
     fileSize?: number;
@@ -127,10 +128,11 @@ export function job(
     thumbnailUrl?: string;
     sourceWidth?: number;
     sourceHeight?: number;
+    relativePath?: string;
   } = {},
 ): ImageJob {
   return {
-    ...createImageJob(id, fakeFile(fileName, { size: fileSize })),
+    ...createImageJob(id, fakeFile(fileName, { size: fileSize }), relativePath),
     status,
     output,
     overrides,

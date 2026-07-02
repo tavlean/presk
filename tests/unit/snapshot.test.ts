@@ -81,6 +81,17 @@ describe('bulk session snapshots', () => {
     expect(parsed?.exportedCount).toBe(1);
   });
 
+  it('round-trips job relative paths through snapshots', () => {
+    const source = session([job('a', { relativePath: 'album/nested/a.jpg' })]);
+    const snapshot = createBulkSessionSnapshot(source);
+    const parsed = parseBulkSessionSnapshot(JSON.stringify(snapshot));
+    const restored = restoreBulkSessionSnapshot(snapshot);
+
+    expect(snapshot.jobs[0].relativePath).toBe('album/nested/a.jpg');
+    expect(parsed?.jobs[0].relativePath).toBe('album/nested/a.jpg');
+    expect(restored.jobs[0].relativePath).toBe('album/nested/a.jpg');
+  });
+
   it('demotes active, encoded, and exported jobs on restore', () => {
     const source = session(
       [
