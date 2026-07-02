@@ -10,11 +10,45 @@
   const items = $derived(labBulk.stripItems);
   const size = $derived(labBulk.focusStripSize);
   const selection = createStripSelectionController();
+  const thumbCount = $derived(labBulk.thumbs.size);
+
+  const EDGE_THRESHOLD = 2;
+  let scroller = $state<HTMLElement>();
+  let fadeLeft = $state(false);
+  let fadeRight = $state(false);
+
+  function updateScrollFades(): void {
+    if (!scroller) return;
+    const max = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    fadeLeft = max > EDGE_THRESHOLD && scroller.scrollLeft > EDGE_THRESHOLD;
+    fadeRight =
+      max > EDGE_THRESHOLD && scroller.scrollLeft < max - EDGE_THRESHOLD;
+  }
+
+  $effect(() => {
+    if (!scroller) return;
+    const observer = new ResizeObserver(updateScrollFades);
+    observer.observe(scroller);
+    updateScrollFades();
+    return () => observer.disconnect();
+  });
+
+  $effect(() => {
+    items.length;
+    size;
+    thumbCount;
+    queueMicrotask(updateScrollFades);
+  });
 </script>
+
+<svelte:window onresize={updateScrollFades} />
 
 <div class="rich-strip size-{size}">
   <div
+    bind:this={scroller}
     class="scroller"
+    class:fade-left={fadeLeft}
+    class:fade-right={fadeRight}
     role="listbox"
     aria-label="Images"
     tabindex="-1"
@@ -24,6 +58,7 @@
     onpointermove={selection.onPointermove}
     onpointerup={selection.onPointerup}
     onpointercancel={selection.onPointercancel}
+    onscroll={updateScrollFades}
   >
     {#each items as item (item.id)}
       <StripCell {item} mode={size} />
@@ -46,6 +81,7 @@
   /* Horizontal scroller: centered while the thumbs fit, left-aligned the moment
      they overflow (safe center), scrollbar chrome only on hover. */
   .scroller {
+    --strip-fade-size: 36px;
     display: flex;
     align-items: center;
     justify-content: safe center;
@@ -56,6 +92,50 @@
     padding: 8px 2px;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
+  }
+  .scroller.fade-left {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--strip-fade-size),
+      #000 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--strip-fade-size),
+      #000 100%
+    );
+  }
+  .scroller.fade-right {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - var(--strip-fade-size)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - var(--strip-fade-size)),
+      transparent
+    );
+  }
+  .scroller.fade-left.fade-right {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--strip-fade-size),
+      #000 calc(100% - var(--strip-fade-size)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--strip-fade-size),
+      #000 calc(100% - var(--strip-fade-size)),
+      transparent
+    );
   }
   .scroller::-webkit-scrollbar {
     height: 6px;

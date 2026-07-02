@@ -5,6 +5,7 @@
   //   • azure selection RING (selection only, never "overridden");
   //   • azure corner DOT when the job carries per-image overrides;
   //   • spinner / failed overlay driven by statusGroup;
+  //   • a glass hover/focus REMOVE button (top-left) for deleting one image;
   //   • a glass hover/focus DOWNLOAD button (top-right, down-arrow) that saves
   //     THIS image's optimized output — mirrors production's save affordances.
   // Click selects. The parent keys on job id.
@@ -70,6 +71,23 @@
   function stopSelect(event: Event): void {
     event.stopPropagation();
   }
+
+  function removeImage(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    labBulk.removeOne(item.id);
+  }
+
+  function downloadImage(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!download) return;
+
+    const anchor = document.createElement('a');
+    anchor.href = download.url;
+    anchor.download = download.fileName;
+    anchor.click();
+  }
 </script>
 
 <div class="cell {mode}" data-bulk-cell-id={item.id}>
@@ -102,17 +120,27 @@
       {/if}
     </button>
 
+    <button
+      type="button"
+      class="remove"
+      title={`Remove ${item.fileName}`}
+      aria-label={`Remove ${item.fileName}`}
+      onclick={removeImage}
+      onpointerdown={stopSelect}
+    >
+      ×
+    </button>
+
     {#if download}
       <!-- Glass circle + down-arrow, top-right, as a SIBLING of the select
-           button (an interactive anchor can't nest inside a button). Appears on
+           button (interactive controls can't nest inside a button). Appears on
            cell hover / thumb focus; a click saves the file. -->
-      <a
+      <button
+        type="button"
         class="download"
-        href={download.url}
-        download={download.fileName}
         title={`Download ${download.fileName}`}
         aria-label={`Download ${download.fileName}`}
-        onclick={stopSelect}
+        onclick={downloadImage}
         onpointerdown={stopSelect}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -125,7 +153,7 @@
             stroke-linejoin="round"
           />
         </svg>
-      </a>
+      </button>
     {/if}
   </div>
 
@@ -234,7 +262,7 @@
      concept, matching the strip ring + left panel. */
   .override-dot {
     position: absolute;
-    top: 6px;
+    bottom: 6px;
     left: 6px;
     width: 8px;
     height: 8px;
@@ -272,14 +300,12 @@
     font-size: 1.2rem;
   }
 
-  /* ── Hover / focus download button ──────────────────────────────────────── */
-  /* A glass circle in the thumb's top-right, matching production's save
-     affordance. Hidden until the cell is hovered or the thumb is focused,
-     so the resting strip stays clean. */
-  .download {
+  /* ── Hover / focus corner buttons ──────────────────────────────────────── */
+  .download,
+  .remove {
     position: absolute;
     top: 6px;
-    right: 6px;
+    z-index: 3;
     width: 30px;
     height: 30px;
     display: grid;
@@ -300,10 +326,29 @@
       color 150ms ease,
       border-color 150ms ease;
     text-decoration: none;
+    font: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+  .download {
+    right: 6px;
+  }
+  .remove {
+    left: 6px;
   }
   .cell:hover .download,
+  .cell:hover .remove,
   .thumb-wrap:focus-within .download,
+  .thumb-wrap:focus-within .remove,
   .download:focus-visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+  .remove:focus-visible {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
@@ -312,7 +357,12 @@
     color: var(--accent-2, #53b2ff);
     border-color: var(--accent-2, #53b2ff);
   }
-  .download:focus-visible {
+  .remove:hover {
+    color: var(--bad, #ff7d92);
+    border-color: var(--bad, #ff7d92);
+  }
+  .download:focus-visible,
+  .remove:focus-visible {
     outline: 2px solid var(--accent-2, #53b2ff);
     outline-offset: 2px;
   }
@@ -398,9 +448,18 @@
       transition: opacity 100ms ease;
       transform: none;
     }
+    .remove {
+      transition: opacity 100ms ease;
+      transform: none;
+    }
     .cell:hover .download,
+    .cell:hover .remove,
     .thumb-wrap:focus-within .download,
+    .thumb-wrap:focus-within .remove,
     .download:focus-visible {
+      transform: none;
+    }
+    .remove:focus-visible {
       transform: none;
     }
     .spinner {

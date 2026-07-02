@@ -34,6 +34,8 @@ import {
   getSelectedJob,
   getSettingsOverridePaths,
   normalizeBulkSessionCounters,
+  removeJobs,
+  revokeJobObjectUrls,
   revokeSessionObjectUrls,
   resetJobForQueue,
   selectJob,
@@ -369,6 +371,7 @@ export class LabBulk {
     if (files.length === 0) return;
 
     const hadSelection = this.session.selectedJobId !== undefined;
+    const previousJobCount = this.session.jobs.length;
     const result = createImageJobs(files);
     // addBulkImportToSession keeps existing jobs; auto-selects first if none.
     this.session = addBulkImportToSession(this.session, result);
@@ -376,7 +379,8 @@ export class LabBulk {
     else this.#pruneSelection();
 
     // Decode thumbnails for the newly accepted jobs (fire-and-forget each).
-    for (const job of result.accepted) {
+    // Use the POST-add ids, because the engine may suffix duplicate file ids.
+    for (const job of this.session.jobs.slice(previousJobCount)) {
       void this.#ensureThumb(job.id, job.sourceFile);
     }
 
@@ -466,6 +470,14 @@ export class LabBulk {
     this.#selectionOrder = [];
     this.session = { ...this.session, selectedJobId: undefined };
     this.panelScope = 'global';
+  }
+
+  removeOne(id: string): void {
+    this.#removeJobIds([id]);
+  }
+
+  removeSelected(): void {
+    this.#removeJobIds(this.#selectedJobIds());
   }
 
   /**
@@ -956,6 +968,100 @@ export class LabBulk {
   /** Cancel any in-flight processing (returns active jobs to the queue). */
   cancelProcessing(): void {
     this.runtime.cancelProcessing(this);
+  }
+
+  #removeJobIds(ids: string[]): void {
+    const removeIds = Array.from(new Set(ids)).filter((id) =>
+      this.session.jobs.some((job) => job.id === id),
+    );
+    if (removeIds.length === 0) return;
+
+    const removeSet = new Set(removeIds);
+    const jobsBefore = this.session.jobs;
+    const removedJobs = jobsBefore.filter((job) => removeSet.has(job.id));
+    const removedActive = removedJobs.some(
+      (job) => job.status === 'decoding' || job.status === 'processing',
+    );
+    const fallbackAnchor = this.#anchorAfterRemoval(removeSet);
+
+    if (removedActive) {
+      this.runtime.cancelProcessing(this);
+    }
+
+    this.#revokeRemovedJobs(removedJobs);
+    this.session = {
+      ...removeJobs(this.session, removeIds),
+      selectedJobId: fallbackAnchor,
+    };
+    this.#selectionOrder = this.#selectionOrder.filter(
+      (id) =>
+        !removeSet.has(id) && this.session.jobs.some((job) => job.id === id),
+    );
+    this.selectedIds.clear();
+    for (const id of this.#selectionOrder) this.selectedIds.add(id);
+
+    if (fallbackAnchor && !this.selectedIds.has(fallbackAnchor)) {
+      this.selectedIds.add(fallbackAnchor);
+      this.#selectionOrder = [...this.#selectionOrder, fallbackAnchor];
+    }
+    if (!fallbackAnchor) {
+      this.selectedIds.clear();
+      this.#selectionOrder = [];
+      this.panelScope = 'global';
+    } else {
+      this.panelScope = 'image';
+    }
+    this.#pinCurrentOutputs();
+
+    toast(
+      removedJobs.length === 1
+        ? `Removed ${removedJobs[0].sourceFile.name}`
+        : `Removed ${removedJobs.length} images`,
+    );
+
+    if (this.session.jobs.some((job) => job.status === 'queued')) {
+      void this.runtime.run(this);
+    }
+  }
+
+  #anchorAfterRemoval(removeSet: Set<string>): string | undefined {
+    const anchor = this.session.selectedJobId;
+    const remainingJobs = this.session.jobs.filter(
+      (job) => !removeSet.has(job.id),
+    );
+    if (remainingJobs.length === 0) return undefined;
+    if (anchor && !removeSet.has(anchor)) return anchor;
+    if (!anchor) return undefined;
+
+    const anchorIndex = this.session.jobs.findIndex((job) => job.id === anchor);
+    const selectedSurvivors = remainingJobs.filter((job) =>
+      this.selectedIds.has(job.id),
+    );
+    const candidates =
+      selectedSurvivors.length > 0 ? selectedSurvivors : remainingJobs;
+    return (
+      candidates.find((job) => {
+        const index = this.session.jobs.findIndex((item) => item.id === job.id);
+        return index > anchorIndex;
+      })?.id ?? candidates.at(-1)?.id
+    );
+  }
+
+  #revokeRemovedJobs(jobs: ImageJob[]): void {
+    const revoked = new Set<string>();
+    for (const job of jobs) {
+      const thumb = this.thumbs.get(job.id);
+      if (thumb) {
+        URL.revokeObjectURL(thumb.url);
+        this.thumbs.delete(job.id);
+      }
+      revokeJobObjectUrls(job, (url) => {
+        if (revoked.has(url)) return;
+        URL.revokeObjectURL(url);
+        revoked.add(url);
+      });
+      this.#outputCache.deleteJob(job.id, revoked);
+    }
   }
 
   /** Tear down the whole lab: cancel, revoke every URL, start fresh. */

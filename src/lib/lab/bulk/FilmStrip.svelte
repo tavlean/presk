@@ -7,10 +7,43 @@
 
   const items = $derived(labBulk.stripItems);
   const selection = createStripSelectionController();
+  const thumbCount = $derived(labBulk.thumbs.size);
+
+  const EDGE_THRESHOLD = 2;
+  let scroller = $state<HTMLElement>();
+  let fadeLeft = $state(false);
+  let fadeRight = $state(false);
+
+  function updateScrollFades(): void {
+    if (!scroller) return;
+    const max = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    fadeLeft = max > EDGE_THRESHOLD && scroller.scrollLeft > EDGE_THRESHOLD;
+    fadeRight =
+      max > EDGE_THRESHOLD && scroller.scrollLeft < max - EDGE_THRESHOLD;
+  }
+
+  $effect(() => {
+    if (!scroller) return;
+    const observer = new ResizeObserver(updateScrollFades);
+    observer.observe(scroller);
+    updateScrollFades();
+    return () => observer.disconnect();
+  });
+
+  $effect(() => {
+    items.length;
+    thumbCount;
+    queueMicrotask(updateScrollFades);
+  });
 </script>
 
+<svelte:window onresize={updateScrollFades} />
+
 <div
+  bind:this={scroller}
   class="filmstrip"
+  class:fade-left={fadeLeft}
+  class:fade-right={fadeRight}
   role="listbox"
   aria-label="Images"
   tabindex="-1"
@@ -20,6 +53,7 @@
   onpointermove={selection.onPointermove}
   onpointerup={selection.onPointerup}
   onpointercancel={selection.onPointercancel}
+  onscroll={updateScrollFades}
 >
   {#each items as item (item.id)}
     <StripCell {item} mode="s" />
@@ -30,6 +64,7 @@
   /* Quiet dock: sits inside the strip-region the layout reserves for it.
      Horizontal scroll with no scrollbar chrome until the strip is hovered. */
   .filmstrip {
+    --strip-fade-size: 32px;
     display: flex;
     align-items: center;
     /* Safe centering: the row is centered while the thumbs fit, but the moment
@@ -43,6 +78,50 @@
     padding: 6px 0;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
+  }
+  .filmstrip.fade-left {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--strip-fade-size),
+      #000 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--strip-fade-size),
+      #000 100%
+    );
+  }
+  .filmstrip.fade-right {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - var(--strip-fade-size)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - var(--strip-fade-size)),
+      transparent
+    );
+  }
+  .filmstrip.fade-left.fade-right {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--strip-fade-size),
+      #000 calc(100% - var(--strip-fade-size)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--strip-fade-size),
+      #000 calc(100% - var(--strip-fade-size)),
+      transparent
+    );
   }
   .filmstrip::-webkit-scrollbar {
     height: 6px;

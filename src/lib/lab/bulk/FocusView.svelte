@@ -163,6 +163,16 @@
       }
     }
 
+    if (
+      (event.key === 'Delete' || event.key === 'Backspace') &&
+      selectedCount > 0 &&
+      !typeable
+    ) {
+      event.preventDefault();
+      labBulk.removeSelected();
+      return;
+    }
+
     if (event.key === 'Escape' && phoneSheet !== 'none') {
       event.preventDefault();
       phoneSheet = 'none';

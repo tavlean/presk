@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
-  import { SvelteSet } from 'svelte/reactivity';
+  import { SvelteMap, SvelteSet } from 'svelte/reactivity';
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
   import BatchInfoPanel from './BatchInfoPanel.svelte';
   import DeltaPill from './DeltaPill.svelte';
@@ -19,7 +19,10 @@
   const file = $derived(labBulk.selectedFile);
   const thumb = $derived(labBulk.selectedThumb);
   const visibleProcessingIds = new SvelteSet<string>();
-  const processingTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  const processingTimers = new SvelteMap<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
 
   const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB'];
 
@@ -76,7 +79,64 @@
     onReseed();
   }
 
+  function openCardFromKey(event: KeyboardEvent, id: string): void {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    if (event.shiftKey) labBulk.selectRangeTo(id);
+    else if (event.metaKey || event.ctrlKey) labBulk.toggleSelection(id);
+    else {
+      labBulk.select(id);
+      labBulk.openFocusFromGrid();
+      onReseed();
+    }
+  }
+
+  function stopCard(event: Event): void {
+    event.stopPropagation();
+  }
+
+  function removeImage(event: Event, id: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    labBulk.removeOne(id);
+  }
+
+  function downloadImage(
+    event: Event,
+    download: { url: string; fileName: string },
+  ): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const anchor = document.createElement('a');
+    anchor.href = download.url;
+    anchor.download = download.fileName;
+    anchor.click();
+  }
+
+  function isTypeableTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof HTMLElement)) return false;
+    const tag = target.tagName;
+    return (
+      tag === 'TEXTAREA' ||
+      target.isContentEditable ||
+      (tag === 'INPUT' &&
+        !['range', 'checkbox', 'radio'].includes(
+          (target as HTMLInputElement).type,
+        ))
+    );
+  }
+
   function onKeydown(event: KeyboardEvent): void {
+    if (
+      (event.key === 'Delete' || event.key === 'Backspace') &&
+      labBulk.selectedCount > 0 &&
+      !isTypeableTarget(event.target)
+    ) {
+      event.preventDefault();
+      labBulk.removeSelected();
+      return;
+    }
+
     if (event.key === 'Escape' && labBulk.selectedCount > 0) {
       event.preventDefault();
       labBulk.deselect();
@@ -90,14 +150,17 @@
   <main class="cards" aria-label="Images">
     {#each items as item (item.id)}
       {@const itemThumb = labBulk.thumbs.get(item.id)}
-      <button
-        type="button"
+      {@const download = labBulk.downloadFor(item.id)}
+      <div
         class="card"
         class:selected={labBulk.isSelected(item.id)}
         class:anchor={labBulk.selectedId === item.id}
+        role="button"
+        tabindex="0"
         in:fade={{ duration: 150 }}
         title={item.fileName}
         onclick={(event) => openCard(event, item.id)}
+        onkeydown={(event) => openCardFromKey(event, item.id)}
       >
         <span class="thumb-wrap">
           {#if itemThumb}
@@ -116,6 +179,39 @@
             </span>
           {:else if item.statusGroup === 'failed'}
             <span class="failed-overlay" aria-label="Failed">!</span>
+          {/if}
+
+          <button
+            type="button"
+            class="remove"
+            title={`Remove ${item.fileName}`}
+            aria-label={`Remove ${item.fileName}`}
+            onclick={(event) => removeImage(event, item.id)}
+            onpointerdown={stopCard}
+          >
+            ×
+          </button>
+
+          {#if download}
+            <button
+              type="button"
+              class="download"
+              title={`Download ${download.fileName}`}
+              aria-label={`Download ${download.fileName}`}
+              onclick={(event) => downloadImage(event, download)}
+              onpointerdown={stopCard}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M12 4v11m0 0l-4.2-4.2M12 15l4.2-4.2M5 19h14"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
           {/if}
         </span>
 
@@ -138,7 +234,7 @@
             {/if}
           </span>
         </span>
-      </button>
+      </div>
     {/each}
   </main>
 
@@ -224,6 +320,7 @@
   }
 
   .card {
+    position: relative;
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -285,8 +382,8 @@
 
   .override-dot {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    bottom: 8px;
+    left: 8px;
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -321,6 +418,73 @@
     color: var(--bad, #ff7d92);
     font-weight: 700;
     font-size: 1.5rem;
+  }
+
+  .remove,
+  .download {
+    position: absolute;
+    top: 8px;
+    z-index: 3;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--text-1, #f5f5f7);
+    background: rgba(12, 12, 15, 0.62);
+    border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.16));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transform: scale(0.86);
+    pointer-events: none;
+    transition:
+      opacity 150ms ease,
+      transform 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease;
+    text-decoration: none;
+    font: inherit;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+  .remove {
+    left: 8px;
+  }
+  .download {
+    right: 8px;
+  }
+  .card:hover .remove,
+  .card:hover .download,
+  .card:focus-within .remove,
+  .card:focus-within .download,
+  .remove:focus-visible,
+  .download:focus-visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+  .remove:hover {
+    color: var(--bad, #ff7d92);
+    border-color: var(--bad, #ff7d92);
+  }
+  .download:hover {
+    color: var(--accent-2, #53b2ff);
+    border-color: var(--accent-2, #53b2ff);
+  }
+  .remove:focus-visible,
+  .download:focus-visible {
+    outline: 2px solid var(--accent-2, #53b2ff);
+    outline-offset: 2px;
+  }
+  .download svg {
+    width: 15px;
+    height: 15px;
+    display: block;
   }
 
   .card-body {

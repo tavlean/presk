@@ -50,6 +50,20 @@ export class LabOutputCache {
     this.#evictJob(jobId);
   }
 
+  deleteJob(jobId: string, alreadyRevoked = new Set<string>()): void {
+    const entries = this.#jobs.get(jobId);
+    if (!entries) return;
+
+    for (const output of entries.values()) {
+      this.#pinnedUrls.delete(output.downloadUrl);
+      if (!alreadyRevoked.has(output.downloadUrl)) {
+        URL.revokeObjectURL(output.downloadUrl);
+        alreadyRevoked.add(output.downloadUrl);
+      }
+    }
+    this.#jobs.delete(jobId);
+  }
+
   clear(): void {
     for (const entries of this.#jobs.values()) {
       for (const output of entries.values()) {
