@@ -1,7 +1,12 @@
 # Bulk UI — design options & feature roadmap
 
 Last updated: 2026-07-02.
-Status: options written for maintainer shortlist (design session 2026-07-02).
+Status: in design. Round 1: options written. Round 2 (same day): maintainer
+confirmed **no separate `/bulk` route (A2 out)**, **ZIP in v1**, and the
+**size-increase guardrail in v1**; concept images generated to
+`~/Downloads/sqush-ui-concepts/`; §10–§12 added (A1↔A3 horizons, save
+destination + settings panel, crop + export renditions). Awaiting layout +
+override-signaling shortlist.
 This is the "Design First" step required by [road-map.md](road-map.md) before
 any production bulk UI. Engine reference: [bulk-image-architecture.md](bulk-image-architecture.md).
 
@@ -42,9 +47,9 @@ What does **not** exist:
 
 | | Option | Verdict |
 |---|---|---|
-| A1 | **Mode of the same route**: dropping/picking N files at the app boundary routes to bulk; 1 file keeps today's editor untouched | **Recommended.** Protects the single-image workflow (roadmap principle #1), no URL churn, matches the existing "detect at boundary" note |
-| A2 | Separate `/bulk` route sharing the core | Same work + navigation seams; only wins if bulk needs its own shareable URL — it doesn't (nothing is shareable in a local-first app) |
-| A3 | First-principles unification: *everything is a batch, single image = batch of 1* | Elegant end-state, but as a first step it rebuilds the proven single-image editor. Design the bulk mode so the mental model *converges* on this later instead |
+| A1 | **Mode of the same route**: dropping/picking N files at the app boundary routes to bulk; 1 file keeps today's editor untouched | **Chosen path** — but as the *starting point* of a declared A1→A3 convergence, not a permanent split. See §10 |
+| A2 | Separate `/bulk` route sharing the core | **Rejected by maintainer (2026-07-02).** |
+| A3 | First-principles unification: *everything is a batch, single image = batch of 1* | The right *end-state* (every planned feature — crop, renditions, save-to-folder — is batch-shaped). Wrong as a *first step*: it rebuilds the proven editor before shipping any bulk value. Reached via the convergence rules in §10 |
 
 ## 3. Decision B — the main layout (the real choice)
 
@@ -139,18 +144,18 @@ now — live two-slider comparison is genuinely used, and MFC isn't built.)
 
 ## 6. Export — revising one old decision
 
-The old plan said "individual downloads first, ZIP later". **Recommend ZIP in
-v1**: N programmatic downloads trip browser multi-download blocking (bad first
-impression), upstream demand is explicitly for ZIP (Squoosh #1428), and the
-memory argument is weak — outputs are already-compressed blobs held in memory
-either way; `client-zip` (~2.4 kB, streaming, STORE mode — no recompression)
-adds almost nothing. Per-image download buttons stay. Later: File System
-Access API "save to folder" (Chromium progressive enhancement), naming
-templates, folder-structure preservation.
+The old plan said "individual downloads first, ZIP later". **CONFIRMED
+(maintainer, 2026-07-02): ZIP in v1.** N programmatic downloads trip browser
+multi-download blocking (bad first impression), upstream demand is explicitly
+for ZIP (Squoosh #1428), and the memory argument is weak — outputs are
+already-compressed blobs held in memory either way; `client-zip` (~2.4 kB,
+streaming, STORE mode — no recompression) adds almost nothing. Per-image
+download buttons stay. Save-to-folder is now a designed follow-up, not a vague
+"later" — see §11.
 
-Also in v1, the **size-increase guardrail** (upstream #984): amber card when
-output ≥ original + a "keep original when larger" export toggle (default on) —
-"never ship a bigger file" is a promise worth making.
+Also **CONFIRMED for v1**: the **size-increase guardrail** (upstream #984) —
+amber card when output ≥ original + a "keep original when larger" export
+toggle (default on). "Never ship a bigger file."
 
 ## 7. Open items folded in from docs/upstream (so nothing is missed)
 
@@ -183,7 +188,10 @@ output ≥ original + a "keep original when larger" export toggle (default on) �
 | **1 — Layout decision** | Maintainer shortlists B1/B2 (+ left-side treatment §4). If reading doesn't settle it → **lab**: two variants behind a dev-only route, shared engine wiring, pick by feel | Maintainer eyes |
 | **2 — Minimum Useful Bulk** | Multi-file entry (input `multiple` + boundary routing), reactive bulk store wrapping the engine, worker-bridge pool (2, per-side-bridge pattern), batch home per decision, global WebP panel (reuse existing panels), statuses/sizes/cancel/retry, totals bar, **Save All (ZIP)**, size-increase guard; bulk e2e smoke | Phase 1 decision |
 | **3 — Overrides & focus** | Focus mode reusing two-up + mini-strip nav, per-image scope panel, per-control override dots, card deviation badge, reset (control/image), per-image format override, shallow-routing back-button | Phase 2 |
-| **4 — Scale & polish** | Lazy thumbnails + decode LRU, mixed-size resize UX, AVIF as second bulk format, folder import, naming templates, presets, report, save-to-folder, density toggle | Phase 3 + usage feedback |
+| **4 — Scale & polish** | Lazy thumbnails + decode LRU, mixed-size resize UX, AVIF as second bulk format, folder import, naming templates, presets, report, density toggle; **Settings panel + save destinations** (open-folder → save-back, remembered folders via IndexedDB handles — §11) | Phase 3 + usage feedback |
+| **5 — Crop** | Crop as a `ProcessorState` stage (aspect + normalized focal point — §12): single-image crop UI, bulk global crop + per-image reposition via the override machinery | Phase 3 (override UI) |
+| **Later track — Renditions** | One source → N named export recipes (§12): renditions panel, *(source × rendition)* jobs, grouped grid, naming templates | Phase 5 (crop) + own design pass |
+| **Later track — A3 convergence** | Focus-mode parity checklist → flip single-file entry to a 1-item batch, retire `EditorSession` (§10) | Parity checklist closed |
 
 Priority note: maintainer decision 2026-07-02 — **bulk now outranks
 Multi-Format Compare** in the product order (road-map.md updated accordingly).
@@ -191,7 +199,139 @@ Multi-Format Compare** in the product order (road-map.md updated accordingly).
 ## 9. What to answer to close Phase 1
 
 1. Batch home: **grid (B1)** or **filmstrip (B2)** — or lab both?
+   *(Concept images generated 2026-07-02: `bulk-grid-dashboard.png`,
+   `bulk-focus-mode.png`, `bulk-filmstrip.png`, `bulk-list-table.png` in
+   `~/Downloads/sqush-ui-concepts/`.)*
 2. Left side in bulk: batch panel / batch card as in §4? (Recommended yes.)
-3. Single-image left panel collapse-to-chip: do it, lab it, or leave for later?
-4. ZIP in v1: confirm the revision in §6. (Recommended yes.)
+3. Single-image left panel: collapse-to-chip, an Exports/renditions panel
+   (see §12 + `single-left-renditions-panel.png`), or leave for later?
+4. ~~ZIP in v1~~ — **confirmed yes** (maintainer, 2026-07-02), with the
+   size-increase guardrail also confirmed for v1.
 5. Global resize default for mixed batches: percentage or fit-within box?
+6. Override signaling: dots (`override-signaling-dots.png`) or ring + tinted
+   rows (`override-signaling-ring.png`) — or a mix (dots on controls, ring on
+   cards)?
+
+---
+
+## 10. A1 → A3: the horizon analysis (requested 2026-07-02)
+
+A1 and A3 are not really competing layouts — they are **the same destination
+entered from different ends**. The question is what you pay, and when.
+
+**Short term (first shipping bulk, ~weeks):**
+
+- *A1*: zero regression risk to the live single-image editor (the product's
+  core promise, covered by the whole e2e suite); every step is additive and
+  committable; bulk value ships soonest. Cost: a second reactive state layer
+  (bulk store beside `EditorSession`) and two parallel signature systems
+  (`sideRecipe` vs `settingsHash`) to keep in your head.
+- *A3*: before ANY bulk value ships, the proven editor must be rebuilt on the
+  bulk engine — undo/redo, the instant result cache, settings persistence,
+  the per-file reset policy, and crucially the **two-slider format A/B, which
+  has no equivalent in the bulk engine** (a "side" is a second recipe for the
+  same job — a new engine concept). Weeks of porting, regression risk on the
+  core workflow, e2e churn.
+
+**Medium term (months):**
+
+- *A1*: the feature tax appears — everything both modes want (crop, settings
+  panel, save-to-folder, presets) needs wiring twice. The *logic* lives once
+  (framework-neutral layer), so the tax is UI/wiring — real but bounded, and
+  the codec-options-model refactor shrinks it further by making option panels
+  model-driven and shareable.
+- *A3*: one state model; each new feature built once; overrides machinery
+  works everywhere (a single image with renditions = per-rendition overrides,
+  for free).
+
+**Long term:**
+
+- *A1 unreconciled*: permanent 2× cost per feature and a codebase with two
+  editors. This is the outcome to refuse.
+- *A3*: clearly correct — every feature now planned (bulk, crop with global
+  aspect + per-image framing, renditions, save-to-folder) is batch-shaped,
+  with "single image" as the 1-item special case.
+
+**Choose A3 outright now only if** you're willing to freeze user-visible
+progress for weeks and absorb regression risk on the core promise — or if a
+lab prototype shows the unified UI is trivially simple. Otherwise:
+
+**The staged convergence (chosen): A1 now, A3 by rule.**
+
+1. **No new feature enters `EditorSession`.** Anything both modes want is
+   built batch-first in the framework-neutral layer, surfaced by thin UI in
+   both places.
+2. **Bulk focus mode chases a written parity checklist** with the single
+   editor: undo/redo, instant cache restore, zoom/compare, settings
+   persistence. Every parity item is a step toward retirement.
+3. **When the checklist closes, flip the entry point**: one file opens a
+   1-item batch; `EditorSession` retires. A3 achieved without a big-bang
+   rewrite — and if priorities shift mid-way, the app is still whole at every
+   intermediate commit.
+
+## 11. Save destination & the Settings panel (feasibility, requested 2026-07-02)
+
+**"Save back to the source folder" is impossible in general** — browsers
+never reveal where a picked/dropped file came from, and nothing can be
+written to disk without an explicit user grant. But the **File System Access
+API** (Chromium — Chrome/Edge; not Safari/Firefox) makes two flows real:
+
+- **Open folder → save back.** `showDirectoryPicker({mode: 'readwrite'})`
+  lets the user hand Sqush a folder once; the app reads the images from it
+  AND writes the optimized outputs back next to them (or into an `optimized/`
+  subfolder). A *dropped folder* also yields a writable directory handle via
+  `getAsFileSystemHandle()`. This is exactly the "working in a folder"
+  workflow described by the maintainer.
+- **Save to folder… (remembered).** At export, a directory picker whose
+  handle is persisted in **IndexedDB** (handles are structured-cloneable;
+  never in `localStorage` — consistent with the existing rule). Next session:
+  one "allow again?" click instead of re-picking. Multiple remembered
+  destinations are possible ("Downloads", "Client X assets", …).
+
+**Not feasible:** individually picked/dropped *files* — no parent-folder
+access. (Chromium can overwrite a dropped file in place, but format
+conversion changes the extension, so in-place overwrite is the wrong tool and
+is skipped.)
+
+**Fallback everywhere else:** ZIP download (v1 behavior). Feature-detect;
+hide what the browser can't do.
+
+**Verdict: feasible, moderate effort, Chromium progressive enhancement** — a
+save-target module + permission UX + IndexedDB handle store. Slotted in Phase
+4. And it seeds the **Settings panel** the maintainer asked about — starting
+small: default destination (Ask / ZIP / remembered folder / back-to-source
+when a folder was opened), "keep original when larger" default, and the
+standing rule that whenever two behaviors are both valid, the choice becomes
+a setting here later.
+
+## 12. Crop & export renditions — forward architecture (requested 2026-07-02)
+
+Neither ships in bulk v1, but both are recorded now because they *validate*
+design decisions being made today.
+
+**Crop (planned feature).** Fits the existing pipeline as a processor stage
+(crop → resize → quantize → encode) and — the important part — as **part of
+`ProcessorState`**, so signatures, staleness, requeue, and per-image
+overrides all work with zero new engine concepts. Design rule: store crop as
+**aspect + normalized focal point** (`{enabled, aspect, targetW×H?, focalX,
+focalY, zoom?}`), *not* a pixel rect — a normalized focal point survives
+mixed image sizes and resize changes. Then the maintainer's bulk-crop
+workflow ("set 1:1 · 1024 globally, click each image, drag what stays
+centered, Save All") is literally: global crop setting + per-image focal
+override — the exact machinery §5 already describes. Viewer work: a
+crop-frame interaction mode on the existing stage
+(`bulk-crop-mode.png` concept). Sequenced as its own phase after overrides
+(Phase 5).
+
+**Export renditions (later track).** "One source → several outputs" (as-is /
+square 1024 / square 256 / wide 16:9…) for asset-pipeline workflows. Model: a
+**rendition = a named partial recipe** (crop + resize + format + options);
+a job becomes a *(source × rendition)* pair. The bulk engine's job model
+already tolerates this — multiple jobs sharing one `sourceFile` — so the
+constraints on today's work are only: (a) never key caches or state by `File`
+identity alone (use source ids), (b) naming templates
+(`{name}-{rendition}.{ext}`) become required with export, (c) the grid UI
+should be able to group jobs by source later. Single-image renditions are the
+`single-left-renditions-panel.png` concept — one candidate answer to "what is
+the left side for". Bulk × renditions (12 sources × 3 renditions = 36 jobs)
+drops out of the same model. Own design pass when its turn comes.
