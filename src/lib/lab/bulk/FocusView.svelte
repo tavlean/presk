@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, type Snippet } from 'svelte';
   import Output from '$lib/editor/output/Output.svelte';
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
@@ -13,9 +13,25 @@
     focusSession: EditorSession;
     onBack?: (() => void) | null;
     onReseed?: (() => void) | null;
+    /**
+     * Optional custom strip renderer (L3/L4). When omitted, FocusView renders
+     * the baseline FilmStrip — so L1/L2 are untouched.
+     */
+    strip?: Snippet | null;
+    /**
+     * Strip-region height in CSS px. Lets a variant grow the dock (L3's L size,
+     * L4's dense two-row mode). Defaults to the baseline 104px.
+     */
+    stripHeight?: number;
   }
 
-  let { focusSession, onBack = null, onReseed = null }: Props = $props();
+  let {
+    focusSession,
+    onBack = null,
+    onReseed = null,
+    strip = null,
+    stripHeight = 104,
+  }: Props = $props();
 
   let isMac = $state(false);
 
@@ -104,7 +120,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="compress sqush-editor">
+<div class="compress sqush-editor" style="--strip-height: {stripHeight}px;">
   <div class="stage-region">
     {#if selectedId}
       <Output
@@ -293,7 +309,11 @@
     aria-label="Image strip"
     onpointerdown={onStripPointerdown}
   >
-    <FilmStrip />
+    {#if strip}
+      {@render strip()}
+    {:else}
+      <FilmStrip />
+    {/if}
   </div>
 </div>
 
@@ -367,6 +387,15 @@
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
+    /* Smooth the dock resize when L3's S/M/L or L4's count-driven mode changes,
+       so the stage grows/shrinks without jank. */
+    transition: height 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .strip-region {
+      transition: none;
+    }
   }
 
   /* Idle resting state for the global scope: no card, no border — a faint

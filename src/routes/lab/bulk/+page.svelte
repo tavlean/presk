@@ -16,6 +16,8 @@
   import Toast from '$lib/lab/bulk/Toast.svelte';
   import L1Home from '$lib/lab/bulk/L1Home.svelte';
   import L2Home from '$lib/lab/bulk/L2Home.svelte';
+  import L3Home from '$lib/lab/bulk/L3Home.svelte';
+  import L4Home from '$lib/lab/bulk/L4Home.svelte';
   import {
     getEffectiveSettings,
     settingsHash,
@@ -580,10 +582,13 @@
     void labBulk.importFiles(Array.from(list));
   }
 
-  async function loadSamples() {
+  const SAMPLE_COUNTS = [5, 12, 30] as const;
+
+  async function loadSamples(count: number) {
+    if (loadingSamples) return;
     loadingSamples = true;
     try {
-      const files = await makeSampleFiles(12);
+      const files = await makeSampleFiles(count);
       await labBulk.importFiles(files);
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Could not build samples');
@@ -629,19 +634,48 @@
         >
           L2
         </button>
+        <button
+          type="button"
+          class:active={labBulk.variant === 'l3'}
+          role="radio"
+          aria-checked={labBulk.variant === 'l3'}
+          onclick={() => setVariant('l3')}
+        >
+          L3
+        </button>
+        <button
+          type="button"
+          class:active={labBulk.variant === 'l4'}
+          role="radio"
+          aria-checked={labBulk.variant === 'l4'}
+          onclick={() => setVariant('l4')}
+        >
+          L4
+        </button>
       </div>
 
       <button type="button" class="btn" onclick={() => fileInput?.click()}>
         Add images
       </button>
-      <button
-        type="button"
-        class="btn"
-        disabled={loadingSamples}
-        onclick={loadSamples}
-      >
-        {loadingSamples ? 'Building…' : 'Load 12 samples'}
-      </button>
+
+      <div class="sample-load" aria-label="Load sample images">
+        <span class="sample-label">
+          {loadingSamples ? 'Building…' : 'Load samples'}
+        </span>
+        <div class="sample-counts">
+          {#each SAMPLE_COUNTS as count (count)}
+            <button
+              type="button"
+              class="sample-count"
+              disabled={loadingSamples}
+              onclick={() => loadSamples(count)}
+            >
+              {count}
+            </button>
+          {/each}
+        </div>
+      </div>
+
       <button type="button" class="btn ghost" onclick={resetLab}>Reset</button>
 
       <input
@@ -657,8 +691,12 @@
     {#if labBulk.hasJobs}
       {#if labBulk.variant === 'l1'}
         <L1Home {focusSession} onReseed={seedFocusFromSelected} />
-      {:else}
+      {:else if labBulk.variant === 'l2'}
         <L2Home {focusSession} onReseed={seedFocusFromSelected} />
+      {:else if labBulk.variant === 'l3'}
+        <L3Home {focusSession} onReseed={seedFocusFromSelected} />
+      {:else}
+        <L4Home {focusSession} onReseed={seedFocusFromSelected} />
       {/if}
     {:else}
       <main class="dropzone">
@@ -666,7 +704,7 @@
           <p class="drop-title">Drop images to start</p>
           <p class="drop-hint">
             or use <strong>Add images</strong> /
-            <strong>Load 12 samples</strong> above.
+            <strong>Load samples</strong> above.
           </p>
         </div>
       </main>
@@ -785,6 +823,48 @@
 
   .btn.ghost {
     color: var(--text-2, rgba(235, 235, 245, 0.62));
+  }
+
+  /* Sample-count control: a quiet label + three count buttons (5 · 12 · 30),
+     replacing the single "Load 12 samples" button. Reads as one cluster. */
+  .sample-load {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px 0 8px;
+  }
+  .sample-label {
+    color: var(--text-2, rgba(235, 235, 245, 0.62));
+    font-weight: 650;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  .sample-counts {
+    display: inline-flex;
+    padding: 2px;
+    border-radius: 999px;
+    background: var(--surface-raise, rgba(255, 255, 255, 0.06));
+  }
+  .sample-count {
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-1, #f5f5f7);
+    font: inherit;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      opacity 150ms ease;
+  }
+  .sample-count:hover:not(:disabled) {
+    background: var(--surface-raise-2, rgba(255, 255, 255, 0.09));
+  }
+  .sample-count:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 
   .hidden-input {

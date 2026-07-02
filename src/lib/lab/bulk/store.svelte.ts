@@ -27,6 +27,7 @@ import {
   applyJobOverrides,
   createBulkSessionFromImport,
   createImageJobs,
+  getBulkOutputFileName,
   getBulkSelectedJobDetail,
   getBulkSessionSummary,
   getBulkStripItems,
@@ -69,8 +70,17 @@ export interface LabThumb {
   h: number;
 }
 
-export type LabVariant = 'l1' | 'l2';
+export type LabVariant = 'l1' | 'l2' | 'l3' | 'l4';
 export type BulkPanelScope = 'global' | 'image';
+/** L3's strip zoom (persists for the session in the store). */
+export type StripSize = 's' | 'm' | 'l';
+
+/** A ready-to-download output for one job: the URL the engine minted + the
+ *  export-safe filename. `undefined` while the job has no current output. */
+export interface JobDownload {
+  url: string;
+  fileName: string;
+}
 
 /** The two overridable WebP option leaves the lab exposes as controls. */
 export type LabOverridablePath = 'quality' | 'method';
@@ -260,6 +270,9 @@ export class LabBulk {
   session = $state.raw<BulkSession>(emptySession());
   // Which layout variant the lab is showing (bound to the top-bar toggle).
   variant = $state<LabVariant>('l1');
+  // L3's strip zoom (S/M/L). Session-scoped: persists across selections but not
+  // reloads, matching the store's other in-memory lab state.
+  stripSize = $state<StripSize>('m');
   // Which settings scope the right panel edits.
   panelScope = $state<BulkPanelScope>('global');
   // Production OptionsPanel-compatible pseudo-side for GLOBAL bulk settings.
@@ -531,6 +544,20 @@ export class LabBulk {
     return webpOptions(
       getEffectiveSettings(this.session.globalSettings, job?.overrides),
     );
+  }
+
+  /**
+   * The ready-to-download output for a job (the engine-minted URL + an
+   * export-safe filename), or `undefined` while the job has no current output.
+   * Powers the strip's per-thumb hover-download affordance.
+   */
+  downloadFor(jobId: string): JobDownload | undefined {
+    const job = this.session.jobs.find((item) => item.id === jobId);
+    if (!job?.output) return undefined;
+    return {
+      url: job.output.downloadUrl,
+      fileName: getBulkOutputFileName(job),
+    };
   }
 
   /** All overridden dotted paths for a job (for the corner dot / tooltip). */
