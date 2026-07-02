@@ -172,6 +172,21 @@ panel shows a subset face (count + Formats + Largest over the selection).
 Also same day: **Phase 0 landed on `main`** — Vitest bulk-engine suite,
 9 files / 58 tests (`npm run test:unit`), test-plan §4 statuses updated.
 
+**Round 7 (2026-07-02) — L3 FINALIZED as the layout direction.** With it:
+(1) **the before/after divider follows the IMAGE, not the viewport**
+(maintainer decision; `Output.svelte` gained an optional
+`orientationOverride` prop, default-preserving, e2e-verified): left-right
+compare stays on narrow screens for landscape/square images (w/h >= 0.95);
+only clearly-portrait images flip to top-bottom. Candidate production
+change for Phase 2 (log a parity-audit deviation when adopted). (2) size
+picker went vertical (L→M→S, same thumbnail glyph at three sizes). (3) the
+**mobile stack**: <=620px wide or <=500px tall — sticky hero summary bar
+(totals + Save all; tap expands the info sheet), settings as a full-width
+bottom sheet from a scope-colored FAB with the scope tabs on top, stage +
+strip always visible; touch disables drag-select to preserve native strip
+scrolling (long-press toggle = recommended follow-up). Open: L2 grid's
+fate as a secondary view; L4 loses to L3 (remove at promotion).
+
 So the two variants share the focus view itself; the lab question is **what
 you land on and how navigating scope feels**. B3 (table) stays rejected as
 primary; candidate for a grid density toggle later.
