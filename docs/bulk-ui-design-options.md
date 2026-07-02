@@ -141,6 +141,22 @@ Delta indicators use the production arrow everywhere (green down / amber
 up). This scope model is a PRODUCT decision, not just a lab detail — Phase 2
 implements it.
 
+**Round 5 (2026-07-02, "surgical audit" + experiments).** Baseline fixes:
+full type-scale pass; **color language: coral = global/batch, azure = this
+image** (panel sliders recolor by scope, azure selection ring + override
+dots); production dot-grid on the resting stage; numbers deduplicated (left
+footer owns the batch result; right global footer is a caption); global
+face gained Formats / Total size / Largest rows; compact <=900px layout —
+strip + viewer controls never hidden, verified to 700px. Bug found via
+instrumentation: the "re-encode on click" was the FOCUS PREVIEW re-encoding,
+not the queue — the lab now hydrates the preview from the finished batch
+output (**Phase-2 rule: never re-encode on inspect; reuse batch outputs**).
+NEW experiment variants (both with per-thumb hover DOWNLOAD buttons and
+5/12/30 sample loaders): **L3 "Rich strip"** — S/M/L thumbnail size control
+(104/148/210px), richer captions at bigger sizes; **L4 "Adaptive dock"** —
+the strip picks its shape from the count (big cells <=6, medium row 7-18,
+dense wrapping dock >18). Toggle is L1-L4; awaiting the maintainer's pick.
+
 So the two variants share the focus view itself; the lab question is **what
 you land on and how navigating scope feels**. B3 (table) stays rejected as
 primary; candidate for a grid density toggle later.
