@@ -142,7 +142,7 @@
           class="load-btn"
           type="button"
           onclick={onOpenClick}
-          aria-label="Select an image"
+          aria-label="Select images"
         >
           <svg viewBox="0 0 18 18" class="load-icon" aria-hidden="true">
             <path
