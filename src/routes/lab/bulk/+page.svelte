@@ -15,6 +15,7 @@
   import { toast } from '$lib/lab/bulk/Toast.svelte';
   import Toast from '$lib/lab/bulk/Toast.svelte';
   import Home from '$lib/lab/bulk/Home.svelte';
+  import ViewModePicker from '$lib/lab/bulk/ViewModePicker.svelte';
   import {
     getEffectiveSettings,
     type BulkImageOverrides,
@@ -661,6 +662,10 @@
 
       <button type="button" class="btn ghost" onclick={resetLab}>Reset</button>
 
+      {#if labBulk.hasJobs}
+        <ViewModePicker />
+      {/if}
+
       <input
         bind:this={fileInput}
         class="hidden-input"
@@ -741,6 +746,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    max-width: calc(100vw - 28px);
+    box-sizing: border-box;
     padding: 6px;
     border-radius: 999px;
     background: var(--surface, rgba(19, 19, 25, 0.82));
@@ -865,9 +872,15 @@
       left: 8px;
       right: 8px;
       top: 8px;
+      max-width: calc(100vw - 16px);
       overflow-x: auto;
       justify-content: flex-end;
       border-radius: 18px;
+      scrollbar-width: none;
+    }
+
+    .lab-controls::-webkit-scrollbar {
+      display: none;
     }
 
     .btn {

@@ -21,7 +21,7 @@
   {#each OPTIONS as option (option.id)}
     <button
       type="button"
-      class:active={labBulk.stripSize === option.id}
+      class={{ active: labBulk.stripSize === option.id }}
       role="radio"
       aria-checked={labBulk.stripSize === option.id}
       title={option.title}
@@ -92,10 +92,9 @@
     flex: none;
     align-self: center;
     display: inline-flex;
-    flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: 3px;
+    gap: 1px;
+    padding: 2px;
     border-radius: 999px;
     background: var(--surface-raise, rgba(255, 255, 255, 0.06));
     border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
@@ -103,8 +102,8 @@
   .view-mode button {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 31px;
+    height: 31px;
     padding: 0;
     border: none;
     border-radius: 999px;
@@ -117,8 +116,8 @@
       transform 150ms ease;
   }
   .view-mode button svg {
-    width: 22px;
-    height: 22px;
+    width: 21px;
+    height: 21px;
     display: block;
   }
   .view-mode button:hover:not(.active) {
@@ -137,6 +136,17 @@
   @media (prefers-reduced-motion: reduce) {
     .view-mode button:hover:not(.active) {
       transform: none;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .view-mode button {
+      width: 28px;
+      height: 28px;
+    }
+    .view-mode button svg {
+      width: 19px;
+      height: 19px;
     }
   }
 </style>

@@ -74,10 +74,14 @@
     justify-content: safe center;
     gap: 8px;
     width: 100%;
+    height: 100%;
+    box-sizing: border-box;
     overflow-x: auto;
-    padding: 6px 0;
+    padding: 6px 12px;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
+    user-select: none;
+    -webkit-user-select: none;
   }
   .filmstrip.fade-left {
     -webkit-mask-image: linear-gradient(

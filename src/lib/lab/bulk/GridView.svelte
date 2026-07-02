@@ -5,7 +5,6 @@
   import BatchInfoPanel from './BatchInfoPanel.svelte';
   import DeltaPill from './DeltaPill.svelte';
   import GlobalOptionsPanel from './GlobalOptionsPanel.svelte';
-  import ViewModePicker from './ViewModePicker.svelte';
   import { labBulk } from './store.svelte';
 
   interface Props {
@@ -238,10 +237,6 @@
     {/each}
   </main>
 
-  <div class="view-picker">
-    <ViewModePicker />
-  </div>
-
   <aside class="options options-1">
     <BatchInfoPanel {file} width={thumb?.w ?? 0} height={thumb?.h ?? 0} />
   </aside>
@@ -277,14 +272,7 @@
     align-content: start;
     min-height: 0;
     overflow-y: auto;
-    padding: 2px 48px 12px 2px;
-  }
-
-  .view-picker {
-    position: absolute;
-    top: 74px;
-    right: calc(var(--fit-inset-right) + 10px);
-    z-index: 8;
+    padding: 2px 2px 12px;
   }
 
   .options {
@@ -541,12 +529,6 @@
       right: var(--panel-inset);
       bottom: calc(var(--mobile-options-height) + var(--panel-inset) * 2);
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      padding-right: 46px;
-    }
-
-    .view-picker {
-      top: 66px;
-      right: calc(var(--panel-inset) + 6px);
     }
 
     .options {

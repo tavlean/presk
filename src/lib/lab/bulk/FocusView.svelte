@@ -192,12 +192,6 @@
     if (event.key === 'ArrowLeft') labBulk.selectPrevious();
     else labBulk.selectNext();
   }
-
-  function onStripPointerdown(event: PointerEvent): void {
-    const target = event.target as HTMLElement | null;
-    if (target?.closest('button, [data-bulk-cell-id]')) return;
-    labBulk.deselect();
-  }
 </script>
 
 <svelte:window
@@ -477,12 +471,7 @@
     {/if}
   </div>
 
-  <div
-    class="strip-region"
-    role="group"
-    aria-label="Image strip"
-    onpointerdown={onStripPointerdown}
-  >
+  <div class="strip-region" role="group" aria-label="Image strip">
     {#if strip}
       {@render strip()}
     {:else}
@@ -554,13 +543,15 @@
     height: var(--strip-height);
     width: 100%;
     box-sizing: border-box;
-    padding: 0 10px;
+    padding: 0;
     border-top: 1px solid var(--border, rgba(255, 255, 255, 0.06));
     background: color-mix(in srgb, var(--bg-0, #0c0c0f) 82%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
     /* Smooth the dock resize when S/M/L changes, so the stage
        grows/shrinks without jank. */
     transition: height 220ms cubic-bezier(0.22, 0.61, 0.36, 1);

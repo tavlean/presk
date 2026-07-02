@@ -1,10 +1,8 @@
 <script lang="ts">
-  // Size-adjustable rich strip. The shared view-mode control sits in the strip's
-  // right corner and persists (session-scoped) in the store. The chosen size
-  // drives both the cell footprint and the strip-region height.
+  // Size-adjustable rich strip. The top lab control chooses grid/S/M/L; this
+  // component only renders the current focus-strip size.
   import { labBulk } from './store.svelte';
   import StripCell from './StripCell.svelte';
-  import ViewModePicker from './ViewModePicker.svelte';
   import { createStripSelectionController } from './strip-selection';
 
   const items = $derived(labBulk.stripItems);
@@ -64,8 +62,6 @@
       <StripCell {item} mode={size} />
     {/each}
   </div>
-
-  <ViewModePicker />
 </div>
 
 <style>
@@ -88,10 +84,14 @@
     gap: 10px;
     flex: 1;
     min-width: 0;
+    height: 100%;
+    box-sizing: border-box;
     overflow-x: auto;
-    padding: 8px 2px;
+    padding: 8px 12px;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
+    user-select: none;
+    -webkit-user-select: none;
   }
   .scroller.fade-left {
     -webkit-mask-image: linear-gradient(

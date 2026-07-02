@@ -5,8 +5,8 @@ const DRAG_THRESHOLD = 4;
 
 interface DragState {
   pointerId: number;
-  startId: string;
-  lastId: string;
+  startId: string | undefined;
+  lastId: string | undefined;
   x: number;
   y: number;
   dragging: boolean;
@@ -66,13 +66,17 @@ export function createStripSelectionController(): {
       const modifiers = pendingClickModifiers;
       pendingClickId = undefined;
       pendingClickModifiers = undefined;
-      if (!id) return;
 
       event.preventDefault();
       event.stopPropagation();
 
       if (suppressClick) {
         suppressClick = false;
+        return;
+      }
+
+      if (!id) {
+        labBulk.deselect();
         return;
       }
 
@@ -101,7 +105,6 @@ export function createStripSelectionController(): {
     onPointerdown(event: PointerEvent): void {
       if (!event.isPrimary || event.button !== 0) return;
       const id = cellIdFromTarget(event.target);
-      if (!id) return;
 
       drag = {
         pointerId: event.pointerId,
@@ -142,13 +145,29 @@ export function createStripSelectionController(): {
         const dy = event.clientY - drag.y;
         if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
         drag.dragging = true;
-        labBulk.selectDragRange(drag.startId, drag.startId);
       }
 
-      const id = cellIdAtPoint(event.clientX, event.clientY) ?? drag.lastId;
+      const hitId = cellIdAtPoint(event.clientX, event.clientY);
+      if (!drag.startId) {
+        if (!hitId) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        drag.startId = hitId;
+        drag.lastId = hitId;
+        labBulk.selectDragRange(hitId, hitId);
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      const startId = drag.startId;
+      if (!startId) return;
+      const id = hitId ?? drag.lastId;
       if (id !== drag.lastId) {
         drag.lastId = id;
-        labBulk.selectDragRange(drag.startId, id);
+        if (id) labBulk.selectDragRange(startId, id);
       }
       event.preventDefault();
       event.stopPropagation();
