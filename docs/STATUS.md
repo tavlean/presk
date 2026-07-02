@@ -37,7 +37,11 @@ browser, the build is static, and offline reload must work after load.
   ZIP remains a stubbed toast. **The Phase-2 promotion spec is written
   (2026-07-02):**
   [specs/2026-07-02-bulk-phase-2-promotion.md](specs/2026-07-02-bulk-phase-2-promotion.md)
-  — executing it is the next step.
+  — executing it is the next step. **The Phase-2b spec is written too**
+  ([specs/2026-07-02-phase-2b-contextual-left-panel.md](specs/2026-07-02-phase-2b-contextual-left-panel.md)):
+  the single editor's left column becomes the shared image-info panel +
+  "Compare as…" opt-in second side, reusing the bulk components — runs after
+  Phase 2.
 
 - **Review-hardening follow-ups (2026-07-02), landed on `main`.** Closes the
   gaps the batch below exposed. (1) **CI now runs the full Playwright e2e suite**
