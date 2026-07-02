@@ -177,10 +177,17 @@
   }
 
   .compare-popover {
+    /* Anchored ABOVE the trigger (like Output's view-options popover): the
+       panel hugs the viewport bottom, so downward/in-flow growth would push
+       past the screen edge on phones. */
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 30;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    margin-top: 8px;
     padding: 6px;
     min-width: 196px;
     background-color: var(--surface, rgba(19, 19, 25, 0.82));
