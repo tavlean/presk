@@ -9,6 +9,8 @@
   import FilmStrip from './FilmStrip.svelte';
   import GlobalOptionsPanel from './GlobalOptionsPanel.svelte';
 
+  export const FOCUS_VIEW_LANDSCAPE_OR_SQUARE_RATIO = 0.95;
+
   interface Props {
     focusSession: EditorSession;
     onBack?: (() => void) | null;
@@ -34,11 +36,19 @@
   }: Props = $props();
 
   let isMac = $state(false);
+  let viewportWidth = $state(1024);
 
   const selectedId = $derived(labBulk.selectedId);
   const selectedCount = $derived(labBulk.selectedCount);
   const file = $derived(labBulk.selectedFile);
   const thumb = $derived(labBulk.selectedThumb);
+  const orientationOverride = $derived.by(() => {
+    if (viewportWidth > 760) return 'horizontal';
+    if (!thumb?.w || !thumb.h) return null;
+    return thumb.w / thumb.h >= FOCUS_VIEW_LANDSCAPE_OR_SQUARE_RATIO
+      ? 'horizontal'
+      : 'vertical';
+  });
   const imageScopeActive = $derived(
     selectedId !== undefined && labBulk.panelScope === 'image',
   );
@@ -121,7 +131,7 @@
   }
 </script>
 
-<svelte:window onkeydown={onKeydown} />
+<svelte:window onkeydown={onKeydown} bind:innerWidth={viewportWidth} />
 
 <div class="compress sqush-editor" style="--strip-height: {stripHeight}px;">
   <div class="stage-region">
@@ -140,6 +150,7 @@
         rightContain={focusSession.rightContain}
         containWidth={focusSession.naturalWidth}
         containHeight={focusSession.naturalHeight}
+        {orientationOverride}
         onRotate={() => focusSession.rotate()}
       />
     {:else}

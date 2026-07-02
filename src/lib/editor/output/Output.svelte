@@ -40,6 +40,7 @@
     /** The preprocessed (original, post-rotate) source dims — the contain box. */
     containWidth?: number;
     containHeight?: number;
+    orientationOverride?: 'horizontal' | 'vertical' | null;
     onRotate?: () => void;
   }
 
@@ -57,6 +58,7 @@
     rightContain = false,
     containWidth = 0,
     containHeight = 0,
+    orientationOverride = null,
     onRotate,
   }: Props = $props();
 
@@ -155,7 +157,7 @@
   let splitFraction = $state(0.5);
 
   const orientation = $derived(
-    viewportWidth <= 760 ? 'vertical' : 'horizontal',
+    orientationOverride ?? (viewportWidth <= 760 ? 'vertical' : 'horizontal'),
   );
   const scalePercent = $derived(Math.round(scale * 100));
   const fitTarget = $derived.by(() => {
