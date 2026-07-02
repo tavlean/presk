@@ -210,7 +210,9 @@ Deferred polish/features:
   sufficient;
 - visual difference metrics;
 - stronger preset and warning language;
-- keyboard shortcut discoverability;
+- app-wide keyboard control (single-key actions, digit value entry, shortcut
+  overlay) — now a concrete proposal: [keyboard-control.md](keyboard-control.md)
+  (maintainer priority, 2026-07-02; build after bulk Phase 2 + 2b);
 - advanced codec grouping once product format focus is decided.
 
 ## Testing
