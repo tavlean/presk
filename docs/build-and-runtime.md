@@ -179,10 +179,17 @@ prod build unaffected). Details in
 Prettier is the formatter (`.prettierrc.json`). Run it manually:
 
 - `npm run format` — write fixes across `**/*.{js,css,json,ts,tsx,svelte}`.
-- `npm run format:check` — the read-only check that `npm run check` runs first.
+- `npm run format:check` — the read-only CI check, split into its own GitHub
+  Actions job on 2026-07-01.
 
-There is intentionally **no pre-commit hook**. Husky/lint-staged were removed on
-2026-06-02 (solo project; the auto-`prettier --write` interrupted commits and
-reflowed Markdown). `*.md` is intentionally excluded from the Prettier globs —
-Prettier's Markdown formatter reflows prose and mangles hand-written docs, so
-format Markdown by hand. See [STATUS.md](STATUS.md).
+There is a **code-only pre-commit hook** again as of 2026-07-01
+(`7b16e0ce`): `simple-git-hooks` installs `pre-commit: npx lint-staged` via the
+npm `prepare` script (`scripts/install-git-hooks.mjs`), and lint-staged runs
+`prettier --write` only on staged `*.{js,css,json,ts,tsx,svelte}` files. The
+2026-06-02 Husky hook removal still stands historically (the old hook rewrote
+Markdown and interrupted commits), but the current hook deliberately excludes
+`*.md`.
+
+`*.md` is intentionally excluded from every Prettier path — the hook, `format`,
+and `format:check`. Prettier's Markdown formatter reflows prose and mangles
+hand-written docs, so format Markdown by hand. See [STATUS.md](STATUS.md).

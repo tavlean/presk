@@ -220,16 +220,22 @@ browser, the build is static, and offline reload must work after load.
   cruft now that this is a solo project. **Removed:** `renovate.json` (a
   disabled Renovate-bot config that did nothing), `CONTRIBUTING.md` (Google's
   CLA boilerplate, inaccurate for this fork), and `.github/ISSUE_TEMPLATE/`
-  (generic Squoosh-era templates). **Removed the Husky + lint-staged pre-commit
-  hook entirely** (`.husky/`, the `husky`/`lint-staged` devDeps, the `prepare`
-  script, and the `lint-staged` config): the hook auto-ran `prettier --write` on
-  every commit and its **Markdown reflow** kept mangling docs (it caused the
-  earlier fix `a196f252`). Also **dropped `md` from the `format`/`format:check`
-  globs** in `package.json` so Prettier no longer reflows Markdown at all.
-  Formatting is now manual via `npm run format` (or editor format-on-save);
-  nothing rewrites files mid-commit. `.clang-format`, `.editorconfig`,
-  `.gitattributes`, and `.nvmrc` were kept (small, conventional, and `.nvmrc` is
-  used by CI). `npm run check` / `format:check` stay green.
+  (generic Squoosh-era templates). **Removed the old Husky + lint-staged
+  pre-commit hook** (`.husky/`, the `husky`/`lint-staged` devDeps, the
+  `prepare` script, and the `lint-staged` config): that hook auto-ran
+  `prettier --write` on every commit and its **Markdown reflow** kept mangling
+  docs (it caused the earlier fix `a196f252`). Also **dropped `md` from the
+  `format`/`format:check` globs** in `package.json` so Prettier no longer
+  reflows Markdown at all. Current state: commit `7b16e0ce` (2026-07-01)
+  reinstated a **code-only** pre-commit hook via `simple-git-hooks` +
+  `lint-staged`, installed by `scripts/install-git-hooks.mjs` on the npm
+  `prepare` script. It runs `prettier --write` only on staged
+  `*.{js,css,json,ts,tsx,svelte}` files; `*.md` remains deliberately excluded
+  from the hook and all Prettier scripts. Markdown is hand-formatted. CI's
+  `format:check` is now its own GitHub Actions job. `.clang-format`,
+  `.editorconfig`, `.gitattributes`, and `.nvmrc` were kept (small,
+  conventional, and `.nvmrc` is used by CI). `npm run check` / `format:check`
+  stay green.
 
 - Codec audit (2026-06-02): a full codec version + landscape audit ran (see
   [codec-upgrade-audit.md](codec-upgrade-audit.md)). Several outcomes have now
