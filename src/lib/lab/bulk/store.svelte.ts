@@ -69,7 +69,8 @@ export interface LabThumb {
   h: number;
 }
 
-export type LabVariant = 'l1' | 'l2' | 'l3';
+export type LabVariant = 'l1' | 'l2';
+export type BulkPanelScope = 'global' | 'image';
 
 /** The two overridable WebP option leaves the lab exposes as controls. */
 export type LabOverridablePath = 'quality' | 'method';
@@ -259,6 +260,8 @@ export class LabBulk {
   session = $state.raw<BulkSession>(emptySession());
   // Which layout variant the lab is showing (bound to the top-bar toggle).
   variant = $state<LabVariant>('l1');
+  // Which settings scope the right panel edits.
+  panelScope = $state<BulkPanelScope>('global');
   // Production OptionsPanel-compatible pseudo-side for GLOBAL bulk settings.
   globalSide = $state<SideState>(sideFromSettings(this.session.globalSettings));
 
@@ -314,9 +317,11 @@ export class LabBulk {
   async importFiles(files: File[]): Promise<void> {
     if (files.length === 0) return;
 
+    const hadSelection = this.session.selectedJobId !== undefined;
     const result = createImageJobs(files);
     // addBulkImportToSession keeps existing jobs; auto-selects first if none.
     this.session = addBulkImportToSession(this.session, result);
+    if (!hadSelection) this.deselect();
 
     // Decode thumbnails for the newly accepted jobs (fire-and-forget each).
     for (const job of result.accepted) {
@@ -328,14 +333,22 @@ export class LabBulk {
 
   select(id: string): void {
     this.session = selectJob(this.session, id);
+    if (this.session.selectedJobId === id) this.panelScope = 'image';
   }
 
   selectNext(): void {
     this.session = selectNextJob(this.session);
+    if (this.session.selectedJobId) this.panelScope = 'image';
   }
 
   selectPrevious(): void {
     this.session = selectPreviousJob(this.session);
+    if (this.session.selectedJobId) this.panelScope = 'image';
+  }
+
+  deselect(): void {
+    this.session = { ...this.session, selectedJobId: undefined };
+    this.panelScope = 'global';
   }
 
   /**
@@ -558,6 +571,7 @@ export class LabBulk {
     this.runtime.cancelProcessing(this);
     this.#revokeAll();
     this.session = emptySession();
+    this.panelScope = 'global';
     this.refreshGlobalSideFromSession();
   }
 

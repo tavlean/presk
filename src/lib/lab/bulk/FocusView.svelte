@@ -13,26 +13,18 @@
     focusSession: EditorSession;
     onBack?: (() => void) | null;
     onReseed?: (() => void) | null;
-    /**
-     * 'l1' — left batch/info panel + right options panel, strip spans between.
-     * 'l3' — no left panel; image + strip run flush to the left edge and the
-     *        batch/info surface stacks under the right options panel.
-     */
-    layout?: 'l1' | 'l3';
   }
 
-  let {
-    focusSession,
-    onBack = null,
-    onReseed = null,
-    layout = 'l1',
-  }: Props = $props();
+  let { focusSession, onBack = null, onReseed = null }: Props = $props();
 
-  let leftMode = $state<'batch' | 'global'>('batch');
   let isMac = $state(false);
 
+  const selectedId = $derived(labBulk.selectedId);
   const file = $derived(labBulk.selectedFile);
   const thumb = $derived(labBulk.selectedThumb);
+  const imageScopeActive = $derived(
+    selectedId !== undefined && labBulk.panelScope === 'image',
+  );
   const formats = $derived(
     focusSession.availableFormats.filter(
       (format) => (format.id as string) !== 'identity',
@@ -57,6 +49,11 @@
     if (!id) return;
     labBulk.resetAllOverrides(id);
     onReseed?.();
+  }
+
+  function setPanelScope(scope: 'global' | 'image'): void {
+    if (scope === 'image' && !selectedId) return;
+    labBulk.panelScope = scope;
   }
 
   function onKeydown(event: KeyboardEvent): void {
@@ -84,6 +81,12 @@
       }
     }
 
+    if (event.key === 'Escape' && !onBack && selectedId) {
+      event.preventDefault();
+      labBulk.deselect();
+      return;
+    }
+
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     if (typeable || target?.getAttribute('role') === 'slider') return;
 
@@ -91,28 +94,40 @@
     if (event.key === 'ArrowLeft') labBulk.selectPrevious();
     else labBulk.selectNext();
   }
+
+  function onStripPointerdown(event: PointerEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button')) return;
+    labBulk.deselect();
+  }
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="compress sqush-editor" class:flush-left={layout === 'l3'}>
+<div class="compress sqush-editor">
   <div class="stage-region">
-    <Output
-      leftImage={focusSession.runtime[0].result?.outputImageData}
-      rightImage={focusSession.runtime[1].result?.outputImageData}
-      leftWorking={focusSession.runtime[0].showSpinner}
-      rightWorking={focusSession.runtime[1].showSpinner}
-      leftDone={focusSession.runtime[0].status === 'done'}
-      rightDone={focusSession.runtime[1].status === 'done'}
-      leftActivity={focusSession.runtime[0].activity}
-      rightActivity={focusSession.runtime[1].activity}
-      fileId={focusSession.loadId}
-      leftContain={focusSession.leftContain}
-      rightContain={focusSession.rightContain}
-      containWidth={focusSession.naturalWidth}
-      containHeight={focusSession.naturalHeight}
-      onRotate={() => focusSession.rotate()}
-    />
+    {#if selectedId}
+      <Output
+        leftImage={focusSession.runtime[0].result?.outputImageData}
+        rightImage={focusSession.runtime[1].result?.outputImageData}
+        leftWorking={focusSession.runtime[0].showSpinner}
+        rightWorking={focusSession.runtime[1].showSpinner}
+        leftDone={focusSession.runtime[0].status === 'done'}
+        rightDone={focusSession.runtime[1].status === 'done'}
+        leftActivity={focusSession.runtime[0].activity}
+        rightActivity={focusSession.runtime[1].activity}
+        fileId={focusSession.loadId}
+        leftContain={focusSession.leftContain}
+        rightContain={focusSession.rightContain}
+        containWidth={focusSession.naturalWidth}
+        containHeight={focusSession.naturalHeight}
+        onRotate={() => focusSession.rotate()}
+      />
+    {:else}
+      <div class="blank-stage">
+        <p>Global settings apply to all images — select one below to inspect</p>
+      </div>
+    {/if}
 
     {#if focusSession.firstError}
       <p class="status-pill error">{focusSession.firstError}</p>
@@ -138,131 +153,81 @@
       </button>
     {/if}
 
-    <div class="history-controls" class:no-back={!onBack}>
-      <button
-        class="hist"
-        onclick={() => focusSession.undo()}
-        disabled={!focusSession.history.canUndo}
-        title={undoTitle}
-        aria-label={undoTitle}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H9"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.1"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-      <button
-        class="hist"
-        onclick={() => focusSession.redo()}
-        disabled={!focusSession.history.canRedo}
-        title={redoTitle}
-        aria-label={redoTitle}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M15 14l5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H15"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.1"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-    </div>
-
-    {#if layout === 'l1'}
-      <aside class="options options-1">
-        {#if leftMode === 'global'}
-          <div class="left-scroll">
-            <button
-              type="button"
-              class="stack-link"
-              onclick={() => (leftMode = 'batch')}
-            >
-              ← Batch
-            </button>
-            <GlobalOptionsPanel {focusSession} />
-          </div>
-        {:else}
-          <BatchInfoPanel
-            {file}
-            width={thumb?.w ?? 0}
-            height={thumb?.h ?? 0}
-            showGlobal
-            onGlobal={() => (leftMode = 'global')}
-            onReset={resetOverrides}
-          />
-        {/if}
-      </aside>
+    {#if selectedId}
+      <div class="history-controls" class:no-back={!onBack}>
+        <button
+          class="hist"
+          onclick={() => focusSession.undo()}
+          disabled={!focusSession.history.canUndo}
+          title={undoTitle}
+          aria-label={undoTitle}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H9"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.1"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <button
+          class="hist"
+          onclick={() => focusSession.redo()}
+          disabled={!focusSession.history.canRedo}
+          title={redoTitle}
+          aria-label={redoTitle}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M15 14l5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H15"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.1"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
     {/if}
 
-    {#if layout === 'l3'}
-      <!-- L3: two INDEPENDENT floating frosted panels, same width,
-           right-aligned. The pair is a bottom-up stack anchored above the
-           strip — the batch/info card sits just above the strip and the
-           OptionsPanel directly above it, so no viewport height ever opens a
-           gap between them. When the two together exceed the stage height the
-           OptionsPanel shrinks with internal scroll; the batch card keeps its
-           natural height. -->
-      <div class="l3-stack">
-        <aside class="options l3-options">
-          {#if leftMode === 'global'}
-            <div class="left-scroll">
-              <button
-                type="button"
-                class="stack-link"
-                onclick={() => (leftMode = 'batch')}
-              >
-                ← Batch
-              </button>
-              <GlobalOptionsPanel {focusSession} />
-            </div>
-          {:else}
-            <OptionsPanel
-              side="right"
-              format={focusSession.sides[1].format}
-              {formats}
-              options={focusSession.sides[1].optionsByFormat[
-                focusSession.sides[1].format
-              ] ?? {}}
-              processorState={focusSession.sides[1].processorState}
-              naturalWidth={focusSession.naturalWidth}
-              naturalHeight={focusSession.naturalHeight}
-              sourceName={focusSession.file?.name}
-              isVector={focusSession.isVectorSource}
-              result={focusSession.runtime[1].result}
-              working={focusSession.runtime[1].showSpinner}
-              canImport={focusSession.canImport[1]}
-              downloadName={focusSession.downloadName(1)}
-              onFormatChange={setRightFormat}
-              onCopy={() => focusSession.copyToOther(1)}
-              onSave={() => focusSession.saveSide(1)}
-              onImport={() => focusSession.importSide(1)}
-            />
-          {/if}
-        </aside>
+    <aside class="options options-1">
+      <BatchInfoPanel
+        {file}
+        width={thumb?.w ?? 0}
+        height={thumb?.h ?? 0}
+        onReset={resetOverrides}
+      />
+    </aside>
 
-        <aside class="options l3-batch">
-          <BatchInfoPanel
-            {file}
-            width={thumb?.w ?? 0}
-            height={thumb?.h ?? 0}
-            showGlobal
-            onGlobal={() => (leftMode = 'global')}
-            onReset={resetOverrides}
-          />
-        </aside>
+    <aside class="options options-2">
+      <div class="scope-tabs" role="tablist" aria-label="Settings scope">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={labBulk.panelScope === 'global'}
+          class:active={labBulk.panelScope === 'global'}
+          onclick={() => setPanelScope('global')}
+        >
+          All images
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={imageScopeActive}
+          class:active={imageScopeActive}
+          disabled={!selectedId}
+          onclick={() => setPanelScope('image')}
+        >
+          This image
+        </button>
       </div>
-    {:else}
-      <aside class="options options-2">
-        <div class="options-slot">
+
+      <div class="options-slot">
+        {#if imageScopeActive}
           <OptionsPanel
             side="right"
             format={focusSession.sides[1].format}
@@ -284,12 +249,19 @@
             onSave={() => focusSession.saveSide(1)}
             onImport={() => focusSession.importSide(1)}
           />
-        </div>
-      </aside>
-    {/if}
+        {:else}
+          <GlobalOptionsPanel {focusSession} />
+        {/if}
+      </div>
+    </aside>
   </div>
 
-  <div class="strip-region">
+  <div
+    class="strip-region"
+    role="group"
+    aria-label="Image strip"
+    onpointerdown={onStripPointerdown}
+  >
     <FilmStrip />
   </div>
 </div>
@@ -311,12 +283,6 @@
     height: 100dvh;
     overflow: hidden;
     background: var(--bg-0, #0c0c0f);
-  }
-
-  /* L3: image + strip run flush to the left edge; there is no left panel, so
-     the fit inset on the left is just a small breathing margin. */
-  .compress.flush-left {
-    --fit-inset-left: 12px;
   }
 
   /* The stage takes all the height above the strip; the production Output fills
@@ -343,6 +309,21 @@
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
+  }
+
+  .blank-stage {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    color: var(--text-3, rgba(235, 235, 245, 0.38));
+    text-align: center;
+  }
+  .blank-stage p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
   }
 
   .status-pill {
@@ -498,66 +479,32 @@
     width: 100%;
   }
 
-  /* L3: two INDEPENDENT floating cards, right-aligned, stacked bottom-up with a
-     fixed gap. The stack is anchored to the strip (bottom) and clears the
-     top-right control cluster (top), so no viewport height ever opens a gap
-     between the two cards. */
-  .l3-stack {
-    position: absolute;
-    top: 68px;
-    bottom: var(--panel-inset);
-    right: var(--panel-inset);
-    width: var(--panel-width);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: 12px;
-    z-index: 5;
-  }
-
-  /* Each L3 card is its own frosted surface — override the absolute-positioning
-     the base `.options` uses for the L1/L2 panels, since here the cards are
-     flex children of `.l3-stack`. */
-  .l3-options,
-  .l3-batch {
-    position: static;
-    bottom: auto;
-    width: 100%;
-    max-height: none;
-  }
-
-  /* OptionsPanel card: takes the remaining height and scrolls internally. */
-  .l3-options {
-    flex: 0 1 auto;
-    min-height: 0;
-    justify-content: stretch;
-  }
-
-  /* Batch/info card: keeps its natural height, never squeezed. */
-  .l3-batch {
+  .scope-tabs {
     flex: none;
-    justify-content: stretch;
-  }
-
-  .left-scroll {
     display: grid;
-    gap: 12px;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 8px;
+    border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   }
-
-  .stack-link {
-    justify-self: start;
-    border: none;
+  .scope-tabs button {
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-radius: 8px;
     background: transparent;
     color: var(--text-2, rgba(235, 235, 245, 0.62));
     font: inherit;
-    font-weight: 800;
+    font-size: 0.88rem;
+    font-weight: 750;
     cursor: pointer;
+    padding: 7px 8px;
   }
-  .stack-link:hover {
+  .scope-tabs button.active {
+    background: var(--surface-raise, rgba(255, 255, 255, 0.06));
     color: var(--text-1, #f5f5f7);
+  }
+  .scope-tabs button:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 
   @media (max-width: 760px) {
@@ -565,9 +512,6 @@
       --panel-inset: 6px;
       --fit-inset-left: 0px;
       --fit-inset-right: 0px;
-    }
-    .compress.flush-left {
-      --fit-inset-left: 0px;
     }
 
     .back {
@@ -613,19 +557,6 @@
     }
     .options-2 {
       right: var(--panel-inset);
-    }
-
-    /* L3 on mobile: the two cards share the bottom-right corner, capped so the
-       pair fits above the (hidden) strip without covering the whole viewport. */
-    .l3-stack {
-      top: auto;
-      max-height: var(--mobile-options-height);
-      width: calc(60vw - var(--panel-inset) * 1.5);
-      gap: 8px;
-    }
-    .l3-stack .options {
-      width: 100%;
-      max-height: none;
     }
 
     .strip-region {

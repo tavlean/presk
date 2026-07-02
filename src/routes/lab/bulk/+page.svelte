@@ -15,7 +15,6 @@
   import Toast from '$lib/lab/bulk/Toast.svelte';
   import L1Home from '$lib/lab/bulk/L1Home.svelte';
   import L2Home from '$lib/lab/bulk/L2Home.svelte';
-  import L3Home from '$lib/lab/bulk/L3Home.svelte';
   import {
     getEffectiveSettings,
     type BulkImageOverrides,
@@ -322,15 +321,6 @@
         >
           L2
         </button>
-        <button
-          type="button"
-          class:active={labBulk.variant === 'l3'}
-          role="radio"
-          aria-checked={labBulk.variant === 'l3'}
-          onclick={() => setVariant('l3')}
-        >
-          L3
-        </button>
       </div>
 
       <button type="button" class="btn" onclick={() => fileInput?.click()}>
@@ -359,10 +349,8 @@
     {#if labBulk.hasJobs}
       {#if labBulk.variant === 'l1'}
         <L1Home {focusSession} onReseed={seedFocusFromSelected} />
-      {:else if labBulk.variant === 'l2'}
-        <L2Home {focusSession} onReseed={seedFocusFromSelected} />
       {:else}
-        <L3Home {focusSession} onReseed={seedFocusFromSelected} />
+        <L2Home {focusSession} onReseed={seedFocusFromSelected} />
       {/if}
     {:else}
       <main class="dropzone">

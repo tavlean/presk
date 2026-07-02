@@ -19,22 +19,11 @@
     width: number;
     /** Natural pixel height, or 0 until the thumbnail decode lands. */
     height: number;
-    /** Show the "Global settings" link in the BATCH section. */
-    showGlobal?: boolean;
-    /** Swap the panel to the global OptionsPanel. */
-    onGlobal?: () => void;
     /** Clear the selected image's overrides back to global. */
     onReset?: () => void;
   }
 
-  let {
-    file,
-    width,
-    height,
-    showGlobal = false,
-    onGlobal,
-    onReset,
-  }: Props = $props();
+  let { file, width, height, onReset }: Props = $props();
 
   const summary = $derived(labBulk.summary);
   const output = $derived(summary.output);
@@ -174,12 +163,6 @@
           </div>
         {:else if progress.failed > 0}
           <p class="failed">{progress.failed} failed</p>
-        {/if}
-
-        {#if showGlobal}
-          <button type="button" class="global-link" onclick={onGlobal}>
-            Global settings
-          </button>
         {/if}
       </div>
     </section>
@@ -400,20 +383,6 @@
     color: var(--bad, #ff7d92);
     font-size: 0.9rem;
     font-weight: 700;
-  }
-
-  .global-link {
-    justify-self: start;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: var(--text-2, rgba(235, 235, 245, 0.62));
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .global-link:hover {
-    color: var(--text-1, #f5f5f7);
   }
 
   /* Footer: mirrors Results.svelte — size stats at the left, action at the
