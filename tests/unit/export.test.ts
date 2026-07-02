@@ -64,6 +64,98 @@ describe('bulk export selectors', () => {
     expect(canExportBulkSession(current, ['stale'])).toBe(false);
   });
 
+  it('leaves export entries on optimized outputs when keep-original is off', () => {
+    const current = session([
+      job('a', {
+        fileName: 'photo.jpg',
+        fileSize: 100,
+        status: 'encoded',
+        output: fakeOutput({ fileName: 'larger.webp', fileSize: 120 }),
+      }),
+    ]);
+
+    expect(getBulkExportEntries(current)).toMatchObject([
+      {
+        fileName: 'photo.webp',
+        size: 120,
+        keptOriginal: false,
+      },
+    ]);
+  });
+
+  it('keeps source names and sizes when larger outputs are guarded', () => {
+    const current = session([
+      job('a', {
+        fileName: 'photo.jpg',
+        fileSize: 100,
+        status: 'encoded',
+        output: fakeOutput({ fileName: 'larger.webp', fileSize: 120 }),
+      }),
+    ]);
+
+    expect(
+      getBulkExportEntries(current, undefined, {
+        keepOriginalWhenLarger: true,
+      }),
+    ).toMatchObject([
+      {
+        fileName: 'photo.jpg',
+        downloadUrl: 'blob:larger.webp',
+        size: 100,
+        keptOriginal: true,
+      },
+    ]);
+  });
+
+  it('does not keep originals for equal-size outputs', () => {
+    const current = session([
+      job('a', {
+        fileName: 'photo.jpg',
+        fileSize: 100,
+        status: 'encoded',
+        output: fakeOutput({ fileName: 'equal.webp', fileSize: 100 }),
+      }),
+    ]);
+
+    expect(
+      createBulkExportPlan(current, undefined, {
+        keepOriginalWhenLarger: true,
+      }).entries,
+    ).toMatchObject([
+      {
+        fileName: 'photo.webp',
+        size: 100,
+        keptOriginal: false,
+      },
+    ]);
+  });
+
+  it('deduplicates kept original names with later output names', () => {
+    const current = session([
+      job('kept', {
+        fileName: 'photo.jpg',
+        fileSize: 100,
+        status: 'encoded',
+        output: fakeOutput({ fileName: 'larger.webp', fileSize: 120 }),
+      }),
+      job('output', {
+        fileName: 'photo.png',
+        fileSize: 100,
+        status: 'encoded',
+        output: fakeOutput({ fileName: 'photo.jpg', fileSize: 80 }),
+      }),
+    ]);
+
+    expect(
+      getBulkExportEntries(current, undefined, {
+        keepOriginalWhenLarger: true,
+      }).map((entry) => [entry.fileName, entry.keptOriginal]),
+    ).toEqual([
+      ['photo.jpg', true],
+      ['photo-2.jpg', false],
+    ]);
+  });
+
   it('summarizes missing, stale, and optimized job sizes', () => {
     const freshSettings = settings();
     const staleHash = settingsHash(

@@ -37,11 +37,19 @@ export interface BulkJobSizeSummary {
   percentChange?: number;
 }
 
+export interface BulkExportOptions {
+  /** When an output is strictly larger than its source, ship the source
+   *  instead. Default false (existing behavior). */
+  keepOriginalWhenLarger?: boolean;
+}
+
 export interface BulkExportEntry {
   job: ImageJob;
   fileName: string;
   downloadUrl: string;
   size: number;
+  /** True when the guard replaced the output with the untouched source. */
+  keptOriginal: boolean;
 }
 
 export interface BulkExportPlan {
@@ -209,15 +217,23 @@ export function getBulkOutputFileName(job: ImageJob): string {
 export function getBulkExportEntries(
   session: BulkSession,
   jobIds?: Iterable<string>,
+  options: BulkExportOptions = {},
 ): BulkExportEntry[] {
   const knownNames = new Set<string>();
   return getSelectedExportableJobs(session, jobIds).map((job) => {
     const output = job.output!;
+    const keptOriginal =
+      options.keepOriginalWhenLarger === true && output.size > job.originalSize;
+    const fileName = keptOriginal
+      ? job.sourceFile.name
+      : getBulkOutputFileName(job);
+
     return {
       job,
-      fileName: createDuplicateSafeName(getBulkOutputFileName(job), knownNames),
+      fileName: createDuplicateSafeName(fileName, knownNames),
       downloadUrl: output.downloadUrl,
-      size: output.size,
+      size: keptOriginal ? job.originalSize : output.size,
+      keptOriginal,
     };
   });
 }
@@ -225,8 +241,9 @@ export function getBulkExportEntries(
 export function createBulkExportPlan(
   session: BulkSession,
   jobIds?: Iterable<string>,
+  options?: BulkExportOptions,
 ): BulkExportPlan {
-  const entries = getBulkExportEntries(session, jobIds);
+  const entries = getBulkExportEntries(session, jobIds, options);
 
   return {
     archiveName: getBulkExportName(session),
