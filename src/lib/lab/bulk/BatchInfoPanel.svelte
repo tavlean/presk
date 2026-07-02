@@ -7,16 +7,19 @@
   //    Dimensions / Original size / Aspect chip), then the ● custom-settings +
   //    "Reset to global" row when the job deviates.
   //  • GLOBAL face (nothing selected): the title is the image COUNT, then real
-  //    batch facts (format breakdown / total size / largest file computed from
-  //    the actual source files), then a quiet fine-tune hint.
+  //    batch facts (format breakdown / largest file computed from the actual
+  //    source files — the ORIGINAL total lives in the hero below, not a row),
+  //    then a quiet fine-tune hint.
   //
   // A footer is ALWAYS present (both faces) and is the SINGLE home of the batch
-  // result, styled after the production Results footer (Results.svelte): the big
-  // batch output total + delta pill, a secondary transform line ("10.5 MB →
-  // 301 kB" — the count is NOT repeated here, the global title carries it), and
-  // the coral "Save all · ZIP" action. On the IMAGE face a tiny "ALL IMAGES"
-  // whisper-caption tops the footer so the info-for-one / action-for-all seam
-  // reads intentionally.
+  // result — the CELEBRATION block (the app's whole point in one glance): a
+  // two-stat hero pair (ORIGINAL → OPTIMIZED, big figures sized like the
+  // production Results footer), the proud green savings line (↓97% · "25.8 MB
+  // saved") just under it, and the full-width coral "Save all · ZIP" action
+  // closing the block. While encoding, a slim progress line sits above the
+  // stats and the OPTIMIZED figure pulses as it climbs. On the IMAGE face a
+  // tiny "ALL IMAGES" whisper-caption tops the footer so the info-for-one /
+  // action-for-all seam reads intentionally.
   import { labBulk } from './store.svelte';
   import { inferAspect } from './aspect';
   import DeltaPill from './DeltaPill.svelte';
@@ -66,11 +69,22 @@
     };
   }
 
+  // The two hero figures, value + unit split so each unit can echo the
+  // production footer's smaller accented unit glyph. ORIGINAL is always known
+  // (source sizes are on disk); OPTIMIZED only exists once results land.
+  const originalParts = $derived(prettyParts(output.totalOriginalSize));
   const outputParts = $derived(
     output.optimized > 0 ? prettyParts(output.totalOutputSize) : null,
   );
 
   const showDelta = $derived(output.optimized > 0);
+
+  // The money line: how many bytes the batch shed. Only meaningful once at
+  // least one result exists and the batch actually got smaller.
+  const savedBytes = $derived(
+    output.totalOriginalSize - output.totalOutputSize,
+  );
+  const savedPretty = $derived(prettySize(Math.max(savedBytes, 0)));
 
   /** A short, uppercase format label from the MIME type or extension. */
   function formatLabel(source: File): string {
@@ -188,10 +202,6 @@
               <dd>{formatBreakdown}</dd>
             </div>
           {/if}
-          <div class="row">
-            <dt>Total size</dt>
-            <dd>{prettySize(output.totalOriginalSize)}</dd>
-          </div>
           {#if largest}
             <div class="row">
               <dt>Largest</dt>
@@ -204,21 +214,16 @@
         <p class="hint">Select an image below to fine-tune it</p>
       </div>
     {/if}
-
-    {#if busy}
-      <div class="progress" aria-label="Batch progress">
-        <span class="spinner" aria-hidden="true"></span>
-        <span>Encoding {progress.completed} of {progress.total}…</span>
-      </div>
-    {:else if progress.failed > 0}
-      <p class="failed">{progress.failed} failed</p>
-    {/if}
   </div>
 
-  <!-- Panel footer, styled after the production Results footer: the batch
-       output total + delta at the top, a secondary transform line, and the
-       coral "Save all · ZIP" action at the right. This footer owns the ONE
-       home of the batch result total; the count lives in the global title. -->
+  <!-- Panel footer — the batch celebration. This is THE selling point of the
+       app: the whole batch went from ORIGINAL → OPTIMIZED, and that deserves
+       room to breathe. A two-stat pair (big figures, sized like the production
+       Results footer) leads; the green savings line is the proud money line
+       just under it; the coral "Save all · ZIP" action closes the block,
+       full-width, so the win and the action read as one gesture. This footer
+       owns the ONE home of the batch result total; the count lives in the
+       global title. -->
   <div class="panel-footer">
     {#if file}
       <!-- Under single-image info, a whisper-caption makes the seam explicit:
@@ -226,39 +231,69 @@
            the whole batch. -->
       <p class="footer-scope">All images</p>
     {/if}
-    <div class="footer-main">
-      <div class="stats">
-        <div class="size-row">
-          <span class="total-size">
-            {#if outputParts}
-              {outputParts.value}<span class="unit">{outputParts.unit}</span>
-            {:else}
-              <span class="pending">…</span>
-            {/if}
-          </span>
-          {#if showDelta}
-            <DeltaPill percent={output.percentChange} />
-          {/if}
-        </div>
-        <span class="from-to">
-          {prettySize(output.totalOriginalSize)}
-          <span class="arrow" aria-hidden="true">→</span>
-          {#if output.optimized > 0}
-            {prettySize(output.totalOutputSize)}
-          {:else}
-            …
-          {/if}
+
+    {#if busy}
+      <!-- Slim progress line, integrated above the stats so the celebration
+           builds as results land. -->
+      <div class="progress" aria-label="Batch progress">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Encoding {progress.completed} of {progress.total}…</span>
+      </div>
+    {:else if progress.failed > 0}
+      <p class="failed">{progress.failed} failed</p>
+    {/if}
+
+    <!-- The two-stat hero pair: ORIGINAL → OPTIMIZED. -->
+    <div class="hero-pair">
+      <div class="stat stat-original">
+        <span class="figure">
+          {originalParts.value}<span class="unit unit-quiet"
+            >{originalParts.unit}</span
+          >
         </span>
+        <span class="stat-label">Original</span>
       </div>
 
-      <button
-        type="button"
-        class="save-all"
-        onclick={() => labBulk.saveAllStub()}
-      >
-        Save all · ZIP
-      </button>
+      <span class="cue" aria-hidden="true">
+        <svg viewBox="0 0 24 12" class="cue-arrow">
+          <path
+            d="M2 6h18M15 1.5L20.5 6 15 10.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+
+      <div class="stat stat-output" class:working={busy}>
+        <span class="figure">
+          {#if outputParts}
+            {outputParts.value}<span class="unit">{outputParts.unit}</span>
+          {:else}
+            <span class="pending">…</span>
+          {/if}
+        </span>
+        <span class="stat-label">Optimized</span>
+      </div>
     </div>
+
+    <!-- The money line: proud, readable, just under the big figures. -->
+    {#if showDelta}
+      <div class="savings">
+        <DeltaPill percent={output.percentChange} />
+        <span class="saved">{savedPretty} saved</span>
+      </div>
+    {/if}
+
+    <button
+      type="button"
+      class="save-all"
+      onclick={() => labBulk.saveAllStub()}
+    >
+      Save all · ZIP
+    </button>
   </div>
 </div>
 
@@ -398,11 +433,13 @@
     color: var(--text-1, #f5f5f7);
   }
 
+  /* Slim progress line — now lives at the top of the footer, above the hero
+     stats, so its own padding is just a bottom gap before the figures. */
   .progress {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 0 16px 12px;
+    margin: 0 0 10px;
     color: var(--text-2, rgba(235, 235, 245, 0.62));
     font-size: 0.9rem;
     font-variant-numeric: tabular-nums;
@@ -419,8 +456,7 @@
   }
 
   .failed {
-    margin: 0;
-    padding: 0 16px 12px;
+    margin: 0 0 10px;
     color: var(--bad, #ff7d92);
     font-size: 0.9rem;
     font-weight: 700;
@@ -436,17 +472,10 @@
     background: rgba(0, 0, 0, 0.18);
   }
 
-  .footer-main {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
-  }
-
   /* Tiny uppercase whisper in the section-header idiom — marks the batch seam
      under single-image info. */
   .footer-scope {
-    margin: 0 0 6px;
+    margin: 0 0 10px;
     color: var(--text-3, rgba(235, 235, 245, 0.38));
     font-size: 0.72rem;
     font-weight: 700;
@@ -454,21 +483,98 @@
     text-transform: uppercase;
   }
 
-  .stats {
-    display: grid;
-    gap: 1px;
-    min-width: 0;
-  }
-
-  .size-row {
+  /* ── The hero pair: ORIGINAL → OPTIMIZED ──────────────────────────────────
+     Two big figures flanking a directional cue. The row hugs its content and
+     centres, so the pair reads as one balanced "before → after" gesture rather
+     than a left/right split. Figures use clamp() so they scale DOWN gracefully
+     at the 250px compact width without clipping. */
+  .hero-pair {
     display: flex;
-    align-items: baseline;
-    gap: 7px;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 4%, 16px);
     min-width: 0;
   }
 
-  .total-size {
-    font-size: 1.7rem;
+  .stat {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .figure {
+    font-size: clamp(1.35rem, 6.2vw, 1.7rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-1, #f5f5f7);
+    white-space: nowrap;
+  }
+
+  /* The label under each figure — the whisper-caption idiom (uppercase, tracked,
+     text-3), matching the info-row dt styling elsewhere in the panel. */
+  .stat-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3, rgba(235, 235, 245, 0.38));
+  }
+
+  .unit {
+    font-size: 0.66em;
+    font-weight: 600;
+    margin-left: 2px;
+    color: var(--main-theme-color, #ff8a5e);
+  }
+  /* The ORIGINAL figure is the "before" — its unit stays neutral so the coral
+     accent is reserved for the OPTIMIZED win. */
+  .unit-quiet {
+    color: var(--text-3, rgba(235, 235, 245, 0.38));
+  }
+
+  .pending {
+    color: var(--text-3, rgba(235, 235, 245, 0.38));
+  }
+
+  /* Directional cue between the figures — a quiet arrow, aligned to the figure
+     baseline row (nudged up so it sits with the numbers, not the labels). */
+  .cue {
+    flex: none;
+    display: flex;
+    align-items: center;
+    align-self: start;
+    margin-top: 0.5em;
+    color: var(--text-3, rgba(235, 235, 245, 0.38));
+  }
+  .cue-arrow {
+    width: 22px;
+    height: 11px;
+  }
+
+  /* While encoding, the running OPTIMIZED total breathes so the figure reads as
+     "still working" without any layout jank. */
+  .stat-output.working .figure {
+    animation: figure-pulse 1.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stat-output.working .figure {
+      animation: none;
+    }
+  }
+
+  /* ── The money line — proud, just under the big figures ───────────────────*/
+  .savings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .saved {
+    font-size: 1.05rem;
     font-weight: 700;
     letter-spacing: 0.01em;
     font-variant-numeric: tabular-nums;
@@ -476,37 +582,13 @@
     white-space: nowrap;
   }
 
-  .unit {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-left: 2px;
-    color: var(--main-theme-color, #ff8a5e);
-  }
-
-  .pending {
-    color: var(--text-3, rgba(235, 235, 245, 0.38));
-  }
-
-  .from-to {
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    color: var(--text-3, rgba(235, 235, 245, 0.38));
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .arrow {
-    margin: 0 2px;
-  }
-
   .save-all {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 34px;
+    width: 100%;
+    margin-top: 12px;
+    height: 38px;
     padding: 0 16px;
     border: none;
     border-radius: 999px;
@@ -544,6 +626,16 @@
   @keyframes spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+
+  @keyframes figure-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
     }
   }
 </style>
