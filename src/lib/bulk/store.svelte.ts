@@ -7,12 +7,15 @@
 // the engine's own selectors, so the components never reach into the session
 // shape directly. Thumbnails + natural dimensions live in a SvelteMap keyed by
 // job id, decoded lazily off the source File. Object URLs (thumbnails AND
-// engine output download URLs) are revoked on remove/reset.
+// engine output download URLs) are revoked on reset, or after a remove settles
+// without snackbar Undo.
 //
 // The bulk home is built on top of this store. The focused image itself is
 // rendered by a real EditorSession in the route.
 
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+import { pushState } from '$app/navigation';
+import { page } from '$app/state';
 import {
   getDefaultOptions,
   OUTPUT_FORMATS,
@@ -37,6 +40,7 @@ import {
   markBulkExportPlanExported,
   normalizeBulkSessionCounters,
   removeJobs,
+  restoreJob,
   revokeJobObjectUrls,
   revokeSessionObjectUrls,
   resetJobForQueue,
@@ -95,6 +99,15 @@ export type StripSize = 's' | 'm' | 'l';
 export interface JobDownload {
   url: string;
   fileName: string;
+}
+
+interface PendingRemovalItem {
+  job: ImageJob;
+  index: number;
+}
+
+interface PendingRemoval {
+  items: PendingRemovalItem[];
 }
 
 /** The two overridable WebP option leaves the bulk UI exposes as controls. */
@@ -316,6 +329,7 @@ export class BulkStore {
   // The processing driver (two persistent bridges + abort control).
   readonly runtime = new BulkRuntime();
   readonly #outputCache = new BulkOutputCache({ maxEntriesPerJob: 3 });
+  #pendingRemoval: PendingRemoval | null = null;
 
   // ── Derived view-models (engine selectors) ────────────────────────────────
   readonly stripItems = $derived<BulkStripItem[]>(
@@ -751,7 +765,10 @@ export class BulkStore {
     }
   }
 
-  #restoreCachedOrQueueStale(session: BulkSession): BulkSession {
+  #restoreCachedOrQueueStale(
+    session: BulkSession,
+    requeueMissingJobIds = new Set<string>(),
+  ): BulkSession {
     const normalizedSession = normalizeBulkSessionCounters(session);
     let changed = false;
 
@@ -774,7 +791,14 @@ export class BulkStore {
         };
       }
 
-      if (!job.output) return job;
+      if (!job.output) {
+        if (!requeueMissingJobIds.has(job.id) || job.status === 'queued') {
+          return job;
+        }
+
+        changed = true;
+        return resetJobForQueue(job);
+      }
 
       changed = true;
       return resetJobForQueue(job);
@@ -1056,6 +1080,8 @@ export class BulkStore {
     );
     if (removeIds.length === 0) return;
 
+    this.#finalizePendingRemoval();
+
     const removeSet = new Set(removeIds);
     const jobsBefore = this.session.jobs;
     const removedJobs = jobsBefore.filter((job) => removeSet.has(job.id));
@@ -1068,7 +1094,12 @@ export class BulkStore {
       this.runtime.cancelProcessing(this);
     }
 
-    this.#revokeRemovedJobs(removedJobs);
+    const items = this.session.jobs
+      .map((job, index) => ({ job, index }))
+      .filter((item) => removeSet.has(item.job.id));
+    const holder: PendingRemoval = { items };
+    this.#pendingRemoval = holder;
+
     this.session = {
       ...removeJobs(this.session, removeIds),
       selectedJobId: fallbackAnchor,
@@ -1093,12 +1124,63 @@ export class BulkStore {
     }
     this.#pinCurrentOutputs();
 
-    void snackbar.show(
-      removedJobs.length === 1
-        ? `Removed ${removedJobs[0].sourceFile.name}`
-        : `Removed ${removedJobs.length} images`,
-    );
+    void this.#offerRemovalUndo(holder);
 
+    if (this.session.jobs.some((job) => job.status === 'queued')) {
+      void this.runtime.run(this);
+    }
+  }
+
+  async #offerRemovalUndo(holder: PendingRemoval): Promise<void> {
+    const { items } = holder;
+    const label =
+      items.length === 1
+        ? `Removed ${items[0].job.sourceFile.name}`
+        : `Removed ${items.length} images`;
+
+    // Cmd/Ctrl+Z stays reserved for the focused editor's history. Removal undo
+    // is offered only through the snackbar action.
+    const action = await snackbar.show(label, { actions: ['Undo'] });
+    if (this.#pendingRemoval !== holder) return;
+
+    if (action === 'Undo') this.#restorePendingRemoval();
+    else this.#finalizePendingRemoval();
+  }
+
+  #finalizePendingRemoval(): void {
+    const pending = this.#pendingRemoval;
+    if (!pending) return;
+
+    this.#pendingRemoval = null;
+    this.#revokeRemovedJobs(pending.items.map((item) => item.job));
+    if (this.session.jobs.length === 0) {
+      this.runtime.disposeBridges();
+    }
+  }
+
+  #restorePendingRemoval(): void {
+    const pending = this.#pendingRemoval;
+    if (!pending) return;
+
+    // Removing the final image makes +page.svelte's bulk mirror unwind the
+    // editor history entry. Restore that shallow-route state before jobs come
+    // back, or its next effect pass sees hasJobs without editor state and
+    // immediately resets the restored batch.
+    if (!page.state.editor) pushState('', { editor: true });
+
+    let nextSession = this.session;
+    for (const { job, index } of pending.items) {
+      nextSession = restoreJob(nextSession, job, index);
+    }
+    this.session = this.#restoreCachedOrQueueStale(
+      nextSession,
+      new Set(pending.items.map((item) => item.job.id)),
+    );
+    this.#pinCurrentOutputs();
+    this.#pendingRemoval = null;
+
+    // Thumbnails and source URLs were deliberately never revoked, so their map
+    // entries are already live again after restore.
     if (this.session.jobs.some((job) => job.status === 'queued')) {
       void this.runtime.run(this);
     }
@@ -1152,6 +1234,7 @@ export class BulkStore {
   /** Tear down the whole bulk session: cancel, revoke every URL, start fresh. */
   reset(): void {
     this.runtime.cancelProcessing(this);
+    this.#finalizePendingRemoval();
     this.#revokeAll();
     this.session = emptySession();
     this.selectedIds.clear();
@@ -1330,6 +1413,7 @@ export class BulkStore {
       this.#globalApplyTimer = null;
     }
     this.runtime.disposeBridges();
+    this.#finalizePendingRemoval();
     this.#revokeAll();
   }
 }
