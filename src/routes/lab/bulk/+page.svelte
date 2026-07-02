@@ -239,8 +239,11 @@
     flex-direction: column;
   }
 
-  /* fileDrop toggles .drop-valid on the attached element while dragging. */
-  .lab :global(.drop-valid) .dropzone-inner {
+  /* fileDrop toggles .drop-valid on the attached element (the .lab root itself)
+     while a file is dragged over. `:global` wraps only the dynamic class on
+     that same element — no descendant combinator before it — then the scoped
+     `.dropzone-inner` descendant is styled normally. */
+  .lab:global(.drop-valid) .dropzone-inner {
     border-color: var(--accent-1, #ff8a5e);
     background: color-mix(in srgb, var(--accent-1, #ff8a5e) 10%, transparent);
   }

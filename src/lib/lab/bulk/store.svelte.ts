@@ -42,8 +42,12 @@ import {
 import {
   defaultProcessorState,
   encoderMap,
-  type EncoderOptions,
 } from 'client/lazy-app/feature-meta';
+// The lab is WebP-locked, so use the CONCRETE WebP option type (which has
+// `quality`/`method`) rather than the wide `EncoderOptions` union (whose members
+// share no common keys — it can't be indexed by encoder-specific fields, and
+// `encoderState.options` for `type:'webP'` wants exactly this type).
+import type { EncodeOptions as WebpEncodeOptions } from 'features/encoders/webP/shared/meta';
 import { toast } from './Toast.svelte';
 import { LabRuntime } from './runtime';
 
@@ -88,9 +92,9 @@ function emptySession(): BulkSession {
 }
 
 /** The WebP encode options carried by a settings object (format is locked). */
-function webpOptions(settings: BulkImageSettings): EncoderOptions {
+function webpOptions(settings: BulkImageSettings): WebpEncodeOptions {
   return (settings.encoderState?.options ??
-    encoderMap.webP.meta.defaultOptions) as EncoderOptions;
+    encoderMap.webP.meta.defaultOptions) as WebpEncodeOptions;
 }
 
 /**
@@ -234,13 +238,13 @@ export class LabBulk {
    * Routes through applyGlobalSettings so non-overridden stale jobs requeue,
    * then kicks a run to re-encode them.
    */
-  updateGlobal(partial: Partial<EncoderOptions>): void {
+  updateGlobal(partial: Partial<WebpEncodeOptions>): void {
     const current = webpOptions(this.session.globalSettings);
     const nextSettings: BulkImageSettings = {
       ...this.session.globalSettings,
       encoderState: {
         type: 'webP',
-        options: { ...current, ...partial } as EncoderOptions,
+        options: { ...current, ...partial } as WebpEncodeOptions,
       },
     };
     this.session = applyGlobalSettings(this.session, nextSettings);
@@ -253,7 +257,7 @@ export class LabBulk {
    * we start from the job's effective options and layer the changed keys on top.
    * Requeues the job if its output went stale, then kicks a run.
    */
-  overrideSelected(partial: Partial<EncoderOptions>): void {
+  overrideSelected(partial: Partial<WebpEncodeOptions>): void {
     const id = this.session.selectedJobId;
     if (!id) return;
     const job = this.session.jobs.find((item) => item.id === id);
@@ -268,7 +272,7 @@ export class LabBulk {
       ...job.overrides,
       encoderState: {
         type: 'webP',
-        options: { ...base, ...partial } as EncoderOptions,
+        options: { ...base, ...partial } as WebpEncodeOptions,
       },
     };
     this.session = applyJobOverrides(this.session, id, overrides);
@@ -306,25 +310,19 @@ export class LabBulk {
     job: ImageJob,
     leaf: LabOverridablePath,
   ): BulkImageOverrides {
-    const globalOptions = webpOptions(this.session.globalSettings) as Record<
-      string,
-      unknown
-    >;
+    const globalOptions = webpOptions(this.session.globalSettings);
     const jobOptions = webpOptions(
       getEffectiveSettings(this.session.globalSettings, job.overrides),
-    ) as Record<string, unknown>;
+    );
 
-    const merged = { ...jobOptions, [leaf]: globalOptions[leaf] };
+    const merged: WebpEncodeOptions = { ...jobOptions, [leaf]: globalOptions[leaf] };
     const stillDeviates = (['quality', 'method'] as const).some(
       (key) => merged[key] !== globalOptions[key],
     );
 
     const next: BulkImageOverrides = { ...job.overrides };
     if (stillDeviates) {
-      next.encoderState = {
-        type: 'webP',
-        options: merged as unknown as EncoderOptions,
-      };
+      next.encoderState = { type: 'webP', options: merged };
     } else {
       delete next.encoderState;
     }
@@ -338,7 +336,7 @@ export class LabBulk {
   }
 
   /** Effective (global + override) WebP options for a job, or the global. */
-  effectiveOptionsFor(jobId: string | undefined): EncoderOptions {
+  effectiveOptionsFor(jobId: string | undefined): WebpEncodeOptions {
     const job = jobId
       ? this.session.jobs.find((item) => item.id === jobId)
       : undefined;
@@ -368,13 +366,10 @@ export class LabBulk {
       ? this.session.jobs.find((item) => item.id === jobId)
       : undefined;
     if (!job?.overrides?.encoderState) return false;
-    const globalOptions = webpOptions(this.session.globalSettings) as Record<
-      string,
-      unknown
-    >;
+    const globalOptions = webpOptions(this.session.globalSettings);
     const jobOptions = webpOptions(
       getEffectiveSettings(this.session.globalSettings, job.overrides),
-    ) as Record<string, unknown>;
+    );
     return jobOptions[leaf] !== globalOptions[leaf];
   }
 
