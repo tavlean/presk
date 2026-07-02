@@ -12,6 +12,7 @@
     type LabVariant,
   } from '$lib/lab/bulk/store.svelte';
   import { makeSampleFiles } from '$lib/lab/bulk/samples';
+  import { LAB_FONT_OPTIONS, fontLab } from '$lib/lab/bulk/font-lab.svelte';
   import { toast } from '$lib/lab/bulk/Toast.svelte';
   import Toast from '$lib/lab/bulk/Toast.svelte';
   import L1Home from '$lib/lab/bulk/L1Home.svelte';
@@ -610,10 +611,37 @@
 
 <svelte:head>
   <title>Bulk UI Lab</title>
+  {#if dev}
+    <!-- Dev-lab font-experiment webfonts (per-family links so one unknown
+         family can't 400 the rest). Nothing here ships to production. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400..700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap"
+    />
+  {/if}
 </svelte:head>
 
 {#if dev}
-  <div class="lab" {@attach fileDrop(onDrop)}>
+  <div
+    class="lab"
+    style:font-family={LAB_FONT_OPTIONS.find((f) => f.id === fontLab.choice)
+      ?.stack ?? null}
+    {@attach fileDrop(onDrop)}
+  >
     <div class="lab-controls" aria-label="Lab controls">
       <div class="variant-toggle" role="radiogroup" aria-label="Layout variant">
         <button
@@ -652,6 +680,26 @@
         >
           L4
         </button>
+      </div>
+
+      <div
+        class="variant-toggle font-toggle"
+        role="radiogroup"
+        aria-label="UI font"
+      >
+        {#each LAB_FONT_OPTIONS as font (font.id)}
+          <button
+            type="button"
+            class:active={fontLab.choice === font.id}
+            role="radio"
+            aria-checked={fontLab.choice === font.id}
+            title={font.title}
+            style:font-family={font.stack}
+            onclick={() => (fontLab.choice = font.id)}
+          >
+            {font.label}
+          </button>
+        {/each}
       </div>
 
       <button type="button" class="btn" onclick={() => fileInput?.click()}>
@@ -780,6 +828,14 @@
     padding: 2px;
     border-radius: 999px;
     background: var(--surface-raise, rgba(255, 255, 255, 0.06));
+  }
+
+  /* The font pills carry each option's own face so the toggle previews
+     itself; slightly tighter than the variant pills (7 options). */
+  .font-toggle button {
+    padding: 6px 9px;
+    font-weight: 600;
+    font-size: 0.85rem;
   }
 
   .variant-toggle button,
