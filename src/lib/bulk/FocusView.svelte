@@ -118,14 +118,10 @@
 
   // The real focus viewer (production Output + its toolbar) is for a SINGLE
   // selected image. Global scope (nothing selected) and a multi-selection both
-  // rest on the STACK (or the blank state, per the dev toggle) instead — that's
-  // where a global / multi edit's reach is shown, not one image's inspector.
+  // rest on the STACK instead — that's where a global / multi edit's reach is
+  // shown, not one image's inspector.
   const showFocus = $derived(selectedCount === 1);
-  const showStack = $derived(
-    !showFocus &&
-      bulkStore.stageMode === 'stack' &&
-      bulkStore.stackItems.length > 0,
-  );
+  const showStack = $derived(!showFocus && bulkStore.stackItems.length > 0);
   const stackItems = $derived(bulkStore.stackItems);
 
   // Compact summary figures for the phone summary bar (mirrors BatchInfoPanel).
@@ -210,8 +206,8 @@
     bulkStore.panelScope = scope;
   }
 
-  // ── Empty-stage deselect ──────────────────────────────────────────────────
-  // A plain click on the open backdrop deselects (mirrors the strip's blank
+  // ── Stage deselect ────────────────────────────────────────────────────────
+  // A plain click on the open backdrop deselects (mirrors the strip's empty
   // space). Guarded by a drag threshold so a press-drag on the backdrop — e.g.
   // an accidental smear — never deselects. Cards, the toolbar and the picker all
   // stop-propagate / sit above the backdrop, so only true empty space hits here.
@@ -306,11 +302,11 @@
     class:alt-background={showStack && stackAltBackground}
   >
     {#if !showFocus}
-      <!-- Empty-stage deselect: clicking the open backdrop (not a card, toolbar
+      <!-- Stage deselect: clicking the open backdrop (not a card, toolbar
            or picker — those stop the event) deselects, exactly like clicking the
-           strip's blank space. A plain click only, guarded by a small drag
-           threshold so a press-drag never deselects. Present in BOTH resting
-           states (stack + blank); NOT in the single-image focus view, where the
+           strip's empty space. A plain click only, guarded by a small drag
+           threshold so a press-drag never deselects. Present in the stack
+           resting state; NOT in the single-image focus view, where the
            production Output owns its own pointer gestures. Sits at the back of
            the stage so cards/controls layer above it. -->
       <button
@@ -346,34 +342,6 @@
         zoom={stackZoom}
         pixelated={stackPixelated}
       />
-    {:else}
-      <div class="blank-stage">
-        <svg class="blank-icon" viewBox="0 0 48 48" aria-hidden="true">
-          <rect
-            x="7"
-            y="11"
-            width="34"
-            height="26"
-            rx="3.5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-          <circle cx="17.5" cy="20" r="2.6" fill="currentColor" />
-          <path
-            d="M9 32l9-8 6 5 7-6 8 7"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        <p class="blank-title">
-          Global settings apply to all {bulkStore.summary.totalJobs} images
-        </p>
-        <p class="blank-sub">Select an image below to fine-tune it</p>
-      </div>
     {/if}
 
     {#if focusSession.firstError}
@@ -729,8 +697,7 @@
          focus view the production zoom/rotate bar owns bottom-centre, so the
          picker pairs just to its RIGHT (same pill/glass language, small gap); in
          the stack state the bulk toolbar (above) owns centre, so the picker
-         pairs beside it the SAME way. In the blank resting state there is no
-         toolbar, so the picker centres on its own. It never overlaps the strip
+         pairs beside it the SAME way. It never overlaps the strip
          (it sits inside the stage region, above the strip) nor the toolbar. -->
     <div
       class="view-picker-dock"
@@ -779,8 +746,8 @@
 
   /* ── View-picker dock ──────────────────────────────────────────────────────
      Lives inside the stage region (so it always clears the strip below) and
-     pins to the bottom. Default: bottom-centre, for the stack / blank state
-     where no production toolbar exists. `.with-toolbar` (single-image focus)
+     pins to the bottom. Default: bottom-centre, for the stack state where no
+     production toolbar exists. `.with-toolbar` (single-image focus)
      shifts it right of the centred zoom/rotate bar so the two read as one
      paired cluster with a small gap between them. The production toolbar is
      ~290px wide and centred (zoom group ~204px + rotate/view group ~80px), so
@@ -853,8 +820,8 @@
   /* Resting canvas texture: the SAME faint dot grid + soft vignette the
      production Output stage paints (Output.svelte `.output::before`), so the
      bulk resting stage reads as the identical canvas the editor uses, never a
-     different flat void. ONE shared rule for BOTH resting states (stack + blank)
-     — the values below are copied verbatim from production, one source. The
+     different flat void. The values below are copied verbatim from production,
+     one source. The
      real focus-view Output paints its own stage, so this is suppressed the
      moment a single image is selected (`.stage-region:has(.output)`). */
   .stage-region:not(:has(.output))::before {
@@ -1123,48 +1090,6 @@
     }
   }
 
-  /* Idle resting state for the global scope: no card, no border — a faint
-     centered icon + one quiet line, so it reads as "nothing selected", never
-     as a failed load. */
-  .blank-stage {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 24px;
-    color: var(--text-3, rgba(235, 235, 245, 0.38));
-    text-align: center;
-    pointer-events: none;
-  }
-  .blank-icon {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 20px;
-    opacity: 0.5;
-  }
-  .blank-stage p {
-    margin: 0;
-    font-variant-numeric: tabular-nums;
-  }
-  /* Empty-state heading scale: the primary line should read as a genuine
-     heading from a normal sitting distance, not a caption. */
-  .blank-stage .blank-title {
-    font-size: clamp(1.35rem, 2.4vw, 1.5rem);
-    font-weight: 650;
-    line-height: 1.25;
-    color: var(--text-1, #f5f5f7);
-    max-width: 26ch;
-  }
-  .blank-stage .blank-sub {
-    margin-top: 8px;
-    font-size: 1.05rem;
-    font-weight: 400;
-    color: var(--text-2, rgba(235, 235, 245, 0.62));
-  }
-
   .status-pill {
     position: absolute;
     top: 14px;
@@ -1401,12 +1326,6 @@
       box-sizing: border-box;
     }
 
-    /* Centre the resting-stage message in the visible canvas above the docked
-       panels, not behind them. */
-    .blank-stage {
-      inset-block-end: calc(var(--mobile-options-height) + var(--panel-inset));
-    }
-
     /* Two half-width bottom sheets. They clamp to a usable minimum width so
        controls inside stay legible; at ~700px 2×250 + insets still clears the
        viewport, so the panels never reach across the stage or over each other. */
@@ -1461,9 +1380,8 @@
     .compress {
       --panel-inset: 10px;
       --summary-h: 54px;
-      /* The bulk top-bar is fixed at the very top; the app summary bar stacks
-         just below it. This is the combined top chrome the stage clears. */
-      --bulk-topbar-h: 56px;
+      /* Back/Add production chrome: 8px top margin + 36px buttons. */
+      --bulk-topbar-h: 44px;
       --summary-top: calc(var(--bulk-topbar-h) + 4px);
       --stage-top: calc(var(--summary-top) + var(--summary-h) + 10px);
       --fit-inset-left: 0px;
@@ -1479,12 +1397,6 @@
     :global(.compress .stage-region .controls) {
       bottom: 10px;
       padding: 0 12px;
-    }
-
-    /* Resting message sits below the summary bar, centred in the free canvas. */
-    .blank-stage {
-      inset-block-start: var(--stage-top);
-      inset-block-end: 0;
     }
 
     /* Move the top-left chrome below the summary bar so nothing collides. */

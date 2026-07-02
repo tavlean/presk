@@ -69,7 +69,7 @@
 
   <!-- The batch result total lives once, in the LEFT panel footer. Here we just
        remind the user what these controls touch. -->
-  <div class="lab-footer">
+  <div class="scope-footer">
     <span class="scope-caption">
       Applies to all {totalJobs}
       {totalJobs === 1 ? 'image' : 'images'}
@@ -87,7 +87,7 @@
     display: none;
   }
 
-  .lab-footer {
+  .scope-footer {
     display: flex;
     align-items: baseline;
     padding: 11px 16px;

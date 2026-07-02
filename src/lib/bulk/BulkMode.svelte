@@ -695,7 +695,10 @@
     display: none;
   }
 
-  @media (max-width: 760px) {
+  /* Compact under the SAME conditions that summon FocusView's phone summary
+     bar (max-height 500px included) — its --bulk-topbar-h: 44px offset assumes
+     this 8px + 36px cluster footprint. */
+  @media (max-width: 760px), (max-height: 500px) {
     .bulk-controls {
       top: 8px;
       left: 8px;

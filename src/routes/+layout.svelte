@@ -8,7 +8,7 @@
 
 <style>
   /* Self-hosted Satoshi (variable, weight 300-900; chosen 2026-07-02 via the
-     bulk-lab font comparison, replacing Outfit) — woff2 files in
+     bulk font comparison, replacing Outfit) — woff2 files in
      static/fonts/, served from the app origin so SvelteKit's service worker
      auto-precaches them via `files` (offline-safe, no network font fetch,
      nothing leaves the device). The italic face is loaded because the intro

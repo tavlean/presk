@@ -84,12 +84,6 @@ export interface BulkThumb {
 export type BulkPanelScope = 'global' | 'image';
 /** Bulk thumbnail size for the focus strip. */
 export type StripSize = 's' | 'm' | 'l';
-/**
- * Resting-stage experiment toggle. `stack` = the fanned STACK composition that
- * fills the global/multi-select stage with presence; `blank` = the original
- * quiet empty state, kept for side-by-side comparison. Session-scoped.
- */
-export type StageMode = 'stack' | 'blank';
 
 /** A ready-to-download output for one job: the URL the engine minted + the
  *  export-safe filename. `undefined` while the job has no current output. */
@@ -287,8 +281,6 @@ export class BulkStore {
   // Focus strip zoom (S/M/L). Session-scoped: persists across selections but
   // not reloads, matching the store's other in-memory bulk state.
   stripSize = $state<StripSize>('m');
-  // Resting-stage experiment: the fanned STACK (default) or the original blank.
-  stageMode = $state<StageMode>('stack');
   // Multi-select layer over the engine's single selectedJobId. The engine value
   // remains the ANCHOR; this set is the batch editing surface.
   readonly selectedIds = new SvelteSet<string>();
@@ -1008,10 +1000,6 @@ export class BulkStore {
 
     // Nothing selected: the whole batch, first image on top (document order).
     return items;
-  }
-
-  setStageMode(next: StageMode): void {
-    this.stageMode = next;
   }
 
   #settingsHashForJob(session: BulkSession, job: ImageJob): string {
