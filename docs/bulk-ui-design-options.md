@@ -12,8 +12,11 @@ with image info by default** (§4, rewritten); **override signaling decided**
 (§5: dots; ring = selection only; no count badges); **A1 now → A3 later
 confirmed** (§10); **save-back-to-source deferred** but kept on the list;
 **folder import promoted into Phase 2** (§11). Round 4 (same day): the lab from
-the layout section is BUILT and live at `/lab/bulk` (dev-only); pick L1 or L2
-there.
+the layout section is BUILT and live at `/lab/bulk` (dev-only). Round 5
+(same day): the lab was REBUILT on the real production editor components
+(real EditorSession/Output/OptionsPanel; sparse-override sync), then a design
+polish pass fixed the strip overlap + left-panel card nesting, and a THIRD
+variant **L3 "flush left"** was added — pick L1, L2, or L3 there.
 This is the "Design First" step required by [road-map.md](road-map.md) before
 any production bulk UI. Engine reference: [bulk-image-architecture.md](bulk-image-architecture.md).
 
@@ -121,6 +124,10 @@ The pair is *not* B1-vs-B2 as originally framed — the images sharpened it:
 - **Variant L2 — "Grid home"** (`bulk-grid-dashboard.png`): dropping N images
   lands on the card grid with the global panel; clicking a card opens the
   same focus view as L1.
+- **Variant L3 — "Flush left"** (added 2026-07-02, maintainer idea after
+  seeing the lab): like L1 but with NO left panel — the stage and filmstrip
+  run to the left viewport edge, and the batch/image-info surface stacks
+  UNDER the options panel on the right.
 
 So the two variants share the focus view itself; the lab question is **what
 you land on and how navigating scope feels**. B3 (table) stays rejected as
