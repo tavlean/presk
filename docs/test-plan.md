@@ -30,13 +30,14 @@ Tests split by **cost**, and what runs when is matched to that cost.
 - This directly answers the "why do codec tests keep running when codecs change
   once every few months?" concern: after this, they don't.
 
-**Why a unit layer at all (the core finding):** there is currently **no unit
-test runner and zero unit tests** (verified: no `vitest`/`jest` in
-`package.json`, no `*.test.ts` anywhere outside `node_modules`). Yet
+**Why a unit layer at all (the core finding):** before Phase 0 there was **no
+unit test runner and zero unit tests** (verified at the time: no
+`vitest`/`jest` in `package.json`, no `*.test.ts` anywhere outside
+`node_modules`). Yet
 `src/client/lazy-app/bulk/` is ~2,000 lines of pure, framework-neutral logic
-that **has no UI yet** — so E2E literally cannot reach it. Unit tests are the
-*only* way to verify it, and it's exactly the layer bulk/crop/compare will be
-built on.
+that needed DOM-free coverage before production UI promotion. Unit tests are
+the cheap way to verify it, and it's exactly the layer bulk/crop/compare will
+be built on.
 
 ---
 
@@ -110,11 +111,11 @@ mocking.
 
 | File | ~Cases | Status | Covers (highest-value contracts) |
 |---|---|---|---|
-| `queue.test.ts` | ~16 | **Implemented: 8 cases** | Scheduler gate (`getRunnableJobs`) + **counter integrity** across `startJob`/`completeJob`/`failJob`/`requeue*`. Includes stale stored-counter normalization, stale requeue, incomplete requeue, exported-job requeue, and queue-state math. `cancelActiveJobs` remains planned. |
+| `queue.test.ts` | ~16 | **Implemented: 10 cases** | Scheduler gate (`getRunnableJobs`) + **counter integrity** across `startJob`/`completeJob`/`failJob`/`requeue*`. Includes stale stored-counter normalization, source-dimension-aware no-op resize staleness, mixed-size 50% resize requeue, stale requeue, incomplete requeue, exported-job requeue, and queue-state math. `cancelActiveJobs` remains planned. |
 | `export.test.ts` | ~14 | **Implemented: 6 cases** | `getBulkExportEntries` **duplicate-name dedup** (case-insensitive, extension-preserving), size/export/output summaries, stale-output export gate, archive/output filename derivation, and marking export-plan entries exported. |
 | `snapshot.test.ts` | ~10 | **Implemented: 5 cases** | `parseBulkSessionSnapshot` rejection matrix (malformed JSON, wrong version, missing settings, bad job/status/file/output) + restore **status demotion** (active/encoded/exported → queued, counters zeroed, selection fallback). |
 | `import.test.ts` | ~9 | **Implemented: 5 cases** | `isSupportedBulkImage`, sync vs MIME-sniffed partition (sniffer throws → `unreadable`; non-image → `unsupported-type`), import summary, session creation, and append-to-session. |
-| `settings.test.ts` | ~8 | **Implemented: 5 cases** | Deep override merging, encoder override replacement, `settingsHash` stability, override detection, and override-path reporting. |
+| `settings.test.ts` | ~8 | **Implemented: 8 cases** | Deep override merging, encoder override replacement, `settingsHash` stability, disabled processor normalization, identity-resize collapse, per-job percentage-resize resolution, override detection, and override-path reporting. |
 | `session.test.ts` | ~12 | **Implemented: 9 cases** | Counter normalization, unique job-ID dedup, remove/selection fallback, select-next/prev edges, global settings + overrides, `markJobsExported`, selected context, progress, and action-state selectors. |
 | `output-filename.test.ts` | ~9 | **Implemented: 5 cases** | **Reserved Windows names** (`con`, `nul`, `com1`, `lpt9` → `-file`), illegal/control chars, path stripping, dotfiles, fallback names, and extension normalization. |
 | `urls.test.ts` | ~5 | **Implemented: 3 cases** | Dedup collect + per-job/session revoke spy counts (leak prevention). |

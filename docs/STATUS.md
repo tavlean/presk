@@ -13,24 +13,23 @@ browser, the build is static, and offline reload must work after load.
   headless** (`src/client/lazy-app/bulk/` — ~15 pure modules: session, global
   settings + sparse per-image overrides, queue/runner, headless processor,
   import, stale-gated export, snapshots, strip/detail/summary view-models; the
-  diagnostics probe runs `processBulkImageJob` end-to-end). Remaining work is
-  UI, multi-file entry wiring (`pickFiles` keeps only `list[0]` today), a
-  worker-bridge pool instance, thumbnails/memory management, ZIP, and broader
-  tests. **Phase 0 unit safety net landed 2026-07-02:** Vitest +
-  `npm run test:unit`, scoped to `tests/unit/`, with 58 passing
+  diagnostics probe runs `processBulkImageJob` end-to-end). Remaining production
+  work is multi-file entry wiring (`pickFiles` keeps only `list[0]` today), ZIP,
+  production-route integration, bulk e2e coverage, and promotion from the dev
+  lab. **Phase 0 unit safety net landed 2026-07-02:** Vitest +
+  `npm run test:unit`, scoped to `tests/unit/`, with 63 passing
   bulk-engine/helper cases covering the [test-plan.md](test-plan.md) §4 top-8
-  targets.
-  UI design options + phased roadmap:
-  [bulk-ui-design-options.md](bulk-ui-design-options.md) — **awaiting
-  maintainer shortlist** (grid vs filmstrip home, left-side treatment,
-  ZIP-in-v1, mixed-size resize default). UPDATE, same day: the two-variant
-  layout LAB is BUILT and running at
-  `/lab/bulk` (dev-only route, commit `99ac5495`): L1 focus-first home vs L2
-  grid home, sharing one engine-backed store, two persistent WebP worker
-  bridges, real encodes, per-image overrides with dot signaling + per-control
-  reset, an image-info panel with inferred aspect ratio, and a 12-sample
-  generator for instant testing. Save-all ZIP is a stubbed toast. Awaiting the
-  maintainer's variant pick.
+  targets plus the new normalized per-job staleness contract. UI design options
+  + phased roadmap: [bulk-ui-design-options.md](bulk-ui-design-options.md).
+  Current dev lab at `/lab/bulk`: one consolidated UI with grid as the top
+  vertical picker mode and L/M/S focus-strip modes below it, one engine-backed
+  store, two persistent WebP worker bridges, real encodes, per-image and
+  multi-select overrides with dot signaling + per-control reset, an image-info
+  panel with inferred aspect ratio, and one 12-image sample loader. The lab now
+  mirrors the production editor's no-wasted-work discipline: normalized
+  per-job recipe hashes, percentage resize resolved per image, per-job output
+  cache, debounced override/global applies, and delayed working badges. Save-all
+  ZIP remains a stubbed toast.
 
 - **Review-hardening follow-ups (2026-07-02), landed on `main`.** Closes the
   gaps the batch below exposed. (1) **CI now runs the full Playwright e2e suite**
