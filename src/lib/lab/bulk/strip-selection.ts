@@ -117,14 +117,25 @@ export function createStripSelectionController(): {
         ctrlKey: event.ctrlKey,
         shiftKey: event.shiftKey,
       };
-      (event.currentTarget as HTMLElement | null)?.setPointerCapture(
-        event.pointerId,
-      );
+      // Only capture for drag-select on fine pointers. Capturing a touch pointer
+      // would swallow the strip's native horizontal scroll (drag-select is
+      // disabled on touch anyway — see onPointermove).
+      if (event.pointerType !== 'touch') {
+        (event.currentTarget as HTMLElement | null)?.setPointerCapture(
+          event.pointerId,
+        );
+      }
       event.stopPropagation();
     },
 
     onPointermove(event: PointerEvent): void {
       if (!drag || event.pointerId !== drag.pointerId) return;
+
+      // On coarse pointers (touch), a horizontal drag IS the scroll gesture —
+      // hijacking it for range-select fights the strip's own scrolling and feels
+      // broken. So drag-select is pointer-fine only; touch keeps tap (select)
+      // and tap+modifier stays available via keyboard/long-press elsewhere.
+      if (event.pointerType === 'touch') return;
 
       if (!drag.dragging) {
         const dx = event.clientX - drag.x;

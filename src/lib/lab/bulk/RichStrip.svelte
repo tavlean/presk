@@ -11,10 +11,18 @@
   const size = $derived(labBulk.stripSize);
   const selection = createStripSelectionController();
 
-  const SIZES: { id: StripSize; label: string; title: string }[] = [
-    { id: 's', label: 'S', title: 'Small thumbnails' },
-    { id: 'm', label: 'M', title: 'Medium thumbnails' },
-    { id: 'l', label: 'L', title: 'Large thumbnails' },
+  // Vertical order reads "up = bigger": Large on top, Small at the bottom. The
+  // same thumbnail-outline glyph is drawn at three box sizes rather than letters,
+  // so the control is iconic at strip scale. `glyph` is the outline's [w, h] in
+  // the 24×24 button viewBox.
+  const SIZES: {
+    id: StripSize;
+    title: string;
+    glyph: { w: number; h: number };
+  }[] = [
+    { id: 'l', title: 'Large thumbnails', glyph: { w: 16, h: 12 } },
+    { id: 'm', title: 'Medium thumbnails', glyph: { w: 12, h: 9 } },
+    { id: 's', title: 'Small thumbnails', glyph: { w: 8, h: 6 } },
   ];
 
   function setSize(next: StripSize): void {
@@ -48,9 +56,21 @@
         role="radio"
         aria-checked={size === option.id}
         title={option.title}
+        aria-label={option.title}
         onclick={() => setSize(option.id)}
       >
-        {option.label}
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect
+            x={(24 - option.glyph.w) / 2}
+            y={(24 - option.glyph.h) / 2}
+            width={option.glyph.w}
+            height={option.glyph.h}
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+        </svg>
       </button>
     {/each}
   </div>
@@ -94,36 +114,46 @@
     background: var(--border-strong, rgba(255, 255, 255, 0.16));
   }
 
-  /* Quiet segmented S/M/L control pinned to the strip's right corner. Vertically
-     centered, icon-like weight, azure active pip (the single-image scope hue —
-     the strip is about picking one image to inspect). */
+  /* VERTICAL thumbnail-size control pinned to the strip's right edge, vertically
+     centered in the strip region. Large on top → Small at the bottom ("up =
+     bigger"). Icons over letters: the same rounded-rect thumbnail outline at
+     three sizes. Active glyph is azure (the single-image scope hue — the strip
+     is about picking one image to inspect); inactive is --text-3; hover lifts. */
   .size-control {
     flex: none;
     align-self: center;
     display: inline-flex;
-    padding: 2px;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
     border-radius: 999px;
     background: var(--surface-raise, rgba(255, 255, 255, 0.06));
     border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   }
   .size-control button {
-    width: 26px;
-    height: 24px;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 28px;
     border: none;
     border-radius: 999px;
     background: transparent;
-    color: var(--text-2, rgba(235, 235, 245, 0.62));
-    font: inherit;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    color: var(--text-3, rgba(235, 235, 245, 0.38));
     cursor: pointer;
     transition:
       background-color 150ms ease,
-      color 150ms ease;
+      color 150ms ease,
+      transform 150ms ease;
+  }
+  .size-control button svg {
+    width: 22px;
+    height: 22px;
+    display: block;
   }
   .size-control button:hover:not(.active) {
     color: var(--text-1, #f5f5f7);
+    transform: translateY(-1px);
   }
   .size-control button.active {
     background: var(--accent-2, #53b2ff);
@@ -132,5 +162,11 @@
   .size-control button:focus-visible {
     outline: 2px solid var(--accent-2, #53b2ff);
     outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .size-control button:hover:not(.active) {
+      transform: none;
+    }
   }
 </style>

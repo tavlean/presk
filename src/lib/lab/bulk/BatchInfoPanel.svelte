@@ -482,9 +482,12 @@
   /* Footer: mirrors Results.svelte — size stats at the left, action at the
      right, same paddings/radius rhythm as the production OptionsPanel footer
      (border-top + faint inset background). */
+  /* The celebration is the panel's selling point — give it room to breathe.
+     Generous top/bottom padding lifts the stat pair off the info rows above and
+     sets the Save-all action apart below, using the panel's spare height. */
   .panel-footer {
     flex: none;
-    padding: 10px 16px 12px;
+    padding: 22px 16px 20px;
     border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
     background: rgba(0, 0, 0, 0.18);
   }
@@ -588,7 +591,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 14px;
   }
   .saved {
     font-size: 1.05rem;
@@ -604,8 +607,8 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin-top: 12px;
-    height: 38px;
+    margin-top: 22px;
+    height: 40px;
     padding: 0 16px;
     border: none;
     border-radius: 999px;

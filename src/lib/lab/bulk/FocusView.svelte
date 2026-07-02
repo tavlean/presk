@@ -37,11 +37,51 @@
 
   let isMac = $state(false);
   let viewportWidth = $state(1024);
+  let viewportHeight = $state(768);
+
+  // ── Phone layout state ────────────────────────────────────────────────────
+  // Below this width the two side-by-side bottom sheets can't coexist without
+  // overlapping (each wants ≥250px). We switch to a phone stack: a compact
+  // sticky summary bar for the batch result, the full info panel behind a tap,
+  // and the settings panel as a single bottom sheet opened from a FAB.
+  // We ALSO switch to it on short viewports (landscape phones, e.g. 844×390):
+  // there, docked panels eat the whole height and bury the stage, so the same
+  // stack — where the stage owns the screen and panels are on-demand sheets —
+  // is the right answer.
+  const PHONE_MAX = 620;
+  const SHORT_MAX = 500;
+  const isPhone = $derived(
+    viewportWidth <= PHONE_MAX || viewportHeight <= SHORT_MAX,
+  );
+  // Which phone sheet (if any) is open. Only one at a time; both start closed so
+  // the stage + strip own the screen.
+  let phoneSheet = $state<'none' | 'info' | 'settings'>('none');
 
   const selectedId = $derived(labBulk.selectedId);
   const selectedCount = $derived(labBulk.selectedCount);
   const file = $derived(labBulk.selectedFile);
   const thumb = $derived(labBulk.selectedThumb);
+
+  // Compact summary figures for the phone summary bar (mirrors BatchInfoPanel).
+  const summary = $derived(labBulk.summary);
+  const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB'];
+  function prettySize(bytes: number): string {
+    if (bytes < 1) return '0 B';
+    const exponent = Math.min(
+      Math.floor(Math.log10(bytes) / 3),
+      SIZE_UNITS.length - 1,
+    );
+    return `${(bytes / 1000 ** exponent).toPrecision(3)} ${SIZE_UNITS[exponent]}`;
+  }
+  const summaryOriginal = $derived(
+    prettySize(summary.output.totalOriginalSize),
+  );
+  const summaryOptimized = $derived(
+    summary.output.optimized > 0
+      ? prettySize(summary.output.totalOutputSize)
+      : null,
+  );
+  const summaryPercent = $derived(summary.output.percentChange);
   const orientationOverride = $derived.by(() => {
     if (viewportWidth > 760) return 'horizontal';
     if (!thumb?.w || !thumb.h) return null;
@@ -68,6 +108,21 @@
       navigator.platform || navigator.userAgent || '',
     );
   });
+
+  // Leaving phone width closes any open sheet, so the desktop layout never
+  // inherits a stuck-open overlay.
+  $effect(() => {
+    if (!isPhone && phoneSheet !== 'none') phoneSheet = 'none';
+  });
+
+  function togglePhoneSheet(sheet: 'info' | 'settings'): void {
+    phoneSheet = phoneSheet === sheet ? 'none' : sheet;
+  }
+
+  function openPhoneSettings(scope: 'global' | 'image'): void {
+    setPanelScope(scope);
+    phoneSheet = 'settings';
+  }
 
   function setRightFormat(format: SideFormat): void {
     if (format === 'identity') return;
@@ -110,6 +165,12 @@
       }
     }
 
+    if (event.key === 'Escape' && phoneSheet !== 'none') {
+      event.preventDefault();
+      phoneSheet = 'none';
+      return;
+    }
+
     if (event.key === 'Escape' && !onBack && selectedCount > 0) {
       event.preventDefault();
       labBulk.deselect();
@@ -131,7 +192,11 @@
   }
 </script>
 
-<svelte:window onkeydown={onKeydown} bind:innerWidth={viewportWidth} />
+<svelte:window
+  onkeydown={onKeydown}
+  bind:innerWidth={viewportWidth}
+  bind:innerHeight={viewportHeight}
+/>
 
 <div class="compress sqush-editor" style="--strip-height: {stripHeight}px;">
   <div class="stage-region">
@@ -252,7 +317,33 @@
       </div>
     {/if}
 
-    <aside class="options options-1">
+    <aside
+      class="options options-1"
+      class:phone-sheet={isPhone}
+      class:open={isPhone && phoneSheet === 'info'}
+      aria-hidden={isPhone && phoneSheet !== 'info' ? 'true' : undefined}
+    >
+      {#if isPhone}
+        <div class="sheet-handle-row">
+          <span class="sheet-title">Batch details</span>
+          <button
+            type="button"
+            class="sheet-close"
+            aria-label="Close details"
+            onclick={() => (phoneSheet = 'none')}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M7 7l10 10M17 7L7 17"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.1"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      {/if}
       <BatchInfoPanel
         {file}
         width={thumb?.w ?? 0}
@@ -265,6 +356,9 @@
       class="options options-2"
       class:scope-global={!imageScopeActive}
       class:scope-image={imageScopeActive}
+      class:phone-sheet={isPhone}
+      class:open={isPhone && phoneSheet === 'settings'}
+      aria-hidden={isPhone && phoneSheet !== 'settings' ? 'true' : undefined}
     >
       <div class="scope-tabs" role="tablist" aria-label="Settings scope">
         <button
@@ -319,6 +413,80 @@
         {/if}
       </div>
     </aside>
+
+    {#if isPhone}
+      <!-- Phone summary bar: the batch result stays reachable at a glance,
+           replacing the full left panel. Tap the figures to expand the full
+           info sheet; Save all sits on the right. -->
+      <div class="phone-summary" class:dimmed={phoneSheet !== 'none'}>
+        <button
+          type="button"
+          class="summary-facts"
+          aria-label="Show batch details"
+          aria-expanded={phoneSheet === 'info'}
+          onclick={() => togglePhoneSheet('info')}
+        >
+          <span class="summary-sizes">
+            <span class="s-original">{summaryOriginal}</span>
+            <span class="s-arrow" aria-hidden="true">→</span>
+            <span class="s-optimized">{summaryOptimized ?? '…'}</span>
+          </span>
+          {#if summaryOptimized}
+            <span class="s-delta">↓{Math.abs(Math.round(summaryPercent))}%</span
+            >
+          {/if}
+          <svg class="s-caret" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M8 10l4 4 4-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="summary-save"
+          onclick={() => labBulk.saveAllStub()}
+        >
+          Save all
+        </button>
+      </div>
+
+      <!-- Settings FAB: the clear affordance that opens the options bottom
+           sheet. Coral when it will open GLOBAL settings, azure when an image is
+           selected (it opens THIS-image settings by default then). -->
+      <button
+        type="button"
+        class="settings-fab"
+        class:image={selectedId}
+        aria-label="Open settings"
+        aria-expanded={phoneSheet === 'settings'}
+        onclick={() => openPhoneSettings(selectedId ? 'image' : 'global')}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M8 14v6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+
+      {#if phoneSheet !== 'none'}
+        <!-- Scrim dismisses whichever sheet is open. -->
+        <button
+          type="button"
+          class="phone-scrim"
+          aria-label="Close sheet"
+          onclick={() => (phoneSheet = 'none')}
+        ></button>
+      {/if}
+    {/if}
   </div>
 
   <div
@@ -433,23 +601,27 @@
     pointer-events: none;
   }
   .blank-icon {
-    width: 52px;
-    height: 52px;
-    margin-bottom: 14px;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 20px;
     opacity: 0.5;
   }
   .blank-stage p {
     margin: 0;
     font-variant-numeric: tabular-nums;
   }
+  /* Empty-state heading scale: the primary line should read as a genuine
+     heading from a normal sitting distance, not a caption. */
   .blank-stage .blank-title {
-    font-size: 1.1rem;
+    font-size: clamp(1.35rem, 2.4vw, 1.5rem);
     font-weight: 650;
+    line-height: 1.25;
     color: var(--text-1, #f5f5f7);
     max-width: 26ch;
   }
   .blank-stage .blank-sub {
-    font-size: 0.95rem;
+    margin-top: 8px;
+    font-size: 1.05rem;
     font-weight: 400;
     color: var(--text-2, rgba(235, 235, 245, 0.62));
   }
@@ -790,6 +962,273 @@
       top: 8px;
       max-width: calc(100vw - 112px);
       font-size: 0.85rem;
+    }
+  }
+
+  /* ── Phone layout (≤620px) ────────────────────────────────────────────────
+     Two side-by-side bottom sheets can't coexist here without overlapping, so
+     we switch stacks entirely: the stage + strip own the screen, a compact
+     summary bar pins the batch result to the top, the full info panel and the
+     settings panel become single full-width bottom SHEETS opened on demand (one
+     at a time), and a settings FAB is the affordance for the options sheet. The
+     Output is no longer lifted for docked panels (there are none now); it fills
+     the stage down to the strip, with just top clearance for the summary bar.
+     Also engaged on short viewports (landscape phones) where docked panels would
+     bury the stage — must stay in lockstep with the isPhone JS condition. */
+  @media (max-width: 620px), (max-height: 500px) {
+    .compress {
+      --panel-inset: 10px;
+      --summary-h: 54px;
+      /* The lab dev top-bar is fixed at the very top; the app summary bar stacks
+         just below it. This is the combined top chrome the stage clears. */
+      --lab-topbar-h: 56px;
+      --summary-top: calc(var(--lab-topbar-h) + 4px);
+      --stage-top: calc(var(--summary-top) + var(--summary-h) + 10px);
+      --fit-inset-left: 0px;
+      --fit-inset-right: 0px;
+      --fit-inset-top: var(--stage-top);
+    }
+
+    /* Output fills the stage down to the strip again — undo the 900px lift. */
+    :global(.compress .stage-region .output) {
+      bottom: 0;
+      top: var(--stage-top);
+    }
+    :global(.compress .stage-region .controls) {
+      bottom: 10px;
+      padding: 0 12px;
+    }
+
+    /* Resting message sits below the summary bar, centred in the free canvas. */
+    .blank-stage {
+      inset-block-start: var(--stage-top);
+      inset-block-end: 0;
+    }
+
+    /* Move the top-left chrome below the summary bar so nothing collides. */
+    .back,
+    .history-controls {
+      top: calc(var(--summary-top) + var(--summary-h) - 6px);
+    }
+
+    /* ── Summary bar ──────────────────────────────────────────────────────── */
+    .phone-summary {
+      position: absolute;
+      top: var(--summary-top);
+      left: var(--panel-inset);
+      right: var(--panel-inset);
+      height: var(--summary-h);
+      z-index: 12;
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      padding: 6px;
+      box-sizing: border-box;
+      border-radius: 14px;
+      background: var(--surface, rgba(19, 19, 25, 0.86));
+      backdrop-filter: blur(16px) saturate(1.3);
+      -webkit-backdrop-filter: blur(16px) saturate(1.3);
+      border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+      box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+      transition: opacity 150ms ease;
+    }
+    .phone-summary.dimmed {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .summary-facts {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-1, #f5f5f7);
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+    }
+    .summary-facts:hover {
+      background: var(--surface-raise, rgba(255, 255, 255, 0.06));
+    }
+    .summary-sizes {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      min-width: 0;
+      font-weight: 700;
+      font-size: 0.98rem;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .s-original {
+      color: var(--text-2, rgba(235, 235, 245, 0.62));
+    }
+    .s-arrow {
+      color: var(--text-3, rgba(235, 235, 245, 0.38));
+    }
+    .s-optimized {
+      color: var(--text-1, #f5f5f7);
+    }
+    .s-delta {
+      flex: none;
+      color: var(--good, #46d39a);
+      font-weight: 700;
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .s-caret {
+      flex: none;
+      width: 18px;
+      height: 18px;
+      margin-left: auto;
+      color: var(--text-3, rgba(235, 235, 245, 0.38));
+    }
+    .summary-save {
+      flex: none;
+      padding: 0 16px;
+      border: none;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      cursor: pointer;
+      color: #16161c;
+      background: linear-gradient(
+        135deg,
+        var(--accent-1, #ff8a5e),
+        var(--accent-1-hot, #ff6a3c)
+      );
+      box-shadow: 0 2px 10px var(--accent-1-glow, rgba(255, 122, 80, 0.32));
+    }
+    .summary-save:active {
+      transform: translateY(1px);
+    }
+
+    /* ── Settings FAB ─────────────────────────────────────────────────────── */
+    .settings-fab {
+      position: absolute;
+      right: var(--panel-inset);
+      bottom: var(--panel-inset);
+      z-index: 12;
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.16));
+      border-radius: 50%;
+      cursor: pointer;
+      color: #16161c;
+      background: linear-gradient(
+        135deg,
+        var(--accent-1, #ff8a5e),
+        var(--accent-1-hot, #ff6a3c)
+      );
+      box-shadow: 0 8px 22px -6px var(--accent-1-glow, rgba(255, 122, 80, 0.5));
+      transition:
+        transform 150ms ease,
+        opacity 150ms ease;
+    }
+    /* When an image is selected the FAB opens THIS-image settings — wear azure. */
+    .settings-fab.image {
+      color: #06121f;
+      background: linear-gradient(
+        135deg,
+        var(--accent-2, #53b2ff),
+        var(--accent-2-hot, #2f97ff)
+      );
+      box-shadow: 0 8px 22px -6px var(--accent-2-glow, rgba(74, 163, 255, 0.5));
+    }
+    .settings-fab svg {
+      width: 24px;
+      height: 24px;
+    }
+    .settings-fab:active {
+      transform: scale(0.94);
+    }
+
+    /* ── Bottom sheets (info + settings share the mechanism) ──────────────────
+       Fixed to the VIEWPORT (not the stage region) so translateY(100%) fully
+       hides them past the bottom edge — anchoring to the stage bottom would let
+       a closed sheet peek up over the strip. Open, they overlay the strip too,
+       which is the expected bottom-sheet behaviour. */
+    .options.phone-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: auto;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      max-height: 82dvh;
+      justify-content: flex-start;
+      border-radius: 18px 18px 0 0;
+      transform: translateY(100%);
+      transition: transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+      z-index: 25;
+      font-size: 1rem;
+    }
+    .options.phone-sheet.open {
+      transform: translateY(0);
+    }
+
+    /* The info sheet gets a titled grab-row; its inner panel scrolls. */
+    .sheet-handle-row {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px 8px;
+    }
+    .sheet-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-1, #f5f5f7);
+    }
+    .sheet-close {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border: none;
+      border-radius: 50%;
+      background: var(--surface-raise, rgba(255, 255, 255, 0.06));
+      color: var(--text-2, rgba(235, 235, 245, 0.62));
+      cursor: pointer;
+    }
+    .sheet-close svg {
+      width: 18px;
+      height: 18px;
+    }
+    .options-1.phone-sheet :global(.batch-info) {
+      min-height: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .options.phone-sheet {
+        transition: none;
+      }
+    }
+
+    /* Scrim behind an open sheet — fixed so it also covers the strip below the
+       stage region (the sheet overlays it). */
+    .phone-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 24;
+      border: none;
+      padding: 0;
+      background: rgba(6, 6, 9, 0.5);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      cursor: pointer;
     }
   }
 </style>
