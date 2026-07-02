@@ -44,8 +44,7 @@
     processorState: ProcessorState;
     naturalWidth: number;
     naturalHeight: number;
-    /** Source filename. Reserved for an upcoming source-image info display;
-     *  intentionally not rendered in the format picker anymore. */
+    /** Source filename. Rendered by ImageInfoPanel; kept here for API continuity. */
     sourceName?: string;
     /** True when the source is a vector (SVG) — enables the Vector resize method. */
     isVector?: boolean;
@@ -57,6 +56,7 @@
     onCopy: () => void;
     onSave: () => void;
     onImport: () => void;
+    onCloseCompare?: () => void;
   }
 
   let {
@@ -77,6 +77,7 @@
     onCopy,
     onSave,
     onImport,
+    onCloseCompare,
   }: Props = $props();
 
   const isOriginal = $derived(format === 'identity');
@@ -91,6 +92,17 @@
       <h3 class="options-title">
         <div class="title-and-buttons">
           Edit
+          {#if onCloseCompare}
+            <button
+              type="button"
+              class="title-button close-compare-button"
+              title="Close comparison — back to image info"
+              aria-label="Close comparison — back to image info"
+              onclick={onCloseCompare}
+            >
+              ✕
+            </button>
+          {/if}
           <button
             type="button"
             class="title-button copy-over-button"
@@ -322,6 +334,11 @@
     display: block;
     width: var(--size);
     height: var(--size);
+  }
+  .close-compare-button {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
   }
   .copy-over-button {
     /* Point the filled arrow towards the other side (set per-side in theme). */

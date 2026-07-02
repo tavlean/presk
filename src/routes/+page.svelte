@@ -10,6 +10,7 @@
   } from '$lib/service-worker-registration';
   import Output from '$lib/editor/output/Output.svelte';
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
+  import ImageInfoPanel from '$lib/editor/ImageInfoPanel.svelte';
   import Snackbar from '$lib/editor/Snackbar.svelte';
   import Intro from '$lib/editor/intro/Intro.svelte';
   import BulkMode from '$lib/bulk/BulkMode.svelte';
@@ -18,11 +19,11 @@
   import { snackbar } from '$lib/editor/snackbar-store.svelte';
   import { fileDrop } from '$lib/editor/file-drop';
   import { EditorSession } from '$lib/editor/editor-session.svelte';
+  import { IDENTITY } from '$lib/compress';
   import { isSupportedBulkImage } from 'client/lazy-app/bulk';
   import '$lib/editor/theme.css';
 
   const session = new EditorSession();
-  const sideIndexes = [0, 1] as const;
 
   // Drives the shortcut hint in the Undo/Redo tooltips (⌘ on Apple, Ctrl else).
   let isMac = $state(false);
@@ -237,31 +238,62 @@
         </button>
       </div>
 
-      {#each sideIndexes as index (index)}
-        <aside class="options options-{index + 1}">
+      <aside class="options options-1">
+        {#if session.sides[0].format === IDENTITY}
+          <ImageInfoPanel
+            file={session.file}
+            width={session.naturalWidth}
+            height={session.naturalHeight}
+            onCompareAs={(f) => session.setFormat(0, f)}
+          />
+        {:else}
           <OptionsPanel
-            side={index === 0 ? 'left' : 'right'}
-            format={session.sides[index].format}
+            side="left"
+            format={session.sides[0].format}
             formats={session.availableFormats}
-            options={session.sides[index].optionsByFormat[
-              session.sides[index].format
+            options={session.sides[0].optionsByFormat[
+              session.sides[0].format
             ] ?? {}}
-            processorState={session.sides[index].processorState}
+            processorState={session.sides[0].processorState}
             naturalWidth={session.naturalWidth}
             naturalHeight={session.naturalHeight}
             sourceName={session.file.name}
             isVector={session.isVectorSource}
-            result={session.runtime[index].result}
-            working={session.runtime[index].showSpinner}
-            canImport={session.canImport[index]}
-            downloadName={session.downloadName(index)}
-            onFormatChange={(f) => session.setFormat(index, f)}
-            onCopy={() => session.copyToOther(index)}
-            onSave={() => session.saveSide(index)}
-            onImport={() => session.importSide(index)}
+            result={session.runtime[0].result}
+            working={session.runtime[0].showSpinner}
+            canImport={session.canImport[0]}
+            downloadName={session.downloadName(0)}
+            onFormatChange={(f) => session.setFormat(0, f)}
+            onCopy={() => session.copyToOther(0)}
+            onSave={() => session.saveSide(0)}
+            onImport={() => session.importSide(0)}
+            onCloseCompare={() => session.setFormat(0, IDENTITY)}
           />
-        </aside>
-      {/each}
+        {/if}
+      </aside>
+
+      <aside class="options options-2">
+        <OptionsPanel
+          side="right"
+          format={session.sides[1].format}
+          formats={session.availableFormats}
+          options={session.sides[1].optionsByFormat[session.sides[1].format] ??
+            {}}
+          processorState={session.sides[1].processorState}
+          naturalWidth={session.naturalWidth}
+          naturalHeight={session.naturalHeight}
+          sourceName={session.file.name}
+          isVector={session.isVectorSource}
+          result={session.runtime[1].result}
+          working={session.runtime[1].showSpinner}
+          canImport={session.canImport[1]}
+          downloadName={session.downloadName(1)}
+          onFormatChange={(f) => session.setFormat(1, f)}
+          onCopy={() => session.copyToOther(1)}
+          onSave={() => session.saveSide(1)}
+          onImport={() => session.importSide(1)}
+        />
+      </aside>
     </div>
   {:else}
     <Intro onFiles={routeFiles} onMessage={(t) => snackbar.show(t)} />
