@@ -4,6 +4,7 @@
   import BatchInfoPanel from './BatchInfoPanel.svelte';
   import FocusView from './FocusView.svelte';
   import GlobalOptionsPanel from './GlobalOptionsPanel.svelte';
+  import DeltaPill from './DeltaPill.svelte';
   import { labBulk } from './store.svelte';
 
   interface Props {
@@ -29,14 +30,6 @@
     return `${(bytes / 1000 ** exponent).toPrecision(3)} ${SIZE_UNITS[exponent]}`;
   }
 
-  function deltaFor(percent: number | undefined) {
-    if (percent === undefined) return null;
-    const rounded = Math.round(percent);
-    if (rounded < 0) return { text: `▼ ${Math.abs(rounded)}%`, up: false };
-    if (rounded > 0) return { text: `▲ ${rounded}%`, up: true };
-    return { text: '0%', up: false };
-  }
-
   function openCard(id: string): void {
     labBulk.select(id);
     mode = 'focus';
@@ -58,7 +51,6 @@
     <main class="cards" aria-label="Images">
       {#each items as item (item.id)}
         {@const itemThumb = labBulk.thumbs.get(item.id)}
-        {@const delta = deltaFor(item.percentChange)}
         <button
           type="button"
           class="card"
@@ -101,10 +93,8 @@
                   queued
                 {/if}
               </span>
-              {#if delta}
-                <span class="pill" class:up={delta.up} class:down={!delta.up}>
-                  {delta.text}
-                </span>
+              {#if item.percentChange !== undefined}
+                <DeltaPill percent={item.percentChange} />
               {/if}
             </span>
           </span>
@@ -311,22 +301,8 @@
     margin: 0 2px;
   }
 
-  .pill {
-    padding: 1px 9px;
-    border-radius: 999px;
-    font-weight: 700;
+  .meta :global(.delta) {
     font-size: 0.85rem;
-    white-space: nowrap;
-  }
-
-  .pill.down {
-    background: rgba(61, 220, 151, 0.14);
-    color: var(--good, #3ddc97);
-  }
-
-  .pill.up {
-    background: rgba(255, 176, 32, 0.14);
-    color: var(--warn, #ffb020);
   }
 
   @media (max-width: 760px) {

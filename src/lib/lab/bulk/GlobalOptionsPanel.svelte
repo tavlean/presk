@@ -2,6 +2,7 @@
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
   import { labBulk } from './store.svelte';
+  import DeltaPill from './DeltaPill.svelte';
 
   interface Props {
     focusSession: EditorSession;
@@ -34,13 +35,7 @@
     return `${(bytes / 1000 ** exponent).toPrecision(3)} ${SIZE_UNITS[exponent]}`;
   }
 
-  const delta = $derived.by(() => {
-    if (output.optimized === 0) return null;
-    const rounded = Math.round(output.percentChange);
-    if (rounded < 0) return { text: `▼${Math.abs(rounded)}%`, up: false };
-    if (rounded > 0) return { text: `▲${rounded}%`, up: true };
-    return { text: '0%', up: false };
-  });
+  const showDelta = $derived(output.optimized > 0);
 
   function applyFormat(format: string): void {
     if (format === 'identity') return;
@@ -83,9 +78,9 @@
         …
       {/if}
     </span>
-    {#if delta}
-      <span class="pill" class:up={delta.up} class:down={!delta.up}>
-        {delta.text}
+    {#if showDelta}
+      <span class="delta-slot">
+        <DeltaPill percent={output.percentChange} />
       </span>
     {/if}
   </div>
@@ -121,20 +116,8 @@
     margin: 0 2px;
   }
 
-  .pill {
+  .delta-slot {
     margin-left: auto;
-    padding: 1px 8px;
-    border-radius: 999px;
-    font-weight: 800;
     font-size: 0.85rem;
-    white-space: nowrap;
-  }
-  .pill.down {
-    background: rgba(61, 220, 151, 0.14);
-    color: var(--good, #3ddc97);
-  }
-  .pill.up {
-    background: rgba(255, 176, 32, 0.14);
-    color: var(--warn, #ffb020);
   }
 </style>

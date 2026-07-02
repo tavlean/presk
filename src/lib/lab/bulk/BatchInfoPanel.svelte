@@ -1,19 +1,25 @@
 <script lang="ts">
-  // One flat panel surface (design doc §2/§4) that folds the former BatchCard,
-  // InfoPanel and custom-settings bar into a single frosted card — sections,
-  // not stacked cards. Section headers borrow the production OptionsPanel
-  // language: a small accent dash + quiet uppercase label. Meant to sit inside
-  // an `aside.options`-style surface supplied by the parent layout.
+  // The left-panel surface for the bulk lab. It has two faces driven by
+  // SELECTION (not the right-panel scope tab):
   //
-  // Round 2: IMAGE section on top, BATCH below it, and the card ENDS with a
-  // footer styled after the production Results footer (Results.svelte) — batch
-  // totals at the bottom-left, the coral "Save all · ZIP" button at the
-  // bottom-right — so this panel and the production OptionsPanel visually rhyme.
+  //  • IMAGE face (an image is selected): the panel TITLE is the filename, then
+  //    the info rows (Format / Dimensions / Original size / Aspect chip), then
+  //    the ● custom-settings + "Reset to global" row when the job deviates.
+  //    No "IMAGE" section header — the filename is the title.
+  //  • GLOBAL face (nothing selected): the title is the image COUNT with a
+  //    quiet "Select an image below to inspect" hint, no info rows.
+  //
+  // A footer is ALWAYS present (both faces), styled after the production Results
+  // footer (Results.svelte): the big batch output total + delta pill, a
+  // secondary line carrying the count + transform ("12 images · 10.5 MB →
+  // 301 kB"), and the coral "Save all · ZIP" action at the right. The count
+  // living in the footer is what lets the old "BATCH" header disappear.
   import { labBulk } from './store.svelte';
   import { inferAspect } from './aspect';
+  import DeltaPill from './DeltaPill.svelte';
 
   interface Props {
-    /** Selected source File (for name + format + size). */
+    /** Selected source File (for name + format + size). Undefined = global. */
     file: File | undefined;
     /** Natural pixel width, or 0 until the thumbnail decode lands. */
     width: number;
@@ -61,13 +67,7 @@
     output.optimized > 0 ? prettyParts(output.totalOutputSize) : null,
   );
 
-  const delta = $derived.by(() => {
-    if (output.optimized === 0) return null;
-    const rounded = Math.round(output.percentChange);
-    if (rounded < 0) return { text: `▼${Math.abs(rounded)}%`, up: false };
-    if (rounded > 0) return { text: `▲${rounded}%`, up: true };
-    return { text: '0%', up: false };
-  });
+  const showDelta = $derived(output.optimized > 0);
 
   /** A short, uppercase format label from the MIME type or extension. */
   function formatLabel(source: File): string {
@@ -101,75 +101,73 @@
 
 <div class="batch-info">
   <div class="batch-info-scroll">
-    <section class="section" aria-label="Image information">
-      <h3 class="section-title">Image</h3>
-      <div class="section-body">
-        {#if file}
-          <p class="filename" title={file.name}>{file.name}</p>
-          <dl class="rows">
-            <div class="row">
-              <dt>Format</dt>
-              <dd>{formatLabel(file)}</dd>
-            </div>
-            <div class="row">
-              <dt>Dimensions</dt>
-              <dd>{hasDims ? `${width} × ${height}` : '—'}</dd>
-            </div>
-            <div class="row">
-              <dt>Original size</dt>
-              <dd>{prettySize(file.size)}</dd>
-            </div>
-            <div class="row">
-              <dt>Aspect</dt>
-              <dd>
-                {#if aspect}
-                  <span class="chip" class:approx={aspect.approx}
-                    >{aspect.label}</span
-                  >
-                {:else}
-                  —
-                {/if}
-              </dd>
-            </div>
-          </dl>
+    {#if file}
+      <!-- IMAGE face: filename is the title, then the info rows. -->
+      <div class="head">
+        <p class="title filename" title={file.name}>{file.name}</p>
+      </div>
+      <div class="body">
+        <dl class="rows">
+          <div class="row">
+            <dt>Format</dt>
+            <dd>{formatLabel(file)}</dd>
+          </div>
+          <div class="row">
+            <dt>Dimensions</dt>
+            <dd>{hasDims ? `${width} × ${height}` : '—'}</dd>
+          </div>
+          <div class="row">
+            <dt>Original size</dt>
+            <dd>{prettySize(file.size)}</dd>
+          </div>
+          <div class="row">
+            <dt>Aspect</dt>
+            <dd>
+              {#if aspect}
+                <span class="chip" class:approx={aspect.approx}
+                  >{aspect.label}</span
+                >
+              {:else}
+                —
+              {/if}
+            </dd>
+          </div>
+        </dl>
 
-          {#if hasOverrides}
-            <div class="override-row">
-              <span class="dot" aria-hidden="true">●</span>
-              <strong>Custom settings</strong>
-              <button type="button" onclick={() => onReset?.()}
-                >Reset to global</button
-              >
-            </div>
-          {/if}
-        {:else}
-          <p class="empty">No image selected.</p>
+        {#if hasOverrides}
+          <div class="override-row">
+            <span class="dot" aria-hidden="true">●</span>
+            <strong>Custom settings</strong>
+            <button type="button" onclick={() => onReset?.()}
+              >Reset to global</button
+            >
+          </div>
         {/if}
       </div>
-    </section>
-
-    <section class="section" aria-label="Batch">
-      <h3 class="section-title">Batch</h3>
-      <div class="section-body">
-        <p class="count">
-          <strong>{summary.totalJobs}</strong>
+    {:else}
+      <!-- GLOBAL face: the count is the title, with a quiet inspect hint. -->
+      <div class="head">
+        <p class="title count">
+          {summary.totalJobs}
           {summary.totalJobs === 1 ? 'image' : 'images'}
         </p>
-
-        {#if busy}
-          <div class="progress" aria-label="Batch progress">
-            <span class="spinner" aria-hidden="true"></span>
-            <span>Encoding {progress.completed} of {progress.total}…</span>
-          </div>
-        {:else if progress.failed > 0}
-          <p class="failed">{progress.failed} failed</p>
-        {/if}
+        <p class="hint">Select an image below to inspect</p>
       </div>
-    </section>
+    {/if}
+
+    {#if busy}
+      <div class="progress" aria-label="Batch progress">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Encoding {progress.completed} of {progress.total}…</span>
+      </div>
+    {:else if progress.failed > 0}
+      <p class="failed">{progress.failed} failed</p>
+    {/if}
   </div>
 
-  <!-- Panel footer, styled after the production Results footer: batch totals
-       at the left, the coral "Save all · ZIP" action at the right. -->
+  <!-- Panel footer, styled after the production Results footer: the batch
+       output total + delta at the top, a secondary count + transform line, and
+       the coral "Save all · ZIP" action at the right. -->
   <div class="panel-footer">
     <div class="stats">
       <div class="size-row">
@@ -180,13 +178,14 @@
             <span class="pending">…</span>
           {/if}
         </span>
-        {#if delta}
-          <span class="delta" class:up={delta.up} class:down={!delta.up}>
-            {delta.text}
-          </span>
+        {#if showDelta}
+          <DeltaPill percent={output.percentChange} />
         {/if}
       </div>
       <span class="from-to">
+        {summary.totalJobs}
+        {summary.totalJobs === 1 ? 'image' : 'images'}
+        <span class="sep" aria-hidden="true">·</span>
         {prettySize(output.totalOriginalSize)}
         <span class="arrow" aria-hidden="true">→</span>
         {#if output.optimized > 0}
@@ -215,7 +214,7 @@
     color: var(--text-1, #f5f5f7);
   }
 
-  /* The IMAGE + BATCH sections scroll together; the footer stays pinned. */
+  /* Title + info rows scroll together; the footer stays pinned. */
   .batch-info-scroll {
     display: flex;
     flex-direction: column;
@@ -223,52 +222,39 @@
     overflow-y: auto;
   }
 
-  /* Section header: quiet uppercase label with an accent dash, mirroring the
-     production OptionsPanel `.options-title`. */
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    padding: 10px 16px 8px;
-    font-weight: 700;
-    font-size: 1.05rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-2, rgba(235, 235, 245, 0.62));
-  }
-  .section-title::before {
-    content: '';
-    flex: none;
-    width: 14px;
-    height: 3px;
-    border-radius: 2px;
-    background: linear-gradient(
-      90deg,
-      var(--main-theme-color, #ff8a5e),
-      var(--hot-theme-color, #ff5e8a)
-    );
-    box-shadow: 0 0 8px var(--main-theme-glow, transparent);
-  }
-
-  .section + .section .section-title {
-    border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-  }
-
-  .section-body {
+  .head {
     display: grid;
-    gap: 12px;
-    padding: 2px 16px 14px;
+    gap: 3px;
+    padding: 14px 16px 10px;
   }
 
-  .filename {
+  /* The panel title (filename OR count) reads like a card heading, not a
+     section label — it replaces the removed IMAGE/BATCH headers. */
+  .title {
     margin: 0;
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--text-1, #f5f5f7);
+  }
+  .filename {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .count {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hint {
+    margin: 0;
+    color: var(--text-3, rgba(235, 235, 245, 0.38));
+    font-size: 0.9rem;
+  }
+
+  .body {
+    display: grid;
+    gap: 12px;
+    padding: 0 16px 14px;
   }
 
   .rows {
@@ -313,13 +299,7 @@
     color: var(--text-2, rgba(235, 235, 245, 0.62));
   }
 
-  .empty {
-    margin: 0;
-    color: var(--text-3, rgba(235, 235, 245, 0.38));
-    font-size: 0.95rem;
-  }
-
-  /* Custom-settings affordance — closes out the IMAGE section. */
+  /* Custom-settings affordance — closes out the IMAGE face. */
   .override-row {
     display: flex;
     align-items: center;
@@ -348,21 +328,11 @@
     color: var(--text-1, #f5f5f7);
   }
 
-  .count {
-    margin: 0;
-    color: var(--text-2, rgba(235, 235, 245, 0.62));
-    font-size: 0.95rem;
-  }
-  .count strong {
-    color: var(--text-1, #f5f5f7);
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-  }
-
   .progress {
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 0 16px 12px;
     color: var(--text-2, rgba(235, 235, 245, 0.62));
     font-size: 0.9rem;
     font-variant-numeric: tabular-nums;
@@ -380,6 +350,7 @@
 
   .failed {
     margin: 0;
+    padding: 0 16px 12px;
     color: var(--bad, #ff7d92);
     font-size: 0.9rem;
     font-weight: 700;
@@ -432,26 +403,8 @@
     color: var(--text-3, rgba(235, 235, 245, 0.38));
   }
 
-  .delta {
-    align-self: center;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 1.05rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-  .delta.down {
-    color: var(--good, #3ddc97);
-    background: color-mix(in srgb, var(--good, #3ddc97) 14%, transparent);
-  }
-  .delta.up {
-    color: var(--warn, #ffb020);
-    background: color-mix(in srgb, var(--warn, #ffb020) 14%, transparent);
-  }
-
   .from-to {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 500;
     letter-spacing: 0.02em;
     color: var(--text-3, rgba(235, 235, 245, 0.38));
@@ -459,6 +412,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .sep {
+    margin: 0 3px;
   }
 
   .arrow {

@@ -125,7 +125,29 @@
       />
     {:else}
       <div class="blank-stage">
-        <p>Global settings apply to all images — select one below to inspect</p>
+        <svg class="blank-icon" viewBox="0 0 48 48" aria-hidden="true">
+          <rect
+            x="7"
+            y="11"
+            width="34"
+            height="26"
+            rx="3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <circle cx="17.5" cy="20" r="2.6" fill="currentColor" />
+          <path
+            d="M9 32l9-8 6 5 7-6 8 7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <p>Global settings apply to all {labBulk.summary.totalJobs} images</p>
+        <p class="blank-sub">Click one below to inspect it</p>
       </div>
     {/if}
 
@@ -220,6 +242,7 @@
           aria-selected={imageScopeActive}
           class:active={imageScopeActive}
           disabled={!selectedId}
+          title={selectedId ? undefined : 'Select an image first'}
           onclick={() => setPanelScope('image')}
         >
           This image
@@ -271,7 +294,7 @@
     --mobile-options-height: min(44dvh, 360px);
     --panel-width: 312px;
     --panel-inset: 14px;
-    --strip-height: 96px;
+    --strip-height: 104px;
     --fit-inset-left: calc(var(--panel-width) + var(--panel-inset) * 2);
     --fit-inset-right: calc(var(--panel-width) + var(--panel-inset) * 2);
     --fit-inset-top: 0px;
@@ -311,19 +334,39 @@
     align-items: center;
   }
 
+  /* Idle resting state for the global scope: no card, no border — a faint
+     centered icon + one quiet line, so it reads as "nothing selected", never
+     as a failed load. */
   .blank-stage {
     position: absolute;
     inset: 0;
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     padding: 24px;
     color: var(--text-3, rgba(235, 235, 245, 0.38));
     text-align: center;
+    pointer-events: none;
+  }
+  .blank-icon {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 10px;
+    opacity: 0.55;
   }
   .blank-stage p {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-2, rgba(235, 235, 245, 0.62));
+    font-variant-numeric: tabular-nums;
+  }
+  .blank-stage .blank-sub {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--text-3, rgba(235, 235, 245, 0.38));
   }
 
   .status-pill {
@@ -479,32 +522,62 @@
     width: 100%;
   }
 
+  /* A slim, quiet tab row attached to the top of the options card. Not a loud
+     toggle: transparent text tabs, the active one carries the accent underline
+     that the panel's section headers use. "This image" dims when disabled. */
   .scope-tabs {
     flex: none;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-    padding: 8px;
+    display: flex;
+    gap: 2px;
+    padding: 4px 8px 0;
     border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   }
   .scope-tabs button {
-    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-    border-radius: 8px;
+    position: relative;
+    border: none;
     background: transparent;
     color: var(--text-2, rgba(235, 235, 245, 0.62));
     font: inherit;
-    font-size: 0.88rem;
-    font-weight: 750;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     cursor: pointer;
-    padding: 7px 8px;
+    padding: 8px 10px 9px;
+    transition: color 150ms ease;
+  }
+  .scope-tabs button::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: transparent;
+    transition: background-color 150ms ease;
+  }
+  .scope-tabs button:hover:not(:disabled):not(.active) {
+    color: var(--text-1, #f5f5f7);
   }
   .scope-tabs button.active {
-    background: var(--surface-raise, rgba(255, 255, 255, 0.06));
     color: var(--text-1, #f5f5f7);
+  }
+  .scope-tabs button.active::after {
+    background: linear-gradient(
+      90deg,
+      var(--main-theme-color, #ff8a5e),
+      var(--hot-theme-color, #ff5e8a)
+    );
+    box-shadow: 0 0 8px var(--main-theme-glow, transparent);
   }
   .scope-tabs button:disabled {
     opacity: 0.4;
     cursor: default;
+  }
+  .scope-tabs button:focus-visible {
+    outline: 2px solid var(--main-theme-color, #ff8a5e);
+    outline-offset: -2px;
+    border-radius: 6px;
   }
 
   @media (max-width: 760px) {

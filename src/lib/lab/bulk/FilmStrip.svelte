@@ -3,10 +3,11 @@
   //  - coral RING on the selected item (selection ONLY, never "overridden");
   //  - small coral corner DOT when the job has overrides;
   //  - spinner overlay while the job is processing;
-  //  - tiny caption under each: new size + green ▼% once done.
+  //  - caption under each: new size + a DeltaPill (shared arrow) once done.
   // Click selects. Keyed on job id.
   import { labBulk } from './store.svelte';
   import type { BulkStripItem } from 'client/lazy-app/bulk';
+  import DeltaPill from './DeltaPill.svelte';
 
   const items = $derived(labBulk.stripItems);
 
@@ -26,14 +27,6 @@
 
   function isProcessing(item: BulkStripItem): boolean {
     return item.statusGroup === 'active';
-  }
-
-  function percentText(item: BulkStripItem): string | null {
-    if (item.percentChange === undefined) return null;
-    const rounded = Math.round(item.percentChange);
-    if (rounded < 0) return `▼ ${Math.abs(rounded)}%`;
-    if (rounded > 0) return `▲ ${rounded}%`;
-    return '0%';
   }
 </script>
 
@@ -69,15 +62,9 @@
       </button>
 
       <div class="caption">
-        {#if item.outputSize !== undefined && percentText(item)}
+        {#if item.outputSize !== undefined && item.percentChange !== undefined}
           <span class="size">{prettySize(item.outputSize)}</span>
-          <span
-            class="delta"
-            class:down={(item.percentChange ?? 0) < 0}
-            class:up={(item.percentChange ?? 0) > 0}
-          >
-            {percentText(item)}
-          </span>
+          <DeltaPill percent={item.percentChange} variant="bare" />
         {:else if isProcessing(item)}
           <span class="pending">Encoding…</span>
         {:else}
@@ -94,7 +81,11 @@
   .filmstrip {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    /* Safe centering: the row is centered while the thumbs fit, but the moment
+       they overflow it left-aligns for scrolling with no clipped first item.
+       `safe center` is the modern one-liner; the `auto` margins on the content
+       wrapper below are the fallback for engines without `safe`. */
+    justify-content: safe center;
     gap: 8px;
     width: 100%;
     overflow-x: auto;
@@ -208,40 +199,35 @@
     font-size: 1.2rem;
   }
 
-  /* One compact line: dim size + smaller delta pill. */
+  /* One compact line: readable size + a slightly smaller delta. The size gets
+     the biggest bump (it was near-illegible); the delta stays a touch smaller
+     but still readable at arm's length. */
   .caption {
     display: flex;
     align-items: baseline;
     gap: 5px;
     padding: 0 1px;
-    font-size: 0.72rem;
     font-variant-numeric: tabular-nums;
-    line-height: 1.2;
+    line-height: 1.25;
   }
 
   .size {
-    color: var(--text-3, rgba(235, 235, 245, 0.38));
+    color: var(--text-2, rgba(235, 235, 245, 0.62));
+    font-size: 0.88rem;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .delta {
+  .caption :global(.delta) {
     flex: none;
-    font-weight: 700;
-  }
-
-  .delta.down {
-    color: var(--good, #3ddc97);
-  }
-
-  .delta.up {
-    color: var(--warn, #ffb020);
+    font-size: 0.8rem;
   }
 
   .pending {
     color: var(--text-3, rgba(235, 235, 245, 0.38));
+    font-size: 0.82rem;
     font-weight: 500;
   }
 
