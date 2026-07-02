@@ -3,7 +3,8 @@
   import { onMount, untrack } from 'svelte';
   import { fileDrop } from '$lib/editor/file-drop';
   import { EditorSession } from '$lib/editor/editor-session.svelte';
-  import type { SideFormat } from '$lib/compress';
+  import type { CompressOutcome, SideFormat } from '$lib/compress';
+  import SvelteKitWorkerBridge from '$lib/sveltekit-worker-bridge';
   import {
     labBulk,
     deepEqual,
@@ -17,12 +18,26 @@
   import L2Home from '$lib/lab/bulk/L2Home.svelte';
   import {
     getEffectiveSettings,
+    settingsHash,
     type BulkImageOverrides,
+    type BulkImageSettings,
+    type ImageJob,
   } from 'client/lazy-app/bulk';
+  import {
+    decodeImage,
+    decodeSourceImage,
+    preprocessImage,
+    processImage,
+    type ImagePipelineWorkerBridge,
+  } from 'client/lazy-app/image-pipeline';
   import type {
     EncoderState,
     EncoderType,
     ProcessorState,
+  } from 'client/lazy-app/feature-meta';
+  import {
+    defaultPreprocessorState,
+    defaultProcessorState,
   } from 'client/lazy-app/feature-meta';
   import '$lib/editor/theme.css';
 
@@ -32,9 +47,14 @@
   let loadingSamples = $state(false);
   let seeding = true;
   let pendingSeed = $state<{ jobId: string; loadId: number } | null>(null);
+  let seedSerial = 0;
+  let focusPreviewBridge: SvelteKitWorkerBridge | null = null;
+  let focusPreviewController: AbortController | null = null;
 
   onMount(() => {
     return () => {
+      focusPreviewController?.abort();
+      focusPreviewBridge?.dispose();
       focusSession.dispose();
       labBulk.dispose();
     };
@@ -111,7 +131,25 @@
 
     seeding = true;
     pendingSeed = null;
+    focusPreviewController?.abort();
+    const seedId = ++seedSerial;
 
+    const effective = getEffectiveSettings(
+      labBulk.session.globalSettings,
+      job.overrides,
+    );
+    if (
+      effective.encoderState &&
+      job.output?.settingsHash === settingsHash(effective)
+    ) {
+      void hydrateFocusFromBulkOutput(job, effective, seedId);
+      return;
+    }
+
+    seedFocusThroughEditor(job);
+  }
+
+  function seedFocusThroughEditor(job: ImageJob): void {
     const transfer = new DataTransfer();
     transfer.items.add(job.sourceFile);
     // The production method currently requires a callback for the "first open"
@@ -148,7 +186,13 @@
       effective.processorState,
     );
     focusSession.history.clear();
+    reconcileSeededOverrides(job);
 
+    pendingSeed = null;
+    seeding = false;
+  }
+
+  function reconcileSeededOverrides(job: ImageJob): void {
     const seededOverride = buildOverrideFromFocus(snapshotFocusSide());
     const normalizedCurrent = normalizeExistingOverrides(job.overrides);
     const current = job.overrides ?? {};
@@ -165,9 +209,273 @@
     ) {
       labBulk.applySelectedOverrides(seededOverride);
     }
+  }
 
+  function focusPreviewWorkerBridge(): ImagePipelineWorkerBridge {
+    focusPreviewBridge ??= new SvelteKitWorkerBridge();
+    return focusPreviewBridge as unknown as ImagePipelineWorkerBridge;
+  }
+
+  async function hydrateFocusFromBulkOutput(
+    job: ImageJob,
+    effective: BulkImageSettings,
+    seedId: number,
+  ): Promise<void> {
+    const output = job.output;
+    const encoderState = effective.encoderState;
+    if (!output || !encoderState) {
+      seedFocusThroughEditor(job);
+      return;
+    }
+
+    const controller = new AbortController();
+    focusPreviewController = controller;
+    const signal = controller.signal;
+
+    try {
+      const bridge = focusPreviewWorkerBridge();
+      const decodedSource = await decodeSourceImage(
+        signal,
+        job.sourceFile,
+        bridge,
+      );
+      const preprocessed = await preprocessImage(
+        signal,
+        decodedSource.decoded,
+        defaultPreprocessorState,
+        bridge,
+      );
+      const processed = await processImage(
+        signal,
+        { ...decodedSource, preprocessed },
+        effective.processorState,
+        bridge,
+      );
+      const outputImageData = await decodeImage(signal, output.file, bridge);
+
+      if (
+        signal.aborted ||
+        seedId !== seedSerial ||
+        labBulk.selectedId !== job.id
+      ) {
+        return;
+      }
+
+      applyHydratedFocus(job, effective, {
+        sourceImageData: preprocessed,
+        processedImageData: processed,
+        outputImageData,
+      });
+    } catch (error) {
+      if (signal.aborted) return;
+      if (seedId === seedSerial && labBulk.selectedId === job.id) {
+        seedFocusThroughEditor(job);
+      }
+    } finally {
+      if (focusPreviewController === controller) {
+        focusPreviewController = null;
+      }
+    }
+  }
+
+  function applyHydratedFocus(
+    job: ImageJob,
+    effective: BulkImageSettings,
+    images: {
+      sourceImageData: ImageData;
+      processedImageData: ImageData;
+      outputImageData: ImageData;
+    },
+  ): void {
+    const output = job.output;
+    const encoderState = effective.encoderState;
+    if (!output || !encoderState) {
+      seedFocusThroughEditor(job);
+      return;
+    }
+
+    focusSession.clearFile();
+    focusSession.preprocessorState = structuredClone(defaultPreprocessorState);
+    focusSession.sides[0].format = 'identity';
+    focusSession.sides[0].processorState = structuredClone(
+      defaultProcessorState,
+    );
+    focusSession.sides[1].format = encoderState.type as SideFormat;
+    focusSession.sides[1].optionsByFormat[encoderState.type] = structuredClone(
+      encoderState.options as Record<string, unknown>,
+    );
+    focusSession.sides[1].processorState = structuredClone(
+      effective.processorState,
+    );
+
+    const loadId = focusSession.loadId + 1;
+    const preprocessedWidth = images.sourceImageData.width;
+    const preprocessedHeight = images.sourceImageData.height;
+    const leftSig = focusEncodeSignature(
+      'identity',
+      {},
+      focusSession.sides[0].processorState,
+      focusSession.preprocessorState,
+      preprocessedWidth,
+      preprocessedHeight,
+    );
+    const rightSig = focusEncodeSignature(
+      focusSession.sides[1].format,
+      focusSession.sides[1].optionsByFormat[focusSession.sides[1].format] ?? {},
+      focusSession.sides[1].processorState,
+      focusSession.preprocessorState,
+      preprocessedWidth,
+      preprocessedHeight,
+    );
+    const leftResizeSig = focusResizeSignature(
+      focusSession.sides[0].processorState,
+      preprocessedWidth,
+      preprocessedHeight,
+    );
+    const rightResizeSig = focusResizeSignature(
+      focusSession.sides[1].processorState,
+      preprocessedWidth,
+      preprocessedHeight,
+    );
+
+    const leftOutcome: CompressOutcome = {
+      outputFile: job.sourceFile,
+      outputUrl: '#',
+      outputSize: job.sourceFile.size,
+      originalSize: job.sourceFile.size,
+      percentChange: 0,
+      sourceImageData: images.sourceImageData,
+      outputImageData: images.sourceImageData,
+      isOriginal: true,
+      preprocessedWidth,
+      preprocessedHeight,
+    };
+    const rightOutcome: CompressOutcome = {
+      outputFile: output.file,
+      outputUrl: output.downloadUrl,
+      outputSize: output.size,
+      originalSize: job.originalSize,
+      percentChange: Math.round(output.percentChange * 10) / 10,
+      sourceImageData: images.processedImageData,
+      outputImageData: images.outputImageData,
+      isOriginal: false,
+      preprocessedWidth,
+      preprocessedHeight,
+    };
+
+    focusSession.file = job.sourceFile;
+    focusSession.loadId = loadId;
+    seedHydratedRuntime(0, leftOutcome, leftSig, leftResizeSig, loadId);
+    seedHydratedRuntime(1, rightOutcome, rightSig, rightResizeSig, loadId);
+    focusSession.history.clear();
+    reconcileSeededOverrides(job);
     pendingSeed = null;
     seeding = false;
+  }
+
+  function seedHydratedRuntime(
+    index: 0 | 1,
+    outcome: CompressOutcome,
+    signature: string,
+    resizeSignature: string,
+    loadId: number,
+  ): void {
+    const runtime = focusSession.runtime[index];
+    runtime.result = outcome;
+    runtime.displayedSig = signature;
+    runtime.encodedLoadId = loadId;
+    runtime.lastResizeSig = resizeSignature;
+    runtime.spinnerDelayPassed = false;
+    runtime.error = '';
+    runtime.status = 'done';
+  }
+
+  function focusEncodeSignature(
+    format: SideFormat,
+    options: Record<string, unknown>,
+    processorState: ProcessorState,
+    preprocessorState: typeof defaultPreprocessorState,
+    preprocessedWidth: number,
+    preprocessedHeight: number,
+  ): string {
+    return stableStringify({
+      preprocessor: preprocessorState,
+      recipe: focusSideRecipe(
+        format,
+        options,
+        processorState,
+        focusResizeIsReal(
+          processorState,
+          preprocessedWidth,
+          preprocessedHeight,
+        ),
+      ),
+    });
+  }
+
+  function focusSideRecipe(
+    format: SideFormat,
+    options: Record<string, unknown>,
+    processorState: ProcessorState,
+    resizeCounts: boolean,
+  ): {
+    format: SideFormat;
+    options: Record<string, unknown>;
+    quantize: ProcessorState['quantize'];
+    resize: ProcessorState['resize'] | null;
+  } {
+    return {
+      format,
+      options: options ?? {},
+      quantize: processorState.quantize,
+      resize: resizeCounts ? processorState.resize : null,
+    };
+  }
+
+  function focusResizeSignature(
+    processorState: ProcessorState,
+    preprocessedWidth: number,
+    preprocessedHeight: number,
+  ): string {
+    return focusResizeIsReal(
+      processorState,
+      preprocessedWidth,
+      preprocessedHeight,
+    )
+      ? stableStringify(processorState.resize)
+      : 'off';
+  }
+
+  function focusResizeIsReal(
+    processorState: ProcessorState,
+    preprocessedWidth: number,
+    preprocessedHeight: number,
+  ): boolean {
+    const resize = processorState.resize;
+    return (
+      resize.enabled &&
+      preprocessedWidth > 0 &&
+      preprocessedHeight > 0 &&
+      (resize.width !== preprocessedWidth ||
+        resize.height !== preprocessedHeight)
+    );
+  }
+
+  function stableStringify(value: unknown): string {
+    if (value === null || typeof value !== 'object')
+      return JSON.stringify(value);
+    if (Array.isArray(value))
+      return '[' + value.map(stableStringify).join(',') + ']';
+
+    const record = value as Record<string, unknown>;
+    return (
+      '{' +
+      Object.keys(record)
+        .sort()
+        .map((key) => JSON.stringify(key) + ':' + stableStringify(record[key]))
+        .join(',') +
+      '}'
+    );
   }
 
   function snapshotFocusSide(): {
