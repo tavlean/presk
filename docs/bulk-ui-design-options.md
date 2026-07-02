@@ -124,10 +124,22 @@ The pair is *not* B1-vs-B2 as originally framed — the images sharpened it:
 - **Variant L2 — "Grid home"** (`bulk-grid-dashboard.png`): dropping N images
   lands on the card grid with the global panel; clicking a card opens the
   same focus view as L1.
-- **Variant L3 — "Flush left"** (added 2026-07-02, maintainer idea after
-  seeing the lab): like L1 but with NO left panel — the stage and filmstrip
-  run to the left viewport edge, and the batch/image-info surface stacks
-  UNDER the options panel on the right.
+- **Variant L3 — "Flush left"** — tried 2026-07-02 (stage/strip to the left
+  edge, batch/info stacked under the right panel) and **REJECTED by the
+  maintainer the same day**; removed from the lab (git history keeps it).
+
+**DECIDED (maintainer, 2026-07-02, after using the lab) — the SCOPE MODEL:**
+global optimization must live where users are trained to look — the RIGHT
+panel. Import lands with nothing selected: the right panel edits the GLOBAL
+recipe and the stage is a quiet resting state; clicking an image flips the
+same panel to that image's effective settings; Esc / clicking empty strip
+space returns to global; a subtle "All images | This image" tab above the
+panel switches scope without deselecting. The left panel never hosts
+settings — it is info-only (filename face when selected, count face when
+not) with an always-present results-style footer (totals + Save all · ZIP).
+Delta indicators use the production arrow everywhere (green down / amber
+up). This scope model is a PRODUCT decision, not just a lab detail — Phase 2
+implements it.
 
 So the two variants share the focus view itself; the lab question is **what
 you land on and how navigating scope feels**. B3 (table) stays rejected as
