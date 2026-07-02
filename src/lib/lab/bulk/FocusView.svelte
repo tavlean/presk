@@ -38,6 +38,60 @@
   let isMac = $state(false);
   let viewportWidth = $state(1024);
   let viewportHeight = $state(768);
+  let isSafari = $state(false);
+
+  // ── Stack stage view controls ─────────────────────────────────────────────
+  // The stack resting state has no production Output, so the lab owns a toolbar
+  // that mirrors the production bottom bar (zoom / view-options) and actually
+  // drives the composition: `stackZoom` scales the fan via a CSS transform,
+  // `stackAltBackground` swaps the stage backdrop to the light variant (same
+  // treatment as production's view-option), `stackPixelated` toggles
+  // image-rendering on the cards. State lives here so the backdrop class can sit
+  // on `.stage-region` while the zoom/smoothing flow into StackStage as props.
+  const STACK_ZOOM_MIN = 0.4;
+  const STACK_ZOOM_MAX = 2.5;
+  let stackZoom = $state(1);
+  let stackAltBackground = $state(false);
+  let stackPixelated = $state(false);
+  let stackViewOptionsOpen = $state(false);
+  let stackViewOptionsEl = $state<HTMLDivElement>();
+  let stackViewOptionsBtn = $state<HTMLButtonElement>();
+  const stackViewOptionsDirty = $derived(stackPixelated || stackAltBackground);
+  const stackZoomPercent = $derived(Math.round(stackZoom * 100));
+  const stackViewDirty = $derived(Math.abs(stackZoom - 1) > 1e-3);
+
+  function stackZoomTo(next: number): void {
+    stackZoom = Math.min(STACK_ZOOM_MAX, Math.max(STACK_ZOOM_MIN, next));
+  }
+  function stackResetView(): void {
+    stackZoom = 1;
+  }
+
+  // Light-dismiss the stack view-options popover while it's open (pointerdown
+  // outside or Escape), mirroring the production Output popover behaviour.
+  $effect(() => {
+    if (!stackViewOptionsOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (
+        stackViewOptionsEl &&
+        !stackViewOptionsEl.contains(event.target as Node)
+      ) {
+        stackViewOptionsOpen = false;
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        stackViewOptionsOpen = false;
+        stackViewOptionsBtn?.focus();
+      }
+    };
+    window.addEventListener('pointerdown', onPointerDown, true);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('pointerdown', onPointerDown, true);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  });
 
   // ── Phone layout state ────────────────────────────────────────────────────
   // Below this width the two side-by-side bottom sheets can't coexist without
@@ -119,6 +173,10 @@
     isMac = /mac|iphone|ipad/i.test(
       navigator.platform || navigator.userAgent || '',
     );
+    // image-rendering:pixelated is a no-op in Safari, so (like the production
+    // Output) the smoothing toggle is omitted there — detect it the same way.
+    const ua = navigator.userAgent;
+    isSafari = /^((?!chrome|android).)*safari/i.test(ua);
   });
 
   // Leaving phone width closes any open sheet, so the desktop layout never
@@ -150,6 +208,33 @@
   function setPanelScope(scope: 'global' | 'image'): void {
     if (scope === 'image' && !selectedId) return;
     labBulk.panelScope = scope;
+  }
+
+  // ── Empty-stage deselect ──────────────────────────────────────────────────
+  // A plain click on the open backdrop deselects (mirrors the strip's blank
+  // space). Guarded by a drag threshold so a press-drag on the backdrop — e.g.
+  // an accidental smear — never deselects. Cards, the toolbar and the picker all
+  // stop-propagate / sit above the backdrop, so only true empty space hits here.
+  const BACKDROP_DRAG_THRESHOLD = 4;
+  let backdropDown: { x: number; y: number } | null = null;
+
+  function onBackdropPointerdown(event: PointerEvent): void {
+    if (event.button !== 0) return;
+    backdropDown = { x: event.clientX, y: event.clientY };
+  }
+  function onBackdropPointerup(event: PointerEvent): void {
+    if (!backdropDown) return;
+    const dx = event.clientX - backdropDown.x;
+    const dy = event.clientY - backdropDown.y;
+    if (Math.hypot(dx, dy) >= BACKDROP_DRAG_THRESHOLD) {
+      // Treated as a drag — cancel the pending deselect for this gesture.
+      backdropDown = null;
+    }
+  }
+  function onBackdropClick(): void {
+    const wasClick = backdropDown !== null;
+    backdropDown = null;
+    if (wasClick && selectedCount > 0) labBulk.deselect();
   }
 
   function onKeydown(event: KeyboardEvent): void {
@@ -215,7 +300,27 @@
 />
 
 <div class="compress sqush-editor" style="--strip-height: {stripHeight}px;">
-  <div class="stage-region">
+  <div
+    class="stage-region"
+    class:alt-background={showStack && stackAltBackground}
+  >
+    {#if !showFocus}
+      <!-- Empty-stage deselect: clicking the open backdrop (not a card, toolbar
+           or picker — those stop the event) deselects, exactly like clicking the
+           strip's blank space. A plain click only, guarded by a small drag
+           threshold so a press-drag never deselects. Present in BOTH resting
+           states (stack + blank); NOT in the single-image focus view, where the
+           production Output owns its own pointer gestures. Sits at the back of
+           the stage so cards/controls layer above it. -->
+      <button
+        type="button"
+        class="stage-backdrop"
+        aria-label="Deselect"
+        onpointerdown={onBackdropPointerdown}
+        onpointerup={onBackdropPointerup}
+        onclick={onBackdropClick}
+      ></button>
+    {/if}
     {#if showFocus}
       <Output
         leftImage={focusSession.runtime[0].result?.outputImageData}
@@ -235,7 +340,11 @@
         onRotate={() => focusSession.rotate()}
       />
     {:else if showStack}
-      <StackStage items={stackItems} />
+      <StackStage
+        items={stackItems}
+        zoom={stackZoom}
+        pixelated={stackPixelated}
+      />
     {:else}
       <div class="blank-stage">
         <svg class="blank-icon" viewBox="0 0 48 48" aria-hidden="true">
@@ -486,15 +595,145 @@
       {/if}
     {/if}
 
+    {#if showStack}
+      <!-- Stack stage toolbar. The single-image focus view reuses the production
+           Output bar; the stack has no Output, so this lab-owned bar mirrors it
+           1:1 (same pill/glass, same icon language — see Output.svelte) and
+           actually drives the composition: zoom −/%/+ scales the fan, Reset view
+           fits it back to 100%, and the view-options popover toggles the stage
+           background + card smoothing exactly like production's. -->
+      <div class="stack-controls">
+        <div class="button-group">
+          <button
+            class="button first-button"
+            onclick={() => stackZoomTo(stackZoom / 1.25)}
+            title="Zoom out"
+            aria-label="Zoom out"
+          >
+            <svg class="icon" viewBox="0 0 24 24"
+              ><path d="M19 13H5v-2h14v2z" /></svg
+            >
+          </button>
+          <span class="zoom" aria-label="Zoom level">
+            <span class="zoom-value">{stackZoomPercent}</span>%
+          </span>
+          <button
+            class="button"
+            onclick={() => stackZoomTo(stackZoom * 1.25)}
+            title="Zoom in"
+            aria-label="Zoom in"
+          >
+            <svg class="icon" viewBox="0 0 24 24"
+              ><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg
+            >
+          </button>
+          <button
+            class="button last-button"
+            onclick={stackResetView}
+            disabled={!stackViewDirty}
+            title="Fit — reset the stack to 100%"
+            aria-label="Fit stack"
+          >
+            <svg class="icon" viewBox="0 0 24 24"
+              ><path
+                d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+              /></svg
+            >
+          </button>
+        </div>
+
+        <div class="button-group" bind:this={stackViewOptionsEl}>
+          <button
+            class="button first-button last-button view-options-trigger"
+            class:active={stackViewOptionsOpen}
+            class:dirty={stackViewOptionsDirty}
+            onclick={() => (stackViewOptionsOpen = !stackViewOptionsOpen)}
+            title="View options — preview smoothing &amp; background"
+            aria-label="View options"
+            aria-haspopup="true"
+            aria-expanded={stackViewOptionsOpen}
+            bind:this={stackViewOptionsBtn}
+          >
+            <svg class="icon" viewBox="0 0 24 24"
+              ><path
+                d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
+              /></svg
+            >
+          </button>
+
+          {#if stackViewOptionsOpen}
+            <div class="view-options" role="group" aria-label="View options">
+              {#if !isSafari}
+                <button
+                  class="view-option"
+                  class:active={stackPixelated}
+                  onclick={() => (stackPixelated = !stackPixelated)}
+                  aria-pressed={stackPixelated}
+                >
+                  {#if stackPixelated}
+                    <svg class="icon" viewBox="0 0 24 24"
+                      ><path
+                        d="M12 3h5v2h2v2h2v5h-2V9h-2V7h-2V5h-3V3M21 12v5h-2v2h-2v2h-5v-2h3v-2h2v-2h2v-3h2M12 21H7v-2H5v-2H3v-5h2v3h2v2h2v2h3v2M3 12V7h2V5h2V3h5v2H9v2H7v2H5v3H3"
+                      /></svg
+                    >
+                  {:else}
+                    <svg class="icon" viewBox="0 0 24 24"
+                      ><circle
+                        cx="12"
+                        cy="12"
+                        r="8"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      /></svg
+                    >
+                  {/if}
+                  <span class="view-option-label">Smoothing</span>
+                  <span class="view-option-state"
+                    >{stackPixelated ? 'Pixelated' : 'On'}</span
+                  >
+                </button>
+              {/if}
+              <button
+                class="view-option"
+                class:active={stackAltBackground}
+                onclick={() => (stackAltBackground = !stackAltBackground)}
+                aria-pressed={stackAltBackground}
+              >
+                {#if stackAltBackground}
+                  <svg class="icon" viewBox="0 0 24 24"
+                    ><path
+                      d="M9 7H7v2h2V7zm0 4H7v2h2v-2zm0-8a2 2 0 0 0-2 2h2V3zm4 12h-2v2h2v-2zm6-12v2h2a2 2 0 0 0-2-2zm-6 0h-2v2h2V3zM9 17v-2H7c0 1.1.9 2 2 2zm10-4h2v-2h-2v2zm0-4h2V7h-2v2zm0 8a2 2 0 0 0 2-2h-2v2zM5 7H3v12c0 1.1.9 2 2 2h12v-2H5V7zm10-2h2V3h-2v2zm0 12h2v-2h-2v2z"
+                    /></svg
+                  >
+                {:else}
+                  <svg class="icon" viewBox="0 0 24 24"
+                    ><path
+                      d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm2 4v-2H3c0 1.1.9 2 2 2zM3 9h2V7H3v2zm12 12h2v-2h-2v2zm4-18H9a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12H9V5h10v10zm-8 6h2v-2h-2v2zm-4 0h2v-2H7v2z"
+                    /></svg
+                  >
+                {/if}
+                <span class="view-option-label">Background</span>
+                <span class="view-option-state"
+                  >{stackAltBackground ? 'Light' : 'Dark'}</span
+                >
+              </button>
+            </div>
+          {/if}
+        </div>
+      </div>
+    {/if}
+
     <!-- View picker, docked to the STAGE'S bottom toolbar. In the single-image
          focus view the production zoom/rotate bar owns bottom-centre, so the
-         picker pairs just to its RIGHT (same pill/glass language, small gap). In
-         the stack / blank resting state there is no toolbar, so the picker
-         centres on its own. It never overlaps the strip (it sits inside the
-         stage region, above the strip) nor the toolbar. -->
+         picker pairs just to its RIGHT (same pill/glass language, small gap); in
+         the stack state the lab's own toolbar (above) owns centre, so the picker
+         pairs beside it the SAME way. In the blank resting state there is no
+         toolbar, so the picker centres on its own. It never overlaps the strip
+         (it sits inside the stage region, above the strip) nor the toolbar. -->
     <div
       class="view-picker-dock"
-      class:with-toolbar={showFocus}
+      class:with-toolbar={showFocus || showStack}
       class:phone={isPhone}
     >
       <ViewModePicker />
@@ -611,14 +850,13 @@
   }
 
   /* Resting canvas texture: the SAME faint dot grid + soft vignette the
-     production Output stage uses (Output.svelte), so the idle global stage
-     reads as an intentional canvas awaiting work rather than an empty void.
-     Only painted when nothing is selected — the real Output paints its own
-     stage otherwise. */
-  .stage-region:not(:has(.blank-stage))::before {
-    content: none;
-  }
-  .stage-region::before {
+     production Output stage paints (Output.svelte `.output::before`), so the
+     lab's resting stage reads as the identical canvas the editor uses, never a
+     different flat void. ONE shared rule for BOTH resting states (stack + blank)
+     — the values below are copied verbatim from production, one source. The
+     real focus-view Output paints its own stage, so this is suppressed the
+     moment a single image is selected (`.stage-region:has(.output)`). */
+  .stage-region:not(:has(.output))::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -634,7 +872,225 @@
       100% 100%,
       22px 22px;
     background-position: center;
+    /* Match production's colour cross-fade when the background toggle flips. */
+    transition: background-color 500ms ease;
     pointer-events: none;
+  }
+  /* Background view-option (stack toolbar): swap to the same near-white the
+     production alt-background uses, so only the colour cross-fades on toggle. */
+  .stage-region.alt-background:not(:has(.output))::before {
+    background-color: #d4d4d8;
+  }
+
+  /* Empty-stage deselect surface: a transparent full-region button at the BACK
+     of the stage (above the ::before texture, below the fan + controls). The
+     stack fan container is pointer-events:none except on its cards, so clicks in
+     the open gaps fall through to this; cards/toolbar/picker stop-propagate. */
+  .stage-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: default;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* ── Stack stage toolbar ────────────────────────────────────────────────────
+     A faithful copy of the production Output bottom bar (Output.svelte
+     `.controls` + descendants), so the stack state has the identical zoom /
+     view-options affordance the focus view gets for free. Same glass, same pill
+     radii, same icon sizing — only the buttons here drive the lab's stack view
+     controls instead of the pinch-zoom two-up. Docked bottom-centre; the
+     view-picker pairs to its right via `.view-picker-dock.with-toolbar`. */
+  .stack-controls {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    z-index: 6;
+    pointer-events: none;
+  }
+  .stack-controls > * {
+    pointer-events: auto;
+  }
+  /* 621–900px: the docked panels + picker occupy the bottom, so lift the stack
+     toolbar into its own centred lane just above the picker (which sits at
+     mobile-options-height + 52). Mirrors the focus view's picker handling. */
+  @media (min-width: 621px) and (max-width: 900px) {
+    .stack-controls {
+      bottom: calc(var(--mobile-options-height, 360px) + 100px);
+    }
+  }
+  /* Phone (≤620px) / short: the picker docks bottom-LEFT and the settings FAB
+     bottom-RIGHT, so a centred toolbar at bottom:12 would collide with the
+     picker. Lift the stack toolbar into its own lane just above that row. */
+  @media (max-width: 620px), (max-height: 500px) {
+    .stack-controls {
+      bottom: 68px;
+    }
+  }
+  .stack-controls .button-group {
+    display: flex;
+    position: relative;
+    border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+  .stack-controls .button,
+  .stack-controls .zoom {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    background-color: var(--surface, rgba(19, 19, 25, 0.82));
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-width: 1px 0 1px 1px;
+    line-height: 1.1;
+    white-space: nowrap;
+    height: 38px;
+    padding: 0 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-2, #bbb);
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .stack-controls .button {
+    justify-content: center;
+    min-width: 40px;
+    padding: 0 7px;
+  }
+  .stack-controls .icon {
+    display: block;
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+  .stack-controls .button:hover:not(:disabled) {
+    background: rgba(45, 45, 54, 0.92);
+    color: var(--text-1, #fff);
+  }
+  .stack-controls .button.active {
+    background: rgba(62, 62, 74, 0.95);
+    color: var(--text-1, #fff);
+  }
+  .stack-controls .button:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .stack-controls .button:disabled:hover {
+    background-color: var(--surface, rgba(19, 19, 25, 0.82));
+    color: var(--text-2, #bbb);
+  }
+  .stack-controls .first-button {
+    border-radius: 999px 0 0 999px;
+    padding-left: 11px;
+  }
+  .stack-controls .last-button {
+    border-radius: 0 999px 999px 0;
+    border-right-width: 1px;
+    padding-right: 11px;
+  }
+  .stack-controls .first-button.last-button {
+    border-radius: 999px;
+  }
+  .stack-controls .zoom {
+    cursor: default;
+    width: 5.5rem;
+    font: inherit;
+    text-align: center;
+    justify-content: center;
+    color: var(--text-3, #939393);
+    font-size: 0.85rem;
+  }
+  .stack-controls .zoom-value {
+    margin: 0 3px 0 0;
+    padding: 0 2px;
+    font-size: 1.15rem;
+    letter-spacing: 0.04rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-1, #fff);
+  }
+  .stack-controls .view-options-trigger {
+    position: relative;
+  }
+  .stack-controls .view-options-trigger.dirty::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-1, #ff8a5e);
+  }
+  .stack-controls .view-options {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    min-width: 196px;
+    background-color: var(--surface, rgba(19, 19, 25, 0.82));
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+  .stack-controls .view-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 38px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-2, #bbb);
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .stack-controls .view-option:hover {
+    background: rgba(45, 45, 54, 0.92);
+    color: var(--text-1, #fff);
+  }
+  .stack-controls .view-option.active {
+    color: var(--text-1, #fff);
+  }
+  .stack-controls .view-option .icon {
+    width: 20px;
+    height: 20px;
+  }
+  .stack-controls .view-option-label {
+    flex: 1;
+  }
+  .stack-controls .view-option-state {
+    color: var(--text-3, #939393);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .stack-controls .view-option.active .view-option-state {
+    color: var(--accent-1, #ff8a5e);
   }
 
   /* Real layout space for the strip — no longer an overlay footer. The strip

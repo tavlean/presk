@@ -305,6 +305,18 @@ export class LabBulk {
   // (never deeply mutated) so its shallow reactivity is sufficient.
   readonly thumbs = new SvelteMap<string, LabThumb>();
 
+  // Full-size object URLs of the source Files, keyed by job id. Minted lazily
+  // (only the stack's top card needs one, for its full-quality "original" half —
+  // the thumbnails are ~320px and read as low quality at stage size) and revoked
+  // alongside the thumbnails on job removal / lab reset, so they never leak on
+  // card cycling or teardown. Deliberately a PLAIN Map, not a SvelteMap:
+  // `sourceUrlFor` is called from a `$derived` (StackStage.topSourceUrl) and
+  // creates + caches the URL in the SAME synchronous call, returning it
+  // directly. A reactive map would be MUTATED during that derivation — an unsafe
+  // reactive write inside a derived that stalls Svelte's scheduler (it froze the
+  // whole lab). The URL is returned immediately, so no reactive re-run is needed.
+  readonly #sourceUrls = new Map<string, string>();
+
   // The processing driver (two persistent bridges + abort control).
   readonly runtime = new LabRuntime();
   readonly #outputCache = new LabOutputCache({ maxEntriesPerJob: 3 });
@@ -922,6 +934,27 @@ export class LabBulk {
     };
   }
 
+  /**
+   * A full-size object URL for a job's SOURCE File, minted on first request and
+   * cached in `#sourceUrls`. The stack's top card uses this for its "original"
+   * half so it renders at full quality instead of the ~320px thumbnail. Owned by
+   * the store: revoked in `#revokeRemovedJobs` (card removal) and `#revokeAll`
+   * (reset/dispose), so cycling the fan or removing images never leaks a URL.
+   * Safe to call from a `$derived`: the cache is a plain (non-reactive) Map and
+   * the URL is minted + returned synchronously, so nothing reactive is mutated
+   * mid-derivation (a reactive write there would stall Svelte's scheduler).
+   */
+  sourceUrlFor(jobId: string | undefined): string | undefined {
+    if (!jobId) return undefined;
+    const existing = this.#sourceUrls.get(jobId);
+    if (existing) return existing;
+    const job = this.session.jobs.find((item) => item.id === jobId);
+    if (!job) return undefined;
+    const url = URL.createObjectURL(job.sourceFile);
+    this.#sourceUrls.set(jobId, url);
+    return url;
+  }
+
   /** All overridden dotted paths for a job (for the corner dot / tooltip). */
   overridePaths(jobId: string | undefined): string[] {
     const job = jobId
@@ -1111,6 +1144,11 @@ export class LabBulk {
         URL.revokeObjectURL(thumb.url);
         this.thumbs.delete(job.id);
       }
+      const sourceUrl = this.#sourceUrls.get(job.id);
+      if (sourceUrl) {
+        URL.revokeObjectURL(sourceUrl);
+        this.#sourceUrls.delete(job.id);
+      }
       revokeJobObjectUrls(job, (url) => {
         if (revoked.has(url)) return;
         URL.revokeObjectURL(url);
@@ -1273,6 +1311,8 @@ export class LabBulk {
   #revokeAll(): void {
     for (const thumb of this.thumbs.values()) URL.revokeObjectURL(thumb.url);
     this.thumbs.clear();
+    for (const url of this.#sourceUrls.values()) URL.revokeObjectURL(url);
+    this.#sourceUrls.clear();
     this.#outputCache.clear();
     revokeSessionObjectUrls(this.session);
   }

@@ -24,9 +24,13 @@
 
   interface Props {
     items: BulkStripItem[];
+    /** Stage-toolbar zoom (1 = fit). Scales the whole fan via a CSS transform. */
+    zoom?: number;
+    /** Stage-toolbar smoothing toggle → image-rendering:pixelated on the cards. */
+    pixelated?: boolean;
   }
 
-  let { items }: Props = $props();
+  let { items, zoom = 1, pixelated = false }: Props = $props();
 
   // The stage's free width shrinks between the two docked side panels in the
   // mid desktop band (901–~1240px). We track the viewport so the fan's CARD
@@ -92,6 +96,12 @@
   const topThumb = $derived(
     topItem ? labBulk.thumbs.get(topItem.id)?.url : undefined,
   );
+  // Full-quality source object URL for the top card's ORIGINAL half. The
+  // ~320px thumbnail looked low-quality blown up to stage size; the store mints
+  // (and owns/revokes) a full-size URL of the source File instead.
+  const topSourceUrl = $derived(
+    topItem ? labBulk.sourceUrlFor(topItem.id) : undefined,
+  );
   const topDownload = $derived(
     topItem ? labBulk.downloadFor(topItem.id) : undefined,
   );
@@ -130,19 +140,108 @@
 
   // Geometry: alternate the peeks left / right of centre, each step further out
   // and more rotated, so the fan has a hand-held rhythm rather than a rigid
-  // ladder. Depth index 1 = closest behind, larger = deeper.
+  // ladder. Depth index 1 = closest behind, larger = deeper. The offsets are a
+  // PERCENTAGE of the (larger) card so the peeks reveal a substantial, clickable
+  // slice of each card at every breakpoint — they read as images, not slivers —
+  // rather than a fixed pixel nudge that vanished as the card grew.
   function peekTransform(depth: number): string {
     const side = depth % 2 === 1 ? -1 : 1; // 1st behind-left, 2nd behind-right…
     const step = Math.ceil(depth / 2); // 1,1,2,2,3,3…
-    const x = side * (26 + step * 20) * spread;
-    const y = step * 12;
-    const rot = side * (2.4 + step * 1.1);
-    const scale = Math.max(0.82, 1 - step * 0.05);
-    return `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rot}deg) scale(${scale})`;
+    // First pair juts ~34% of the card out; each deeper pair adds ~16%. `spread`
+    // tucks this in when the mid-desktop side panels squeeze the corridor.
+    const xPct = side * (34 + (step - 1) * 16) * spread;
+    const y = step * 16;
+    const rot = side * (2.6 + step * 1.2);
+    const scale = Math.max(0.8, 1 - step * 0.055);
+    return `translate(-50%, -50%) translate(${xPct}%, ${y}px) rotate(${rot}deg) scale(${scale})`;
   }
   function peekOpacity(depth: number): number {
     const step = Math.ceil(depth / 2);
-    return Math.max(0.4, 1 - step * 0.14);
+    return Math.max(0.5, 1 - step * 0.12);
+  }
+
+  // ── Top-card before/after divider ──────────────────────────────────────────
+  // A REAL draggable split on the top card (the white line used to look like a
+  // before/after slider but was inert). `splitPct` is the divider's horizontal
+  // position as a 0–100% of the card; the before-half is clipped to its left,
+  // the after-half to its right. Pointer-drag on the handle updates it (clamped
+  // 4–96% so a sliver of each side always shows); ←/→ arrows nudge it when the
+  // handle is focused. Lightweight — no zoom coupling, unlike the two-up.
+  const SPLIT_MIN = 4;
+  const SPLIT_MAX = 96;
+  let splitPct = $state(50);
+  let splitCardEl = $state<HTMLElement>();
+
+  // Reset the divider to centre whenever the top card changes, so a new anchor
+  // never inherits the previous card's drag position.
+  let lastSplitTopId = '';
+  $effect(() => {
+    const id = topItem?.id ?? '';
+    if (id !== lastSplitTopId) {
+      lastSplitTopId = id;
+      splitPct = 50;
+    }
+  });
+
+  function clampSplit(value: number): number {
+    return Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, value));
+  }
+
+  function splitFromClientX(clientX: number): void {
+    const el = splitCardEl;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0) return;
+    splitPct = clampSplit(((clientX - rect.left) / rect.width) * 100);
+  }
+
+  // Track the active drag by pointer id (not by hasPointerCapture) so a move
+  // still updates the split even if capture was never granted; capture is a
+  // best-effort convenience (keeps the pointer targeting the handle off-card).
+  let draggingPointerId: number | null = null;
+
+  function onDividerPointerdown(event: PointerEvent): void {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    draggingPointerId = event.pointerId;
+    const handle = event.currentTarget as HTMLElement;
+    try {
+      handle.setPointerCapture(event.pointerId);
+    } catch {
+      // Capture is optional — the id-tracked drag below works regardless.
+    }
+    splitFromClientX(event.clientX);
+  }
+  function onDividerPointermove(event: PointerEvent): void {
+    if (draggingPointerId !== event.pointerId) return;
+    event.preventDefault();
+    splitFromClientX(event.clientX);
+  }
+  function onDividerPointerup(event: PointerEvent): void {
+    if (draggingPointerId !== event.pointerId) return;
+    draggingPointerId = null;
+    const handle = event.currentTarget as HTMLElement;
+    if (handle.hasPointerCapture(event.pointerId)) {
+      handle.releasePointerCapture(event.pointerId);
+    }
+  }
+  function onDividerKeydown(event: KeyboardEvent): void {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      event.stopPropagation();
+      splitPct = clampSplit(splitPct - (event.shiftKey ? 10 : 2));
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      event.stopPropagation();
+      splitPct = clampSplit(splitPct + (event.shiftKey ? 10 : 2));
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      splitPct = SPLIT_MIN;
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      splitPct = SPLIT_MAX;
+    }
   }
 
   function selectTop(): void {
@@ -177,7 +276,7 @@
 
 {#if topItem}
   <div class="stack-stage" role="group" aria-label="Batch stack">
-    <div class="stack" style:--card-count={total}>
+    <div class="stack" style:--card-count={total} style:--stack-zoom={zoom}>
       <!-- Peeking cards, deepest painted first so the top card overlays them.
            Rendered in reverse so DOM order matches paint order. -->
       {#each [...peeks].reverse() as item, revIndex (item.id)}
@@ -196,7 +295,7 @@
           onclick={() => bringToTop(item.id)}
         >
           {#if peekThumb}
-            <img src={peekThumb} alt="" draggable="false" />
+            <img src={peekThumb} alt="" draggable="false" class:pixelated />
           {:else}
             <span class="placeholder" aria-hidden="true"></span>
           {/if}
@@ -218,6 +317,8 @@
         class="card top"
         class:shimmer={shimmerIds.has(topItem.id)}
         style:z-index="120"
+        style:--split={`${splitPct}%`}
+        bind:this={splitCardEl}
       >
         <button
           type="button"
@@ -227,23 +328,42 @@
           onclick={selectTop}
         >
           <div class="split">
+            <!-- LEFT (original) half: full-quality source object URL, clipped to
+                 the divider position. The right half keeps the real output URL. -->
             <div class="half side-before">
-              {#if topThumb}
-                <img src={topThumb} alt="" draggable="false" />
+              {#if topSourceUrl}
+                <img
+                  src={topSourceUrl}
+                  alt=""
+                  draggable="false"
+                  class:pixelated
+                />
+              {:else if topThumb}
+                <img src={topThumb} alt="" draggable="false" class:pixelated />
               {:else}
                 <span class="placeholder" aria-hidden="true"></span>
               {/if}
             </div>
             <div class="half side-after">
               {#if topDownload?.url}
-                <img src={topDownload.url} alt="" draggable="false" />
+                <img
+                  src={topDownload.url}
+                  alt=""
+                  draggable="false"
+                  class:pixelated
+                />
               {:else if topThumb}
-                <img src={topThumb} alt="" draggable="false" class="dim" />
+                <img
+                  src={topThumb}
+                  alt=""
+                  draggable="false"
+                  class="dim"
+                  class:pixelated
+                />
               {:else}
                 <span class="placeholder" aria-hidden="true"></span>
               {/if}
             </div>
-            <span class="divider" aria-hidden="true"></span>
 
             <span class="chip left">Original</span>
             <span class="chip right">
@@ -258,6 +378,34 @@
             <span class="shimmer-veil" aria-hidden="true"></span>
           {/if}
         </button>
+
+        <!-- REAL before/after divider: a draggable handle (pointer + keyboard),
+             clamped, with a production-style scrubber affordance like the
+             two-up's. Sits above the top-hit button so its gestures don't open
+             the image; the card still opens on a click of the halves. -->
+        <div
+          class="divider"
+          role="slider"
+          tabindex="0"
+          aria-label="Before / after divider"
+          aria-valuemin={SPLIT_MIN}
+          aria-valuemax={SPLIT_MAX}
+          aria-valuenow={Math.round(splitPct)}
+          aria-orientation="horizontal"
+          onpointerdown={onDividerPointerdown}
+          onpointermove={onDividerPointermove}
+          onpointerup={onDividerPointerup}
+          onpointercancel={onDividerPointerup}
+          onkeydown={onDividerKeydown}
+        >
+          <span class="divider-line" aria-hidden="true"></span>
+          <span class="divider-scrubber" aria-hidden="true">
+            <svg viewBox="0 0 27 20" aria-hidden="true">
+              <path class="arrow-left" d="M9.6 0L0 9.6l9.6 9.6z" />
+              <path class="arrow-right" d="M17 19.2l9.5-9.6L16.9 0z" />
+            </svg>
+          </span>
+        </div>
 
         {#if topItem.hasOverrides}
           <span class="override-dot top-dot" aria-label="Custom settings"
@@ -281,14 +429,68 @@
       {/if}
     </div>
 
-    <p class="hint">
+    <!-- Hint, redesigned as a compact iconic pill row rather than a sentence:
+         the glyphs carry the meaning, whisper-sized labels annotate. -->
+    <div class="hint" aria-label="Stack controls">
       {#if total > 1}
-        {total} images · click a card or press ←/→ to leaf through · click the top
-        card to open it
+        <span class="hint-item">
+          <svg class="hint-glyph" viewBox="0 0 24 24" aria-hidden="true">
+            <rect
+              x="6"
+              y="8"
+              width="13"
+              height="11"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
+            <path
+              d="M9 5.5h9A2.5 2.5 0 0 1 20.5 8v8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span class="hint-count">{total}</span>
+        </span>
+        <span class="hint-sep" aria-hidden="true"></span>
+        <span class="hint-item">
+          <span class="keycap" aria-hidden="true">←</span>
+          <span class="keycap" aria-hidden="true">→</span>
+          <span class="hint-label">leaf</span>
+        </span>
+        <span class="hint-sep" aria-hidden="true"></span>
+        <span class="hint-item">
+          <svg class="hint-glyph" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9 11V6.5a2 2 0 0 1 4 0V11m0-2a2 2 0 0 1 4 0v3.5a6 6 0 0 1-6 6h-1.2a4 4 0 0 1-3-1.4L2.8 15a1.6 1.6 0 0 1 2.4-2l1.8 1.8V8a2 2 0 0 1 4 0"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="hint-label">open</span>
+        </span>
       {:else}
-        Click the card to open this image
+        <span class="hint-item">
+          <svg class="hint-glyph" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M9 11V6.5a2 2 0 0 1 4 0V11m0-2a2 2 0 0 1 4 0v3.5a6 6 0 0 1-6 6h-1.2a4 4 0 0 1-3-1.4L2.8 15a1.6 1.6 0 0 1 2.4-2l1.8 1.8V8a2 2 0 0 1 4 0"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="hint-label">open</span>
+        </span>
       {/if}
-    </p>
+    </div>
   </div>
 {/if}
 
@@ -313,8 +515,13 @@
      as cards cycle. Width/height scale with the viewport for presence. */
   .stack {
     position: relative;
-    width: min(46vw, 520px);
-    height: min(42vh, 380px);
+    /* Command the stage: the top card is sized to the free corridor like the
+       focus image would be. Larger than round 1 at every band (was 46vw/520px),
+       within reason. The stage-toolbar zoom scales the whole fan on top. */
+    width: min(56vw, 640px);
+    height: min(52vh, 460px);
+    transform: scale(var(--stack-zoom, 1));
+    transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
     pointer-events: none;
   }
 
@@ -349,6 +556,10 @@
   }
   .card img.dim {
     opacity: 0.5;
+  }
+  .card img.pixelated {
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
   }
 
   .placeholder {
@@ -435,36 +646,48 @@
     position: absolute;
     inset: 0;
   }
+  /* Both halves fill the WHOLE card box and are clipped at the divider (--split,
+     default 50%), the same technique the production two-up uses: each <img>
+     covers the full frame, so the split reads as one continuous image cut down
+     the middle wherever the divider sits. NB: the halves are `side-before` /
+     `side-after`, NOT `original` / `output` — a class literally named `output`
+     would be captured by the focus view's `:global(...) .output` rule (meant for
+     the production Output component) and collapse the half. */
   .half {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .half img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .half.side-before {
+    clip-path: inset(0 calc(100% - var(--split, 50%)) 0 0);
+  }
+  .half.side-after {
+    clip-path: inset(0 0 0 var(--split, 50%));
+  }
+
+  /* ── Real draggable before/after divider ─────────────────────────────────── */
+  .divider {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 50%;
-    overflow: hidden;
+    left: var(--split, 50%);
+    width: 30px;
+    transform: translateX(-50%);
+    z-index: 3;
+    /* Sits above the top-hit button so its drag gestures win, and carries its
+       own pointer surface. */
+    touch-action: none;
+    cursor: ew-resize;
+    outline: none;
   }
-  /* NB: the halves are `side-before` / `side-after`, NOT `original` / `output`
-     — a class literally named `output` would be captured by the focus view's
-     `:global(.compress .stage-region .output)` rule (meant for the production
-     Output component) and get its `bottom` overridden, collapsing the half. */
-  .half.side-before {
-    left: 0;
-  }
-  /* The after-half is clipped to the RIGHT so its image aligns with the same
-     pixels as the before-half — both <img> cover the full card box, each half
-     just reveals its side, so the split reads as one continuous frame cut down
-     the middle. */
-  .half.side-before img {
-    width: 200%;
-  }
-  .half.side-after {
-    right: 0;
-  }
-  .half.side-after img {
-    width: 200%;
-    left: -100%;
-  }
-
-  .divider {
+  .divider-line {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -474,11 +697,51 @@
     background: linear-gradient(
       to bottom,
       rgba(255, 255, 255, 0.15),
-      rgba(255, 255, 255, 0.85),
+      rgba(255, 255, 255, 0.9),
       rgba(255, 255, 255, 0.15)
     );
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     pointer-events: none;
+  }
+  /* Glass scrubber thumb, matching the two-up's affordance (accent arrows on a
+     dark blurred pill) so the divider reads as the same draggable control. */
+  .divider-scrubber {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: rgba(14, 14, 18, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    transition: transform 150ms ease;
+  }
+  .divider:hover .divider-scrubber {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  .divider-scrubber svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .divider-scrubber .arrow-left {
+    fill: var(--accent-1, #ff8a5e);
+  }
+  .divider-scrubber .arrow-right {
+    fill: var(--accent-2, #53b2ff);
+  }
+  .divider:focus-visible .divider-scrubber {
+    outline: 2px solid var(--accent-2, #53b2ff);
+    outline-offset: 2px;
   }
 
   .chip {
@@ -554,19 +817,23 @@
     }
   }
 
-  /* ── Caption + hint ────────────────────────────────────────────────────── */
+  /* ── Caption + hint ──────────────────────────────────────────────────────
+     Both set in the lab's established type scale (matches the left-panel /
+     filmstrip caption register): filename in the text-1 body weight, sizes in
+     the text-2 tabular caption, all one deliberate rhythm. */
   .caption {
     display: flex;
     align-items: baseline;
-    gap: 12px;
-    max-width: min(90vw, 560px);
+    gap: 10px;
+    max-width: min(90vw, 620px);
     pointer-events: none;
     font-variant-numeric: tabular-nums;
   }
   .filename {
     color: var(--text-1, #f5f5f7);
-    font-size: 1.02rem;
+    font-size: 0.95rem;
     font-weight: 650;
+    letter-spacing: -0.01em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -574,7 +841,7 @@
   .sizes {
     flex: none;
     color: var(--text-2, rgba(235, 235, 245, 0.62));
-    font-size: 0.94rem;
+    font-size: 0.85rem;
     font-weight: 550;
     white-space: nowrap;
   }
@@ -585,18 +852,66 @@
   .pending {
     flex: none;
     color: var(--text-3, rgba(235, 235, 245, 0.5));
-    font-size: 0.92rem;
+    font-size: 0.85rem;
     font-weight: 550;
   }
 
+  /* Hint pill row: a single designed element in the left-panel's quality
+     register — one quiet glass pill holding iconic segments separated by
+     hairlines. The glyphs carry the meaning; whisper-sized labels annotate. */
   .hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     margin: 0;
-    max-width: min(90vw, 520px);
-    text-align: center;
-    color: var(--text-3, rgba(235, 235, 245, 0.4));
-    font-size: 0.86rem;
-    line-height: 1.4;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--surface-raise, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    color: var(--text-2, rgba(235, 235, 245, 0.62));
     pointer-events: none;
+  }
+  .hint-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hint-glyph {
+    width: 17px;
+    height: 17px;
+    color: var(--text-3, rgba(235, 235, 245, 0.5));
+  }
+  .hint-count {
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-1, #f5f5f7);
+  }
+  .hint-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: lowercase;
+    color: var(--text-3, rgba(235, 235, 245, 0.5));
+  }
+  .keycap {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 3px;
+    border-radius: 5px;
+    background: var(--surface-raise-2, rgba(255, 255, 255, 0.09));
+    border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.16));
+    color: var(--text-2, rgba(235, 235, 245, 0.72));
+    font-size: 0.72rem;
+    line-height: 1;
+    font-weight: 700;
+  }
+  .hint-sep {
+    width: 1px;
+    height: 16px;
+    background: var(--border, rgba(255, 255, 255, 0.08));
   }
 
   /* ── Mid desktop band: fit between the two docked side panels ────────────────
@@ -607,14 +922,15 @@
   @media (min-width: 901px) and (max-width: 1240px) {
     .stack {
       /* Card sized to the corridor between the two 340px-footprint side panels,
-         with slack for the rotated peek corners' bounding box. */
-      width: min(calc(100vw - 820px), 420px);
-      height: min(34vh, 300px);
+         with slack for the rotated peek corners' bounding box. The peeks now jut
+         a PERCENTAGE of the card (and `spread` halves that here), so the fan's
+         bounding box stays inside the corridor as the card scales. */
+      width: min(calc(100vw - 760px), 480px);
+      height: min(40vh, 360px);
     }
-    /* Keep the caption + hint inside the same corridor so they don't slide under
-       the side panels. */
-    .caption,
-    .hint {
+    /* Keep the caption inside the same corridor so it doesn't slide under the
+       side panels. */
+    .caption {
       max-width: calc(100vw - 720px);
     }
   }
@@ -624,28 +940,58 @@
      rather than behind them. The card also shrinks so it clears full-width. */
   @media (max-width: 900px) {
     .stack-stage {
-      /* --mobile-options-height (min(44dvh,360px)) is defined on .compress; the
-         extra ~96px leaves the picker lane (which sits just above the panels)
-         clear too. */
-      padding-bottom: calc(var(--mobile-options-height, 360px) + 96px);
-      gap: 14px;
+      /* This band is CRAMPED: the two settings panels dock as tall bottom sheets
+         (--mobile-options-height = min(44dvh,360px)) and the lab dev-controls pill
+         sits at the very top, so the fan lives in a shallow corridor between them.
+         Reserve both — top for the controls pill, bottom for the panels + the
+         picker/toolbar lane above them — and keep the fan centred in what's left.
+         The card is sized small enough (with flex:none so the cramped column can't
+         crush it) that the whole fan + caption + hint clears both edges. */
+      /* Top padding clears the lab-controls pill; bottom padding reserves the
+         docked panels + the toolbar/picker lane above them. The fan centres in
+         the shallow corridor between (caption + hint are dropped at this band —
+         see below). */
+      padding-top: 72px;
+      padding-bottom: calc(var(--mobile-options-height, 360px) + 44px);
+      gap: 8px;
     }
+    /* NB: the card's on-screen HEIGHT is driven by its WIDTH (aspect-ratio 4/3),
+       not by `.stack`'s height — so the WIDTH is what's tuned to fit the shallow
+       corridor here (card height ≈ 0.75 × width). Kept modest so the rotated top
+       card clears the top controls pill and the docked panels below. */
     .stack {
-      width: min(58vw, 340px);
-      height: min(26vh, 240px);
+      flex: none;
+      width: min(44vw, 280px);
+      height: min(20vw, 150px);
+    }
+  }
+  /* 621–900px compact band ONLY: the two settings panels dock as tall bottom
+     sheets and leave a shallow corridor, so the fan + toolbar already fill it.
+     The caption + hint would be buried behind the panels here — drop them (the
+     toolbar carries the affordances; the fan is the content). They return on
+     phone (≤620, panels are on-demand sheets → stage frees up) and desktop. */
+  @media (min-width: 621px) and (max-width: 900px) {
+    .stack-stage .caption,
+    .stack-stage .hint {
+      display: none;
     }
   }
   @media (max-width: 620px), (max-height: 500px) {
     /* Phone: the panels become on-demand bottom sheets (hidden by default), so
        the stage is free again — drop the reserved bottom padding and re-centre. */
     .stack-stage {
-      gap: 16px;
+      gap: 14px;
       padding-bottom: 24px;
     }
     .stack {
-      width: min(78vw, 360px);
-      height: min(34vh, 260px);
+      width: min(82vw, 380px);
+      height: min(38vh, 300px);
     }
+  }
+  /* Short viewports (landscape phones) genuinely lack the vertical room for the
+     hint pill under the fan — hide it there only; narrow-but-tall phones keep it
+     (it's a compact pill now, not a sentence). */
+  @media (max-height: 500px) {
     .hint {
       display: none;
     }
