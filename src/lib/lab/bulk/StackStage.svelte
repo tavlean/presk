@@ -36,24 +36,35 @@
   // while the peeks fan out toward the real stage edges.
   let viewportWidth = $state(1280);
   let viewportHeight = $state(800);
+  let stageWidth = $state(1280);
   const DESKTOP_PANEL_CORRIDOR = 680;
   const MAX_CARD_WIDTH = 680;
   const MIN_CARD_WIDTH = 180;
   const FAN_EDGE_INSET = 34;
-  const MAX_BASE_PEEK_OFFSET = 66;
+  const MIN_USABLE_REVEAL = 34;
+  const DESKTOP_REVEAL_RATIO = 0.075;
+  const MAX_COMFORT_REVEAL = 52;
+  const MIN_PEEK_SCALE = 0.74;
+  const STACK_MOTION_MS = 290;
   const COMPACT_STRIP_HEIGHT = 148;
   const COMPACT_STAGE_TOP_PAD = 72;
   const COMPACT_STAGE_TOOLBAR_PAD = 44;
   const COMPACT_OPTIONS_HEIGHT_RATIO = 0.44;
   const COMPACT_OPTIONS_HEIGHT_MAX = 360;
 
+  type CardSlot = {
+    item: BulkStripItem;
+    depth: number;
+    x: number;
+    y: number;
+    rotation: number;
+    scale: number;
+    opacity: number;
+  };
+
   function clamp(value: number, min: number, max: number): number {
     return Math.min(max, Math.max(min, value));
   }
-
-  // How many cards peek behind the top one before the rest collapse into a
-  // "+N" depth chip. Kept small so the fan stays legible, not a debug spray.
-  const MAX_PEEKS = 6;
 
   // Local cycle pointer: which item is currently on top. It's an OFFSET into the
   // incoming order, so ←/→ and peek-clicks rotate the fan without touching the
@@ -84,9 +95,6 @@
 
   const total = $derived(ordered.length);
   const topItem = $derived(ordered[0]);
-  // Cards actually rendered behind the top one (the rest become the +N chip).
-  const peeks = $derived(ordered.slice(1, 1 + MAX_PEEKS));
-  const hiddenCount = $derived(Math.max(0, total - 1 - peeks.length));
 
   const topThumb = $derived(
     topItem ? labBulk.thumbs.get(topItem.id)?.url : undefined,
@@ -134,16 +142,104 @@
     return Math.min(desired, corridor);
   });
   const fanTargetWidth = $derived(
-    Math.max(topCardWidth, viewportWidth - FAN_EDGE_INSET * 2),
+    Math.max(topCardWidth, Math.max(stageWidth, 1) - FAN_EDGE_INSET * 2),
   );
-  const fanSpread = $derived.by(() => {
-    const deepestStep = Math.ceil(Math.max(1, peeks.length) / 2);
-    const deepestScale = Math.max(0.8, 1 - deepestStep * 0.055);
-    const baseOffset =
-      34 + (deepestStep - 1) * ((MAX_BASE_PEEK_OFFSET - 34) / 2);
-    const targetRatio = fanTargetWidth / topCardWidth;
-    const neededOffset = (targetRatio / 2 - deepestScale / 2) * 100;
-    return clamp(neededOffset / baseOffset, 0.38, 2.75);
+  const availableSpreadPerSide = $derived(
+    Math.max(0, (fanTargetWidth - topCardWidth) / 2),
+  );
+  const peekRevealTarget = $derived(
+    clamp(
+      topCardWidth * DESKTOP_REVEAL_RATIO,
+      MIN_USABLE_REVEAL,
+      MAX_COMFORT_REVEAL,
+    ),
+  );
+  const visiblePeekCount = $derived.by(() => {
+    const available = Math.max(0, total - 1);
+    if (available === 0) return 0;
+    if (availableSpreadPerSide < MIN_USABLE_REVEAL) return 1;
+    const perSideCapacity = Math.max(
+      1,
+      Math.floor(availableSpreadPerSide / peekRevealTarget),
+    );
+    return Math.min(available, perSideCapacity * 2);
+  });
+  const visibleCards = $derived(ordered.slice(0, 1 + visiblePeekCount));
+  const hiddenCount = $derived(Math.max(0, total - visibleCards.length));
+
+  function peekScale(sideRank: number): number {
+    return Math.max(MIN_PEEK_SCALE, 1 - sideRank * 0.035);
+  }
+
+  function rotatedHalfWidth(scale: number, rotation: number): number {
+    const radians = (Math.abs(rotation) * Math.PI) / 180;
+    const halfWidth = topCardWidth / 2;
+    const halfHeight = (topCardWidth * 0.75) / 2;
+    return (
+      scale * (halfWidth * Math.cos(radians) + halfHeight * Math.sin(radians))
+    );
+  }
+
+  const cardSlots = $derived.by(() => {
+    const peekCount = Math.max(0, visibleCards.length - 1);
+    const leftCount = Math.ceil(peekCount / 2);
+    const rightCount = Math.floor(peekCount / 2);
+    const fanHalfWidth = fanTargetWidth / 2;
+
+    return visibleCards.map((item, index): CardSlot => {
+      if (index === 0) {
+        return {
+          item,
+          depth: 0,
+          x: 0,
+          y: 0,
+          rotation: 0,
+          scale: 1,
+          opacity: 1,
+        };
+      }
+
+      if (peekCount === 1) {
+        return {
+          item,
+          depth: index,
+          x: 0,
+          y: 22,
+          rotation: -1.8,
+          scale: 0.96,
+          opacity: 0.88,
+        };
+      }
+
+      const side = index % 2 === 1 ? -1 : 1;
+      const sideRank = side === -1 ? Math.ceil(index / 2) : index / 2;
+      const sideCount = side === -1 ? leftCount : rightCount;
+      const scale = peekScale(sideRank);
+      const rotation = side * (2.35 + sideRank * 0.72);
+      const farScale = peekScale(sideCount);
+      const farRotation = 2.35 + sideCount * 0.72;
+      const farCenter = Math.max(
+        MIN_USABLE_REVEAL,
+        fanHalfWidth - rotatedHalfWidth(farScale, farRotation),
+      );
+      const x = side * farCenter * (sideRank / Math.max(1, sideCount));
+
+      return {
+        item,
+        depth: index,
+        x,
+        y: 12 + sideRank * 13 + index * 0.75,
+        rotation,
+        scale,
+        opacity: Math.max(0.58, 1 - sideRank * 0.065 - index * 0.012),
+      };
+    });
+  });
+  const renderSlots = $derived.by(() => {
+    const order = new Map(items.map((item, index) => [item.id, index]));
+    return [...cardSlots].sort(
+      (a, b) => (order.get(a.item.id) ?? 0) - (order.get(b.item.id) ?? 0),
+    );
   });
   const shimmerIds = new SvelteSet<string>();
   $effect(() => {
@@ -165,27 +261,14 @@
     return () => timers.forEach(clearTimeout);
   });
 
-  // Geometry: alternate the peeks left / right of centre, each step further out
-  // and more rotated, so the fan has a hand-held rhythm rather than a rigid
-  // ladder. Depth index 1 = closest behind, larger = deeper. The offsets are a
-  // PERCENTAGE of the (larger) card so the peeks reveal a substantial, clickable
-  // slice of each card at every breakpoint — they read as images, not slivers —
-  // rather than a fixed pixel nudge that vanished as the card grew.
-  function peekTransform(depth: number): string {
-    const side = depth % 2 === 1 ? -1 : 1; // 1st behind-left, 2nd behind-right…
-    const step = Math.ceil(depth / 2); // 1,1,2,2,3,3…
-    // First pair juts ~34% of the card out; each deeper pair adds ~16%. The
-    // spread multiplier is computed so the deepest visible peeks target the
-    // stage edges, while the top card itself remains within the centre corridor.
-    const xPct = side * (34 + (step - 1) * 16) * fanSpread;
-    const y = step * 16;
-    const rot = side * (2.6 + step * 1.2);
-    const scale = Math.max(0.8, 1 - step * 0.055);
-    return `translate(-50%, -50%) translate(${xPct}%, ${y}px) rotate(${rot}deg) scale(${scale})`;
-  }
-  function peekOpacity(depth: number): number {
-    const step = Math.ceil(depth / 2);
-    return Math.max(0.5, 1 - step * 0.12);
+  // Geometry: slot each visible card from the measured stage width. The top
+  // card stays fixed at centre; peeks split across both sides and each side's
+  // far card lands on the same outer extent, even when one side has an extra
+  // card. Depth index 1 = closest behind, larger = deeper.
+  function cardTransform(slot: CardSlot): string {
+    return `translate(-50%, -50%) translate(${slot.x}px, ${slot.y}px) rotate(${
+      slot.rotation
+    }deg) scale(${slot.scale})`;
   }
 
   // ── Top-card before/after divider ──────────────────────────────────────────
@@ -307,148 +390,171 @@
 />
 
 {#if topItem}
-  <div class="stack-stage" role="group" aria-label="Batch stack">
+  <div
+    class="stack-stage"
+    role="group"
+    aria-label="Batch stack"
+    bind:clientWidth={stageWidth}
+    style:--stack-motion-duration={`${STACK_MOTION_MS}ms`}
+  >
     <div
       class="stack"
       style:--card-count={total}
       style:--stack-zoom={zoom}
       style:--stack-card-width={`${topCardWidth}px`}
     >
-      <!-- Peeking cards, deepest painted first so the top card overlays them.
-           Rendered in reverse so DOM order matches paint order. -->
-      {#each [...peeks].reverse() as item, revIndex (item.id)}
-        {@const depth = peeks.length - revIndex}
-        {@const isDeepest = depth === peeks.length && hiddenCount > 0}
-        {@const peekSource = labBulk.sourceUrlFor(item.id)}
-        <button
-          type="button"
-          class="card peek"
-          class:shimmer={shimmerIds.has(item.id)}
-          style:transform={peekTransform(depth)}
-          style:opacity={peekOpacity(depth)}
-          style:z-index={100 - depth}
-          title={`Bring ${item.fileName} to front`}
-          aria-label={`Bring ${item.fileName} to front`}
-          onclick={() => bringToTop(item.id)}
-        >
-          {#if peekSource}
-            <img src={peekSource} alt="" draggable="false" class:pixelated />
-          {:else}
-            <span class="placeholder" aria-hidden="true"></span>
-          {/if}
-          {#if item.hasOverrides}
-            <span class="override-dot" aria-label="Custom settings"></span>
-          {/if}
-          {#if isDeepest}
-            <span class="more-chip">+{hiddenCount}</span>
-          {/if}
-          {#if shimmerIds.has(item.id)}
-            <span class="shimmer-veil" aria-hidden="true"></span>
-          {/if}
-        </button>
-      {/each}
-
-      <!-- Top card: the anchor, shown as a BEFORE / AFTER split. Clicking it
-           opens the real focus view for that image. -->
-      <div
-        class="card top"
-        class:shimmer={shimmerIds.has(topItem.id)}
-        style:z-index="120"
-        style:--split={`${splitPct}%`}
-        bind:this={splitCardEl}
-      >
-        <button
-          type="button"
-          class="top-hit"
-          title={`Open ${topItem.fileName}`}
-          aria-label={`Open ${topItem.fileName}`}
-          onclick={selectTop}
-        >
-          <div class="split">
-            <!-- LEFT (original) half: full-quality source object URL, clipped to
-                 the divider position. The right half keeps the real output URL. -->
-            <div class="half side-before">
-              {#if topSourceUrl}
-                <img
-                  src={topSourceUrl}
-                  alt=""
-                  draggable="false"
-                  class:pixelated
-                />
-              {:else if topThumb}
-                <img src={topThumb} alt="" draggable="false" class:pixelated />
-              {:else}
-                <span class="placeholder" aria-hidden="true"></span>
-              {/if}
-            </div>
-            <div class="half side-after">
-              {#if topDownload?.url}
-                <img
-                  src={topDownload.url}
-                  alt=""
-                  draggable="false"
-                  class:pixelated
-                />
-              {:else if topThumb}
-                <img
-                  src={topThumb}
-                  alt=""
-                  draggable="false"
-                  class="dim"
-                  class:pixelated
-                />
-              {:else}
-                <span class="placeholder" aria-hidden="true"></span>
-              {/if}
-            </div>
-
-            <span class="chip left">Original</span>
-            <span class="chip right">
-              WebP
-              {#if topHasOutput}
-                <DeltaPill percent={topItem.percentChange!} variant="bare" />
-              {/if}
-            </span>
-          </div>
-
-          {#if shimmerIds.has(topItem.id)}
-            <span class="shimmer-veil" aria-hidden="true"></span>
-          {/if}
-        </button>
-
-        <!-- REAL before/after divider: a draggable handle (pointer + keyboard),
-             clamped, with a production-style scrubber affordance like the
-             two-up's. Sits above the top-hit button so its gestures don't open
-             the image; the card still opens on a click of the halves. -->
+      <!-- Cards keep stable DOM order; z-index handles paint order. That lets a
+           keyed image travel to its new slot via transform instead of being
+           replaced or reordered under the browser. -->
+      {#each renderSlots as slot (slot.item.id)}
+        {@const item = slot.item}
+        {@const isTop = slot.depth === 0}
+        {@const isDeepest = slot.depth === visiblePeekCount && hiddenCount > 0}
+        {@const peekSource = isTop ? undefined : labBulk.sourceUrlFor(item.id)}
         <div
-          class="divider"
-          role="slider"
-          tabindex="0"
-          aria-label="Before / after divider"
-          aria-valuemin={SPLIT_MIN}
-          aria-valuemax={SPLIT_MAX}
-          aria-valuenow={Math.round(splitPct)}
-          aria-orientation="horizontal"
-          onpointerdown={onDividerPointerdown}
-          onpointermove={onDividerPointermove}
-          onpointerup={onDividerPointerup}
-          onpointercancel={onDividerPointerup}
-          onkeydown={onDividerKeydown}
+          class="card"
+          class:top={isTop}
+          class:peek={!isTop}
+          class:shimmer={shimmerIds.has(item.id)}
+          style:transform={cardTransform(slot)}
+          style:opacity={slot.opacity}
+          style:--split={`${splitPct}%`}
+          style:z-index={isTop ? 120 : 100 - slot.depth}
         >
-          <span class="divider-line" aria-hidden="true"></span>
-          <span class="divider-scrubber" aria-hidden="true">
-            <svg viewBox="0 0 27 20" aria-hidden="true">
-              <path class="arrow-left" d="M9.6 0L0 9.6l9.6 9.6z" />
-              <path class="arrow-right" d="M17 19.2l9.5-9.6L16.9 0z" />
-            </svg>
-          </span>
-        </div>
+          {#if isTop}
+            <!-- Top card: the anchor, shown as a BEFORE / AFTER split. Clicking
+                 it opens the real focus view for that image. -->
+            <button
+              type="button"
+              class="top-hit"
+              title={`Open ${item.fileName}`}
+              aria-label={`Open ${item.fileName}`}
+              onclick={selectTop}
+            >
+              <div class="split" bind:this={splitCardEl}>
+                <!-- LEFT (original) half: full-quality source object URL,
+                     clipped to the divider position. The right half keeps the
+                     real output URL. -->
+                <div class="half side-before">
+                  {#if topSourceUrl}
+                    <img
+                      src={topSourceUrl}
+                      alt=""
+                      draggable="false"
+                      class:pixelated
+                    />
+                  {:else if topThumb}
+                    <img
+                      src={topThumb}
+                      alt=""
+                      draggable="false"
+                      class:pixelated
+                    />
+                  {:else}
+                    <span class="placeholder" aria-hidden="true"></span>
+                  {/if}
+                </div>
+                <div class="half side-after">
+                  {#if topDownload?.url}
+                    <img
+                      src={topDownload.url}
+                      alt=""
+                      draggable="false"
+                      class:pixelated
+                    />
+                  {:else if topThumb}
+                    <img
+                      src={topThumb}
+                      alt=""
+                      draggable="false"
+                      class="dim"
+                      class:pixelated
+                    />
+                  {:else}
+                    <span class="placeholder" aria-hidden="true"></span>
+                  {/if}
+                </div>
 
-        {#if topItem.hasOverrides}
-          <span class="override-dot top-dot" aria-label="Custom settings"
-          ></span>
-        {/if}
-      </div>
+                <span class="chip left">Original</span>
+                <span class="chip right">
+                  WebP
+                  {#if topHasOutput}
+                    <DeltaPill
+                      percent={topItem.percentChange!}
+                      variant="bare"
+                    />
+                  {/if}
+                </span>
+              </div>
+
+              {#if shimmerIds.has(item.id)}
+                <span class="shimmer-veil" aria-hidden="true"></span>
+              {/if}
+            </button>
+
+            <!-- REAL before/after divider: a draggable handle (pointer +
+                 keyboard), clamped, with a production-style scrubber affordance
+                 like the two-up's. Sits above the top-hit button so its
+                 gestures don't open the image. -->
+            <div
+              class="divider"
+              role="slider"
+              tabindex="0"
+              aria-label="Before / after divider"
+              aria-valuemin={SPLIT_MIN}
+              aria-valuemax={SPLIT_MAX}
+              aria-valuenow={Math.round(splitPct)}
+              aria-orientation="horizontal"
+              onpointerdown={onDividerPointerdown}
+              onpointermove={onDividerPointermove}
+              onpointerup={onDividerPointerup}
+              onpointercancel={onDividerPointerup}
+              onkeydown={onDividerKeydown}
+            >
+              <span class="divider-line" aria-hidden="true"></span>
+              <span class="divider-scrubber" aria-hidden="true">
+                <svg viewBox="0 0 27 20" aria-hidden="true">
+                  <path class="arrow-left" d="M9.6 0L0 9.6l9.6 9.6z" />
+                  <path class="arrow-right" d="M17 19.2l9.5-9.6L16.9 0z" />
+                </svg>
+              </span>
+            </div>
+
+            {#if item.hasOverrides}
+              <span class="override-dot top-dot" aria-label="Custom settings"
+              ></span>
+            {/if}
+          {:else}
+            <button
+              type="button"
+              class="peek-hit"
+              title={`Bring ${item.fileName} to front`}
+              aria-label={`Bring ${item.fileName} to front`}
+              onclick={() => bringToTop(item.id)}
+            >
+              {#if peekSource}
+                <img
+                  src={peekSource}
+                  alt=""
+                  draggable="false"
+                  class:pixelated
+                />
+              {:else}
+                <span class="placeholder" aria-hidden="true"></span>
+              {/if}
+              {#if item.hasOverrides}
+                <span class="override-dot" aria-label="Custom settings"></span>
+              {/if}
+              {#if isDeepest}
+                <span class="more-chip">+{hiddenCount}</span>
+              {/if}
+              {#if shimmerIds.has(item.id)}
+                <span class="shimmer-veil" aria-hidden="true"></span>
+              {/if}
+            </button>
+          {/if}
+        </div>
+      {/each}
     </div>
   </div>
 {/if}
@@ -466,6 +572,7 @@
     /* Let the strip / panels above/below stay reachable; the fan itself is the
        only pointer surface. */
     pointer-events: none;
+    --stack-ease: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* The fan lives in a fixed-height positioning frame so the absolutely-placed
@@ -476,7 +583,7 @@
     width: var(--stack-card-width, 640px);
     height: calc(var(--stack-card-width, 640px) * 0.75);
     transform: scale(var(--stack-zoom, 1));
-    transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    transition: transform var(--stack-motion-duration) var(--stack-ease);
     pointer-events: none;
   }
 
@@ -494,11 +601,10 @@
     overflow: hidden;
     pointer-events: auto;
     box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.7);
+    will-change: transform, opacity;
     transition:
-      transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      opacity 320ms ease,
-      box-shadow 320ms ease,
-      border-color 150ms ease;
+      transform var(--stack-motion-duration) var(--stack-ease),
+      opacity var(--stack-motion-duration) var(--stack-ease);
   }
 
   .card img {
@@ -529,7 +635,6 @@
 
   /* ── Peeking cards ─────────────────────────────────────────────────────── */
   .peek {
-    transform: translate(-50%, -50%);
     cursor: pointer;
     /* A darkening scrim keeps the peeks reading as "behind", so the top card
        stays the clear focus. */
@@ -546,9 +651,24 @@
     filter: brightness(0.92) saturate(0.95);
     border-color: var(--accent-2, #53b2ff);
   }
-  .peek:focus-visible {
+  .peek-hit {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+  }
+  .peek-hit:focus-visible {
     outline: 2px solid var(--accent-2, #53b2ff);
     outline-offset: 2px;
+    border-radius: 16px;
   }
 
   .more-chip {
@@ -571,7 +691,6 @@
 
   /* ── Top card + before/after split ─────────────────────────────────────── */
   .top {
-    transform: translate(-50%, -50%);
     box-shadow: 0 40px 80px -28px rgba(0, 0, 0, 0.8);
   }
   .top-hit {
@@ -802,8 +921,12 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .stack {
+      transition: none;
+    }
     .card {
-      transition: opacity 150ms ease;
+      transition: none;
+      will-change: auto;
     }
     .shimmer-veil {
       animation: none;
