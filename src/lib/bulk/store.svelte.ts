@@ -1,17 +1,16 @@
-// Reactive store for the Bulk UI lab — the thin Svelte 5 layer over the
+// Reactive production bulk store — the thin Svelte 5 layer over the
 // framework-neutral bulk engine.
 //
 // The engine is IMMUTABLE: every reducer returns a NEW BulkSession, so the
 // store holds it in `$state.raw` and REASSIGNS on each action (coarse
-// reactivity is fine — the lab caps at ~30 images). View-models are derived via
+// reactivity is fine for the focused batch UI). View-models are derived via
 // the engine's own selectors, so the components never reach into the session
 // shape directly. Thumbnails + natural dimensions live in a SvelteMap keyed by
 // job id, decoded lazily off the source File. Object URLs (thumbnails AND
 // engine output download URLs) are revoked on remove/reset.
 //
-// The unified lab home is built on top of this store. The store + runtime are
-// the shared scaffold; the focused image itself is rendered by a real
-// EditorSession in the route.
+// The bulk home is built on top of this store. The focused image itself is
+// rendered by a real EditorSession in the route.
 
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import {
@@ -63,17 +62,17 @@ import {
   getMatchingResizePreset,
   getResizePresetSize,
 } from 'features/processors/resize/client/preset-state';
-// The lab is WebP-locked, so use the CONCRETE WebP option type (which has
+// Bulk is WebP-locked for the first production pass, so use the CONCRETE WebP option type (which has
 // `quality`/`method`) rather than the wide `EncoderOptions` union (whose members
 // share no common keys — it can't be indexed by encoder-specific fields, and
 // `encoderState.options` for `type:'webP'` wants exactly this type).
 import type { EncodeOptions as WebpEncodeOptions } from 'features/encoders/webP/shared/meta';
-import { toast } from './Toast.svelte';
-import { LabOutputCache } from './output-cache';
-import { LabRuntime } from './runtime';
+import { snackbar } from '$lib/editor/snackbar-store.svelte';
+import { BulkOutputCache } from './output-cache';
+import { BulkRuntime } from './runtime';
 
 /** Thumbnail + natural (source) dimensions for one job. */
-export interface LabThumb {
+export interface BulkThumb {
   /** Object URL of the downscaled thumbnail (owned by the store; revoked). */
   url: string;
   /** Natural (decoded) source width in pixels. */
@@ -83,12 +82,12 @@ export interface LabThumb {
 }
 
 export type BulkPanelScope = 'global' | 'image';
-/** Bulk lab thumbnail size for the focus strip. */
+/** Bulk thumbnail size for the focus strip. */
 export type StripSize = 's' | 'm' | 'l';
 /**
  * Resting-stage experiment toggle. `stack` = the fanned STACK composition that
  * fills the global/multi-select stage with presence; `blank` = the original
- * quiet empty state, kept for side-by-side comparison. Dev-only; session-scoped.
+ * quiet empty state, kept for side-by-side comparison. Session-scoped.
  */
 export type StageMode = 'stack' | 'blank';
 
@@ -99,8 +98,8 @@ export interface JobDownload {
   fileName: string;
 }
 
-/** The two overridable WebP option leaves the lab exposes as controls. */
-export type LabOverridablePath = 'quality' | 'method';
+/** The two overridable WebP option leaves the bulk UI exposes as controls. */
+export type BulkOverridablePath = 'quality' | 'method';
 
 /** Longest edge of the generated thumbnail canvas. */
 const THUMB_MAX = 320;
@@ -173,7 +172,7 @@ export function bulkSettingsEqualForBulkDiff(
   );
 }
 
-/** WebP defaults from the codec meta — the lab's locked global format. */
+/** WebP defaults from the codec meta — bulk's first-pass global format. */
 function defaultGlobalSettings(): BulkImageSettings {
   return {
     encoderState: {
@@ -211,7 +210,7 @@ function sideFromSettings(settings: BulkImageSettings): SideState {
 function emptySession(): BulkSession {
   sessionCounter += 1;
   return createBulkSessionFromImport(
-    `lab-bulk-${sessionCounter}`,
+    `sqush-bulk-${sessionCounter}`,
     defaultGlobalSettings(),
     createImageJobs([]),
   );
@@ -282,11 +281,11 @@ function omitOverridePath(
   return next;
 }
 
-export class LabBulk {
+export class BulkStore {
   // The immutable engine session; reassigned on every reducer call.
   session = $state.raw<BulkSession>(emptySession());
   // Focus strip zoom (S/M/L). Session-scoped: persists across selections but
-  // not reloads, matching the store's other in-memory lab state.
+  // not reloads, matching the store's other in-memory bulk state.
   stripSize = $state<StripSize>('m');
   // Resting-stage experiment: the fanned STACK (default) or the original blank.
   stageMode = $state<StageMode>('stack');
@@ -301,23 +300,23 @@ export class LabBulk {
 
   // Thumbnails + natural dims, keyed by job id. SvelteMap entries are replaced
   // (never deeply mutated) so its shallow reactivity is sufficient.
-  readonly thumbs = new SvelteMap<string, LabThumb>();
+  readonly thumbs = new SvelteMap<string, BulkThumb>();
 
   // Full-size object URLs of the source Files, keyed by job id. Minted lazily
   // for StackStage's visible cards (top + capped peeks) because the thumbnails
   // are ~320px and read as low quality at stage size. Revoked alongside the
-  // thumbnails on job removal / lab reset, so they never leak on card cycling or
+  // thumbnails on job removal / bulk reset, so they never leak on card cycling or
   // teardown. Deliberately a PLAIN Map, not a SvelteMap: `sourceUrlFor` is
   // called from a `$derived` and creates + caches the URL in the SAME
   // synchronous call, returning it directly. A reactive map would be MUTATED
   // during that derivation — an unsafe reactive write inside a derived that
-  // stalls Svelte's scheduler (it froze the whole lab). The URL is returned
+  // stalls Svelte's scheduler. The URL is returned
   // immediately, so no reactive re-run is needed.
   readonly #sourceUrls = new Map<string, string>();
 
   // The processing driver (two persistent bridges + abort control).
-  readonly runtime = new LabRuntime();
-  readonly #outputCache = new LabOutputCache({ maxEntriesPerJob: 3 });
+  readonly runtime = new BulkRuntime();
+  readonly #outputCache = new BulkOutputCache({ maxEntriesPerJob: 3 });
 
   // ── Derived view-models (engine selectors) ────────────────────────────────
   readonly stripItems = $derived<BulkStripItem[]>(
@@ -337,7 +336,7 @@ export class LabBulk {
   readonly selectedJob = $derived<ImageJob | undefined>(
     getSelectedJob(this.session),
   );
-  readonly selectedThumb = $derived<LabThumb | undefined>(
+  readonly selectedThumb = $derived<BulkThumb | undefined>(
     this.selectedId ? this.thumbs.get(this.selectedId) : undefined,
   );
   readonly selectedFile = $derived<File | undefined>(
@@ -577,7 +576,7 @@ export class LabBulk {
    */
   #clearEncoderOption(
     job: ImageJob,
-    leaf: LabOverridablePath,
+    leaf: BulkOverridablePath,
   ): BulkImageOverrides {
     const globalOptions = webpOptions(this.session.globalSettings);
     const jobOptions = webpOptions(
@@ -964,7 +963,7 @@ export class LabBulk {
    */
   isPathOverridden(
     jobId: string | undefined,
-    leaf: LabOverridablePath,
+    leaf: BulkOverridablePath,
   ): boolean {
     const job = jobId
       ? this.session.jobs.find((item) => item.id === jobId)
@@ -1092,7 +1091,7 @@ export class LabBulk {
     }
     this.#pinCurrentOutputs();
 
-    toast(
+    void snackbar.show(
       removedJobs.length === 1
         ? `Removed ${removedJobs[0].sourceFile.name}`
         : `Removed ${removedJobs.length} images`,
@@ -1148,7 +1147,7 @@ export class LabBulk {
     }
   }
 
-  /** Tear down the whole lab: cancel, revoke every URL, start fresh. */
+  /** Tear down the whole bulk session: cancel, revoke every URL, start fresh. */
   resetLab(): void {
     this.runtime.cancelProcessing(this);
     this.#revokeAll();
@@ -1163,7 +1162,7 @@ export class LabBulk {
 
   /** Phase-2 placeholder for ZIP export (the scaffold has no archiver yet). */
   saveAllStub(): void {
-    toast('ZIP export lands in Phase 2');
+    void snackbar.show('ZIP export lands in Phase 2');
   }
 
   // ── Output URL ownership ──────────────────────────────────────────────────
@@ -1318,6 +1317,5 @@ export class LabBulk {
   }
 }
 
-// Module-level singleton: the lab is a client-only dev route with no SSR of
-// user data, so a shared instance is fine (per Svelte's module-state guidance).
-export const labBulk = new LabBulk();
+// Module-level singleton for the client-side bulk surface.
+export const bulkStore = new BulkStore();

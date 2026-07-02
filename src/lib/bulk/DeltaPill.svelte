@@ -1,10 +1,9 @@
 <script lang="ts">
-  // Shared size-delta indicator for the whole bulk lab, so the left-panel
+  // Shared size-delta indicator for bulk mode, so the left-panel
   // footer, filmstrip captions and the global footer all speak
   // one visual language. Mirrors the production Results.svelte delta: a small
   // stroked arrow (down = smaller = good, up = larger) + magnitude, in a
-  // rounded tinted pill. The lab keeps its own warn-amber for the "up" case
-  // (the production footer uses --bad; the lab's convention is amber).
+  // rounded tinted pill. Bulk keeps warn-amber for the "up" case.
 
   interface Props {
     /** Signed percent change vs the original (negative = smaller = good). */

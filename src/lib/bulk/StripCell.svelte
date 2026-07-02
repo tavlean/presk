@@ -1,5 +1,5 @@
 <script lang="ts">
-  // One strip thumbnail cell, shared by the lab strips.
+  // One strip thumbnail cell, shared by the bulk strips.
   // The `mode` drives how many pixels the cell earns and how rich its caption is
   // — but the affordances are identical everywhere:
   //   • azure selection RING (selection only, never "overridden");
@@ -15,7 +15,7 @@
   //   m     → name; "251 kB → 26.2 kB" + delta pill
   //   l     → two lines: name; sizes + delta pill (browsing-first)
   import type { BulkStripItem } from 'client/lazy-app/bulk';
-  import { labBulk } from './store.svelte';
+  import { bulkStore } from './store.svelte';
   import DeltaPill from './DeltaPill.svelte';
 
   interface Props {
@@ -38,11 +38,11 @@
     return `${(bytes / 1000 ** exponent).toPrecision(3)} ${SIZE_UNITS[exponent]}`;
   }
 
-  const thumbUrl = $derived(labBulk.thumbs.get(item.id)?.url);
+  const thumbUrl = $derived(bulkStore.thumbs.get(item.id)?.url);
   const processing = $derived(item.statusGroup === 'active');
-  const download = $derived(labBulk.downloadFor(item.id));
-  const selected = $derived(labBulk.isSelected(item.id));
-  const anchor = $derived(labBulk.selectedId === item.id);
+  const download = $derived(bulkStore.downloadFor(item.id));
+  const selected = $derived(bulkStore.isSelected(item.id));
+  const anchor = $derived(bulkStore.selectedId === item.id);
   const hasOutput = $derived(
     item.outputSize !== undefined && item.percentChange !== undefined,
   );
@@ -75,7 +75,7 @@
   function removeImage(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    labBulk.removeOne(item.id);
+    bulkStore.removeOne(item.id);
   }
 
   function downloadImage(event: Event): void {

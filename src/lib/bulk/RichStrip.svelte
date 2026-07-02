@@ -1,13 +1,13 @@
 <script lang="ts">
-  // Horizontal strip of job thumbnails. Selection is delegated at the container
-  // level so click, range, and drag-select stay identical to the richer strip.
-  import { labBulk } from './store.svelte';
+  // Size-adjustable rich strip. The picker chooses S/M/L thumbnail scale.
+  import { bulkStore } from './store.svelte';
   import StripCell from './StripCell.svelte';
   import { createStripSelectionController } from './strip-selection';
 
-  const items = $derived(labBulk.stripItems);
+  const items = $derived(bulkStore.stripItems);
+  const size = $derived(bulkStore.stripSize);
   const selection = createStripSelectionController();
-  const thumbCount = $derived(labBulk.thumbs.size);
+  const thumbCount = $derived(bulkStore.thumbs.size);
 
   const EDGE_THRESHOLD = 2;
   let scroller = $state<HTMLElement>();
@@ -32,6 +32,7 @@
 
   $effect(() => {
     items.length;
+    size;
     thumbCount;
     queueMicrotask(updateScrollFades);
   });
@@ -39,51 +40,59 @@
 
 <svelte:window onresize={updateScrollFades} />
 
-<div
-  bind:this={scroller}
-  class="filmstrip"
-  class:fade-left={fadeLeft}
-  class:fade-right={fadeRight}
-  role="listbox"
-  aria-label="Images"
-  tabindex="-1"
-  onclick={selection.onClick}
-  onkeydown={selection.onKeydown}
-  onpointerdown={selection.onPointerdown}
-  onpointermove={selection.onPointermove}
-  onpointerup={selection.onPointerup}
-  onpointercancel={selection.onPointercancel}
-  onscroll={updateScrollFades}
->
-  {#each items as item (item.id)}
-    <StripCell {item} mode="s" />
-  {/each}
+<div class="rich-strip size-{size}">
+  <div
+    bind:this={scroller}
+    class="scroller"
+    class:fade-left={fadeLeft}
+    class:fade-right={fadeRight}
+    role="listbox"
+    aria-label="Images"
+    tabindex="-1"
+    onclick={selection.onClick}
+    onkeydown={selection.onKeydown}
+    onpointerdown={selection.onPointerdown}
+    onpointermove={selection.onPointermove}
+    onpointerup={selection.onPointerup}
+    onpointercancel={selection.onPointercancel}
+    onscroll={updateScrollFades}
+  >
+    {#each items as item (item.id)}
+      <StripCell {item} mode={size} />
+    {/each}
+  </div>
 </div>
 
 <style>
-  /* Quiet dock: sits inside the strip-region the layout reserves for it.
-     Horizontal scroll with no scrollbar chrome until the strip is hovered. */
-  .filmstrip {
-    --strip-fade-size: 32px;
+  .rich-strip {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* Horizontal scroller: centered while the thumbs fit, left-aligned the moment
+     they overflow (safe center), scrollbar chrome only on hover. */
+  .scroller {
+    --strip-fade-size: 36px;
     display: flex;
     align-items: center;
-    /* Safe centering: the row is centered while the thumbs fit, but the moment
-       they overflow it left-aligns for scrolling with no clipped first item.
-       `safe center` is the modern one-liner; the `auto` margins on the content
-       wrapper below are the fallback for engines without `safe`. */
     justify-content: safe center;
-    gap: 8px;
-    width: 100%;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
     height: 100%;
     box-sizing: border-box;
     overflow-x: auto;
-    padding: 6px 12px;
+    padding: 8px 12px;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
     user-select: none;
     -webkit-user-select: none;
   }
-  .filmstrip.fade-left {
+  .scroller.fade-left {
     -webkit-mask-image: linear-gradient(
       to right,
       transparent,
@@ -97,7 +106,7 @@
       #000 100%
     );
   }
-  .filmstrip.fade-right {
+  .scroller.fade-right {
     -webkit-mask-image: linear-gradient(
       to right,
       #000 0,
@@ -111,7 +120,7 @@
       transparent
     );
   }
-  .filmstrip.fade-left.fade-right {
+  .scroller.fade-left.fade-right {
     -webkit-mask-image: linear-gradient(
       to right,
       transparent,
@@ -127,17 +136,23 @@
       transparent
     );
   }
-  .filmstrip::-webkit-scrollbar {
+  .scroller::-webkit-scrollbar {
     height: 6px;
   }
-  .filmstrip::-webkit-scrollbar-thumb {
+  .scroller::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 999px;
   }
-  .filmstrip:hover {
+  .scroller:hover {
     scrollbar-width: thin;
   }
-  .filmstrip:hover::-webkit-scrollbar-thumb {
+  .scroller:hover::-webkit-scrollbar-thumb {
     background: var(--border-strong, rgba(255, 255, 255, 0.16));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rich-strip :global(.view-mode button:hover:not(.active)) {
+      transform: none;
+    }
   }
 </style>

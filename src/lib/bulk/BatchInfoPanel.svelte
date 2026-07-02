@@ -1,5 +1,5 @@
 <script lang="ts">
-  // The left-panel surface for the bulk lab. It has two faces driven by
+  // The left-panel surface for bulk mode. It has two faces driven by
   // SELECTION (not the right-panel scope tab):
   //
   //  • IMAGE face (an image is selected): the panel TITLE is the filename (in
@@ -21,7 +21,7 @@
   // stats and the OPTIMIZED figure pulses as it climbs. On the IMAGE face a
   // tiny "ALL IMAGES" whisper-caption tops the footer so the info-for-one /
   // action-for-all seam reads intentionally.
-  import { labBulk } from './store.svelte';
+  import { bulkStore } from './store.svelte';
   import { inferAspect } from './aspect';
   import DeltaPill from './DeltaPill.svelte';
 
@@ -38,12 +38,12 @@
 
   let { file, width, height, onReset }: Props = $props();
 
-  const summary = $derived(labBulk.summary);
+  const summary = $derived(bulkStore.summary);
   const output = $derived(summary.output);
   const progress = $derived(summary.progress);
   const busy = $derived(progress.active + progress.queued > 0);
-  const hasOverrides = $derived(labBulk.selectedHasOverrides);
-  const selectedCount = $derived(labBulk.selectedCount);
+  const hasOverrides = $derived(bulkStore.selectedHasOverrides);
+  const selectedCount = $derived(bulkStore.selectedCount);
   const multiSelected = $derived(selectedCount > 1);
 
   const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB'];
@@ -119,8 +119,8 @@
   const aspect = $derived(hasDims ? inferAspect(width, height) : null);
 
   // ── Global-face batch facts (computed from the actual source files) ────────
-  const jobs = $derived(labBulk.session.jobs);
-  const faceJobs = $derived(multiSelected ? labBulk.selectedJobs : jobs);
+  const jobs = $derived(bulkStore.session.jobs);
+  const faceJobs = $derived(multiSelected ? bulkStore.selectedJobs : jobs);
 
   /** "8 JPEG · 4 PNG" — counts by short format label, most common first. */
   const formatBreakdown = $derived.by(() => {
@@ -308,7 +308,7 @@
     <button
       type="button"
       class="save-all"
-      onclick={() => labBulk.saveAllStub()}
+      onclick={() => bulkStore.saveAllStub()}
     >
       <!-- The same download glyph the production per-image Save button uses
            (Results.svelte), sized to the button text. -->

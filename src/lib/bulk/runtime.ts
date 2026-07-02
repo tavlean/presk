@@ -1,4 +1,4 @@
-// Bulk processing driver for the lab.
+// Bulk processing driver for the production bulk store.
 //
 // Wraps the framework-neutral engine (start/complete/fail reducers + the
 // headless `processBulkImageJob` from the diagnostics probe) in a small
@@ -22,24 +22,24 @@ import {
   type ImageOutput,
 } from 'client/lazy-app/bulk';
 import SvelteKitWorkerBridge from '$lib/sveltekit-worker-bridge';
-import type { LabBulk } from './store.svelte';
+import type { BulkStore } from './store.svelte';
 
 /**
- * The subset of LabBulk the runtime touches. Declared structurally so store and
+ * The subset of BulkStore the runtime touches. Declared structurally so store and
  * runtime don't import each other's concrete types in a cycle at runtime.
  */
-export interface LabRunnerHost {
-  session: LabBulk['session'];
+export interface BulkRunnerHost {
+  session: BulkStore['session'];
   createOutputDownloadUrl(file: File): string;
   processingGlobalSettingsForJob?(
     job: ImageJob,
-  ): LabBulk['session']['globalSettings'];
+  ): BulkStore['session']['globalSettings'];
   cachedOutputFor?(job: ImageJob): ImageOutput | undefined;
   rememberOutput?(jobId: string, output: ImageOutput): void;
   settingsHashForJob?(job: ImageJob): string;
 }
 
-export class LabRuntime {
+export class BulkRuntime {
   // Two long-lived bridges. Created lazily on the first run and reused for the
   // session's lifetime (warm worker: WASM instantiated, pthread pool spawned).
   #bridges: [SvelteKitWorkerBridge | null, SvelteKitWorkerBridge | null] = [
@@ -73,7 +73,7 @@ export class LabRuntime {
    * second call returns immediately; the live loop keeps picking up jobs the
    * caller may have just queued).
    */
-  async run(host: LabRunnerHost): Promise<void> {
+  async run(host: BulkRunnerHost): Promise<void> {
     if (this.#running) {
       this.#rerunRequested = true;
       return;
@@ -113,7 +113,7 @@ export class LabRuntime {
   }
 
   async #processOne(
-    host: LabRunnerHost,
+    host: BulkRunnerHost,
     job: ImageJob,
     slot: 0 | 1,
     signal: AbortSignal,
@@ -160,18 +160,18 @@ export class LabRuntime {
    * Abort the in-flight run and return every active job to the queue. Safe to
    * call when idle. Bridges are kept warm for the next run.
    */
-  cancelProcessing(host: LabRunnerHost): void {
+  cancelProcessing(host: BulkRunnerHost): void {
     this.#controller?.abort();
     this.#controller = null;
     host.session = cancelActiveJobs(host.session);
   }
 
   /** Alias for {@link cancelProcessing} (kept for API compatibility). */
-  cancel(host: LabRunnerHost): void {
+  cancel(host: BulkRunnerHost): void {
     this.cancelProcessing(host);
   }
 
-  /** Terminate the workers. Call on teardown / full reset of the lab. */
+  /** Terminate the workers. Call on teardown / full reset of bulk mode. */
   disposeBridges(): void {
     this.#controller?.abort();
     this.#controller = null;

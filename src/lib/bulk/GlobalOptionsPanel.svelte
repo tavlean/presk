@@ -1,7 +1,7 @@
 <script lang="ts">
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
-  import { labBulk } from './store.svelte';
+  import { bulkStore } from './store.svelte';
 
   interface Props {
     focusSession: EditorSession;
@@ -15,28 +15,28 @@
     ),
   );
 
-  const firstJobId = $derived(labBulk.session.jobs[0]?.id);
+  const firstJobId = $derived(bulkStore.session.jobs[0]?.id);
   const firstThumb = $derived(
-    firstJobId ? labBulk.thumbs.get(firstJobId) : undefined,
+    firstJobId ? bulkStore.thumbs.get(firstJobId) : undefined,
   );
   const naturalWidth = $derived(firstThumb?.w ?? 0);
   const naturalHeight = $derived(firstThumb?.h ?? 0);
 
-  const totalJobs = $derived(labBulk.summary.totalJobs);
+  const totalJobs = $derived(bulkStore.summary.totalJobs);
 
   $effect(() => {
     const width = naturalWidth;
     const height = naturalHeight;
-    const resize = labBulk.globalSide.processorState.resize;
+    const resize = bulkStore.globalSide.processorState.resize;
     resize.enabled;
     resize.width;
     resize.height;
-    labBulk.seedGlobalResizeDimensions(width, height);
+    bulkStore.seedGlobalResizeDimensions(width, height);
   });
 
   function applyFormat(format: string): void {
     if (format === 'identity') return;
-    labBulk.setGlobalFormat(format as typeof labBulk.globalSide.format);
+    bulkStore.setGlobalFormat(format as typeof bulkStore.globalSide.format);
   }
 </script>
 
@@ -47,15 +47,16 @@
 <div class="global-panel">
   <OptionsPanel
     side="left"
-    format={labBulk.globalSide.format}
+    format={bulkStore.globalSide.format}
     {formats}
-    options={labBulk.globalSide.optionsByFormat[labBulk.globalSide.format] ??
-      {}}
-    processorState={labBulk.globalSide.processorState}
+    options={bulkStore.globalSide.optionsByFormat[
+      bulkStore.globalSide.format
+    ] ?? {}}
+    processorState={bulkStore.globalSide.processorState}
     {naturalWidth}
     {naturalHeight}
-    sourceName={labBulk.selectedFile?.name}
-    isVector={labBulk.selectedFile?.type === 'image/svg+xml'}
+    sourceName={bulkStore.selectedFile?.name}
+    isVector={bulkStore.selectedFile?.type === 'image/svg+xml'}
     result={null}
     working={false}
     canImport={false}

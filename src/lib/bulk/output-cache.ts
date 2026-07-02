@@ -1,17 +1,17 @@
 import type { ImageOutput } from 'client/lazy-app/bulk';
 
-export interface LabOutputCacheOptions {
+export interface BulkOutputCacheOptions {
   maxEntriesPerJob?: number;
 }
 
 const DEFAULT_MAX_ENTRIES_PER_JOB = 3;
 
-export class LabOutputCache {
+export class BulkOutputCache {
   #jobs = new Map<string, Map<string, ImageOutput>>();
   #pinnedUrls = new Set<string>();
   #maxEntriesPerJob: number;
 
-  constructor(options: LabOutputCacheOptions = {}) {
+  constructor(options: BulkOutputCacheOptions = {}) {
     this.#maxEntriesPerJob =
       options.maxEntriesPerJob ?? DEFAULT_MAX_ENTRIES_PER_JOB;
   }

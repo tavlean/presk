@@ -2,7 +2,7 @@
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
   import FocusView from './FocusView.svelte';
   import RichStrip from './RichStrip.svelte';
-  import { labBulk, type StripSize } from './store.svelte';
+  import { bulkStore, type StripSize } from './store.svelte';
 
   interface Props {
     focusSession: EditorSession;
@@ -16,7 +16,7 @@
     m: 148,
     l: 210,
   };
-  const stripHeight = $derived(STRIP_HEIGHT[labBulk.stripSize]);
+  const stripHeight = $derived(STRIP_HEIGHT[bulkStore.stripSize]);
 </script>
 
 <FocusView {focusSession} {onReseed} {stripHeight} strip={richStrip} />

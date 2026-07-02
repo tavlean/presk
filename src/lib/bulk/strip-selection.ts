@@ -1,4 +1,4 @@
-import { labBulk } from './store.svelte';
+import { bulkStore } from './store.svelte';
 
 const CELL_SELECTOR = '[data-bulk-cell-id]';
 const DRAG_THRESHOLD = 4;
@@ -76,7 +76,7 @@ export function createStripSelectionController(): {
       }
 
       if (!id) {
-        labBulk.deselect();
+        bulkStore.deselect();
         return;
       }
 
@@ -84,9 +84,9 @@ export function createStripSelectionController(): {
       const metaKey = event.metaKey || modifiers?.metaKey;
       const ctrlKey = event.ctrlKey || modifiers?.ctrlKey;
 
-      if (shiftKey) labBulk.selectRangeTo(id);
-      else if (metaKey || ctrlKey) labBulk.toggleSelection(id);
-      else labBulk.select(id);
+      if (shiftKey) bulkStore.selectRangeTo(id);
+      else if (metaKey || ctrlKey) bulkStore.toggleSelection(id);
+      else bulkStore.select(id);
     },
 
     onKeydown(event: KeyboardEvent): void {
@@ -97,9 +97,9 @@ export function createStripSelectionController(): {
       event.preventDefault();
       event.stopPropagation();
 
-      if (event.shiftKey) labBulk.selectRangeTo(id);
-      else if (event.metaKey || event.ctrlKey) labBulk.toggleSelection(id);
-      else labBulk.select(id);
+      if (event.shiftKey) bulkStore.selectRangeTo(id);
+      else if (event.metaKey || event.ctrlKey) bulkStore.toggleSelection(id);
+      else bulkStore.select(id);
     },
 
     onPointerdown(event: PointerEvent): void {
@@ -156,7 +156,7 @@ export function createStripSelectionController(): {
         }
         drag.startId = hitId;
         drag.lastId = hitId;
-        labBulk.selectDragRange(hitId, hitId);
+        bulkStore.selectDragRange(hitId, hitId);
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -167,7 +167,7 @@ export function createStripSelectionController(): {
       const id = hitId ?? drag.lastId;
       if (id !== drag.lastId) {
         drag.lastId = id;
-        if (id) labBulk.selectDragRange(startId, id);
+        if (id) bulkStore.selectDragRange(startId, id);
       }
       event.preventDefault();
       event.stopPropagation();

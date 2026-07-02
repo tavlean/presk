@@ -4,7 +4,7 @@
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
   import type { SideFormat } from '$lib/compress';
-  import { labBulk } from './store.svelte';
+  import { bulkStore } from './store.svelte';
   import BatchInfoPanel from './BatchInfoPanel.svelte';
   import FilmStrip from './FilmStrip.svelte';
   import GlobalOptionsPanel from './GlobalOptionsPanel.svelte';
@@ -41,7 +41,7 @@
   let isSafari = $state(false);
 
   // ── Stack stage view controls ─────────────────────────────────────────────
-  // The stack resting state has no production Output, so the lab owns a toolbar
+  // The stack resting state has no production Output, so bulk owns a toolbar
   // that mirrors the production bottom bar (zoom / view-options) and actually
   // drives the composition: `stackZoom` scales the fan via a CSS transform,
   // `stackAltBackground` swaps the stage backdrop to the light variant (same
@@ -111,10 +111,10 @@
   // the stage + strip own the screen.
   let phoneSheet = $state<'none' | 'info' | 'settings'>('none');
 
-  const selectedId = $derived(labBulk.selectedId);
-  const selectedCount = $derived(labBulk.selectedCount);
-  const file = $derived(labBulk.selectedFile);
-  const thumb = $derived(labBulk.selectedThumb);
+  const selectedId = $derived(bulkStore.selectedId);
+  const selectedCount = $derived(bulkStore.selectedCount);
+  const file = $derived(bulkStore.selectedFile);
+  const thumb = $derived(bulkStore.selectedThumb);
 
   // The real focus viewer (production Output + its toolbar) is for a SINGLE
   // selected image. Global scope (nothing selected) and a multi-selection both
@@ -123,13 +123,13 @@
   const showFocus = $derived(selectedCount === 1);
   const showStack = $derived(
     !showFocus &&
-      labBulk.stageMode === 'stack' &&
-      labBulk.stackItems.length > 0,
+      bulkStore.stageMode === 'stack' &&
+      bulkStore.stackItems.length > 0,
   );
-  const stackItems = $derived(labBulk.stackItems);
+  const stackItems = $derived(bulkStore.stackItems);
 
   // Compact summary figures for the phone summary bar (mirrors BatchInfoPanel).
-  const summary = $derived(labBulk.summary);
+  const summary = $derived(bulkStore.summary);
   const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB'];
   function prettySize(bytes: number): string {
     if (bytes < 1) return '0 B';
@@ -156,7 +156,7 @@
       : 'vertical';
   });
   const imageScopeActive = $derived(
-    selectedId !== undefined && labBulk.panelScope === 'image',
+    selectedId !== undefined && bulkStore.panelScope === 'image',
   );
   const imageTabLabel = $derived(
     selectedCount > 1 ? `${selectedCount} images` : 'This image',
@@ -200,14 +200,14 @@
   }
 
   function resetOverrides(): void {
-    if (labBulk.selectedCount === 0) return;
-    labBulk.clearSelectedOverrides();
+    if (bulkStore.selectedCount === 0) return;
+    bulkStore.clearSelectedOverrides();
     onReseed?.();
   }
 
   function setPanelScope(scope: 'global' | 'image'): void {
     if (scope === 'image' && !selectedId) return;
-    labBulk.panelScope = scope;
+    bulkStore.panelScope = scope;
   }
 
   // ── Empty-stage deselect ──────────────────────────────────────────────────
@@ -234,7 +234,7 @@
   function onBackdropClick(): void {
     const wasClick = backdropDown !== null;
     backdropDown = null;
-    if (wasClick && selectedCount > 0) labBulk.deselect();
+    if (wasClick && selectedCount > 0) bulkStore.deselect();
   }
 
   function onKeydown(event: KeyboardEvent): void {
@@ -268,7 +268,7 @@
       !typeable
     ) {
       event.preventDefault();
-      labBulk.removeSelected();
+      bulkStore.removeSelected();
       return;
     }
 
@@ -280,7 +280,7 @@
 
     if (event.key === 'Escape' && selectedCount > 0) {
       event.preventDefault();
-      labBulk.deselect();
+      bulkStore.deselect();
       return;
     }
 
@@ -289,8 +289,8 @@
     if (typeable || target?.getAttribute('role') === 'slider') return;
 
     event.preventDefault();
-    if (event.key === 'ArrowLeft') labBulk.selectPrevious();
-    else labBulk.selectNext();
+    if (event.key === 'ArrowLeft') bulkStore.selectPrevious();
+    else bulkStore.selectNext();
   }
 </script>
 
@@ -370,7 +370,7 @@
           />
         </svg>
         <p class="blank-title">
-          Global settings apply to all {labBulk.summary.totalJobs} images
+          Global settings apply to all {bulkStore.summary.totalJobs} images
         </p>
         <p class="blank-sub">Select an image below to fine-tune it</p>
       </div>
@@ -473,8 +473,8 @@
           type="button"
           class="tab-global"
           role="tab"
-          aria-selected={labBulk.panelScope === 'global'}
-          class:active={labBulk.panelScope === 'global'}
+          aria-selected={bulkStore.panelScope === 'global'}
+          class:active={bulkStore.panelScope === 'global'}
           onclick={() => setPanelScope('global')}
         >
           Global
@@ -557,7 +557,7 @@
         <button
           type="button"
           class="summary-save"
-          onclick={() => labBulk.saveAllStub()}
+          onclick={() => bulkStore.saveAllStub()}
         >
           Save all
         </button>
@@ -598,7 +598,7 @@
 
     {#if showStack}
       <!-- Stack stage toolbar. The single-image focus view reuses the production
-           Output bar; the stack has no Output, so this lab-owned bar mirrors it
+           Output bar; the stack has no Output, so this bulk-owned bar mirrors it
            1:1 (same pill/glass, same icon language — see Output.svelte) and
            actually drives the composition: zoom −/%/+ scales the fan, Reset view
            fits it back to 100%, and the view-options popover toggles the stage
@@ -728,7 +728,7 @@
     <!-- View picker, docked to the STAGE'S bottom toolbar. In the single-image
          focus view the production zoom/rotate bar owns bottom-centre, so the
          picker pairs just to its RIGHT (same pill/glass language, small gap); in
-         the stack state the lab's own toolbar (above) owns centre, so the picker
+         the stack state the bulk toolbar (above) owns centre, so the picker
          pairs beside it the SAME way. In the blank resting state there is no
          toolbar, so the picker centres on its own. It never overlaps the strip
          (it sits inside the stage region, above the strip) nor the toolbar. -->
@@ -823,7 +823,7 @@
   }
   /* 621–900px: the two settings panels dock as tall bottom sheets and the
      Output/toolbar is lifted above them, so the bottom is fully occupied. Park
-     the picker at the TOP-centre of the stage (clear of the top-right lab
+     the picker at the TOP-centre of the stage (clear of the top-right
      controls) in every state here — visible and reachable. */
   @media (min-width: 621px) and (max-width: 900px) {
     .view-picker-dock,
@@ -852,7 +852,7 @@
 
   /* Resting canvas texture: the SAME faint dot grid + soft vignette the
      production Output stage paints (Output.svelte `.output::before`), so the
-     lab's resting stage reads as the identical canvas the editor uses, never a
+     bulk resting stage reads as the identical canvas the editor uses, never a
      different flat void. ONE shared rule for BOTH resting states (stack + blank)
      — the values below are copied verbatim from production, one source. The
      real focus-view Output paints its own stage, so this is suppressed the
@@ -904,7 +904,7 @@
      A faithful copy of the production Output bottom bar (Output.svelte
      `.controls` + descendants), so the stack state has the identical zoom /
      view-options affordance the focus view gets for free. Same glass, same pill
-     radii, same icon sizing — only the buttons here drive the lab's stack view
+     radii, same icon sizing — only the buttons here drive the bulk stack view
      controls instead of the pinch-zoom two-up. Docked bottom-centre; the
      view-picker pairs to its right via `.view-picker-dock.with-toolbar`. */
   .stack-controls {
@@ -1461,10 +1461,10 @@
     .compress {
       --panel-inset: 10px;
       --summary-h: 54px;
-      /* The lab dev top-bar is fixed at the very top; the app summary bar stacks
+      /* The bulk top-bar is fixed at the very top; the app summary bar stacks
          just below it. This is the combined top chrome the stage clears. */
-      --lab-topbar-h: 56px;
-      --summary-top: calc(var(--lab-topbar-h) + 4px);
+      --bulk-topbar-h: 56px;
+      --summary-top: calc(var(--bulk-topbar-h) + 4px);
       --stage-top: calc(var(--summary-top) + var(--summary-h) + 10px);
       --fit-inset-left: 0px;
       --fit-inset-right: 0px;

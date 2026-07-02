@@ -19,7 +19,7 @@
   // delayed shimmer so a global change visibly ripples through the fan.
   import { SvelteSet } from 'svelte/reactivity';
   import type { BulkStripItem } from 'client/lazy-app/bulk';
-  import { labBulk } from './store.svelte';
+  import { bulkStore } from './store.svelte';
   import DeltaPill from './DeltaPill.svelte';
 
   interface Props {
@@ -97,13 +97,13 @@
   const topItem = $derived(ordered[0]);
 
   const topThumb = $derived(
-    topItem ? labBulk.thumbs.get(topItem.id)?.url : undefined,
+    topItem ? bulkStore.thumbs.get(topItem.id)?.url : undefined,
   );
   const topSourceUrl = $derived(
-    topItem ? labBulk.sourceUrlFor(topItem.id) : undefined,
+    topItem ? bulkStore.sourceUrlFor(topItem.id) : undefined,
   );
   const topDownload = $derived(
-    topItem ? labBulk.downloadFor(topItem.id) : undefined,
+    topItem ? bulkStore.downloadFor(topItem.id) : undefined,
   );
   const topHasOutput = $derived(
     !!topItem &&
@@ -357,7 +357,7 @@
 
   function selectTop(): void {
     if (!topItem) return;
-    labBulk.select(topItem.id);
+    bulkStore.select(topItem.id);
   }
 
   function bringToTop(id: string): void {
@@ -410,7 +410,9 @@
         {@const item = slot.item}
         {@const isTop = slot.depth === 0}
         {@const isDeepest = slot.depth === visiblePeekCount && hiddenCount > 0}
-        {@const peekSource = isTop ? undefined : labBulk.sourceUrlFor(item.id)}
+        {@const peekSource = isTop
+          ? undefined
+          : bulkStore.sourceUrlFor(item.id)}
         <div
           class="card"
           class:top={isTop}
@@ -898,11 +900,11 @@
   @media (max-width: 900px) {
     .stack-stage {
       /* This band is CRAMPED: the two settings panels dock as tall bottom sheets
-         (--mobile-options-height = min(44dvh,360px)) and the lab dev-controls pill
+         (--mobile-options-height = min(44dvh,360px)) and the bulk controls pill
          sits at the very top, so the fan lives in a shallow corridor between them.
          Reserve both — top for the controls pill, bottom for the panels + the
          picker/toolbar lane above them — and keep the fan centred in what's left. */
-      /* Top padding clears the lab-controls pill; bottom padding reserves the
+      /* Top padding clears the controls pill; bottom padding reserves the
          docked panels + the toolbar/picker lane above them. The fan centres in
          that shallow corridor. */
       padding-top: 72px;

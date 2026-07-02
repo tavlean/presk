@@ -6,14 +6,12 @@
   import type { CompressOutcome, SideFormat } from '$lib/compress';
   import SvelteKitWorkerBridge from '$lib/sveltekit-worker-bridge';
   import {
-    labBulk,
+    bulkStore,
     deepEqual,
     normalizeProcessorStateForBulkDiff,
-  } from '$lib/lab/bulk/store.svelte';
-  import { makeSampleFiles } from '$lib/lab/bulk/samples';
-  import { toast } from '$lib/lab/bulk/Toast.svelte';
-  import Toast from '$lib/lab/bulk/Toast.svelte';
-  import Home from '$lib/lab/bulk/Home.svelte';
+  } from '$lib/bulk/store.svelte';
+  import Snackbar from '$lib/editor/Snackbar.svelte';
+  import Home from '$lib/bulk/Home.svelte';
   import {
     getEffectiveSettings,
     type BulkImageOverrides,
@@ -41,7 +39,6 @@
   const focusSession = new EditorSession();
 
   let fileInput = $state<HTMLInputElement>();
-  let loadingSamples = $state(false);
   let seeding = true;
   let pendingSeed = $state<{ jobId: string; loadId: number } | null>(null);
   let seedSerial = 0;
@@ -53,14 +50,14 @@
       focusPreviewController?.abort();
       focusPreviewBridge?.dispose();
       focusSession.dispose();
-      labBulk.dispose();
+      bulkStore.dispose();
     };
   });
 
   $effect(() => focusSession.seedResizeDimensions());
 
   $effect(() => {
-    const selectedId = labBulk.selectedId;
+    const selectedId = bulkStore.selectedId;
     if (!selectedId) {
       seeding = true;
       pendingSeed = null;
@@ -73,7 +70,7 @@
 
   $effect(() => {
     const seed = pendingSeed;
-    const selectedId = labBulk.selectedId;
+    const selectedId = bulkStore.selectedId;
     const loadId = focusSession.loadId;
     const naturalWidth = focusSession.naturalWidth;
 
@@ -90,13 +87,13 @@
   });
 
   $effect(() => {
-    labBulk.session.globalSettings;
-    untrack(() => labBulk.refreshGlobalSideFromSession());
+    bulkStore.session.globalSettings;
+    untrack(() => bulkStore.refreshGlobalSideFromSession());
   });
 
   $effect(() => {
-    $state.snapshot(labBulk.globalSide);
-    labBulk.queueGlobalSideApply(() => seedFocusFromSelected());
+    $state.snapshot(bulkStore.globalSide);
+    bulkStore.queueGlobalSideApply(() => seedFocusFromSelected());
   });
 
   $effect(() => {
@@ -107,23 +104,23 @@
       processorState: $state.snapshot(side.processorState) as ProcessorState,
     };
 
-    if (seeding || !labBulk.selectedId || !labBulk.selectedJob) return;
+    if (seeding || !bulkStore.selectedId || !bulkStore.selectedJob) return;
 
     const override = buildOverrideFromFocus(snapshot);
-    const current = labBulk.selectedJob.overrides ?? {};
+    const current = bulkStore.selectedJob.overrides ?? {};
 
     if (isEmptyOverride(override)) {
-      if (!isEmptyOverride(current)) labBulk.queueSelectedOverridesApply({});
+      if (!isEmptyOverride(current)) bulkStore.queueSelectedOverridesApply({});
       return;
     }
 
     if (!deepEqual(override, current)) {
-      labBulk.queueSelectedOverridesApply(override);
+      bulkStore.queueSelectedOverridesApply(override);
     }
   });
 
   function seedFocusFromSelected(): void {
-    const job = labBulk.selectedJob;
+    const job = bulkStore.selectedJob;
     if (!job) return;
 
     seeding = true;
@@ -134,7 +131,7 @@
     const effective = effectiveSettingsForJob(job);
     if (
       effective.encoderState &&
-      job.output?.settingsHash === labBulk.settingsHashForJob(job)
+      job.output?.settingsHash === bulkStore.settingsHashForJob(job)
     ) {
       void hydrateFocusFromBulkOutput(job, effective, seedId);
       return;
@@ -153,11 +150,11 @@
   }
 
   function finishFocusSeed(seed: { jobId: string; loadId: number }): void {
-    const job = labBulk.selectedJob;
+    const job = bulkStore.selectedJob;
     if (
       !job ||
       job.id !== seed.jobId ||
-      labBulk.selectedId !== seed.jobId ||
+      bulkStore.selectedId !== seed.jobId ||
       focusSession.loadId !== seed.loadId ||
       focusSession.naturalWidth <= 0
     ) {
@@ -193,12 +190,12 @@
       isEmptyOverride(normalizedCurrent) &&
       !isEmptyOverride(current)
     ) {
-      labBulk.clearAnchorOverrides();
+      bulkStore.clearAnchorOverrides();
     } else if (
       !deepEqual(seededOverride, current) &&
       deepEqual(seededOverride, normalizedCurrent)
     ) {
-      labBulk.applyAnchorOverrides(seededOverride);
+      bulkStore.applyAnchorOverrides(seededOverride);
     }
   }
 
@@ -247,7 +244,7 @@
       if (
         signal.aborted ||
         seedId !== seedSerial ||
-        labBulk.selectedId !== job.id
+        bulkStore.selectedId !== job.id
       ) {
         return;
       }
@@ -259,7 +256,7 @@
       });
     } catch (error) {
       if (signal.aborted) return;
-      if (seedId === seedSerial && labBulk.selectedId === job.id) {
+      if (seedId === seedSerial && bulkStore.selectedId === job.id) {
         seedFocusThroughEditor(job);
       }
     } finally {
@@ -487,12 +484,12 @@
     options: Record<string, unknown>;
     processorState: ProcessorState;
   }): BulkImageOverrides {
-    const job = labBulk.selectedJob;
+    const job = bulkStore.selectedJob;
     return buildOverrideFromSettings(
       snapshot.format,
       snapshot.options,
       snapshot.processorState,
-      job ? labBulk.processingGlobalSettingsForJob(job) : undefined,
+      job ? bulkStore.processingGlobalSettingsForJob(job) : undefined,
     );
   }
 
@@ -500,7 +497,7 @@
     format: SideFormat,
     options: Record<string, unknown>,
     processorStateSnapshot: ProcessorState,
-    globalSettings: BulkImageSettings = labBulk.session.globalSettings,
+    globalSettings: BulkImageSettings = bulkStore.session.globalSettings,
   ): BulkImageOverrides {
     const override: BulkImageOverrides = {};
     const normalizedProcessorState = normalizeProcessorStateForBulkDiff(
@@ -545,7 +542,7 @@
     overrides: BulkImageOverrides | undefined,
   ): BulkImageOverrides {
     const effective = getEffectiveSettings(
-      labBulk.processingGlobalSettingsForJob(job),
+      bulkStore.processingGlobalSettingsForJob(job),
       overrides,
     );
     const encoderState = effective.encoderState;
@@ -553,13 +550,13 @@
       (encoderState?.type ?? 'identity') as SideFormat,
       structuredClone((encoderState?.options ?? {}) as Record<string, unknown>),
       effective.processorState,
-      labBulk.processingGlobalSettingsForJob(job),
+      bulkStore.processingGlobalSettingsForJob(job),
     );
   }
 
   function effectiveSettingsForJob(job: ImageJob): BulkImageSettings {
     return getEffectiveSettings(
-      labBulk.processingGlobalSettingsForJob(job),
+      bulkStore.processingGlobalSettingsForJob(job),
       job.overrides,
     );
   }
@@ -574,31 +571,18 @@
   function onPick(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
     const files = input.files ? Array.from(input.files) : [];
-    if (files.length) void labBulk.importFiles(files);
+    if (files.length) void bulkStore.importFiles(files);
     input.value = '';
   }
 
   function onDrop(list: FileList) {
-    void labBulk.importFiles(Array.from(list));
-  }
-
-  async function loadSamples() {
-    if (loadingSamples) return;
-    loadingSamples = true;
-    try {
-      const files = await makeSampleFiles(12);
-      await labBulk.importFiles(files);
-    } catch (error) {
-      toast(error instanceof Error ? error.message : 'Could not build samples');
-    } finally {
-      loadingSamples = false;
-    }
+    void bulkStore.importFiles(Array.from(list));
   }
 
   function resetLab(): void {
     seeding = true;
     focusSession.clearFile();
-    labBulk.resetLab();
+    bulkStore.resetLab();
   }
 </script>
 
@@ -613,18 +597,9 @@
         Add images
       </button>
 
-      <button
-        type="button"
-        class="btn"
-        disabled={loadingSamples}
-        onclick={loadSamples}
-      >
-        {loadingSamples ? 'Building...' : 'Load samples'}
-      </button>
-
       <button type="button" class="btn ghost" onclick={resetLab}>Reset</button>
 
-      {#if labBulk.hasJobs}
+      {#if bulkStore.hasJobs}
         <!-- Dev-only resting-stage experiment toggle. STACK (default) fans the
              batch onto the stage; BLANK keeps the original quiet empty state for
              side-by-side comparison. The L/M/S thumbnail picker sits next to
@@ -636,21 +611,21 @@
         >
           <button
             type="button"
-            class:active={labBulk.stageMode === 'stack'}
+            class:active={bulkStore.stageMode === 'stack'}
             role="radio"
-            aria-checked={labBulk.stageMode === 'stack'}
+            aria-checked={bulkStore.stageMode === 'stack'}
             title="Stack resting stage (experiment)"
-            onclick={() => labBulk.setStageMode('stack')}
+            onclick={() => bulkStore.setStageMode('stack')}
           >
             Stack
           </button>
           <button
             type="button"
-            class:active={labBulk.stageMode === 'blank'}
+            class:active={bulkStore.stageMode === 'blank'}
             role="radio"
-            aria-checked={labBulk.stageMode === 'blank'}
+            aria-checked={bulkStore.stageMode === 'blank'}
             title="Blank resting stage (original)"
-            onclick={() => labBulk.setStageMode('blank')}
+            onclick={() => bulkStore.setStageMode('blank')}
           >
             Blank
           </button>
@@ -667,21 +642,18 @@
       />
     </div>
 
-    {#if labBulk.hasJobs}
+    {#if bulkStore.hasJobs}
       <Home {focusSession} onReseed={seedFocusFromSelected} />
     {:else}
       <main class="dropzone">
         <div class="dropzone-inner">
           <p class="drop-title">Drop images to start</p>
-          <p class="drop-hint">
-            or use <strong>Add images</strong> /
-            <strong>Load samples</strong> above.
-          </p>
+          <p class="drop-hint">or use <strong>Add images</strong> above.</p>
         </div>
       </main>
     {/if}
 
-    <Toast />
+    <Snackbar />
   </div>
 {:else}
   <main class="not-dev">

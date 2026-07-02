@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { labBulk, type StripSize } from './store.svelte';
+  import { bulkStore, type StripSize } from './store.svelte';
 
   const OPTIONS: {
     id: StripSize;
@@ -12,7 +12,7 @@
   ];
 
   function setMode(next: StripSize): void {
-    labBulk.setStripSize(next);
+    bulkStore.setStripSize(next);
   }
 </script>
 
@@ -20,9 +20,9 @@
   {#each OPTIONS as option (option.id)}
     <button
       type="button"
-      class={{ active: labBulk.stripSize === option.id }}
+      class={{ active: bulkStore.stripSize === option.id }}
       role="radio"
-      aria-checked={labBulk.stripSize === option.id}
+      aria-checked={bulkStore.stripSize === option.id}
       title={option.title}
       aria-label={option.title}
       onclick={() => setMode(option.id)}
