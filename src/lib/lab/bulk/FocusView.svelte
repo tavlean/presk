@@ -8,6 +8,8 @@
   import BatchInfoPanel from './BatchInfoPanel.svelte';
   import FilmStrip from './FilmStrip.svelte';
   import GlobalOptionsPanel from './GlobalOptionsPanel.svelte';
+  import StackStage from './StackStage.svelte';
+  import ViewModePicker from './ViewModePicker.svelte';
 
   export const FOCUS_VIEW_LANDSCAPE_OR_SQUARE_RATIO = 0.95;
 
@@ -59,6 +61,18 @@
   const selectedCount = $derived(labBulk.selectedCount);
   const file = $derived(labBulk.selectedFile);
   const thumb = $derived(labBulk.selectedThumb);
+
+  // The real focus viewer (production Output + its toolbar) is for a SINGLE
+  // selected image. Global scope (nothing selected) and a multi-selection both
+  // rest on the STACK (or the blank state, per the dev toggle) instead — that's
+  // where a global / multi edit's reach is shown, not one image's inspector.
+  const showFocus = $derived(selectedCount === 1);
+  const showStack = $derived(
+    !showFocus &&
+      labBulk.stageMode === 'stack' &&
+      labBulk.stackItems.length > 0,
+  );
+  const stackItems = $derived(labBulk.stackItems);
 
   // Compact summary figures for the phone summary bar (mirrors BatchInfoPanel).
   const summary = $derived(labBulk.summary);
@@ -202,7 +216,7 @@
 
 <div class="compress sqush-editor" style="--strip-height: {stripHeight}px;">
   <div class="stage-region">
-    {#if selectedId}
+    {#if showFocus}
       <Output
         leftImage={focusSession.runtime[0].result?.outputImageData}
         rightImage={focusSession.runtime[1].result?.outputImageData}
@@ -220,6 +234,8 @@
         {orientationOverride}
         onRotate={() => focusSession.rotate()}
       />
+    {:else if showStack}
+      <StackStage items={stackItems} />
     {:else}
       <div class="blank-stage">
         <svg class="blank-icon" viewBox="0 0 48 48" aria-hidden="true">
@@ -254,11 +270,11 @@
       <p class="status-pill error">{focusSession.firstError}</p>
     {/if}
 
-    {#if selectedCount > 1}
+    {#if selectedCount > 1 && !showStack}
       <p class="selection-chip">{selectedCount} selected</p>
     {/if}
 
-    {#if selectedId}
+    {#if showFocus}
       <div class="history-controls">
         <button
           class="hist"
@@ -469,6 +485,20 @@
         ></button>
       {/if}
     {/if}
+
+    <!-- View picker, docked to the STAGE'S bottom toolbar. In the single-image
+         focus view the production zoom/rotate bar owns bottom-centre, so the
+         picker pairs just to its RIGHT (same pill/glass language, small gap). In
+         the stack / blank resting state there is no toolbar, so the picker
+         centres on its own. It never overlaps the strip (it sits inside the
+         stage region, above the strip) nor the toolbar. -->
+    <div
+      class="view-picker-dock"
+      class:with-toolbar={showFocus}
+      class:phone={isPhone}
+    >
+      <ViewModePicker />
+    </div>
   </div>
 
   <div class="strip-region" role="group" aria-label="Image strip">
@@ -505,6 +535,79 @@
     position: relative;
     flex: 1;
     min-height: 0;
+  }
+
+  /* ── View-picker dock ──────────────────────────────────────────────────────
+     Lives inside the stage region (so it always clears the strip below) and
+     pins to the bottom. Default: bottom-centre, for the stack / blank state
+     where no production toolbar exists. `.with-toolbar` (single-image focus)
+     shifts it right of the centred zoom/rotate bar so the two read as one
+     paired cluster with a small gap between them. The production toolbar is
+     ~290px wide and centred (zoom group ~204px + rotate/view group ~80px), so
+     its right edge sits ~145px past centre; ~168px of translate clears it with
+     a small gap, with headroom for the zoom-% readout growing (e.g. 1000%). */
+  .view-picker-dock {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+  }
+  .view-picker-dock :global(.view-mode) {
+    pointer-events: auto;
+    /* Match the production toolbar's glass so the pair reads as one language. */
+    height: 38px;
+    box-sizing: border-box;
+    background: var(--surface, rgba(19, 19, 25, 0.82));
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  }
+  .view-picker-dock.with-toolbar {
+    left: 50%;
+    transform: translateX(168px);
+  }
+  /* 901–1240px: the toolbar is present but there's no room to sit the picker
+     beside it without crowding the right settings panel (312px @ right:14px,
+     starting ~vw-326; the offset picker's right edge reaches ~vw/2+280 and
+     collides below ~1212px). Lift it to its own lane just above the centred
+     toolbar instead. */
+  @media (min-width: 901px) and (max-width: 1240px) {
+    .view-picker-dock.with-toolbar {
+      transform: translateX(-50%);
+      bottom: 60px;
+    }
+  }
+  /* 621–900px: the two settings panels dock as tall bottom sheets and the
+     Output/toolbar is lifted above them, so the bottom is fully occupied. Park
+     the picker at the TOP-centre of the stage (clear of the top-right lab
+     controls) in every state here — visible and reachable. */
+  @media (min-width: 621px) and (max-width: 900px) {
+    .view-picker-dock,
+    .view-picker-dock.with-toolbar {
+      /* Bottom-centre, in the gap between the fan and the docked panels' top
+         edge (panels are mobile-options-height tall @ panel-inset from bottom).
+         In focus state the lifted Output toolbar shares this lane and the picker
+         sits just above it. */
+      top: auto;
+      bottom: calc(var(--mobile-options-height, 360px) + 52px);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+  /* Phone (≤620px): panels are on-demand sheets (hidden by default), so the
+     bottom is free. Keep the picker reachable and uncropped at bottom-LEFT,
+     clear of the settings FAB (bottom-right) and above the strip. */
+  .view-picker-dock.phone,
+  .view-picker-dock.phone.with-toolbar {
+    left: 12px;
+    right: auto;
+    top: auto;
+    bottom: 12px;
+    transform: none;
   }
 
   /* Resting canvas texture: the SAME faint dot grid + soft vignette the

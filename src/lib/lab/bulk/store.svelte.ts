@@ -86,6 +86,12 @@ export type BulkPanelScope = 'global' | 'image';
 /** Bulk lab view mode: grid overview, or focus view with S/M/L strip zoom. */
 export type StripSize = 'grid' | 's' | 'm' | 'l';
 export type FocusStripSize = Exclude<StripSize, 'grid'>;
+/**
+ * Resting-stage experiment toggle. `stack` = the fanned STACK composition that
+ * fills the global/multi-select stage with presence; `blank` = the original
+ * quiet empty state, kept for side-by-side comparison. Dev-only; session-scoped.
+ */
+export type StageMode = 'stack' | 'blank';
 
 /** A ready-to-download output for one job: the URL the engine minted + the
  *  export-safe filename. `undefined` while the job has no current output. */
@@ -284,6 +290,8 @@ export class LabBulk {
   // selections but not reloads, matching the store's other in-memory lab state.
   stripSize = $state<StripSize>('m');
   #lastFocusStripSize: FocusStripSize = 'm';
+  // Resting-stage experiment: the fanned STACK (default) or the original blank.
+  stageMode = $state<StageMode>('stack');
   // Multi-select layer over the engine's single selectedJobId. The engine value
   // remains the ANCHOR; this set is the batch editing surface.
   readonly selectedIds = new SvelteSet<string>();
@@ -340,6 +348,16 @@ export class LabBulk {
   readonly focusStripSize = $derived<FocusStripSize>(
     this.stripSize === 'grid' ? this.#lastFocusStripSize : this.stripSize,
   );
+  /**
+   * The images the STACK resting stage fans out, anchor-first. Nothing selected
+   * → every job (anchor = the first image). A multi-selection (N>1) → exactly
+   * the selected jobs, anchor = the engine's selected/anchor job, so "3 selected
+   * = a stack of those 3" and the top card is the one you'd focus. Returns the
+   * strip view-models (name/size/delta/status/overrides) already computed by the
+   * engine selector, reordered to put the anchor on top. Empty for a single
+   * selection (that's the normal focus view, handled elsewhere).
+   */
+  readonly stackItems = $derived<BulkStripItem[]>(this.#computeStackItems());
   /** True while any job is decoding/processing (or the runtime loop is live). */
   readonly processing = $derived(
     this.summary.progress.active > 0 || this.summary.actions.hasActiveJobs,
@@ -934,6 +952,44 @@ export class LabBulk {
       getEffectiveSettings(this.session.globalSettings, job.overrides),
     );
     return jobOptions[leaf] !== globalOptions[leaf];
+  }
+
+  /**
+   * Order the stack's images anchor-first. Reads `stripItems` (the reactive
+   * engine view-models) so cards get live size/delta/status without a second
+   * pass. A single selection returns [] — that case is the real focus view.
+   */
+  #computeStackItems(): BulkStripItem[] {
+    const items = this.stripItems;
+    if (items.length === 0) return [];
+
+    // Multi-select: exactly the selection, in selection order, anchor on top.
+    if (this.selectedIds.size > 1) {
+      const selectedItems = this.#selectionOrder
+        .filter((id) => this.selectedIds.has(id))
+        .map((id) => items.find((item) => item.id === id))
+        .filter((item): item is BulkStripItem => item !== undefined);
+      if (selectedItems.length === 0) return [];
+      const anchorId = this.session.selectedJobId;
+      const anchorIndex = selectedItems.findIndex(
+        (item) => item.id === anchorId,
+      );
+      if (anchorIndex > 0) {
+        const [anchor] = selectedItems.splice(anchorIndex, 1);
+        selectedItems.unshift(anchor);
+      }
+      return selectedItems;
+    }
+
+    // Single selection is the focus view, not the stack.
+    if (this.selectedIds.size === 1) return [];
+
+    // Nothing selected: the whole batch, first image on top (document order).
+    return items;
+  }
+
+  setStageMode(next: StageMode): void {
+    this.stageMode = next;
   }
 
   #settingsHashForJob(session: BulkSession, job: ImageJob): string {

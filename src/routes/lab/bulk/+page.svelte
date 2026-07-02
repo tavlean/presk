@@ -15,7 +15,6 @@
   import { toast } from '$lib/lab/bulk/Toast.svelte';
   import Toast from '$lib/lab/bulk/Toast.svelte';
   import Home from '$lib/lab/bulk/Home.svelte';
-  import ViewModePicker from '$lib/lab/bulk/ViewModePicker.svelte';
   import {
     getEffectiveSettings,
     type BulkImageOverrides,
@@ -663,7 +662,36 @@
       <button type="button" class="btn ghost" onclick={resetLab}>Reset</button>
 
       {#if labBulk.hasJobs}
-        <ViewModePicker />
+        <!-- Dev-only resting-stage experiment toggle. STACK (default) fans the
+             batch onto the stage; BLANK keeps the original quiet empty state for
+             side-by-side comparison. The Grid/L/M/S view picker moved DOWN next
+             to the stage's bottom toolbar (see FocusView / GridView). -->
+        <div
+          class="stage-toggle"
+          role="radiogroup"
+          aria-label="Resting stage experiment"
+        >
+          <button
+            type="button"
+            class:active={labBulk.stageMode === 'stack'}
+            role="radio"
+            aria-checked={labBulk.stageMode === 'stack'}
+            title="Stack resting stage (experiment)"
+            onclick={() => labBulk.setStageMode('stack')}
+          >
+            Stack
+          </button>
+          <button
+            type="button"
+            class:active={labBulk.stageMode === 'blank'}
+            role="radio"
+            aria-checked={labBulk.stageMode === 'blank'}
+            title="Blank resting stage (original)"
+            onclick={() => labBulk.setStageMode('blank')}
+          >
+            Blank
+          </button>
+        </div>
       {/if}
 
       <input
@@ -813,6 +841,41 @@
 
   .btn.ghost {
     color: var(--text-2, rgba(235, 235, 245, 0.62));
+  }
+
+  /* Stage experiment toggle: same pill language as the font toggle. */
+  .stage-toggle {
+    display: inline-flex;
+    padding: 2px;
+    border-radius: 999px;
+    background: var(--surface-raise, rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  }
+  .stage-toggle button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-2, rgba(235, 235, 245, 0.62));
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .stage-toggle button:hover:not(.active) {
+    color: var(--text-1, #f5f5f7);
+  }
+  .stage-toggle button.active {
+    background: var(--accent-2, #53b2ff);
+    color: #16161c;
+  }
+  .stage-toggle button:focus-visible {
+    outline: 2px solid var(--accent-2, #53b2ff);
+    outline-offset: 2px;
   }
 
   .hidden-input {

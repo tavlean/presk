@@ -5,6 +5,7 @@
   import BatchInfoPanel from './BatchInfoPanel.svelte';
   import DeltaPill from './DeltaPill.svelte';
   import GlobalOptionsPanel from './GlobalOptionsPanel.svelte';
+  import ViewModePicker from './ViewModePicker.svelte';
   import { labBulk } from './store.svelte';
 
   interface Props {
@@ -146,6 +147,13 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="grid-home sqush-editor">
+  <!-- In grid view there is no stage toolbar, so the view picker sits at the TOP
+       edge of the grid area (centred), keeping the Grid/L/M/S control reachable
+       while browsing the batch. -->
+  <div class="view-picker-dock">
+    <ViewModePicker />
+  </div>
+
   <main class="cards" aria-label="Images">
     {#each items as item (item.id)}
       {@const itemThumb = labBulk.thumbs.get(item.id)}
@@ -258,6 +266,22 @@
     height: 100dvh;
     overflow: hidden;
     background: var(--bg-0, #0c0c0f);
+  }
+
+  /* View picker at the top edge of the grid area, centred. Kept clear of the
+     top-right lab controls; the cards start below it. */
+  .view-picker-dock {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+  }
+  .view-picker-dock :global(.view-mode) {
+    background: var(--surface, rgba(19, 19, 25, 0.82));
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   }
 
   .cards {
