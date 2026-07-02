@@ -1,6 +1,23 @@
 # Bulk UI — design options & feature roadmap
 
 Last updated: 2026-07-02.
+
+> **DESIGN PHASE COMPLETE (2026-07-02).** Every open question is decided and
+> implemented in the dev-only `/lab/bulk` prototype, which is the reference
+> implementation for Phase 2. Final calls: focus-first layout with the
+> rich strip (S/M/L sizes; GRID MODE tried and REMOVED — the strip + stack
+> cover everything); the STACK resting stage (wins over blank; dense,
+> balanced, eased); right-panel scope model (coral global / azure image,
+> tab + click-away); dots + azure-ring signaling; hero batch stats;
+> multi-select (cmd/shift/drag, all-selected = global); remove-from-batch
+> (Undo = production TODO); duplicates allowed pending renditions;
+> per-image percentage resize semantics; divider-follows-the-image;
+> Satoshi as the app typeface (shipped to production); the engine carries
+> the normalized no-wasted-work recipe contract (63 unit tests). NEXT:
+> the Phase-2 promotion spec (top-model session), then the build — ZIP
+> export, app-boundary multi-file entry, folder import, and the lab→app
+> migration with the cleanup list (blank state + Stack toggle removal,
+> removal-Undo, parity-audit entry for the divider rule).
 Status: in design → lab. Round 1: options written. Round 2 (same day):
 maintainer confirmed **no separate `/bulk` route (A2 out)**, **ZIP in v1**,
 and the **size-increase guardrail in v1**; concept images generated to
