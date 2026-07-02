@@ -321,6 +321,15 @@ behavior parity is preserved.
     images flip top-bottom), while the single-image `Output.svelte` default
     remains byte-for-byte unchanged.
 
+18. **Single-image left panel defaults to image info (2026-07-03).** Upstream
+    Squoosh always shows two encoder option panels, with the left side set to
+    Original by default. Sqush now uses the left column as contextual image info
+    first: filename, original format, size, dimensions, and inferred aspect
+    ratio. The old live second encoder panel is preserved, but it is opt-in via
+    **Compare as…**; choosing **Original Image** or closing compare returns the
+    info panel. This is intentional: quick inspection is the common path, while
+    two-encoder A/B remains available when needed.
+
 ---
 
 ## B. Resolved decisions + still-open items

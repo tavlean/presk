@@ -6,7 +6,7 @@
 
 Sqush is an in-browser image compressor — you pick an image, it stays on your device, and you tune how it is saved to make the file smaller. The editor shows a single **two-up** view: the same picture split down the middle, with your _original_ on one side and the _compressed result_ on the other, so you can judge the trade-off between quality and file size before you download. This page covers the interactive parts of that view — the compare slider, the zoom/rotate/inspect controls, and the per-side settings actions in each panel's header. (The encoder-specific quality settings live in their own format docs.)
 
-The screen has three parts: the big image area in the middle, and two settings panels pinned to the bottom-left and bottom-right corners. The **left panel and the left half of the image are "side 0"** (accented coral, the _before_ by default), and the **right panel and the right half are "side 1"** (accented azure, the _after_). By default the left side is the untouched **Original** and the right side is **WebP**.
+The screen has three parts: the big image area in the middle, an information panel in the bottom-left corner, and the compression panel in the bottom-right corner. The **left half of the image is "side 0"** (accented coral, the _before_ by default), and the **right half is "side 1"** (accented azure, the _after_). By default the left panel shows the source image at a glance — name, original format, file size, dimensions, and aspect — while the right panel starts as **WebP**.
 
 ## Controls / Settings
 
@@ -16,6 +16,13 @@ The screen has three parts: the big image area in the middle, and two settings p
 - **How to use it:** Grab the round handle on the split line and drag. On wide screens (viewport wider than 760px) the split is **horizontal** (left/right, drag sideways); on narrow/mobile screens (760px or less) it flips to **vertical** (top/bottom, drag up and down). The handle shows a coral left-arrow and an azure right-arrow so you can tell which side is which. The split position is kept as a _proportion_, so it stays in the same relative spot if you resize the window. There is also a hidden keyboard shortcut: with the editor focused (and not while typing in a text field), press **1**, **2**, or **3** to snap the split to the start, middle, or end.
 - **How to choose:** Put the split roughly in the middle to compare the two sides side-by-side, or push it fully to one end to view a single side in isolation. Drag it slowly across a detailed area (text, skin, gradients) to watch where compression starts to hurt.
 - **Recommended starting point:** **Middle** — then drag across the busiest part of the image to check quality.
+
+### Left image info / Compare as…
+
+- **What it does:** The left panel starts as a quick readout for the image you opened: filename, original format, original size, pixel dimensions, and an aspect chip. It keeps the common "what did I load?" details visible without making you open Resize just to see the dimensions.
+- **Compare as…:** Click **Compare as…** to turn the left panel into a second encoder panel. Pick WebP, AVIF, JPEG XL, JPEG, or PNG from the menu and Sqush encodes the left side too, so you can compare two compressed formats live against each other instead of only Original vs. WebP.
+- **How to get back:** In the left encoder panel, choose **Original Image** from the format picker to restore the info panel. Or click the **✕** in the left panel's Edit header; it closes the comparison and returns the left side to the source-image info.
+- **Recommended starting point:** Leave the left panel as info for normal before/after work. Use **Compare as…** when you specifically want a format A/B, such as WebP vs. AVIF or JPEG XL.
 
 ### "Optimizing…" while a side works
 
@@ -105,6 +112,7 @@ The two **preview-only** display toggles live together behind a single **View op
 - **Copy and Import both offer Undo, but only for a few seconds.** If you overwrite a side by mistake, grab the snackbar Undo before the message disappears — or just use the main **Undo** button, which also reverses a copy or import.
 - **Undo/Redo is per-image and instant.** Stepping back never re-compresses — it replays a result Sqush already has. But loading or replacing the image clears the history, so undo can't reach across to a previous image (a replace itself can't be undone).
 - **Import stays greyed until you've Saved a valid setup** for that side — and Save/Import are per-side and per-browser; clearing site data forgets them.
+- **The left panel is image info until you ask for comparison.** Use **Compare as…** when you want the old two-encoder workflow; return with **Original Image** or the **✕** close button.
 - **The Original ("Original Image") side has no Edit header**, so Copy/Save/Import aren't shown there, and its download is the raw, unchanged file.
 - **Wheel zoom works even over the drag handle.** Scrolling always zooms the image; only click-dragging on the handle moves the split.
 - **Auto-fit only re-runs on real changes** — a new file, a dimension/orientation change, or a window resize. Re-compressing at the same size keeps your current zoom and pan.

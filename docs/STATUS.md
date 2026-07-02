@@ -7,6 +7,16 @@ browser, the build is static, and offline reload must work after load.
 
 ## Current State
 
+- **Phase 2b contextual left panel landed (2026-07-03, `06b33b3b`–
+  `01bb3478`).** The single-image editor's left column now defaults to the
+  shared image-info component extracted from bulk (`ImageInfoRows`: one source
+  for filename-adjacent format, original size, dimensions, and inferred aspect).
+  **Compare as…** summons the opt-in second encoder side; returning either by
+  choosing **Original Image** in the left format select or by the close-compare
+  button swaps the image-info panel back in. The mechanism is deliberately small:
+  the left slot is an `ImageInfoPanel` while `sides[0].format === 'identity'`
+  and the existing `OptionsPanel` otherwise — no new panel-mode state.
+
 - **Bulk optimization Phase 2 shipped (2026-07-03, `678bb5f7`–`55c0da46`;
   spec `f341e212`).** Production bulk mode is now on the main route: picking or
   dropping 2+ supported images opens the batch editor, one image keeps the
