@@ -41,8 +41,8 @@ Each numbered group = one checkpoint commit.
 - [x] **A5 — Internal identifiers:** `registerSqushServiceWorker` → `registerPreskServiceWorker` (def + call sites); `.sqush-editor` CSS class → `.presk-editor` (theme.css, +page.svelte, FocusView, BulkMode).
 - [x] **A6 — `sqush-generated` alias (COUPLED — atomic):** rename `sqush-generated → presk-generated` across `scripts/sync-sveltekit-app.mjs`, `scripts/audit-static-output.mjs`, `svelte.config.js`, `vite.config.ts`, `tsconfig.json`, and importers (`src/lib/codec-assets.ts`, `service-worker-codec-assets.ts`, `sveltekit-worker-bridge.ts`, `webp-encode-probe.worker.ts`). Then `rm -rf .svelte-kit && npm run sync` to regenerate.
 - [x] **A7 — Docs:** `Sqush → Presk` across `docs/**` and `README.md`, `AGENTS.md` (preserve every `Squoosh` attribution; leave history docs factually intact, rename own-name only).
-- [ ] **A8 — Verify:** `rm -rf .svelte-kit .tmp node_modules/.vite` → `npm run check` → `npx playwright test` (offline/app-shell/bulk exercise SW + codecs). Fix, re-run.
-- [ ] **A9 — Merge:** `git switch main && git merge --ff-only rename/presk`; confirm signatures intact; push.
+- [x] **A8 — Verify:** ✅ `npm run check` green (svelte-check + build + static-output audit); `npx playwright test` = **61 passed / 1 pre-existing skip / 0 failed** (codecs, AVIF+JXL+OxiPNG MT threading, offline SW all pass). squoosh occurrences unchanged (code 99→99, docs 234→234).
+- [x] **A9 — Merge:** ✅ ff-only merged to local `main` (`4e939be3..17d33f7c`); all 3 commits `sig=G`, author `tavlean`. **Push pending** — bundled with the GitHub repo rename below.
 
 ## Phase B — Deferred: in-code `squoosh` → `presk`
 
