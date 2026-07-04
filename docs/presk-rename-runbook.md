@@ -1,6 +1,6 @@
 # Presk rename runbook (Sqush → Presk)
 
-> **Status:** in progress · Started 2026-07-04 on branch `rename/presk`.
+> **Status:** Phase A ✅ complete & signed on `main` (unpushed, 4 commits). Awaiting GitHub repo rename → then push + Phase C. Phase D (folder rename) DEFERRED by choice. Redirects: keep both.
 > **This file intentionally contains the old name "sqush" as rename targets — EXCLUDE it from any automated `sqush→presk` replace.**
 
 Renaming the project from **Sqush** to **Presk**.
@@ -50,19 +50,20 @@ Each numbered group = one checkpoint commit.
 - [ ] Codec rebuild pass: rename Rust crates `squoosh-oxipng`/`squoosh-resize` (+ hqx) in `Cargo.toml`, rebuild WASM, update generated `pkg/` filenames + every import in `sync-sveltekit-app.mjs` and workers. Verify codecs still load.
 - [ ] Keep attribution/provenance untouched.
 
-## Phase C — tavlean.com (separate repo: `…/Development/Websites/tavlean.com`)
+## Phase C — tavlean.com (separate repo: `…/Development/Websites/tavlean.com`) — DO right after GitHub rename
 
-> Pulse matches repos by GitHub `origin` remote (case-insensitive). Update in lockstep with the GitHub repo rename or Pulse loses Sqush's history.
+> Pulse matches repos by GitHub `origin` remote (case-insensitive) — do this in lockstep with the GitHub rename or Pulse loses Sqush's history. Generator: `scripts/build-pulse.mjs`. ⚠ An unrelated dirty file exists (`projects/(_)/rankedagi-raycast/logo.svg`) — stage only Presk files.
 
-- [ ] `scripts/projects-registry.mjs`: entry `name Sqush→Presk`, `github "tavlean/sqush"→"tavlean/presk"`, `repo`/`repos` folder path `Sqush→Presk` (use `repos: [...]` to bridge old+new during transition), `slug sqush→presk`.
-- [ ] Rename route folder `src/routes/projects/(_)/sqush/ → …/presk/` (URL `/projects/sqush` → `/projects/presk`). Decide redirect for old URL.
-- [ ] Regenerate `pulse-data.json` / `pulse-summaries.json` (confirm generator; don't hand-edit if generated).
+- [ ] `scripts/projects-registry.mjs` entry (currently `{ slug:'sqush', name:'Sqush', repo:'Tavlean/Sqush', github:'tavlean/sqush' }`): set `name Presk`, `slug presk`, `github tavlean/presk`. **Keep `repo:'Tavlean/Sqush'`** for now (folder rename deferred) — flip to `Tavlean/Presk` when Phase D happens.
+- [ ] `git mv` route folder `projects/(_)/sqush/ → …/presk/` (holds +page.svelte/.ts/+layout.server.ts + logo.webp). URL becomes `/projects/presk`.
+- [ ] **Redirect `/projects/sqush → /projects/presk`** (decision: KEEP). Leave a stub at the old path (`sqush/+page.ts` → `redirect(308, '/projects/presk')`) or a reroute hook.
+- [ ] Rebuild Pulse (`node scripts/build-pulse.mjs`) to regenerate `pulse-data.json` / `pulse-summaries.json` — don't hand-edit.
 - [ ] `docs/project-registry.md`, `docs/assets.md`: update name/slug references.
-- [ ] Commit (signed) + deploy tavlean.com.
+- [ ] Build/check, commit (signed, Presk files only), deploy.
 
-## Phase D — Folder rename (isolated; after Phase A is committed & pushed)
+## Phase D — Folder rename (DEFERRED by choice — app never references the folder name, so nothing breaks)
 
-Run in a fresh terminal (this breaks the current session's cwd + the running vite):
+Run in a fresh terminal when ready (this breaks any live session's cwd + running vite):
 ```
 # 1. stop any Presk/Sqush vite/watchers first
 mv /Users/tav/Development/Tavlean/Sqush /Users/tav/Development/Tavlean/Presk
@@ -74,8 +75,8 @@ npm run dev                              # confirm clean boot
 
 ## User actions (dashboard / manual — I'll prompt you)
 
-- [ ] GitHub: rename repo `tavlean/sqush` → `tavlean/presk` (auto-redirects old URL). Then locally: `git remote set-url origin git@github.com:tavlean/presk.git`.
+- [ ] **← NEXT: GitHub — rename repo `tavlean/sqush` → `tavlean/presk`** (Settings → General → Repository name; auto-redirects old URL). Tell me when done → I `git remote set-url origin git@github.com:tavlean/presk.git`, push the 4 signed commits, then run Phase C.
 - [ ] Cloudflare Pages: add custom domain `presk.app`; optionally rename the Pages project; confirm Git integration follows the repo rename and a deploy fires.
-- [ ] DNS: point `presk.app` at Pages. Decide whether to keep `sqush.app` as a redirect.
-- [ ] Re-export brand art if `logo.webp`/favicons show the wordmark.
-- [ ] Update `MEMORY.md` + `docs/project-identity.md` to record the rename.
+- [ ] DNS: point `presk.app` at Pages. **Keep `sqush.app` → `presk.app` redirect** (decision: keep).
+- [ ] **Re-export brand art — outlined wordmark still spells "Sqush":** `static/presk-wordmark.svg` (single `<path>`, not text) + `static/logo.webp` + tavlean project `logo.webp`. Regenerate as "Presk" in the same typeface.
+- [ ] Update `MEMORY.md` + `docs/project-identity.md` to record the rename (I'll do this once fully landed).
