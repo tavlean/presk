@@ -63,14 +63,28 @@ Each numbered group = one checkpoint commit.
 
 ## Phase D — Folder rename (DEFERRED by choice — app never references the folder name, so nothing breaks)
 
+⚠ **Claude Code keys sessions + this project's memory to the folder's absolute PATH**
+(`~/.claude/projects/<path-slug>/`, currently holding 38 transcripts + 15 memory files).
+Renaming the code folder ALONE orphans them. Rename that data dir too, with NO Claude
+session open on the project.
+
 Run in a fresh terminal when ready (this breaks any live session's cwd + running vite):
 ```
-# 1. stop any Presk/Sqush vite/watchers first
+# 1. stop any Presk/Sqush vite/watchers AND close Claude Code for this project first
 mv /Users/tav/Development/Tavlean/Sqush /Users/tav/Development/Tavlean/Presk
+
+# 2. carry over Claude Code sessions + project memory (keyed by the path slug)
+mv ~/.claude/projects/-Users-tav-Development-Tavlean-Sqush \
+   ~/.claude/projects/-Users-tav-Development-Tavlean-Presk
+
+# 3. finish the repo
 cd /Users/tav/Development/Tavlean/Presk
 git worktree repair                      # fixes the nested worktree's absolute paths
 rm -rf .svelte-kit .tmp node_modules/.vite
 npm run dev                              # confirm clean boot
+
+# 4. follow-ups: tavlean registry repo:'Tavlean/Sqush' → 'Tavlean/Presk';
+#    optionally rename .claude/launch.json's sqush-dev/sqush-preview entries
 ```
 
 ## User actions (dashboard / manual — I'll prompt you)
