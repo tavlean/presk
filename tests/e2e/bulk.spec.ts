@@ -175,9 +175,10 @@ test('per-image quality change marks the selected strip cell as overridden', asy
   ).toHaveText('This image');
 
   await setQuality(page, '55');
-  await expect(secondCell.locator('.override-dot')).toBeVisible({
-    timeout: 5000,
-  });
+  // Inherit the global expect timeout (20s) rather than a tight 5s override —
+  // the override-dot appears only after the quality change re-encodes, which is
+  // slow under CI load.
+  await expect(secondCell.locator('.override-dot')).toBeVisible();
 });
 
 test('save all exports a zip with one entry per ready image', async ({
