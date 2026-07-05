@@ -1,6 +1,6 @@
 # Presk Docs — map, registry & work order
 
-Last updated: 2026-07-03.
+Last updated: 2026-07-05.
 
 The single hub for all project docs: the **work priority order** plus the
 **registry** of every doc with explicit "read when" / "update when" triggers.
@@ -100,6 +100,7 @@ Every project doc: what it holds, when to **read** it, when to **update** it.
 | [review-hardening-plan.md](review-hardening-plan.md) | The 2026-07-02 code-review execution plan: per-side persistent worker bridges, in-flight encode dedup, one canonical recipe signature, number-input clamp, two-up key scoping, SW cross-origin pass-through, settings-storage extraction, SideRuntime grouping — with per-task specs, commit messages, test gates, and the Svelte-docs research brief. | Doing or resuming any of those tasks. | A task in it lands, is re-scoped, or is dropped (update its Status line). |
 | [specs/2026-07-02-bulk-phase-2-promotion.md](specs/2026-07-02-bulk-phase-2-promotion.md) | The executed bulk Phase-2 promotion spec: stage-by-stage lab→production migration (engine additions, entry routing, Stack-only cleanup, ZIP + size guard, folder import, remove-Undo, e2e, docs sweep) with acceptance criteria and guardrails. | Auditing the shipped bulk Phase 2 work. | The orchestrator flips the spec Status line; update only if the plan record changes. |
 | [specs/2026-07-02-phase-2b-contextual-left-panel.md](specs/2026-07-02-phase-2b-contextual-left-panel.md) | The executed Phase-2b spec: the single editor's left column became the shared image-info panel (extracted from the bulk panel — one component, both editors) + the "Compare as…" opt-in second side. Done 2026-07-03. | Auditing Phase 2b. | The orchestrator flips the spec Status line; update only if the plan record changes. |
+| [presk-rename-runbook.md](presk-rename-runbook.md) | The Sqush→Presk rename record + what remains: Phase B codec-crate rebuild (deferred to the next codec upgrade), Phase F sqush.app sunset Worker (`infra/sqush-sunset/`), Phase E rename-proofing outcome (brand lives ONLY in `src/shared/brand.ts`). | Renaming anything brand-related; touching the sunset Worker; planning the next codec upgrade (fold Phase B in). | A rename phase lands, the sunset Worker is deployed/decommissioned, or identity plumbing changes. |
 | [issue-list.md](issue-list.md) | Small backlog seed (issues that don't warrant their own plan). | Picking up small fixes. | A small issue is found, fixed, or promoted to a plan. |
 | [upstream-signals.md](upstream-signals.md) | Triage ledger for high-signal issues/PRs from GoogleChromeLabs/squoosh, classified against Presk's docs and boundaries. | Mining upstream Squoosh, classifying external requests/bugs/PR ideas, or checking whether a signal is already handled locally. | An upstream issue/PR is reviewed, dismissed, promoted to local backlog, implemented, or changes a local assumption. |
 | [dependency-modernization.md](dependency-modernization.md) | The dependency-graph modernization state. | Modernizing/bumping deps. | Dependencies are modernized/bumped meaningfully. |
@@ -111,6 +112,7 @@ Every project doc: what it holds, when to **read** it, when to **update** it.
 | Doc | Contains | Read when | Update when |
 |---|---|---|---|
 | [journey-and-article-notes.md](journey-and-article-notes.md) | Task/problem/solution notes for two planned articles (migration + codec sweep). | Writing the articles; recalling how a past problem was solved. | A task produced a notable problem/solution worth recording. |
+| [WORKLOG.md](WORKLOG.md) | Session-by-session build log (what/why/gotchas), newest first. | Resuming after a gap; tracing why a recent change was made. | After any build session — append an entry. |
 
 ### Archive & end-user (special handling)
 

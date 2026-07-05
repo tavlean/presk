@@ -119,7 +119,7 @@ removed (encoder + decoder); its `codecs/wp2/` tree and all wiring are gone.
   `presk-${version}`. On `install` it precaches `build + files + prerendered +
 serviceWorkerCodecAssetUrls` (codec WASM/JS via
   `src/lib/service-worker-codec-assets.ts`, merged from generated
-  `presk-generated/service-worker/cache-plan` + local probe workers). Strategy:
+  `app-generated/service-worker/cache-plan` + local probe workers). Strategy:
   **cache-first for known asset pathnames, network-first (with cache fallback)**
   for everything else. On `activate` it deletes stale caches and claims clients.
   Result: offline reload on the deployed origin once cached.

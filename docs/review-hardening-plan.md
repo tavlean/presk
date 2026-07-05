@@ -176,7 +176,7 @@ Move from `editor-session.svelte.ts` into a new
 `isValidProcessorState`, plus thin `writeSettings(payload)` /
 `writeSideSettings(index, payload)` wrappers owning the try/catch.
 **HARD CONSTRAINT: byte-identical wire formats.** The stored payload shapes and
-keys (`presk:settings:v3`, `presk:side-settings:left/right`) must not change —
+keys (`app:settings:v3`, `app:side-settings:left/right`) must not change —
 this is a code move, not a schema change. `EditorSession` keeps the debounce
 timers and snackbar UX; only pure parse/validate/serialize moves.
 Gate: `npm run check` + full `test:e2e`; manual: save side → reload → import

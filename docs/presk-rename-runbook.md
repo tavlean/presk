@@ -1,6 +1,6 @@
 # Presk rename runbook (Sqush → Presk)
 
-> **Status:** GitHub rename ✅ · Phase A ✅ · Phase C tavlean.com ✅ · Phase D folder rename ✅ (2026-07-05, incl. `~/.claude/projects/<slug>` move) · `sqush.app`→`presk.app` 301 redirect LIVE (Cloudflare Redirect Rule + proxied `192.0.2.1` A record on the sqush.app zone) · tavlean registry `repo` + `.claude/launch.json` cleanup ✅. **Phase B codec-`squoosh` = still DEFERRED** — a rename-only attempt was made and REVERTED (see Phase B). Remaining: brand-icon re-export (user, optional), Phase B rebuild.
+> **Status:** GitHub rename ✅ · Phase A ✅ · Phase C tavlean.com ✅ · Phase D folder rename ✅ (2026-07-05, incl. `~/.claude/projects/<slug>` move) · `sqush.app`→`presk.app` 301 redirect LIVE (Cloudflare Redirect Rule + proxied `192.0.2.1` A record on the sqush.app zone) · tavlean registry `repo` + `.claude/launch.json` cleanup ✅ · **Phase E rename-proofing ✅ (2026-07-05)** — brand isolated to `src/shared/brand.ts` + internal identifiers de-branded (see Phase E). **Phase B codec-`squoosh` = still DEFERRED** — a rename-only attempt was made and REVERTED (see Phase B). Remaining: sunset-Worker deploy + Redirect-Rule swap (see Phase F, needs user), Phase B rebuild (do with next codec upgrade), logo/favicon art whenever (no text in them — user).
 > **This file intentionally contains the old name "sqush" as rename targets — EXCLUDE it from any automated `sqush→presk` replace.**
 
 Renaming the project from **Sqush** to **Presk**.
@@ -93,10 +93,55 @@ npm run dev                              # confirm clean boot
 #    optionally rename .claude/launch.json's sqush-dev/sqush-preview entries
 ```
 
-## User actions (dashboard / manual — I'll prompt you)
+## Phase E — Rename-proofing ✅ (2026-07-05)
 
-- [ ] **← NEXT: GitHub — rename repo `tavlean/sqush` → `tavlean/presk`** (Settings → General → Repository name; auto-redirects old URL). Tell me when done → I `git remote set-url origin git@github.com:tavlean/presk.git`, push the 4 signed commits, then run Phase C.
-- [ ] Cloudflare Pages: add custom domain `presk.app`; optionally rename the Pages project; confirm Git integration follows the repo rename and a deploy fires.
-- [ ] DNS: point `presk.app` at Pages. **Keep `sqush.app` → `presk.app` redirect** (decision: keep).
-- [ ] **Re-export brand art — outlined wordmark still spells "Sqush":** `static/presk-wordmark.svg` (single `<path>`, not text) + `static/logo.webp` + tavlean project `logo.webp`. Regenerate as "Presk" in the same typeface.
-- [ ] Update `MEMORY.md` + `docs/project-identity.md` to record the rename (I'll do this once fully landed).
+Done so a future rename never again touches app internals. A rename now = edit
+`src/shared/brand.ts` (`APP_NAME`), `package.json` name/homepage, re-point the
+domain, swap brand art, grep-replace prose docs. Nothing else.
+
+- `src/shared/brand.ts` — the ONLY place the name lives in code; user-visible
+  strings (doc title, SW-update snackbar, wordmark alt, diagnostics page, bulk
+  ZIP download name) all derive from `APP_NAME`.
+- Internal identifiers de-branded (behavior-preserving; verified by full e2e):
+  `.presk-editor`→`.editor-root` · alias `presk-generated`→`app-generated` ·
+  `__preskEmscripten*`→`__appEmscripten*` · `registerPreskServiceWorker`→
+  `registerServiceWorker` · SW cache `presk-${version}`→`app-${version}` ·
+  bulk ids `presk-bulk-N`→`bulk-N` · probe scheme `presk-diagnostics://`→
+  `diagnostics://` · `static/presk-wordmark.svg`→`static/wordmark.svg`.
+- **localStorage keys renamed ONE FINAL TIME** `presk:*`→`app:*` — keys are
+  storage schema, not branding; this was free only because the domain cutover
+  days earlier had already reset all client storage. They are FROZEN now and
+  must never follow a rebrand again (see the HARD RULE in
+  `src/lib/editor/settings-storage.ts`).
+
+## Phase F — sqush.app sunset Worker (zombie-SW fix) — deploy pending (user)
+
+The old app is an offline-first PWA: its SW serves the shell **cache-first**,
+and the browser's SW-update fetch to `sqush.app/service-worker.js` now gets a
+cross-origin 301, which per spec FAILS the update — so returning sqush.app
+visitors are pinned to the old cached app forever and never see the redirect.
+Fix (built 2026-07-05, in `infra/sqush-sunset/`): a Worker on the sqush.app
+zone that serves a self-destructing kill-switch SW at `/service-worker.js`
+(deletes caches, unregisters, re-navigates tabs) and 301s every other path to
+the same path on presk.app. Verified live that the trap exists (`curl -I
+https://sqush.app/service-worker.js` → 301). Cloudflare docs confirm Single
+Redirects run BEFORE Workers, so the Worker replaces the Redirect Rule.
+
+- [ ] User: `npx wrangler deploy -c infra/sqush-sunset/wrangler.jsonc` (Claude's
+      deploy was permission-blocked; config is ready, account_id pinned).
+- [ ] User: Cloudflare dash → sqush.app zone → Rules → Overview → disable/delete
+      the `sqush.app`→`presk.app` Single Redirect Rule (the Worker now does it).
+- [ ] Verify: `curl -I https://sqush.app/service-worker.js` → `200` +
+      `application/javascript` + `no-cache`; `curl -I "https://sqush.app/x?y=1"`
+      → `301 https://presk.app/x?y=1`.
+- [ ] ~mid-2027: decommission (delete Worker + zone) — see
+      `infra/sqush-sunset/README.md`.
+
+## User actions (dashboard / manual)
+
+- [x] GitHub repo renamed `tavlean/sqush` → `tavlean/presk`; remote re-pointed; commits pushed.
+- [x] Cloudflare Pages on `presk.app`; `sqush.app` → `presk.app` redirect live (to be replaced by the Phase F Worker).
+- [x] Wordmark re-exported as "Presk" (`static/wordmark.svg`, commit `e180977d`).
+- [ ] **← NEXT: Phase F deploy + Redirect-Rule swap (two commands/clicks above).**
+- [ ] Logo/favicon art (`static/logo.webp`, favicons, tavlean `logo.webp`) — no text in them, purely optional restyle, whenever.
+- [x] `MEMORY.md` + project brief updated to record the rename (2026-07-05).

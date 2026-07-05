@@ -31,12 +31,12 @@ been removed from the `svelte` branch.
   can handle dev cleanup and production registration explicitly.
 - `vite.config.ts` and `svelte.config.js` define aliases for `client`,
   `features`, `shared`, `sw`, `codecs`, `worker-shared`, and generated
-  `presk-generated` modules.
+  `app-generated` modules.
 
 ## Generated Runtime Files
 
 `scripts/sync-sveltekit-app.mjs` writes generated files under
-`.svelte-kit/presk-generated/`. The important generated groups are:
+`.svelte-kit/app-generated/`. The important generated groups are:
 
 - `feature-meta/`: encoder/processor/preprocessor metadata.
 - `features-worker/webp.ts`: generated Comlink worker entry covering active

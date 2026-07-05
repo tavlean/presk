@@ -1,11 +1,22 @@
 # Presk Status
 
-Last updated: 2026-07-03.
+Last updated: 2026-07-05.
 
 Read this first. Presk is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
 
 ## Current State
+
+- **Rename-proofing landed (2026-07-05).** The brand now lives ONLY in
+  `src/shared/brand.ts` (`APP_NAME`); every internal identifier is brand-free
+  (`.editor-root`, `app-generated`, `__appEmscripten*`, `registerServiceWorker`,
+  SW cache `app-${version}`, localStorage `app:*` — frozen schema,
+  `static/wordmark.svg`). A future rename = brand.ts + package.json + art +
+  prose docs (procedure: `docs/project-identity.md`). Verified: `npm run check`
+  + full e2e (61 passed / 1 expected skip). **Open:** the sqush.app sunset
+  Worker (`infra/sqush-sunset/`) is built but NOT deployed — user must run the
+  deploy + disable the zone's Single Redirect Rule (runbook Phase F), else old
+  sqush.app visitors stay pinned to the cached old app forever.
 
 - **Phase 2b contextual left panel landed (2026-07-03, `06b33b3b`–
   `01bb3478`).** The single-image editor's left column now defaults to the
@@ -446,11 +457,11 @@ end rather than kept for the now-closed migration parity (see
 - `src/features/**` — codec metadata, client runtimes, and worker runtimes.
 - `src/shared/codec-assets.ts` — build-tool-neutral codec asset records.
 - `scripts/sync-sveltekit-app.mjs` — generates
-  `.svelte-kit/presk-generated/*`.
+  `.svelte-kit/app-generated/*`.
 - `scripts/audit-static-output.mjs` — verifies emitted worker/WASM output.
 - `src/service-worker.ts` — SvelteKit service worker.
 
-Generated files live under `.svelte-kit/presk-generated/` and are not
+Generated files live under `.svelte-kit/app-generated/` and are not
 committed. Run `npm run sync` or `npm run check` to regenerate them.
 
 ## Commands

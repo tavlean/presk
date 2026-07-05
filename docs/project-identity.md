@@ -1,23 +1,48 @@
 # Project identity
 
+Last updated: 2026-07-05.
+
 Presk is the current project name.
 
 ## Current identity
 
-- App name: Presk
+- App name: Presk — in code, defined ONCE in `src/shared/brand.ts` (`APP_NAME`)
 - Package name: `presk`
 - GitHub repo: `tavlean/presk`
 - Default branch: `main`
 - Homepage metadata: `https://presk.app`
 
+## Renaming the app (should it ever happen again)
+
+The 2026-07-05 rename-proofing pass (runbook Phase E) isolated the brand. A
+rename now touches ONLY:
+
+1. `src/shared/brand.ts` — `APP_NAME`.
+2. `package.json` — `name` + `homepage`.
+3. Brand art: `static/wordmark.svg` (+ `static/logo.webp`/favicons if restyled).
+4. Prose docs / README — a grep-replace of the old name (attribution excluded).
+5. Domain + repo + deployment plumbing (see `docs/presk-rename-runbook.md` for
+   the full external checklist: GitHub rename, DNS, old-domain sunset Worker —
+   reuse `infra/sqush-sunset/` as the template for freeing PWA users pinned to
+   the old origin).
+
+Internal identifiers (CSS classes, cache names, localStorage keys, build
+aliases, function names) are deliberately brand-free — do NOT rebrand them.
+The localStorage keys (`app:settings:*`, `app:side-settings:*`) are frozen
+storage schema (see the HARD RULE in `src/lib/editor/settings-storage.ts`).
+
+## Name history
+
+- `tavlean/SquooshPlus` — the original fork name (historical only).
+- **Sqush** (`tavlean/sqush`, sqush.app) — the working name up to 2026-07-05.
+- **Presk** (`tavlean/presk`, presk.app) — current, renamed 2026-07-05
+  (`docs/presk-rename-runbook.md` is the migration record).
+
 ## Historical identity
 
 Presk is derived from GoogleChromeLabs' Squoosh project. Keep that history clear in docs, credits, license notes, and architecture explanations. Do not rename every historical `Squoosh` reference to `Presk`; many of those references explain upstream behavior or provenance.
 
-The old `tavlean/SquooshPlus` fork is historical only. It is not the current project.
-
 ## Local folder note
 
-The local checkout is now expected to live at `/Users/tav/Development/Tavlean/Presk`.
-
-If a tool, terminal, editor, or bookmark still points at `/Users/tav/Development/Tavlean/SquooshPlus`, update it to the new path. That old folder name should now be treated as historical context only.
+The local checkout lives at `/Users/tav/Development/Tavlean/Presk` (renamed
+from `…/Tavlean/Sqush` on 2026-07-05, runbook Phase D).
