@@ -5,6 +5,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "frisp",
   "compatibility_date": "2026-07-05",
+  // Production stays on the custom domain only; no duplicate workers.dev origin.
+  "workers_dev": false,
+  // Preview URLs (<version>-frisp.slift.workers.dev) are what `wrangler versions
+  // upload` / branch pushes give you to click — the Pages-preview equivalent.
+  "preview_urls": true,
   "assets": {
     "directory": "./build",
     // Serves /index.html (a client-router shell; ssr=false) for unknown paths.
