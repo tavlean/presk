@@ -127,10 +127,12 @@ the same path on presk.app. Verified live that the trap exists (`curl -I
 https://sqush.app/service-worker.js` → 301). Cloudflare docs confirm Single
 Redirects run BEFORE Workers, so the Worker replaces the Redirect Rule.
 
-- [ ] User: `npx wrangler deploy -c infra/sqush-sunset/wrangler.jsonc` (Claude's
-      deploy was permission-blocked; config is ready, account_id pinned).
-- [ ] User: Cloudflare dash → sqush.app zone → Rules → Overview → disable/delete
-      the `sqush.app`→`presk.app` Single Redirect Rule (the Worker now does it).
+- [x] Worker DEPLOYED 2026-07-05 (version `0f0001e5`, route `sqush.app/*`) —
+      currently SHADOWED by the Redirect Rule (verified: still 301s, and the
+      rule drops query strings, which the Worker fixes).
+- [ ] Disable/delete the `sqush.app`→`presk.app` Single Redirect Rule — via
+      Rulesets API once `CLOUDFLARE_API_TOKEN` is provided (pending user), or
+      Cloudflare dash → sqush.app zone → Rules.
 - [ ] Verify: `curl -I https://sqush.app/service-worker.js` → `200` +
       `application/javascript` + `no-cache`; `curl -I "https://sqush.app/x?y=1"`
       → `301 https://presk.app/x?y=1`.
