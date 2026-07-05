@@ -1,6 +1,6 @@
 # Presk rename runbook (Sqush → Presk)
 
-> **Status:** GitHub rename ✅ · Phase A ✅ · Phase C tavlean.com ✅ · Phase D folder rename ✅ (2026-07-05, incl. `~/.claude/projects/<slug>` move) · `sqush.app`→`presk.app` 301 redirect LIVE (Cloudflare Redirect Rule + proxied `192.0.2.1` A record on the sqush.app zone) · tavlean registry `repo` + `.claude/launch.json` cleanup ✅ · **Phase E rename-proofing ✅ (2026-07-05)** — brand isolated to `src/shared/brand.ts` + internal identifiers de-branded (see Phase E). **Phase B codec-`squoosh` = still DEFERRED** — a rename-only attempt was made and REVERTED (see Phase B). Remaining: sunset-Worker deploy + Redirect-Rule swap (see Phase F, needs user), Phase B rebuild (do with next codec upgrade), logo/favicon art whenever (no text in them — user).
+> **Status:** GitHub rename ✅ · Phase A ✅ · Phase C tavlean.com ✅ · Phase D folder rename ✅ (2026-07-05, incl. `~/.claude/projects/<slug>` move) · `sqush.app`→`presk.app` 301 redirect LIVE (Cloudflare Redirect Rule + proxied `192.0.2.1` A record on the sqush.app zone) · tavlean registry `repo` + `.claude/launch.json` cleanup ✅ · **Phase E rename-proofing ✅ (2026-07-05)** — brand isolated to `src/shared/brand.ts` + internal identifiers de-branded (see Phase E). **Phase B codec-`squoosh` = still DEFERRED** — a rename-only attempt was made and REVERTED (see Phase B). **Phase F sunset Worker ✅ COMPLETE (2026-07-05)** — Worker live on sqush.app, Redirect Rule deleted, kill-switch + query-preserving 301s verified. Remaining: Phase B rebuild (do with next codec upgrade), logo/favicon art whenever (no text in them — user).
 > **This file intentionally contains the old name "sqush" as rename targets — EXCLUDE it from any automated `sqush→presk` replace.**
 
 Renaming the project from **Sqush** to **Presk**.
@@ -127,15 +127,15 @@ the same path on presk.app. Verified live that the trap exists (`curl -I
 https://sqush.app/service-worker.js` → 301). Cloudflare docs confirm Single
 Redirects run BEFORE Workers, so the Worker replaces the Redirect Rule.
 
-- [x] Worker DEPLOYED 2026-07-05 (version `0f0001e5`, route `sqush.app/*`) —
-      currently SHADOWED by the Redirect Rule (verified: still 301s, and the
-      rule drops query strings, which the Worker fixes).
-- [ ] Disable/delete the `sqush.app`→`presk.app` Single Redirect Rule — via
-      Rulesets API once `CLOUDFLARE_API_TOKEN` is provided (pending user), or
-      Cloudflare dash → sqush.app zone → Rules.
-- [ ] Verify: `curl -I https://sqush.app/service-worker.js` → `200` +
-      `application/javascript` + `no-cache`; `curl -I "https://sqush.app/x?y=1"`
-      → `301 https://presk.app/x?y=1`.
+- [x] Worker DEPLOYED 2026-07-05 (version `0f0001e5`, route `sqush.app/*`).
+- [x] Single Redirect Rule DELETED 2026-07-05 via Rulesets API (rule "Sqush to
+      Presk", id `19743bc4…`, ruleset `21a8e08f…`; it had
+      `preserve_query_string:false` — the Worker's 301 preserves queries, a
+      small upgrade). Trivially recreatable from this record if ever needed.
+- [x] Verified live: `/service-worker.js` → `200` `application/javascript`
+      `no-cache` + kill-switch body; `/editor?a=b` → `301
+      https://presk.app/editor?a=b`; `/` → `301 https://presk.app/`.
+      **Phase F COMPLETE — sqush.app is fully served by the sunset Worker.**
 - [ ] ~mid-2027: decommission (delete Worker + zone) — see
       `infra/sqush-sunset/README.md`.
 
@@ -144,6 +144,6 @@ Redirects run BEFORE Workers, so the Worker replaces the Redirect Rule.
 - [x] GitHub repo renamed `tavlean/sqush` → `tavlean/presk`; remote re-pointed; commits pushed.
 - [x] Cloudflare Pages on `presk.app`; `sqush.app` → `presk.app` redirect live (to be replaced by the Phase F Worker).
 - [x] Wordmark re-exported as "Presk" (`static/wordmark.svg`, commit `e180977d`).
-- [ ] **← NEXT: Phase F deploy + Redirect-Rule swap (two commands/clicks above).**
+- [x] Phase F deploy + Redirect-Rule swap — DONE 2026-07-05 (Worker live, rule deleted, verified).
 - [ ] Logo/favicon art (`static/logo.webp`, favicons, tavlean `logo.webp`) — no text in them, purely optional restyle, whenever.
 - [x] `MEMORY.md` + project brief updated to record the rename (2026-07-05).
