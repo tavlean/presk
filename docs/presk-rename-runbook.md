@@ -1,6 +1,6 @@
 # Presk rename runbook (Sqush → Presk)
 
-> **Status:** GitHub repo renamed ✅ · Phase A ✅ pushed to `tavlean/presk` · Phase C tavlean.com ✅ pushed (Cloudflare deploying). Remaining: Cloudflare custom domain + DNS + `sqush.app` redirect (user), brand-art re-export (user), Phase B codec-`squoosh` (deferred), Phase D folder rename (deferred).
+> **Status:** GitHub rename ✅ · Phase A ✅ · Phase C tavlean.com ✅ · Phase D folder rename ✅ (2026-07-05, incl. `~/.claude/projects/<slug>` move) · `sqush.app`→`presk.app` 301 redirect LIVE (Cloudflare Redirect Rule + proxied `192.0.2.1` A record on the sqush.app zone) · tavlean registry `repo` + `.claude/launch.json` cleanup ✅. **Phase B codec-`squoosh` = still DEFERRED** — a rename-only attempt was made and REVERTED (see Phase B). Remaining: brand-icon re-export (user, optional), Phase B rebuild.
 > **This file intentionally contains the old name "sqush" as rename targets — EXCLUDE it from any automated `sqush→presk` replace.**
 
 Renaming the project from **Sqush** to **Presk**.
@@ -44,11 +44,17 @@ Each numbered group = one checkpoint commit.
 - [x] **A8 — Verify:** ✅ `npm run check` green (svelte-check + build + static-output audit); `npx playwright test` = **61 passed / 1 pre-existing skip / 0 failed** (codecs, AVIF+JXL+OxiPNG MT threading, offline SW all pass). squoosh occurrences unchanged (code 99→99, docs 234→234).
 - [x] **A9 — Merge:** ✅ ff-only merged to local `main` (`4e939be3..17d33f7c`); all 3 commits `sig=G`, author `tavlean`. **Push pending** — bundled with the GitHub repo rename below.
 
-## Phase B — Deferred: in-code `squoosh` → `presk`
+## Phase B — Deferred: in-code `squoosh` → `presk` (REQUIRES a WASM rebuild)
 
-- [ ] Rename stray `squoosh` identifiers/comments in `src/**` (non-attribution).
-- [ ] Codec rebuild pass: rename Rust crates `squoosh-oxipng`/`squoosh-resize` (+ hqx) in `Cargo.toml`, rebuild WASM, update generated `pkg/` filenames + every import in `sync-sveltekit-app.mjs` and workers. Verify codecs still load.
-- [ ] Keep attribution/provenance untouched.
+**⚠ 2026-07-05: a rename-ONLY pass was attempted and fully REVERTED (`git reset`, nothing committed).** Why it can't work without recompiling: `wasm-bindgen` **bakes the crate name into each `.wasm` binary's import-module string** (`./squoosh_oxipng_bg.js`, `./squoosh_resize_bg.js` — verified with `grep -a` on the binaries). Renaming the glue's import key to `presk_*_bg.js` while preserving the binary makes the import object no longer match the binary → wasm fails to instantiate. Result: 12 e2e failures (oxipng ST+MT, resize, hqx, alpha) that **time out** (13.9 min run) while un-renamed C++ codecs (webp/avif/jxl/mozjpeg) pass. The build + svelte-check + static-output audit ALL passed — only *runtime* instantiation broke — so **build-green is NOT sufficient; must run e2e**.
+
+Findings to reuse next time:
+- **`src/**` `squoosh` refs are ALL attribution** ("adapted from Squoosh…") EXCEPT 4 import paths in `src/features/encoders/oxiPNG/worker/{oxipngEncode,runtime}.ts`. Keep the comments.
+- Rust codecs to rebuild (wasm-pack): **oxipng** (`pkg/` ST + `pkg-parallel/` MT-rayon), **resize**, **hqx**. `rotate` crate name is cosmetic (lib name / output is `rotate`, no `squoosh_*` artifact).
+- **MT builds are finicky** — need `target-feature=+atomics,+bulk-memory` + `link-arg=--shared-memory`/`--max-memory`/`--import-memory`/tls exports (visible in `codecs/oxipng/target/**/.fingerprint`; see `docs/codec-build-notes.md` + `docs/codec-upgrade-runbooks.md`). Verify MT threading still engages via the `*-threads` e2e specs after rebuild.
+- **Correct procedure:** rename Cargo crate `name` (`presk-oxipng`/`presk-resize`/`preskhqx`) → `wasm-pack build` each (with the MT recipe for oxipng-parallel) → the regenerated `pkg/` files + binary import namespace become `presk_*` consistently → update `sync-sveltekit-app.mjs`, `scripts/audit-static-output.mjs`, the 4 src imports → `npm run check` **AND** `npx playwright test`.
+- **Keep attribution:** `codecs/rotate/rotate.rs` upstream Squoosh PR link, `codecs/README.md` provenance, all `src/**` comments, and `codecs/build-rust.sh`'s `squoosh-rust` toolchain image (or rename + retag the docker image).
+- This is a good candidate to delegate to Codex (execution-heavy) once the toolchain is confirmed available.
 
 ## Phase C — tavlean.com (separate repo: `…/Development/Websites/tavlean.com`) — DO right after GitHub rename
 
