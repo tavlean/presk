@@ -39,3 +39,22 @@ not a project. Also fixed the zombie-service-worker trap on the old domain.
   only e2e catches it).
 - The Codex sandbox can't bind the Playwright preview-server port; e2e must be
   run outside it.
+
+## 2026-07-05 (later) — Presk → frisp rename + Pages→Workers move
+
+Full cutover executed in one session (naming decision + infra). See the
+Postscript in `docs/presk-rename-runbook.md` for the complete record.
+Key state: app lives at **frisp.app** on Cloudflare **Worker `frisp`**
+(static assets, root `wrangler.jsonc`); both sqush.app and presk.app 301 to
+it via the shared sunset Worker; old Pages project dormant. Brand casing:
+lowercase `frisp` in UI/wordmark, "Frisp" in prose.
+
+**Gotchas:**
+
+- Cloudflare Pages projects can't change their `*.pages.dev` subdomain —
+  that plus Workers being the recommended platform drove the move.
+- Workers static assets: `_headers`/`_redirects` work as on Pages (verified
+  live), but SPA fallback is `not_found_handling` serving `/index.html` —
+  the adapter's `200.html` ships unused.
+- Workers Builds CI not yet connected (manual `wrangler deploy` until the
+  user finishes the dashboard connect step).

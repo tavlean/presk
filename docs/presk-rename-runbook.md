@@ -147,3 +147,45 @@ Redirects run BEFORE Workers, so the Worker replaces the Redirect Rule.
 - [x] Phase F deploy + Redirect-Rule swap — DONE 2026-07-05 (Worker live, rule deleted, verified).
 - [ ] Logo/favicon art (`static/logo.webp`, favicons, tavlean `logo.webp`) — no text in them, purely optional restyle, whenever.
 - [x] `MEMORY.md` + project brief updated to record the rename (2026-07-05).
+
+## Postscript — Presk → Frisp, same day (2026-07-05, evening)
+
+Presk was dropped hours after launch: it is one letter from **Plesk** (the
+hosting panel — same dev audience) and the founder himself kept confusing
+them. The replacement name **frisp** (lowercase in UI, "Frisp" in prose) was
+chosen after a screened search (~1,150 candidates; decision trail in the
+session record). Because Phase E had rename-proofed the codebase, the second
+rename was executed in one evening:
+
+- Code/docs: `brand.ts` → `'frisp'`, `package.json` name/homepage,
+  docs sweep (commit `c030cb78`). `npm run check` + e2e 61/61 green.
+- Hosting moved **Pages → Workers static assets** (Cloudflare's recommended
+  path for new projects): worker `frisp`, config in root `wrangler.jsonc`,
+  `frisp.app` as Worker custom domain. `_headers` (COOP/COEP + immutable
+  cache) verified working on the Workers platform in production.
+- Old Pages project (`presk`, subdomain `sqush-1ze.pages.dev` — Pages
+  projects can't change subdomains, which motivated the platform move):
+  `presk.app` domain detached, prod+preview deployments disabled, kept
+  dormant; delete after a stability week.
+- Sunset: the Phase F Worker (`infra/sqush-sunset/`) now serves BOTH old
+  zones — routes `sqush.app/*` + `presk.app/*`, 301 target `frisp.app`,
+  same kill-switch SW. presk.app zone got the proxied `192.0.2.1`
+  placeholder A record (CNAME to Pages removed).
+- tavlean.com: slug `frisp`, `/projects/{sqush,presk}` → 308 `/projects/frisp`,
+  pulse data regenerated (commit `98d3e42` there).
+- Codex CLI sessions are NOT path-keyed (cwd is file metadata only) — no
+  migration needed for the folder rename; use `codex resume --all` to see
+  Sqush/Presk-era sessions.
+
+Remaining user actions:
+- [ ] Rename local folder → `/Users/tav/Development/Tavlean/Frisp` and move
+      `~/.claude/projects/-Users-tav-Development-Tavlean-Presk` →
+      `…-Frisp` (Claude sessions/memory are path-slug keyed); then
+      `git worktree repair` for the kept worktree.
+- [ ] Connect Workers Builds CI: dashboard → worker `frisp` → Settings →
+      Build → connect `tavlean/frisp` (build `npm run build`, deploy
+      `npx wrangler deploy`, non-prod `npx wrangler versions upload`).
+      Until then, deploys are manual `wrangler deploy`.
+- [ ] Wordmark/logo art still says Presk / shows the Sqush orange — redo in
+      Figma whenever (lowercase "frisp" recommended for the wordmark).
+- [ ] ~mid-2028: decommission presk.app zone + its sunset route.
