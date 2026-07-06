@@ -24,7 +24,15 @@ need visual/UX taste (none below should).
 
 ## WS-A Quick wins (P5 dead code · P6 dedup · P7 tooling) — Codex, 3 batches
 
-**Status: A1 in progress · A2 queued · A3 queued.**
+**Status: A1 ✅ DONE (`85944296`) · A2 in progress · A3 queued.**
+A1 outcomes vs spec: pointer-tracker.d.ts KEPT (verified still required by
+`npm run check`); canvasEncode KEPT (webp-pipeline-probe imports it),
+canvasEncodeTest deleted; no committed .DS_Store existed. **Bonus find
+(`db0a696a`): vitest.config.ts resolved no aliases — a 2026-07-05 import made
+export.test.ts fail collection, silently dropping 10 tests and hiding a real
+regression (bulk archives brand-prefixed against the documented contract).
+Both fixed; vitest now reuses vite.config's exported `appAliases`. All 78
+unit tests green.**
 
 - **A1 — dead code (P5).** Exact file list in review §P5; brief includes
   verify-before-delete rules, the sync-script `source:` metadata fixups, the
