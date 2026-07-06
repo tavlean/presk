@@ -78,3 +78,18 @@ runners (all passed locally):
 Not touched: the ~15 other sub-20s per-assertion timeouts in the suite — most
 are intentional stability checks (assert a value did NOT change), and retries
 covers any genuine environmental flake. Don't lengthen them.
+
+## 2026-07-07 — First-principles whole-app review
+
+Maintainer asked for a from-scratch re-examination of every inherited decision
+(Squoosh-era and migration-era). One deep manual pass over the runtime core +
+four independent read-only sweeps (legacy/dead code, Svelte idioms vs current
+docs, build/tooling, runtime inventory — run via Codex). Output:
+`docs/first-principles-review.md` (registered in the README registry), ranked
+P1–P10 with a suggested sequence. Headlines: every encode pass re-decodes the
+source on the main thread (P1); the Comlink boundary structured-clones
+full-res pixels up to ~5×/pass, no transferables (P2); the 2,006-line
+sync-sveltekit-app.mjs generates ~480 lines of static TS and can mostly retire
+(P3); bulk options seam is WebP-typed, endorsing the codec-options-model
+sequencing (P4); 12 orphaned worker wrappers + 5 stale d.ts shims (P5); unit
+tests don't run in CI (P7). No code changed — review only.
