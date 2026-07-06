@@ -200,23 +200,67 @@ are static), stop and report rather than hand-patching.
   cold run, and encode time dwarfs clone time on the small fixtures. So the
   bench gate proves NO REGRESSION (±12% time tolerance); a headline speedup
   claim belongs to stage (b)'s round-trip elimination.
-- **(b) Composite pipeline op (next session).** New worker method
-  `processAndEncode(signal, preprocessed, processorState, encoderState, urls…)`
-  running worker-resize → quantize → encode → decode-back in ONE round trip,
-  returning `{ file bytes, processedImage, outputImage }` with transfer.
-  Main-thread fallback path (stepwise, exactly today's) remains for: vector
-  (SVG) resize and `browser-pixelated` resize — both need the main thread.
-  `compressPreprocessed` picks composite vs stepwise. The UI contract
-  (`CompressOutcome`) is unchanged. Requires (a) + WS-B landed; benchmark
-  gate ≥15% wall-clock improvement on the bench suite's large-image encodes,
-  else don't merge complexity.
-- **(c) Worker-side built-in decode (next session).** Add `builtinDecode` to
-  the codec worker using `createImageBitmap(blob)` + `OffscreenCanvas`
-  (Baseline). `decodeImage` prefers the worker path, falls back to the
-  main-thread canvas path on error (keep the code; Safari SVG quirks stay
-  main-thread — SVG never goes through builtinDecode anyway).
-  WebCodecs `ImageDecoder` explicitly deferred (not Baseline; re-check
-  mid-2027).
+- **(b) Composite pipeline op — FULL DESIGN (decided 2026-07-07; execute in a
+  fresh session).** One worker round trip per pass instead of up to four.
+
+  New method on the codec worker (and bridge):
+  `processAndEncode(signal, input: ImageData, plan, urls) →
+  { encoded: ArrayBuffer, processed: ImageData, output: ImageData }` where
+  `plan = { resize?: WorkerResizeOptions, quantize?: QuantizeOptions,
+  encoder: EncoderState }`. Inside the worker: optional worker-resize →
+  optional quantize → encode → decode the encoded bytes back for the preview.
+  ALL three return values transferred (fresh buffers per the (a) verification
+  table). `processed` is the post-resize/quantize frame (the two-up "before");
+  when no resize/quantize ran it is byte-equal to the input — still return it
+  (transfer is free; keeps one contract).
+
+  Decode-back strategy inside the worker (format is KNOWN — we just encoded
+  it): try `createImageBitmap(new Blob([encoded]))` + `OffscreenCanvas`
+  readback first (native, fast, hardware-decoded); on ANY failure fall back to
+  the worker's own WASM decoder for avif/webp/jxl/qoi (JPEG/PNG native decode
+  is universal in workers; no fallback needed). This mirrors today's
+  main-thread preference order without the DOM `<picture>` support probe,
+  which does not exist in a worker.
+
+  Main-thread branching in `compressPreprocessed`:
+  - vector (SVG) resize and `browser-pixelated` resize still produce
+    `processed` on the MAIN thread (they need HTMLImageElement / DOM canvas);
+    then call `processAndEncode` with `plan.resize` ABSENT — quantize + encode
+    + decode-back still collapse into one trip.
+  - everything else: one `processAndEncode` call with the full plan.
+  - The stepwise per-stage bridge methods REMAIN (diagnostics probes and the
+    fallback paths use them); do not delete.
+  The UI contract (`CompressOutcome`) is unchanged. Bulk's
+  `processBulkImageJob` adopts the same call (it skips decode-back today —
+  give the worker method an `options.decodeBack: boolean` so bulk keeps
+  skipping it).
+
+  Prerequisites: (a) + WS-B landed (both are). Gate: full e2e both browsers +
+  bench; merge bar = wall-clock improvement visible on `photo-large` encode
+  medians OR a ≥15% reduction in pass latency measured with a 3-run
+  photo-large loop (bump its `runs` to 3 locally for the comparison only);
+  if neither shows, don't merge the complexity.
+- **(c) Worker-side decode — FULL DESIGN (decided 2026-07-07; execute in a
+  fresh session, after (b)).** One worker method SUBSUMES the whole decode
+  dispatch: `decodeBlob(signal, blob, urls) → ImageData` (transferred). Inside
+  the worker: sniff the magic bytes (move `sniffMimeType` — it is pure), try
+  native `createImageBitmap(blob)` + `OffscreenCanvas` readback, and on
+  failure dispatch to the matching WASM decoder (avif/webp/jxl/qoi). This
+  replaces the main thread's `<picture>`-probe + per-format bridge dispatch in
+  `decodeImage` for the non-SVG path — the probe, the dispatch, AND the pixel
+  readback all leave the main thread.
+
+  Main thread keeps: the SVG path (DOMParser + HTMLImageElement rasterize —
+  DOM-only, unchanged), and the existing main-thread `builtinDecode` as the
+  catch-all fallback if the worker call itself fails (keep the code, it is
+  small). `EditorSession.#preparedSource` and bulk decode both route through
+  the same `decodeSourceImage`, so both get it for free.
+
+  Explicit non-goals, decided: WebCodecs `ImageDecoder` deferred (not
+  Baseline; re-check mid-2027). A worker-side decoded-frame cache (avoiding
+  the per-pass send of the preprocessed frame) is NOT planned — it would hold
+  every open frame in two threads' memory; revisit only if (b)+(c) profiling
+  still shows the send dominating.
 
 ## WS-E Bulk per-slot drain (P9) — design fixed, Codex implements
 
