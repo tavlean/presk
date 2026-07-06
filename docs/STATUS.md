@@ -11,7 +11,7 @@ browser, the build is static, and offline reload must work after load.
   ([docs/first-principles-review.md](first-principles-review.md), P1–P10) was
   turned into an execution plan
   ([docs/specs/2026-07-07-first-principles-execution.md](specs/2026-07-07-first-principles-execution.md)
-  — **execution state lives there**) and 7 of 8 day-one workstreams LANDED,
+  — **execution state lives there**) and ALL day-one workstreams LANDED,
   each gated by check + unit + full e2e:
   - **Decoded-source cache** (`3a44a63d`): the editor decodes/rotates a photo
     ONCE per file; option tweaks no longer re-decode on the main thread.
@@ -29,14 +29,16 @@ browser, the build is static, and offline reload must work after load.
   - **Regression found & fixed** (`db0a696a`): vitest resolved no aliases —
     10 tests silently dropped since 2026-07-05, hiding an accidental
     `frisp-` prefix on bulk ZIP names (contract restored).
-  - In flight: WS-D(a) worker→main Comlink transfers (bench-gated). WS-G
-    options-slice engine half is implemented in `ws-g-engine` but not landed:
-    registry + sparse merge are done, Phase-3 UI wiring is still out of scope,
-    and check + unit + full e2e are green in that worktree. Fully specced for
-    later cheap sessions: D(b) composite worker op, D(c) worker-side decode,
-    WS-G UI item (bulk dots/resets wiring; control tables in
-    specs/2026-07-07-ws-g-control-inventory.md), WS-H `src/engine` rename
-    (inventory in specs/2026-07-07-ws-h-rename-inventory.md — do LAST).
+  - **Worker transfers landed too** (`cf380396`, WS-D(a)): all 13
+    codec-worker returns move via Comlink transfer (outputs byte-identical).
+  - **WS-G engine half landed** (`ba6a4f8c`): per-codec control registries +
+    per-control sparse overrides in the bulk engine — a per-image tweak no
+    longer freezes the encoder's other options (91 unit tests). Phase-3 UI
+    dots/resets wiring remains.
+  - Fully specced for later cheap sessions (full designs in the execution
+    spec): D(b) composite worker op, D(c) worker-side decode, WS-G UI item
+    (control tables in specs/2026-07-07-ws-g-control-inventory.md), WS-H
+    `src/engine` rename (specs/2026-07-07-ws-h-rename-inventory.md — do LAST).
 
 - **Rename-proofing landed (2026-07-05).** The brand now lives ONLY in
   `src/shared/brand.ts` (`APP_NAME`); every internal identifier is brand-free
