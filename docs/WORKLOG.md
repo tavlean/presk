@@ -116,3 +116,15 @@ Gotchas for future sessions:
 - The bench's photo-large fixture is 1 cold run — regression signal only.
 - WS-H rename must go LAST (conflicts with everything); its inventory doc has
   a delta header to apply first.
+
+## 2026-07-07 (later) — WS-D(a) + WS-G engine half land; day-one board complete
+
+WS-D(a) transfers landed (`cf380396`; outputs byte-identical, timing deltas =
+known single-cold-run bench variance, no regression). BONUS beyond day-one
+scope: the WS-G options-slice ENGINE half landed (`ba6a4f8c`/`d3dd6177`) —
+per-codec control registries + per-control sparse overrides; the "one tweak
+freezes every option" Phase-3 blocker is fixed at the engine level, 91 unit
+tests. D(b)/D(c) got FULL designs in the spec (`0d687b97`) — every remaining
+review item is now zero-judgment executable: D(b), D(c), WS-G UI wiring,
+WS-H rename (LAST). Deploy note: nothing deployed today; `main` is ahead of
+production — `wrangler deploy` when ready.
