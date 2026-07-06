@@ -133,12 +133,8 @@
       <img class="wordmark" src={asset('/wordmark.svg')} alt={APP_NAME} />
     </h1>
 
-    <p class="headline reveal" style="--reveal-order: 1">
-      Squeeze every <em>byte</em>
-    </p>
-
     <div class="load-img" {@attach captureBlobTarget}>
-      <div class="load-img-content reveal" style="--reveal-order: 2">
+      <div class="load-img-content reveal" style="--reveal-order: 1">
         <button
           class="load-btn"
           type="button"
@@ -178,13 +174,13 @@
       </div>
     </div>
 
-    <ul class="formats reveal" style="--reveal-order: 3">
+    <ul class="formats reveal" style="--reveal-order: 2">
       {#each formats as f (f)}
         <li class="format-chip">{f}</li>
       {/each}
     </ul>
 
-    <p class="tagline reveal" style="--reveal-order: 4">
+    <p class="tagline reveal" style="--reveal-order: 3">
       <svg class="lock" viewBox="0 0 16 16" aria-hidden="true">
         <path
           d="M4.5 6.5V5a3.5 3.5 0 1 1 7 0v1.5"
@@ -244,7 +240,7 @@
     position: relative;
     min-height: 541px;
     display: grid;
-    grid-template-rows: repeat(5, max-content);
+    grid-template-rows: repeat(4, max-content);
     justify-items: center;
     align-content: center;
     padding: 24px;
@@ -288,44 +284,17 @@
   }
   .logo {
     display: block;
-    width: 64px;
-    height: 64px;
+    width: 96px;
+    height: 96px;
     filter: drop-shadow(0 8px 24px rgba(255, 122, 80, 0.25));
   }
   /* Size the wordmark by height so it locks up optically with the icon as one
      horizontal logo. Width follows the SVG's intrinsic aspect ratio. */
   .wordmark {
     display: block;
-    height: 36px;
+    height: 60px;
     width: auto;
-    margin-top: 3px;
-  }
-
-  /* The big promise, in a warm gradient. */
-  .headline {
-    position: relative;
-    margin: 0;
-    /* A hair of inline padding so the italic 'e' overhang isn't clipped by
-       background-clip: text. */
-    padding-inline: 0.08em;
-    font-size: clamp(2.6rem, 6vw, 4.2rem);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    text-align: center;
-    background: linear-gradient(
-      100deg,
-      #fff 30%,
-      hsl(18, 100%, 78%) 65%,
-      hsl(14, 95%, 66%)
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .headline em {
-    font-style: italic;
-    font-weight: 700;
+    margin-top: 10px;
   }
 
   .load-img {
@@ -336,7 +305,7 @@
 
   .load-img-content {
     position: relative;
-    --size: 24rem;
+    --size: 36rem;
     width: 90vw;
     max-width: var(--size);
     height: var(--size);
@@ -462,7 +431,7 @@
       min-height: 660px;
     }
     .load-img-content {
-      --size: 30rem;
+      --size: 45rem;
     }
   }
 </style>
