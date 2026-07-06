@@ -1,6 +1,6 @@
 <script lang="ts">
-  // The landing screen: brand lockup + gradient headline over a field of soft
-  // coral blobs, with a central drop/paste/browse target. Structure + blob
+  // The landing screen: brand lockup over a field of soft coral blobs, with a
+  // central drop/paste/browse target. Structure + blob
   // animation are adapted from Squoosh's prerendered-app/Intro (we keep only
   // the hero — no demo thumbnails, waves or info sections). The whole page is
   // already a drop target (see fileDrop in +page.svelte); this adds the
@@ -122,15 +122,36 @@
     <canvas class="blob-canvas" {@attach blobAnim} aria-hidden="true"></canvas>
 
     <h1 class="logo-container reveal" style="--reveal-order: 0">
-      <img
-        class="logo"
-        src={asset('/logo.webp')}
-        alt=""
-        width="128"
-        height="128"
-        fetchpriority="high"
-      />
-      <img class="wordmark" src={asset('/wordmark.svg')} alt={APP_NAME} />
+      <!-- The bird swaps per theme: the light-mode file is a dark bird on an
+           opaque #f8fbfb square, which the light background below matches so it
+           reads as transparent. The dark-mode file is the coral bird. -->
+      <picture class="logo-pic">
+        <source
+          srcset={asset('/logo-light-mode.webp')}
+          media="(prefers-color-scheme: light)"
+        />
+        <img
+          class="logo"
+          src={asset('/logo.webp')}
+          alt=""
+          width="128"
+          height="128"
+          fetchpriority="high"
+        />
+      </picture>
+      <!-- Inlined (was an <img src=wordmark.svg>) so its colour follows the
+           theme via currentColor instead of an external SVG we can't recolour. -->
+      <svg
+        class="wordmark"
+        viewBox="0 0 599 293"
+        role="img"
+        aria-label={APP_NAME}
+      >
+        <path
+          fill="currentColor"
+          d="M22.9958 55.1249C22.9958 22.0499 44.4158 -5.48363e-05 77.4908 -5.48363e-05H95.1308V36.2249H84.1058C71.5058 36.2249 65.5208 42.8399 65.5208 55.7549V66.1499H98.9108V102.375H65.5208V229.95H22.9958V102.375H0.000781361V66.1499H22.9958V55.1249ZM113.155 229.95V66.1499H154.42V97.3349C160.09 73.7099 176.785 60.795 205.135 62.3699V102.375H199.15C174.58 102.375 155.68 118.755 155.68 146.16V229.95H113.155ZM219.283 229.95V66.1499H261.808V229.95H219.283ZM214.873 27.4049C214.873 13.8599 225.898 2.51993 240.388 2.51993C255.193 2.51993 265.903 13.8599 265.903 27.4049C265.903 41.5799 255.193 52.6049 240.388 52.6049C225.898 52.6049 214.873 41.2649 214.873 27.4049ZM343.028 234.045C315.308 234.045 292.943 224.595 274.988 205.38L303.653 179.235C315.623 192.78 328.223 199.395 342.083 199.395C356.573 199.395 364.763 192.15 364.763 182.385C364.763 173.88 360.668 169.155 334.838 163.17C291.053 152.775 284.438 132.93 284.438 112.14C284.438 83.4749 307.118 62.0549 345.548 62.0549C372.008 62.0549 389.648 68.6699 406.343 90.4049L375.473 114.03C367.598 101.43 357.518 96.3899 346.493 96.3899C334.838 96.3899 326.018 100.8 326.018 110.88C326.018 116.55 328.538 121.59 348.068 126.63C395.633 138.915 406.658 156.555 406.658 181.125C406.658 211.365 379.253 234.045 343.028 234.045ZM423.233 292.95V66.1499H465.128V92.6099C473.948 74.6549 488.753 62.6849 517.418 62.6849C562.463 62.6849 598.373 101.43 598.373 148.68C598.373 195.93 562.463 234.045 517.418 234.045C489.383 234.045 474.578 222.705 465.758 205.695V292.95H423.233ZM464.498 148.68C464.498 174.195 482.453 195.615 510.488 195.615C537.578 195.615 555.848 173.25 555.848 148.365C555.848 122.85 537.578 101.115 510.488 101.115C482.453 101.115 464.498 123.165 464.498 148.68Z"
+        />
+      </svg>
     </h1>
 
     <div class="load-img" {@attach captureBlobTarget}>
@@ -157,19 +178,27 @@
           </svg>
         </button>
         <div class="load-text">
-          <span class="drop-text">Drop</span>, click, or
-          <span class="secondary-actions">
+          <!-- Pointer devices get the full set: drop-target, paste, browse,
+               plus a folder shortcut. -->
+          <p class="load-line pointer-only">
+            <span class="drop-text">Drop</span> an image,
             {#if supportsClipboardRead}
               <button class="paste-btn" type="button" onclick={onPasteClick}
-                >Paste image</button
-              >
+                >paste</button
+              >,
             {:else}
-              paste
+              paste,
             {/if}
-            <button class="paste-btn" type="button" onclick={onFolderClick}
-              >Choose folder</button
+            or click to browse
+          </p>
+          <p class="load-sub pointer-only">
+            or <button class="paste-btn" type="button" onclick={onFolderClick}
+              >choose a folder</button
             >
-          </span>
+          </p>
+          <!-- Touch devices can't drag-drop or pick folders, so we show only
+               the gesture that applies. -->
+          <p class="load-line touch-only">Tap to add an image</p>
         </div>
       </div>
     </div>
@@ -283,7 +312,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 10px;
+  }
+  /* Flex (not display:contents) so the <source> stays metadata — under
+     display:contents it would surface as a zero-width flex item and add a
+     phantom gap that shoves the lockup off-centre. */
+  .logo-pic {
+    display: flex;
   }
   .logo {
     display: block;
@@ -292,12 +327,14 @@
     filter: drop-shadow(0 8px 24px rgba(255, 122, 80, 0.25));
   }
   /* Size the wordmark by height so it locks up optically with the icon as one
-     horizontal logo. Width follows the SVG's intrinsic aspect ratio. */
+     horizontal logo. Width follows the SVG's intrinsic aspect ratio; colour
+     follows the theme via currentColor (zinc-100 dark / zinc-800 light). */
   .wordmark {
     display: block;
-    height: 60px;
+    height: 56px;
     width: auto;
-    margin-top: 10px;
+    margin-top: 8px;
+    color: #f4f4f5;
   }
 
   .load-img {
@@ -366,15 +403,31 @@
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
     text-align: center;
   }
+  .load-line {
+    margin: 0;
+  }
+  /* The folder shortcut sits a touch smaller and dimmer under the main line. */
+  .load-sub {
+    margin: 0.35rem 0 0;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.6);
+  }
   .drop-text {
     font-weight: 700;
   }
-  .secondary-actions {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75ch;
-    flex-wrap: wrap;
+
+  /* Copy visibility by input type: pointer devices see drop/paste/folder;
+     touch devices (or very narrow viewports) see only the tap gesture. */
+  .touch-only {
+    display: none;
+  }
+  @media (hover: none) and (pointer: coarse), (max-width: 480px) {
+    .pointer-only {
+      display: none;
+    }
+    .touch-only {
+      display: block;
+    }
   }
 
   .paste-btn {
@@ -438,37 +491,48 @@
     }
   }
 
+  /* Ease the wordmark down a touch on small screens. */
+  @media (max-width: 599px) {
+    .wordmark {
+      height: 48px;
+    }
+  }
+
   /*
    * Light mode — driven purely by the user's OS/browser theme setting (no
-   * toggle yet), and scoped to the intro screen only. We flip four things:
-   * the base background, the wordmark SVG (recoloured via filter since it's an
-   * <img> with a baked-in off-white fill), the load-target copy, and the
-   * format chips + privacy tagline. The blobs are left alone on purpose — they
-   * paint the coral accent at low opacity, so they read correctly over either
-   * background without a colour change.
+   * toggle yet), and scoped to the intro screen only. We flip: the base
+   * background (to #f8fbfb, which matches the opaque background baked into the
+   * light-mode bird so it reads as transparent), the wordmark ink, the
+   * load-target copy, and the format chips + privacy tagline. The blobs are
+   * left alone on purpose — they paint the coral accent at low opacity, so
+   * they read correctly over either background without a colour change.
    */
   @media (prefers-color-scheme: light) {
     .intro {
       color: #18181b;
-      background:
-        radial-gradient(
-          ellipse 70% 55% at 50% 38%,
-          rgba(255, 122, 80, 0.1),
-          transparent 70%
-        ),
-        #fafafa;
+      /* Flat — no warm glow — so it matches the opaque square baked into the
+         light-mode bird exactly (the glow would tint the page around the logo
+         and reveal its edges). The blobs still carry the coral accent. */
+      background: #f8fbfb;
     }
 
-    /* Off-white wordmark (#F4F4F5) → near-black ink to match the body text.
-       brightness(0.1) scales the flat fill down to ~#181818 while preserving
-       the anti-aliased edges. */
+    /* The light-mode bird carries its own opaque square, so the coral glow
+       would just outline that square — drop it. */
+    .logo {
+      filter: none;
+    }
+
+    /* zinc-800 ink on the light background. */
     .wordmark {
-      filter: brightness(0.1);
+      color: #27272a;
     }
 
     .load-text {
       color: rgba(24, 24, 27, 0.85);
       text-shadow: none;
+    }
+    .load-sub {
+      color: rgba(24, 24, 27, 0.6);
     }
     .paste-btn:hover {
       color: hsl(14, 85%, 46%);
