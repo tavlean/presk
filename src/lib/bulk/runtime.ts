@@ -67,11 +67,11 @@ export class BulkRuntime {
   }
 
   /**
-   * Drain the queue: while runnable jobs exist (concurrency 2), start each,
-   * process it on a round-robin bridge, and complete/fail it — reassigning
-   * `host.session` on EVERY transition. Idempotent while already running (a
-   * second call returns immediately; the live loop keeps picking up jobs the
-   * caller may have just queued).
+   * Drain the queue with one loop per worker slot: each slot claims a single
+   * runnable job, processes it on its own persistent bridge, then immediately
+   * claims the next. A slow job in one slot never blocks the other slot from
+   * draining newly-opened work. Idempotent while already running (a second call
+   * returns immediately and asks the live loop to check once more before idle).
    */
   async run(host: BulkRunnerHost): Promise<void> {
     if (this.#running) {
@@ -84,31 +84,29 @@ export class BulkRuntime {
     const { signal } = controller;
 
     try {
-      // Re-read runnable jobs each pass: settings changes requeue stale jobs
-      // mid-drain, and completed jobs free slots for still-queued ones.
-      while (!signal.aborted) {
+      do {
         this.#rerunRequested = false;
-        const runnable = getRunnableJobs(host.session, defaultBulkConcurrency);
-        if (runnable.length === 0) {
-          if (!this.#rerunRequested) break;
-          continue;
-        }
-
-        // Mark this batch started up-front so the freed-slot math in the next
-        // getRunnableJobs pass accounts for them (mirrors the engine runner).
-        for (const job of runnable) {
-          host.session = startJob(host.session, job.id);
-        }
-
-        await Promise.all(
-          runnable.map((job, index) =>
-            this.#processOne(host, job, (index % 2) as 0 | 1, signal),
-          ),
-        );
-      }
+        await Promise.all([
+          this.#drainSlot(host, 0, signal),
+          this.#drainSlot(host, 1, signal),
+        ]);
+      } while (!signal.aborted && this.#rerunRequested);
     } finally {
       if (this.#controller === controller) this.#controller = null;
       this.#running = false;
+    }
+  }
+
+  async #drainSlot(
+    host: BulkRunnerHost,
+    slot: 0 | 1,
+    signal: AbortSignal,
+  ): Promise<void> {
+    while (!signal.aborted) {
+      const [job] = getRunnableJobs(host.session, defaultBulkConcurrency);
+      if (!job) return;
+      host.session = startJob(host.session, job.id);
+      await this.#processOne(host, job, slot, signal);
     }
   }
 
