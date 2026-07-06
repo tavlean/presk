@@ -166,13 +166,22 @@ class CircleBlob {
   }
 }
 
-const centralBlobsRotationTime = 120000;
+// Full rotation of the central stack. Kept slow (calm), but ~2× livelier than
+// the original 120s so the animation reads as alive rather than frozen.
+const centralBlobsRotationTime = 60000;
 
 class CentralBlobs {
   private rotatePos = 0;
   private blobs = Array.from(
     { length: 4 },
-    (_, i) => new CircleBlob(sevenPointCircle, { startPoints: startBlobs[i] }),
+    (_, i) =>
+      // Shorter morph windows than the CircleBlob default (4–11s) so the
+      // shape-shifting is perceptible while still gentle.
+      new CircleBlob(sevenPointCircle, {
+        startPoints: startBlobs[i],
+        minDuration: 2200,
+        maxDuration: 5600,
+      }),
   );
 
   advance(timeDelta: number) {
