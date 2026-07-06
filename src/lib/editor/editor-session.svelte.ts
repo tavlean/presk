@@ -283,7 +283,7 @@ export class EditorSession {
   docTitle = $derived(
     (this.runtime.some((r) => r.status === 'working') ? '⏳ ' : '') +
       (this.file ? `${this.file.name} - ` : '') +
-      `${APP_NAME} — Compress an image`,
+      `${APP_NAME} - Compress images`,
   );
 
   constructor() {
