@@ -100,9 +100,7 @@ Use a production preview.
 
 ## Playwright Smoke Shape
 
-The repo does not currently ship a Playwright dependency. On 2026-05-31 the
-local browser smoke used the Codex Playwright CLI wrapper against the production
-preview on `127.0.0.1:5189`.
+The repo ships a Playwright suite. Use `npm run test:e2e` for automated browser regression; use this checklist for visual quality, release, and cross-browser manual checks. The browser smoke runs against the production preview.
 
 Current smoke coverage:
 

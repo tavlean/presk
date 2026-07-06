@@ -14,11 +14,14 @@ framework-neutral, the same `imagePipeline` drives single and bulk, and the
 hardest parts (MT threading, variant-aware SW precache, the undo ↔ result-cache
 signature coherence in `editor-session.svelte.ts:107`) are engineered with
 unusual care. Dependencies are current (only patch/minor bumps outstanding).
-Nothing below is a rescue; it is ranked leverage.
+Nothing below is a rescue; it is ranked leverage. P2(b), P2(c), P4-UI, and P10 remain open; the other day-one items are marked where they landed.
 
 ---
 
 ## P1 — Every encode pass re-decodes the source image (performance, moderate effort)
+
+**Landed 2026-07-07** (see execution spec).
+
 
 `compressFile` (`src/lib/compress.ts:162`) calls `decodeSourceImage` on every
 invocation, and `EditorSession.encodeSide` calls `compressFile` for every
@@ -41,6 +44,9 @@ happen on large batches. Memory note: one decoded buffer per open file is
 bounded and already dwarfed by the 256 MiB `ResultCache`.
 
 ## P2 — The worker boundary copies full-resolution pixels up to ~5× per pass (performance, larger effort)
+
+**P2(a) Landed 2026-07-07** (see execution spec). P2(b) and P2(c) remain open.
+
 
 The Comlink bridge (`src/client/lazy-app/worker-bridge/runtime.ts:93`) uses no
 transferables — every `ImageData` crossing the boundary is structured-cloned.
@@ -74,19 +80,22 @@ abort, and the cross-side in-flight dedup — those are all right.
 
 ## P3 — Retire most of the 2,006-line codegen script (maintainability, mechanical)
 
-`scripts/sync-sveltekit-app.mjs` is the largest file in the app layer and it
+**Landed 2026-07-07** (see execution spec).
+
+
+`the retired generator script` is the largest file in the app layer and it
 generates ~480 lines of **static** TypeScript (`.svelte-kit/app-generated/*`:
 feature-meta, worker entry, worker-bridge meta, codec-asset manifests) — a
 surface that changes only when a codec is added or removed (~yearly). The
 abstraction was scaffolding for the migration; the migration is over. Its
 knock-on costs, confirmed by the tooling sweep:
 
-- `check` runs `sync` twice (directly and via `build`) — `package.json:15`.
+- `check` previously ran wrapper sync redundantly; the current scripts use `typecheck` plus build and audit.
 - Three Vite aliases exist only to point at generated files
   (`vite.config.ts:117`), duplicated again in `svelte.config.js`.
 - `scripts/audit-static-output.mjs:244` hand-duplicates the generator's asset
   records — generator↔audit drift is a standing risk.
-- The generated worker entry is named `features-worker/webp.ts` but has been
+- The old generated worker entry is named `features-worker/webp.ts` but has been
   the *all-codecs* worker for a long time; the misnomer leaks into
   `src/lib/sveltekit-worker-bridge.ts:23`.
 - `src/features/README.md:12` documents a bundling convention (default-export
@@ -96,7 +105,7 @@ knock-on costs, confirmed by the tooling sweep:
 **Direction:** commit the generated modules as ordinary source (rename the
 worker entry `codec-worker.ts`), delete the enumeration half of the script,
 and keep only the genuinely dynamic part — the Emscripten/wasm-bindgen
-wrapper URL patching (`sync-sveltekit-app.mjs:1497`) — as a small focused
+wrapper URL patching (`the retired generator script:1497`) — as a small focused
 script (or commit the patched wrappers with an audit assertion that they match
 `codecs/`). The regex patching is the fragile bit worth tests either way.
 Follow `docs/codec-provenance.md` rules; the static-output audit is the safety
@@ -116,6 +125,9 @@ review's data strengthens the existing sequencing call: do the options-model
 minimal slice before bulk Phase 3 overrides.**
 
 ## P5 — Dead code and stale shims (quick wins, safe batch)
+
+**Landed 2026-07-07** (see execution spec).
+
 
 From the legacy sweep (verified against the generated worker's real imports):
 
@@ -141,6 +153,9 @@ From the legacy sweep (verified against the generated worker's real imports):
 
 ## P6 — Duplicated utilities (small, consolidate opportunistically)
 
+**Landed 2026-07-07** (see execution spec).
+
+
 - `stableStringify` exists three times: `editor-session.svelte.ts:82`,
   `bulk/store.svelte.ts:121`, and the bulk settings hash path
   (`client/lazy-app/bulk/settings.ts`). One shared module; the comment about
@@ -157,12 +172,11 @@ From the legacy sweep (verified against the generated worker's real imports):
 
 ## P7 — Tooling and CI (fast wins, from the tooling sweep)
 
-- **Unit tests don't run in CI** and `npm test` doesn't include them
-  (`package.json:23`, workflow has no vitest job) — 78 tests exist; add a
-  cheap job. Docs claim otherwise (`docs/README.md:134`) — reconcile.
-- No fast `typecheck` script: `svelte-check` is only reachable through `check`
-  which also does a full build; `npm test` builds **twice** (check +
-  Playwright webServer).
+**Landed 2026-07-07** (see execution spec).
+
+
+- **Unit tests now run in CI** and `npm test` includes them; this landed with the tooling workstream.
+- A fast `typecheck` script now exists; `npm test` runs check, unit, and e2e with Playwright build reuse.
 - `npm audit` runs on all three OS runners; it's OS-independent.
 - Playwright: `workers: 1` serializes Chromium+WebKit; split into two CI jobs
   if wall-clock starts to hurt.
@@ -172,6 +186,9 @@ From the legacy sweep (verified against the generated worker's real imports):
 - Dev-middleware nit: `decodeURIComponent` outside try in `vite.config.ts:69`.
 
 ## P8 — Svelte idioms (fold into [svelte-hardening-plan.md](svelte-hardening-plan.md))
+
+**Landed 2026-07-07** (see execution spec).
+
 
 **Status: done via WS-F (2026-07-07).** Window reactivity, `MediaQuery`, and
 shared light-dismiss attachment landed. The `StackStage` `{#key}` idea was
@@ -194,6 +211,9 @@ rune-native with no Svelte-4 residue. Remaining polish:
   `EditorSession` owning its effects via `$effect.root`.
 
 ## P9 — Bulk runtime scheduling (note for Phase 3, not urgent)
+
+**Landed 2026-07-07** (see execution spec).
+
 
 `BulkRuntime.run` starts jobs in pairs and awaits `Promise.all` of the pair
 (`src/lib/bulk/runtime.ts:103`) — a barrier: one slow 40 MP AVIF blocks the
@@ -219,7 +239,7 @@ zero behavior; big greppability win.
 ## Suggested sequencing
 
 1. **Quick-wins batch** (P5 + P6 + P7): dead files, shims, duplicate helpers,
-   CI unit-test job, `typecheck` script. Low risk, Codex-executable, one
+   CI unit-test job, `typecheck` script. Low risk, executable by a coding agent, one
    afternoon.
 2. **P1 decoded-source cache** — small diff, immediately felt on large images.
 3. **P3 codegen retirement** — mechanical, guarded by the static-output audit.

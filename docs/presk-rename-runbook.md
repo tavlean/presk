@@ -1,6 +1,6 @@
 # Presk rename runbook (Sqush → Presk)
 
-> **Status:** GitHub rename ✅ · Phase A ✅ · Phase C tavlean.com ✅ · Phase D folder rename ✅ (2026-07-05, incl. `~/.claude/projects/<slug>` move) · `sqush.app`→`presk.app` 301 redirect LIVE (Cloudflare Redirect Rule + proxied `192.0.2.1` A record on the sqush.app zone) · tavlean registry `repo` + `.claude/launch.json` cleanup ✅ · **Phase E rename-proofing ✅ (2026-07-05)** — brand isolated to `src/shared/brand.ts` + internal identifiers de-branded (see Phase E). **Phase B codec-`squoosh` = still DEFERRED** — a rename-only attempt was made and REVERTED (see Phase B). **Phase F sunset Worker ✅ COMPLETE (2026-07-05)** — Worker live on sqush.app, Redirect Rule deleted, kill-switch + query-preserving 301s verified. Remaining: Phase B rebuild (do with next codec upgrade), logo/favicon art whenever (no text in them — user).
+> **Status:** GitHub rename ✅ · Phase A ✅ · Phase C tavlean.com ✅ · Phase D folder rename ✅ (2026-07-05, incl. local dev-tool session-state migration) · `sqush.app`→`presk.app` 301 redirect LIVE (Cloudflare Redirect Rule + proxied `192.0.2.1` A record on the sqush.app zone) · tavlean registry `repo` + `.claude/launch.json` cleanup ✅ · **Phase E rename-proofing ✅ (2026-07-05)** — brand isolated to `src/shared/brand.ts` + internal identifiers de-branded (see Phase E). **Phase B codec-`squoosh` = still DEFERRED** — a rename-only attempt was made and REVERTED (see Phase B). **Phase F sunset Worker ✅ COMPLETE (2026-07-05)** — Worker live on sqush.app, Redirect Rule deleted, kill-switch + query-preserving 301s verified. Remaining: Phase B rebuild (do with next codec upgrade), logo/favicon art whenever (no text in them — user).
 > **This file intentionally contains the old name "sqush" as rename targets — EXCLUDE it from any automated `sqush→presk` replace.**
 
 Renaming the project from **Sqush** to **Presk**.
@@ -11,7 +11,7 @@ Renaming the project from **Sqush** to **Presk**.
 
 ## Safety invariants (do not violate)
 
-1. **Commits stay signed & correctly attributed.** Config is verified good: `commit.gpgsign=true`, ssh key `~/.ssh/id_ed25519.pub`, author `tavlean <71072795+tavlean@users.noreply.github.com>`. After each commit, spot-check `git log --show-signature -1`.
+1. **Commits stay signed & correctly attributed.** Config is verified good: `commit.gpgsign=true`, author `tavlean <71072795+tavlean@users.noreply.github.com>`. After each commit, spot-check `git log --show-signature -1`.
 2. **Merge to `main` fast-forward only** (`git merge --ff-only`). NEVER `--rebase` (rewrites commit objects → strips signatures → "Unverified").
 3. **The worktree stays.** `.claude/worktrees/clever-swartz-2b34ed` (branch `claude/clever-swartz-2b34ed`) is kept. It is nested inside the repo, so a folder rename moves it too — fix its internal absolute paths afterwards with `git worktree repair`. Do NOT `git worktree remove` it.
 4. **Keep all Squoosh attribution.** Credit/provenance/history prose that credits the upstream Squoosh project stays. (The `Sqush→Presk` replace is a *different string* from `Squoosh`, so it structurally never touches attribution — good.)
@@ -39,7 +39,7 @@ Each numbered group = one checkpoint commit.
 - [x] **A3 — Brand asset:** `git mv static/sqush-wordmark.svg static/presk-wordmark.svg` + update ref in `Intro.svelte`. Check `static/logo.webp`/favicons for embedded wordmark art (re-export later if needed — tracked in User Actions).
 - [x] **A4 — SW cache name:** `sqush-${version}` → `presk-${version}` in `src/service-worker.ts` (safe cache-bust; activate handler purges old keys).
 - [x] **A5 — Internal identifiers:** `registerSqushServiceWorker` → `registerPreskServiceWorker` (def + call sites); `.sqush-editor` CSS class → `.presk-editor` (theme.css, +page.svelte, FocusView, BulkMode).
-- [x] **A6 — `sqush-generated` alias (COUPLED — atomic):** rename `sqush-generated → presk-generated` across `scripts/sync-sveltekit-app.mjs`, `scripts/audit-static-output.mjs`, `svelte.config.js`, `vite.config.ts`, `tsconfig.json`, and importers (`src/lib/codec-assets.ts`, `service-worker-codec-assets.ts`, `sveltekit-worker-bridge.ts`, `webp-encode-probe.worker.ts`). Then `rm -rf .svelte-kit && npm run sync` to regenerate.
+- [x] **A6 — `sqush-generated` alias (COUPLED — atomic):** rename `sqush-generated → presk-generated` across `scripts/patch-codec-wrappers.mjs`, `scripts/audit-static-output.mjs`, `svelte.config.js`, `vite.config.ts`, `tsconfig.json`, and importers (`src/lib/codec-assets.ts`, `service-worker-codec-assets.ts`, `sveltekit-worker-bridge.ts`, `webp-encode-probe.worker.ts`). Then `rm -rf .svelte-kit && npm run sync` to regenerate.
 - [x] **A7 — Docs:** `Sqush → Presk` across `docs/**` and `README.md`, `AGENTS.md` (preserve every `Squoosh` attribution; leave history docs factually intact, rename own-name only).
 - [x] **A8 — Verify:** ✅ `npm run check` green (svelte-check + build + static-output audit); `npx playwright test` = **61 passed / 1 pre-existing skip / 0 failed** (codecs, AVIF+JXL+OxiPNG MT threading, offline SW all pass). squoosh occurrences unchanged (code 99→99, docs 234→234).
 - [x] **A9 — Merge:** ✅ ff-only merged to local `main` (`4e939be3..17d33f7c`); all 3 commits `sig=G`, author `tavlean`. **Push pending** — bundled with the GitHub repo rename below.
@@ -52,45 +52,37 @@ Findings to reuse next time:
 - **`src/**` `squoosh` refs are ALL attribution** ("adapted from Squoosh…") EXCEPT 4 import paths in `src/features/encoders/oxiPNG/worker/{oxipngEncode,runtime}.ts`. Keep the comments.
 - Rust codecs to rebuild (wasm-pack): **oxipng** (`pkg/` ST + `pkg-parallel/` MT-rayon), **resize**, **hqx**. `rotate` crate name is cosmetic (lib name / output is `rotate`, no `squoosh_*` artifact).
 - **MT builds are finicky** — need `target-feature=+atomics,+bulk-memory` + `link-arg=--shared-memory`/`--max-memory`/`--import-memory`/tls exports (visible in `codecs/oxipng/target/**/.fingerprint`; see `docs/codec-build-notes.md` + `docs/codec-upgrade-runbooks.md`). Verify MT threading still engages via the `*-threads` e2e specs after rebuild.
-- **Correct procedure:** rename Cargo crate `name` (`presk-oxipng`/`presk-resize`/`preskhqx`) → `wasm-pack build` each (with the MT recipe for oxipng-parallel) → the regenerated `pkg/` files + binary import namespace become `presk_*` consistently → update `sync-sveltekit-app.mjs`, `scripts/audit-static-output.mjs`, the 4 src imports → `npm run check` **AND** `npx playwright test`.
+- **Correct procedure:** rename Cargo crate `name` (`presk-oxipng`/`presk-resize`/`preskhqx`) → `wasm-pack build` each (with the MT recipe for oxipng-parallel) → the regenerated `pkg/` files + binary import namespace become `presk_*` consistently → update `the retired generator script`, `scripts/audit-static-output.mjs`, the 4 src imports → `npm run check` **AND** `npx playwright test`.
 - **Keep attribution:** `codecs/rotate/rotate.rs` upstream Squoosh PR link, `codecs/README.md` provenance, all `src/**` comments, and `codecs/build-rust.sh`'s `squoosh-rust` toolchain image (or rename + retag the docker image).
-- This is a good candidate to delegate to Codex (execution-heavy) once the toolchain is confirmed available.
+- This is execution-heavy; confirm the toolchain first.
 
 ## Phase C — tavlean.com (separate repo: `…/Development/Websites/tavlean.com`) — DO right after GitHub rename
 
-> Pulse matches repos by GitHub `origin` remote (case-insensitive) — do this in lockstep with the GitHub rename or Pulse loses Sqush's history. Generator: `scripts/build-pulse.mjs`. ⚠ An unrelated dirty file exists (`projects/(_)/rankedagi-raycast/logo.svg`) — stage only Presk files.
+> Pulse matches repos by GitHub `origin` remote (case-insensitive) — do this in lockstep with the GitHub rename or Pulse loses Sqush's history. Generator: `scripts/build-pulse.mjs`.
 
 - [x] `scripts/projects-registry.mjs` entry: `name Presk`, `slug presk`, `github tavlean/presk`; **kept `repo:'Tavlean/Sqush'`** (folder deferred → flip to `Tavlean/Presk` at Phase D).
 - [x] `git mv` route folder `projects/(_)/sqush/ → …/presk/`; content updated (name, `presk.app`, github URL, `/projects/presk`, `requireProjectWithTabs('presk')`); fork-of-Squoosh attribution kept.
 - [x] **Redirect `/projects/sqush → /projects/presk`** via `static/_redirects` (308). ⚠ Learning: a route stub broke prerender (projects are globbed by `_meta` and sorted), and `hooks.server.ts` is dead on `adapter-static` — `_redirects` is the Cloudflare Pages mechanism.
 - [x] Rebuilt Pulse (`npm run sync:pulse`) → `pulse-data.json` regenerated (77 sqush hrefs → presk); one historical day-summary name fixed too.
 - [x] `docs/project-registry.md` updated (`assets.md` had no `sqush`).
-- [x] Build green; 2 signed commits (`8a9760b`, `ffa9020`) pushed → Cloudflare auto-deploys. Unrelated `rankedagi-raycast/logo.svg` left untouched.
+- [x] Build green; 2 signed commits (`8a9760b`, `ffa9020`) pushed → Cloudflare auto-deploys.
 
 ## Phase D — Folder rename (DEFERRED by choice — app never references the folder name, so nothing breaks)
 
-⚠ **Claude Code keys sessions + this project's memory to the folder's absolute PATH**
-(`~/.claude/projects/<path-slug>/`, currently holding 38 transcripts + 15 memory files).
-Renaming the code folder ALONE orphans them. Rename that data dir too, with NO Claude
-session open on the project.
+Local dev-tool session state keyed by the old folder path was migrated as part of the rename.
 
 Run in a fresh terminal when ready (this breaks any live session's cwd + running vite):
 ```
-# 1. stop any Presk/Sqush vite/watchers AND close Claude Code for this project first
+# 1. stop any Presk/Sqush vite/watchers first
 mv /Users/tav/Development/Tavlean/Sqush /Users/tav/Development/Tavlean/Presk
 
-# 2. carry over Claude Code sessions + project memory (keyed by the path slug)
-mv ~/.claude/projects/-Users-tav-Development-Tavlean-Sqush \
-   ~/.claude/projects/-Users-tav-Development-Tavlean-Presk
-
-# 3. finish the repo
+# 2. finish the repo
 cd /Users/tav/Development/Tavlean/Presk
 git worktree repair                      # fixes the nested worktree's absolute paths
 rm -rf .svelte-kit .tmp node_modules/.vite
 npm run dev                              # confirm clean boot
 
-# 4. follow-ups: tavlean registry repo:'Tavlean/Sqush' → 'Tavlean/Presk';
-#    optionally rename .claude/launch.json's sqush-dev/sqush-preview entries
+# 3. follow-up: tavlean registry repo:'Tavlean/Sqush' → 'Tavlean/Presk'
 ```
 
 ## Phase E — Rename-proofing ✅ (2026-07-05)
@@ -114,7 +106,7 @@ domain, swap brand art, grep-replace prose docs. Nothing else.
   must never follow a rebrand again (see the HARD RULE in
   `src/lib/editor/settings-storage.ts`).
 
-## Phase F — sqush.app sunset Worker (zombie-SW fix) — deploy pending (user)
+## Phase F — sqush.app sunset Worker (zombie-SW fix) — deployed
 
 The old app is an offline-first PWA: its SW serves the shell **cache-first**,
 and the browser's SW-update fetch to `sqush.app/service-worker.js` now gets a
@@ -142,7 +134,7 @@ Redirects run BEFORE Workers, so the Worker replaces the Redirect Rule.
 ## User actions (dashboard / manual)
 
 - [x] GitHub repo renamed `tavlean/sqush` → `tavlean/presk`; remote re-pointed; commits pushed.
-- [x] Cloudflare Pages on `presk.app`; `sqush.app` → `presk.app` redirect live (to be replaced by the Phase F Worker).
+- [x] Cloudflare Pages on `presk.app`; `sqush.app` → `presk.app` redirect was replaced by the Phase F Worker.
 - [x] Wordmark re-exported as "Presk" (`static/wordmark.svg`, commit `e180977d`).
 - [x] Phase F deploy + Redirect-Rule swap — DONE 2026-07-05 (Worker live, rule deleted, verified).
 - [ ] Logo/favicon art (`static/logo.webp`, favicons, tavlean `logo.webp`) — no text in them, purely optional restyle, whenever.
@@ -173,15 +165,10 @@ rename was executed in one evening:
   placeholder A record (CNAME to Pages removed).
 - tavlean.com: slug `frisp`, `/projects/{sqush,presk}` → 308 `/projects/frisp`,
   pulse data regenerated (commit `98d3e42` there).
-- Codex CLI sessions are NOT path-keyed (cwd is file metadata only) — no
-  migration needed for the folder rename; use `codex resume --all` to see
-  Sqush/Presk-era sessions.
+Local dev-tool session state keyed by the old folder path was migrated as part of the rename.
 
 Remaining user actions:
-- [ ] Rename local folder → `/Users/tav/Development/Tavlean/Frisp` and move
-      `~/.claude/projects/-Users-tav-Development-Tavlean-Presk` →
-      `…-Frisp` (Claude sessions/memory are path-slug keyed); then
-      `git worktree repair` for the kept worktree.
+- [x] Rename local folder → `/Users/tav/Development/Tavlean/Frisp` and repair the kept worktree.
 - [ ] Connect Workers Builds CI: dashboard → worker `frisp` → Settings →
       Build → connect `tavlean/frisp` (build `npm run build`, deploy
       `npx wrangler deploy`, non-prod `npx wrangler versions upload`).

@@ -1,6 +1,8 @@
 # Codec Surface Cleanup — Plan
 
 Last updated: 2026-06-27. Status: **DONE** — three removals recorded here: WebP 2
+
+*Historical record — paths/scripts named here reflect the repo at the time; see docs/build-and-runtime.md for the current build.*
 and the dead `codecs/png` dir (2026-06-02, branch `codec-cleanup-and-threading`),
 then the browser canvas encoders + QOI-as-output (2026-06-27, branch
 `chore/trim-encoder-surface`). Kept as the record of what was removed and why.
@@ -28,7 +30,7 @@ hide-then-delete originally sketched here). What went:
 - `src/features/encoders/wp2/`, `src/features/decoders/wp2/`,
   `src/lib/editor/options/Wp2Options.svelte`.
 - `docs/user-guide/formats/webp2.md` and all user-guide wp2/WebP2 rows + links.
-- All wp2 wiring in the data-driven layer: `scripts/sync-sveltekit-app.mjs`
+- All wp2 wiring in the data-driven layer: `the retired generator script`
   (encoder names, ready-worker methods, codec-asset records, patched-wrapper
   paths, the generated features-worker template, orchestration),
   `scripts/audit-static-output.mjs` (globs/finds/expected records/asserts),
@@ -91,7 +93,7 @@ Three commits on `chore/trim-encoder-surface`:
   is now static); the `onMount` probe call in `src/routes/+page.svelte`; and the
   `browserJPEG` branch + import in `OptionsPanel.svelte`.
 - **Browser encoders, engine layer (`915187c1`):** the three names in
-  `scripts/sync-sveltekit-app.mjs` `appEncoderNames` (so the generated
+  `the retired generator script` `appEncoderNames` (so the generated
   `encoderMap`/`EncoderState` drop them); the three dispatch cases in
   `src/client/lazy-app/image-pipeline.ts`; the feature dirs
   `src/features/encoders/browser{GIF,JPEG,PNG}`; and

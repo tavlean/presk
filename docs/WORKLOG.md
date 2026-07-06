@@ -11,8 +11,7 @@ not a project. Also fixed the zombie-service-worker trap on the old domain.
 
 **What changed:**
 
-- **Rename-proofing refactor** (Codex-executed, spec + review + verification by
-  Claude): `src/shared/brand.ts` (`APP_NAME`) is now the only place the name
+- **Rename-proofing refactor** (delegated implementation, orchestrator-reviewed): `src/shared/brand.ts` (`APP_NAME`) is now the only place the name
   lives in code; every internal identifier de-branded (`.editor-root`,
   `app-generated` alias, `__appEmscripten*` globals, `registerServiceWorker`,
   SW cache `app-${version}`, localStorage `app:*` keys — FROZEN schema now,
@@ -29,7 +28,7 @@ not a project. Also fixed the zombie-service-worker trap on the old domain.
   a reconciled user-action checklist.
 
 **Verification:** `npm run check` green; full Playwright e2e 61 passed /
-1 expected WebKit skip, both browsers (run by Claude, not just the delegate).
+1 expected WebKit skip, both browsers (verified independently by the orchestrator).
 
 **Gotchas:**
 
@@ -84,7 +83,7 @@ covers any genuine environmental flake. Don't lengthen them.
 Maintainer asked for a from-scratch re-examination of every inherited decision
 (Squoosh-era and migration-era). One deep manual pass over the runtime core +
 four independent read-only sweeps (legacy/dead code, Svelte idioms vs current
-docs, build/tooling, runtime inventory — run via Codex). Output:
+docs, build/tooling, runtime inventory — automated read-only sweeps). Output:
 `docs/first-principles-review.md` (registered in the README registry), ranked
 P1–P10 with a suggested sequence. Headlines: every encode pass re-decodes the
 source on the main thread (P1); the Comlink boundary structured-clones
@@ -98,7 +97,7 @@ tests don't run in CI (P7). No code changed — review only.
 
 The P1–P10 review became specs (WS-A…H in
 docs/specs/2026-07-07-first-principles-execution.md) and 7 of 8 day-one
-workstreams landed same-day, Codex-executed under Fable review, every one
+workstreams landed same-day, delegated implementation, orchestrator-reviewed, every one
 gated by check + unit + full e2e (Chromium+WebKit):
 dead code `85944296` · dedup `67b99863` · tooling/CI `5eca4145` ·
 decoded-source cache `3a44a63d` · bulk drain `116928aa` · codegen retirement
@@ -108,7 +107,7 @@ decoded-source cache `3a44a63d` · bulk drain `116928aa` · codegen retirement
 Gotchas for future sessions:
 - `codex exec` in a compound background command MUST end with `</dev/null`
   (stdin never closes → hangs at "Reading additional input from stdin...";
-  cost us ~30 min even though the memory had it).
+  the command hangs until stdin closes).
 - vitest.config.ts does NOT inherit vite.config aliases — it imports the
   exported `appAliases`; keep them in sync via that export only.
 - Playwright local build reuse is opt-in via PLAYWRIGHT_SKIP_BUILD=1 (`npm

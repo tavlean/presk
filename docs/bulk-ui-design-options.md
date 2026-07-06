@@ -22,44 +22,7 @@ Last updated: 2026-07-03.
 > removal, removal-Undo, parity-audit entry for the divider rule).
 > Phase 2b contextual left panel was implemented 2026-07-03; next is Phase 3
 > overrides polish.
-Status: Phase 2 shipped to production (2026-07-03); Phase 2b shipped the same
-day. Round 1:
-options written. Round 2 (same day):
-maintainer confirmed **no separate `/bulk` route (A2 out)**, **ZIP in v1**,
-and the **size-increase guardrail in v1**; concept images generated to
-`~/Downloads/presk-ui-concepts/`; §10–§12 added (A1↔A3 horizons, save
-destination + settings panel, crop + export renditions). Round 3 (same day,
-after reviewing the images): **layout goes to a two-variant lab** (grid home
-vs focus-first home — §3); **left side becomes a dynamic contextual panel
-with image info by default** (§4, rewritten); **override signaling decided**
-(§5: dots; ring = selection only; no count badges); **A1 now → A3 later
-confirmed** (§10); **save-back-to-source deferred** but kept on the list;
-**folder import promoted into Phase 2** (§11). Round 4 (same day): the lab from
-the layout section is BUILT and live at `/lab/bulk` (dev-only). Round 5
-(same day): the lab was REBUILT on the real production editor components
-(real EditorSession/Output/OptionsPanel; sparse-override sync), then a design
-polish pass fixed the strip overlap + left-panel card nesting, and a THIRD
-variant **L3 "flush left"** was added. Round 10 consolidated the lab into one
-UI: grid is now the top vertical picker mode, L/M/S are focus-strip modes,
-the L2/L3 variant toggle is gone, and the bulk path adopted the production
-editor's no-wasted-work encode discipline. Round 11 (same day): strip fade
-masks; remove-from-batch (hover ✕ + Delete-key; Undo = production note);
-duplicate adds fixed and SANCTIONED as the interim multi-format pattern
-(strengthens the renditions track's priority); drag-select from blank strip
-space; the view picker re-homed beside the stage toolbar (top-right
-rejected); and the **STACK resting stage experiment** (Stack|Blank toggle,
-Stack default): the global/multi-selection stage shows a fanned stack of
-the scope's images with a before/after split top card — the stage always
-shows the work. **VERDICT (maintainer, 2026-07-02): STACK WINS over Blank**
-— it is the resting stage for Phase 2 (remove the Blank state + toggle at
-promotion). Iterations same day: same production dot-grid backdrop, a
-WORKING stage toolbar (zoom/fit/background/smoothing), a REAL draggable
-divider on the top card, full-size sources for every visible card (crisp
-peeks), near-edge fan width, no hint/caption chrome, and (in progress)
-space-driven peek density, even-count balancing, and eased leaf-through
-motion.
-This is the "Design First" step required by [road-map.md](road-map.md) before
-any production bulk UI. Engine reference: [bulk-image-architecture.md](bulk-image-architecture.md).
+Status: Phase 2 and Phase 2b shipped to production on 2026-07-03. This doc is now the bulk design record: keep final decisions, rationale, and next-phase sequencing here. Engine reference: [bulk-image-architecture.md](bulk-image-architecture.md).
 
 ---
 
@@ -154,108 +117,12 @@ Info-dense rows, pro-tool feel, but poor visual inspection — wrong identity
 for a visual compare tool. **Rejected as the primary**; keep as a possible
 density toggle on the grid later.
 
-**DECIDED (maintainer, 2026-07-02, after concept images): two-variant lab.**
-The pair is *not* B1-vs-B2 as originally framed — the images sharpened it:
-
-- **Variant L1 — "Focus-first home"** (maintainer favorite,
-  `bulk-focus-mode.png`): dropping N images lands directly in the focus view —
-  big before/after stage of the first image, mini-filmstrip below for
-  switching, batch card (totals + Save All + global entry point) top-left,
-  per-image panel right.
-- **Variant L2 — "Grid home"** (`bulk-grid-dashboard.png`): dropping N images
-  lands on the card grid with the global panel; clicking a card opens the
-  same focus view as L1.
-- **Variant L3 — "Flush left"** — tried 2026-07-02 (stage/strip to the left
-  edge, batch/info stacked under the right panel) and **REJECTED by the
-  maintainer the same day**; removed from the lab (git history keeps it).
-
-**DECIDED (maintainer, 2026-07-02, after using the lab) — the SCOPE MODEL:**
-global optimization must live where users are trained to look — the RIGHT
-panel. Import lands with nothing selected: the right panel edits the GLOBAL
-recipe and the stage is a quiet resting state; clicking an image flips the
-same panel to that image's effective settings; Esc / clicking empty strip
-space returns to global; a subtle "All images | This image" tab above the
-panel switches scope without deselecting. The left panel never hosts
-settings — it is info-only (filename face when selected, count face when
-not) with an always-present results-style footer (totals + Save all · ZIP).
-Delta indicators use the production arrow everywhere (green down / amber
-up). This scope model is a PRODUCT decision, not just a lab detail — Phase 2
-implements it.
-
-**Round 5 (2026-07-02, "surgical audit" + experiments).** Baseline fixes:
-full type-scale pass; **color language: coral = global/batch, azure = this
-image** (panel sliders recolor by scope, azure selection ring + override
-dots); production dot-grid on the resting stage; numbers deduplicated (left
-footer owns the batch result; right global footer is a caption); global
-face gained Formats / Total size / Largest rows; compact <=900px layout —
-strip + viewer controls never hidden, verified to 700px. Bug found via
-instrumentation: the "re-encode on click" was the FOCUS PREVIEW re-encoding,
-not the queue — the lab now hydrates the preview from the finished batch
-output (**Phase-2 rule: never re-encode on inspect; reuse batch outputs**).
-NEW experiment variants (both with per-thumb hover DOWNLOAD buttons and
-5/12/30 sample loaders): **L3 "Rich strip"** — S/M/L thumbnail size control
-(104/148/210px), richer captions at bigger sizes; **L4 "Adaptive dock"** —
-the strip picks its shape from the count (big cells <=6, medium row 7-18,
-dense wrapping dock >18). Toggle is L1-L4; awaiting the maintainer's pick.
-
-**Round 6 (2026-07-02).** Maintainer signal: **L3 "Rich strip" is the
-favorite**. Landed: (1) **hero stat block** — the left panel footer now
-celebrates the selling point: big ORIGINAL → big OPTIMIZED (coral reserved
-for the win), a proud "↓97% · 10.2 MB saved" line, Save all · ZIP
-full-width beneath; encoding progress integrates with a subtle pulse.
-(2) **MULTI-SELECT** (maintainer feature; built in the lab, and a keeper
-for production): selection is a set — Cmd/Ctrl+click toggle, Shift+click
-range, DRAG across the strip sweeps a live range; the scope tab reads
-"N images"; edits apply the same override to every selected job;
-**selecting ALL images routes to the global settings** (maintainer's
-equivalence rule); Reset clears the whole selection's overrides; the left
-panel shows a subset face (count + Formats + Largest over the selection).
-Also same day: **Phase 0 landed on `main`** — Vitest bulk-engine suite,
-9 files / 63 tests (`npm run test:unit` after the no-wasted-work additions),
-test-plan §4 statuses updated.
-
-**Round 7 (2026-07-02) — L3 FINALIZED as the layout direction.** With it:
-(1) **the before/after divider follows the IMAGE, not the viewport**
-(maintainer decision; `Output.svelte` gained an optional
-`orientationOverride` prop, default-preserving, e2e-verified): left-right
-compare stays on narrow screens for landscape/square images (w/h >= 0.95);
-only clearly-portrait images flip to top-bottom. Candidate production
-change for Phase 2 (log a parity-audit deviation when adopted). (2) size
-picker went vertical (L→M→S, same thumbnail glyph at three sizes). (3) the
-**mobile stack**: <=620px wide or <=500px tall — sticky hero summary bar
-(totals + Save all; tap expands the info sheet), settings as a full-width
-bottom sheet from a scope-colored FAB with the scope tabs on top, stage +
-strip always visible; touch disables drag-select to preserve native strip
-scrolling (long-press toggle = recommended follow-up). Open: L2 grid's
-fate as a secondary view; L4 loses to L3 (remove at promotion).
-
-**Round 8-9 (2026-07-02).** Detail polish landed (measured icon centering,
-production download glyph on Save all, info rows Format → Size → Dimensions
-→ Aspect, SI units confirmed). A dev font-comparison toggle was added, then
-trimmed to Outfit / Geist / Satoshi per maintainer. **L1 and L4 removed**
-(L3 finalized; toggle = L2/L3, default L3). Bug fixed: global Resize landed
-on Custom 1×1 (the pseudo-side never got dimension seeding) — now seeds
-real dims and lands on the 100% no-op preset. **The mixed-size-batch resize
-question (§9 Q5) got its lab answer: PERCENTAGE presets resolve per image
-(each scales relative to its own dimensions) at process time; Custom stays
-fixed absolute pixels.** Verified: 50% halves every source regardless of
-its size. Phase 2 should adopt this semantics.
-
-**Round 10 (2026-07-02).** The variant question is collapsed into one lab UI.
-The L2 grid is no longer a top-bar variant; it is the top option in the same
-vertical picker as L/M/S. Grid shows the current card dashboard with the picker
-kept visible at top-right; clicking a card enters focus view at the last-used
-strip size; Cmd/Ctrl-click toggles, Shift-click ranges, and Esc returns scope
-to global. The lab also inherited the production editor's no-wasted-work rules:
-effective per-job recipe hashes include only the active encoder, collapse
-disabled/identity resize and disabled quantize, resolve percentage resize per
-job, restore previously encoded per-job outputs from a small URL-owning cache,
-debounce selected override applies, and delay working badges by 500 ms. Sample
-loading is now one "Load samples" button that creates 12 files.
-
-So the two variants share the focus view itself; the lab question is **what
-you land on and how navigating scope feels**. B3 (table) stays rejected as
-primary; candidate for a grid density toggle later.
+**Final layout decision (2026-07-02):** Phase 2 uses the focus-first rich strip
+with Stack as the resting stage. Grid remains a picker/density idea, not the
+primary home. The right panel owns settings scope (All images / This image); the
+left panel is contextual information plus export/actions. The lab iterations that
+led here are intentionally collapsed; git history and the reference images keep
+the visual trail.
 
 Reference images for the lab live in-repo at
 [references/bulk-lab/](references/bulk-lab/) (`bulk-focus-mode.webp`,
@@ -468,7 +335,7 @@ API** (Chromium — Chrome/Edge; not Safari/Firefox) makes two flows real:
   handle is persisted in **IndexedDB** (handles are structured-cloneable;
   never in `localStorage` — consistent with the existing rule). Next session:
   one "allow again?" click instead of re-picking. Multiple remembered
-  destinations are possible ("Downloads", "Client X assets", …).
+  destinations are possible ("Downloads", "Project assets", …).
 
 **Not feasible:** individually picked/dropped *files* — no parent-folder
 access. (Chromium can overwrite a dropped file in place, but format

@@ -1,9 +1,8 @@
 <!--
-Generated 2026-06-02 by the `codec-upgrade-audit` workflow (16 agents: one web-research pass
-per codec + 4 landscape scouts on Sonnet, synthesized by Opus). Inventory was scouted from the
-repo's codec Makefiles / Cargo.toml / Cargo.lock. Every claim links its source — verify exact
-version numbers and CVE IDs against the linked pages before acting, since web research can drift.
-Re-run: Workflow({ scriptPath: ".../workflows/scripts/codec-upgrade-audit-wf_851e63fd-b32.js" }).
+Generated 2026-06-02 by the codec-upgrade-audit workflow. Inventory was scouted
+from the repo's codec Makefiles / Cargo.toml / Cargo.lock. Every claim links
+its source — verify exact version numbers and CVE IDs against the linked pages
+before acting, since web research can drift.
 -->
 
 # Frisp Codec-Upgrade Audit

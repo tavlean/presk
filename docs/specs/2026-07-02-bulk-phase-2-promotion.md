@@ -1,7 +1,9 @@
 # Spec: Bulk Phase 2 — promote the lab to production
 
 Last updated: 2026-07-03.
-Status: done (executed 2026-07-03, commits `678bb5f7`–`55c0da46` + the
+Status: **executed 2026-07-03**.
+
+*Historical record — paths/scripts named here reflect the repo at the time; see docs/build-and-runtime.md for the current build.*
 e2e/docs sweep; all 10 acceptance criteria verified).
 Decision record: [bulk-ui-design-options.md](../bulk-ui-design-options.md)
 (design phase complete 2026-07-02 — every open question is decided there).
@@ -765,8 +767,8 @@ suggestions as pass, hard issues as fail.
 ## Guardrails
 
 - Do NOT touch `codecs/**`, `src/features/**` codec meta, the service worker,
-  `scripts/sync-sveltekit-app.mjs`, or `vite.config.ts` (the
-  `presk-raw-threaded-codec-workers` plugin must stay).
+  `the retired generator script`, or `vite.config.ts` (the
+  `app-raw-threaded-codec-workers` plugin must stay).
 - Do NOT modify `EditorSession` beyond (optionally) relaxing `pickFiles`'
   param type to `ArrayLike<File>`. Its `list[0]` reduction stays.
 - Do NOT add runtime `dependencies` — `client-zip` goes in `devDependencies`
@@ -816,8 +818,8 @@ suggestions as pass, hard issues as fail.
 11. **Editing files under `src/lib/lab/` after Stage B** (stale checkout or
     muscle memory) — the move happened; check `git status` paths before
     committing.
-12. **Skipping `npm run sync`/generated files confusion** — if imports from
-    `.svelte-kit/presk-generated` fail, run `npm run check` (it syncs);
+12. **Skipping `npm run sync`/generated files confusion** — if wrapper imports from
+    `.svelte-kit/app-generated` fail, run `npm run check` (it syncs);
     never hand-edit generated files.
 13. **Playwright: `setInputFiles` with an array fails** if Stage C's
     `multiple` attribute regressed — that's the test doing its job; fix the
@@ -837,7 +839,7 @@ suggestions as pass, hard issues as fail.
 | Symptom | Likely cause | Look first |
 |---|---|---|
 | Bulk encodes never start / hang at "queued" | Runtime drain loop not re-triggered after import; or bridges disposed by a stale exit effect | `store.importFiles` → `runtime.run(this)`; the exit/route-state effect from C2 |
-| Encodes 50× slower in dev only | The raw-threaded-worker dev plugin was touched | `vite.config.ts` (`presk-raw-threaded-codec-workers`) — restore it |
+| Encodes 50× slower in dev only | The raw-threaded-worker dev plugin was touched | `vite.config.ts` (`app-raw-threaded-codec-workers`) — restore it |
 | Thumbnails blank after Undo | URLs were revoked before the snackbar settled | Stage G deferred-revocation holder |
 | Focus view re-encodes on every click | The hydrate-from-batch-output path broke in the move | `hydrateFocusFromBulkOutput` in BulkMode; design rule: never re-encode on inspect |
 | `npm run check` fails on `webkitdirectory`/`webkitRelativePath` types | Nonstandard attr/prop typing | F4 note — attribute spread or a `.d.ts` addition |

@@ -68,7 +68,7 @@ Frisp uses a background **service worker** (`src/service-worker.ts`) so the depl
 
 - The first time you visit the deployed site, it quietly **caches** the app shell and codec files your browser needs.
 - After that, the app loads from that cache, so it opens fast and **keeps working with no connection**. Because the codecs are stored locally too, you can compress images on a plane or in a tunnel with no loss of capability.
-- The cache is versioned (named `presk-${version}`), so when a new release ships, stale files are cleaned up automatically.
+- The cache is versioned (named `app-${version}`), so when a new release ships, stale files are cleaned up automatically.
 
 The service worker only activates on the **real deployed site**. During development, or on local "localhost"-style addresses, Frisp deliberately _unregisters_ the worker and clears its cache so a leftover copy can't hijack another app sharing the same port. This is purely a developer safeguard and doesn't affect normal users (details in `src/lib/service-worker-registration.ts`).
 

@@ -15,9 +15,7 @@ mutable "previous value" guards) — not in Svelte-4 syntax. There is **no**
 `createEventDispatcher`, no `on:` directives, no `export let`, no `$:`, and no
 `writable()` stores anywhere. This is hardening, not rescue.
 
-Findings below were produced by two independent read-only reviews (Claude's
-multi-agent audit + a second AI's pass) and cross-checked. Each item notes its
-source and whether it was verified against the code.
+Findings below were produced by two independent automated review passes and cross-checked. Each item notes whether it was verified against the code.
 
 > **Port-faithfulness re-audit (2026-06-28).** A user-reported resize/compare
 > regression (the two-up split stopped aligning on a resized-down output) was
@@ -55,7 +53,7 @@ source and whether it was verified against the code.
       resize, [two-up.ts:125](../src/lib/editor/output/two-up.ts:125)) recomputes
       from the stored `0.25`, so the divider jumps to 25%. Fix: drop the trailing
       `/ 2` so it matches the `Digit3` branch shape
-      ([two-up.ts:113](../src/lib/editor/output/two-up.ts:113)). _Source: second AI;
+      ([two-up.ts:113](../src/lib/editor/output/two-up.ts:113)). _
       verified. Effort: trivial._
 - [x] **Get browser host objects out of deep `$state`.**
       `results = $state<[CompressOutcome | null, …]>`
@@ -66,7 +64,7 @@ source and whether it was verified against the code.
       needs sizes, percent, dimensions, the URL string, and `isOriginal`; the
       `ImageData`/`File` are consumed imperatively by the canvas in `Output`. Fix:
       use `$state.raw` on `results` (reassign on update), or split a plain-data
-      result DTO from a non-reactive store of the host-object refs. _Source: both;
+      result DTO from a non-reactive store of the host-object refs. _
       verified. Effort: medium._
 - [x] **Debounce `persistSettings()`.** It runs from a bare `$effect` with no
       throttle ([editor-session.svelte.ts:321](../src/lib/editor/editor-session.svelte.ts:321),
@@ -75,7 +73,7 @@ source and whether it was verified against the code.
       quality slider. Fixed: payload is serialised synchronously (so the `$effect`
       still tracks its deps) but the `localStorage` write is deferred 200 ms;
       `dispose()` flushes any pending write so the last edit is never dropped.
-      _Source: Claude; verified. Effort: small._
+      _
 
 ## Wave 1 — Dead-code purge (pure subtraction; verify with `npm run check`)
 
@@ -87,16 +85,16 @@ only the items below are dead.
 
 - [x] Delete `src/shared/missing-preact-types.d.ts` — dead `preact` module shim;
       nothing imports `preact`. It also actively suppresses the type error that
-      would catch a stray `import … from 'preact'`. _Source: both; verified._
+      would catch a stray `import … from 'preact'`. _
 - [x] Delete `src/client/lazy-app/util/clean-modify.ts` — `cleanMerge`/`cleanSet`
       are Preact's immutable copy-on-write helpers; **zero callers** repo-wide and
-      conceptually obsolete under `$state` in-place mutation. _Source: Claude;
+      conceptually obsolete under `$state` in-place mutation. _
       verified zero callers._
 - [x] Remove dead React-onChange helpers from `src/client/lazy-app/util/index.ts`:
       `inputFieldValueAsNumber`, `inputFieldChecked`, `inputFieldCheckedAsNumber`,
       `inputFieldValue` (plus unused `shallowEqual`, `transitionHeight`). Kept
       `isSafari` (live). Also-dead but kept (out of scope): `konami` (the
-      deliberate ZX easter-egg) and the trivial `preventDefault`. _Source: Claude;
+      deliberate ZX easter-egg) and the trivial `preventDefault`. _
       verified no callers._
 - [x] Delete the stale CSS-module `*.css.d.ts` stubs and the dirs that hold only
       them (`src/client/lazy-app/Compress/**`, `src/shared/prerendered-app/**`,
@@ -105,7 +103,7 @@ only the items below are dead.
       `output/pinch-zoom.css.d.ts`). **Note:** `*.css.d.ts` is gitignored, so
       these were never committed — removed from the working tree only; a fresh
       clone never had them. The side-effect `import './x.css'` resolves via
-      `vite/client`'s ambient `*.css` declaration. _Source: Claude; verified._
+      `vite/client`'s ambient `*.css` declaration. _
 
 ## Wave 2 — The dominant Preact-ism: controlled-component event boundary
 
@@ -126,7 +124,7 @@ Highest leverage — one change at the primitives ripples through every panel.
       inside the primitive, or lean on the `$bindable()` already declared and let
       callers `bind:value` / `bind:checked` (`Wp2Options` already proves this with
       `bind:value={options.uv_mode}`). Deletes the `numValue` / `checked()` cast
-      helpers from every panel. _Source: both; verified. Effort: medium._
+      helpers from every panel. _
 - [~] **Make `options` ownership explicit.** _Partially done:_ plain fields now
   flow through `bind:`/`$bindable`, making ownership explicit; the
   mirror-state panels (AVIF/JXL) still mutate via `apply()` and are addressed
@@ -137,7 +135,7 @@ Highest leverage — one change at the primitives ripples through every panel.
   [WebpOptions.svelte:47](../src/lib/editor/options/WebpOptions.svelte:47)). It
   works (mutating a passed `$state` proxy is reactive) but ownership is implicit;
   prefer `$bindable`/`bind:` or explicit setter methods. Pairs with the item
-  above. _Source: second AI; verified. Effort: medium._
+  above. _
 
 ## Wave 3 — Promoted to its own project
 
@@ -167,21 +165,21 @@ Highest leverage — one change at the primitives ripples through every panel.
       encodeSide compares the live `loadId` to a per-side `encodedLoadId` (new
       file → immediate encode, option tweaks → debounced); seedResizeDimensions
       compares `seededLoadId`. Both auto-reset on the next file, so
-      `pickFiles`/`clearFile` no longer hand-reset them. _Source: both._
+      `pickFiles`/`clearFile` no longer hand-reset them. _
 - [x] `showSpinner`: now a `$derived` AND-gate of (`status === 'working'`) and a
       new `spinnerDelayPassed` flag; `updateSpinner` keeps only the 500ms delayed
       flip. The gate guarantees the spinner can't show outside a working spell.
-      _Source: Claude._
+      _
 - [x] Move the encode/spinner `$effect`s into `EditorSession` via an
       `$effect.root()` in the constructor (torn down in `dispose()`); `+page.svelte`
-      keeps only the route-coupled `syncRouteState` effect. _Source: both._
+      keeps only the route-coupled `syncRouteState` effect. _
 - [x] Diagnostics page: convert the `onMount` probes + manual `cancelled` guard
       to per-probe `$effect`s with cleanup
       ([diagnostics/+page.svelte](../src/routes/diagnostics/+page.svelte)).
       **Done** (`faa14e4d`): three independent `$effect`s, each with its own
       cancel guard (+ AbortController for the pipeline probe) and cleanup; the
       SW registration stays in a small `onMount`. Browser-verified all three
-      probes resolve. _Source: Claude. Low priority (dev tool)._
+      probes resolve. _
 
 ## Wave 5 — Output attachments & small idiom wins
 
@@ -196,7 +194,7 @@ Highest leverage — one change at the primitives ripples through every panel.
       (getter-parameterised so it re-runs once the left pinch-zoom is bound).
       Left the canvas-draw/fit `$effect`s as-is (they read several reactive
       props and read cleanly already). Browser-verified wheel-zoom retarget +
-      focus-on-reveal. _Source: both._
+      focus-on-reveal. _
 - [x] Replace the `downloadAttributes` `$derived`-object spread on `<a>` with
       conditional attributes (`href={disabled ? undefined : …}`)
       ([Results.svelte](../src/lib/editor/Results.svelte)). **Done** (`780ad8af`).
@@ -209,7 +207,7 @@ Highest leverage — one change at the primitives ripples through every panel.
       ([pinch-zoom.ts](../src/lib/editor/output/pinch-zoom.ts),
       [two-up.ts](../src/lib/editor/output/two-up.ts)) to avoid HMR / double-eval
       `NotSupportedError`. **Pulled forward and done 2026-06-01** (it was breaking
-      dev HMR for these modules and would have dogged Waves 2–6). _Source: second
+      dev HMR for these modules and would have dogged Waves 2–6). _
       AI; verified. Dev-only impact._
 
 ## Wave 6 — Structural simplification (readability ROI)
@@ -222,7 +220,7 @@ Highest leverage — one change at the primitives ripples through every panel.
 - [x] Extract a shared "Advanced settings" component
       (`options/AdvancedSection.svelte`, owns `open`, renders a children snippet) —
       replaced the scaffold duplicated across AVIF/WebP/WP2/MozJPEG. **Done**
-      (`fc03306b`); browser-verified in all four panels. _Source: Claude._
+      (`fc03306b`); browser-verified in all four panels. _
 - [x] Extract `OptionRow` / `ToggleRow` components to replace the repeated
       `<div class="option-one-cell">` / `<label class="option-toggle">` wrappers
       across the panels. **Done** (`a04ab2bc`). Two thin wrappers own the shared
@@ -233,7 +231,7 @@ Highest leverage — one change at the primitives ripples through every panel.
       left for the codec-options-model project; the format picker's
       `<section class="option-one-cell options-section">` stays raw. Browser-
       verified layout, format switch, Lossless branch swap, and the slide reveals.
-      _Source: Claude._
+      _
 - [x] Add a root `src/routes/+layout.svelte` for the shared body font stack +
       reset (was duplicated in both route pages). **Done** (`50e7e7b3`). The
       layout owns `body { margin: 0; font-family: … }`; each page keeps its own

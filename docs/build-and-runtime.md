@@ -1,7 +1,8 @@
 # Build And Runtime Map
 
-This branch uses SvelteKit and Vite at the repo root. The old Rollup build has
-been removed from the `svelte` branch.
+The production app lives on `main` at the repo root, built with SvelteKit and
+Vite as a static SPA. The retired Preact/Rollup app is preserved only on the
+`preact` branch (tag `preact-final`); the old `svelte` branch is gone.
 
 ## Commands
 
@@ -110,8 +111,7 @@ set to **"Respect Existing Headers"** (Caching → Configuration). The default
 worker behind a 4 h cache and caps the content-hashed `/_app/immutable/*` assets
 at 4 h instead of the year-long `immutable` cache `_headers` grants them. Leave
 Pages **Build cache** (Beta) off — it caches build *outputs* between CI builds
-and can resurface stale-artifact confusion given the codec/`$service-worker`
-codegen; it has no effect on what users are served.
+and can resurface stale-artifact confusion given SvelteKit `$service-worker` generation and codec wrapper patching; it has no effect on what users are served.
 
 `version` (hence `cacheName`) defaults to SvelteKit's build timestamp, so the
 worker bytes change every build and the update check always fires.
@@ -141,10 +141,10 @@ build emits **no** duplicate worker chunks of its own (top-level
 modules wire the threaded variants and real thread detection, so AVIF / JXL
 (Emscripten pthreads) and oxipng (wasm-bindgen-rayon) engage multi-core, with
 single-thread fallback intact. The data contract
-(`src/shared/codec-assets.ts`) carries the `multi-thread` / `worker-helper` /
+(`src/shared/codec-assets/`) carries the `multi-thread` / `worker-helper` /
 `threaded-only` records, and `audit:static-output` asserts the threaded helper
 assets are now present. Cross-origin isolation (COOP/COEP) — required for
-`SharedArrayBuffer` — is set via the `presk-cross-origin-isolation` Vite plugin in
+`SharedArrayBuffer` — is set via the `app-cross-origin-isolation` Vite plugin in
 `vite.config.ts` (dev + preview) and `static/_headers` (host). Full record:
 [threading-enablement.md](threading-enablement.md).
 
@@ -153,19 +153,19 @@ assets are now present. Cross-origin isolation (COOP/COEP) — required for
 dev transform otherwise injects an ESM `/@vite/client` import into them (illegal in
 a classic worker), so the thread pool never engages and threaded encodes stall
 (~50× slower) — dev-only, since a `vite build` emits them as raw hashed assets. The
-`presk-raw-threaded-codec-workers` plugin in `vite.config.ts` serves
+`app-raw-threaded-codec-workers` plugin in `vite.config.ts` serves
 `codecs/**/*_mt(_simd)?.worker.js` raw in dev to fix this (`configureServer`-only;
 prod build unaffected). Details in
 [threading-enablement.md](threading-enablement.md).
 
 ## Tests
 
-- `npm run check` — static gate (format, svelte-check, build, asset audit).
+- `npm run check` — static gate (`typecheck`, production build, static-output audit).
 - `npm run test:e2e` — Playwright browser regression (`tests/e2e/`): boots the
   production preview, asserts cross-origin isolation, encodes through every
   codec asserting valid output magic bytes, and tests SW offline reload. The
   webServer builds + previews automatically. **Run after any codec/build change.**
-- `npm test` runs both.
+- `npm test` runs `check`, `test:unit`, and `test:e2e`.
 - `npm run bench` / `npm run bench:compare` — codec benchmark (`benchmarks/`):
   per-codec output size + encode time + reliability, with a before/after diff to
   gate codec upgrades and produce performance numbers. See `benchmarks/README.md`.

@@ -1,12 +1,12 @@
 # WS-H Rename Inventory (appendix to 2026-07-07-first-principles-execution.md)
 
-Produced 2026-07-07 by a read-only Codex sweep, BEFORE WS-A1 and WS-C landed.
-Known deltas to apply at execution time: (1) WS-A1 deletes the 12 orphaned
+Produced 2026-07-07 by an automated read-only sweep before WS-A1 and WS-C landed.
+Known deltas after those landed: (1) WS-A1 deleted the 12 orphaned
 worker wrapper files (avifDecode.ts, jxlDecode.ts, qoiDecode.ts, webpDecode.ts,
 avifEncode.ts, jxlEncode.ts, mozjpegEncode.ts, oxipngEncode.ts, qoiEncode.ts,
 webpEncode.ts, quantize.ts, resize.ts) — drop them from the git-mv list;
-(2) WS-C deletes scripts/sync-sveltekit-app.mjs — its reference block below
-then vanishes; §5 already covers both states. Re-run the §5 verification rg
+(2) WS-C deleted `the retired generator script`, so its reference block below
+vanished; §5 already covers both states. Re-run the §5 verification rg
 before starting. Occurrence counts are advisory; the sed patterns are the spec.
 
 **1. Complete `git mv` List**
@@ -145,7 +145,7 @@ Current import-specifier counts from `src tests scripts`:
 - `features/...`: 76 occurrences, 39 unique specifiers
 - `worker-shared/...`: 4 occurrences, 1 unique specifier
 
-POST-WS-C expected delta: the `scripts/sync-sveltekit-app.mjs` generated import strings should be gone. Without that pre-WS-C script, subtract 27 generated/script occurrences: `features/...` becomes 50 occurrences, and `worker-shared/...` becomes 3 occurrences.
+POST-WS-C delta: the old generated import strings are gone. Expected live counts are about 50 `features/...` occurrences and 3 `worker-shared/...` occurrences before the rename.
 
 Mechanical rewrites:
 
@@ -223,7 +223,6 @@ worker-shared/supports-wasm-threads
 
 Non-mechanical flag:
 
-- `scripts/sync-sveltekit-app.mjs:840` contains template specifier `features/encoders/${name}/client/runtime`. It is still mechanically rewriteable to `engine/features/encoders/${name}/client/runtime`, but POST-WS-C this file should not exist.
 - No live `.ts` / `.svelte` import specifier failed the three prefix patterns.
 
 **4. Non-Code References**
@@ -324,49 +323,6 @@ docs/specs/2026-07-02-bulk-phase-2-promotion.md:733
 docs/specs/2026-07-02-bulk-phase-2-promotion.md:767
 ```
 
-Scripts/config references:
-
-```text
-scripts/sync-sveltekit-app.mjs:354
-scripts/sync-sveltekit-app.mjs:360
-scripts/sync-sveltekit-app.mjs:366
-scripts/sync-sveltekit-app.mjs:372
-scripts/sync-sveltekit-app.mjs:378
-scripts/sync-sveltekit-app.mjs:384
-scripts/sync-sveltekit-app.mjs:390
-scripts/sync-sveltekit-app.mjs:396
-scripts/sync-sveltekit-app.mjs:402
-scripts/sync-sveltekit-app.mjs:408
-scripts/sync-sveltekit-app.mjs:414
-scripts/sync-sveltekit-app.mjs:420
-scripts/sync-sveltekit-app.mjs:426
-scripts/sync-sveltekit-app.mjs:704
-scripts/sync-sveltekit-app.mjs:726
-scripts/sync-sveltekit-app.mjs:840
-scripts/sync-sveltekit-app.mjs:865
-scripts/sync-sveltekit-app.mjs:867
-scripts/sync-sveltekit-app.mjs:869
-scripts/sync-sveltekit-app.mjs:870
-scripts/sync-sveltekit-app.mjs:872
-scripts/sync-sveltekit-app.mjs:873
-scripts/sync-sveltekit-app.mjs:876
-scripts/sync-sveltekit-app.mjs:878
-scripts/sync-sveltekit-app.mjs:880
-scripts/sync-sveltekit-app.mjs:881
-scripts/sync-sveltekit-app.mjs:883
-scripts/sync-sveltekit-app.mjs:884
-scripts/sync-sveltekit-app.mjs:886
-scripts/sync-sveltekit-app.mjs:887
-scripts/sync-sveltekit-app.mjs:889
-scripts/sync-sveltekit-app.mjs:890
-scripts/sync-sveltekit-app.mjs:892
-scripts/sync-sveltekit-app.mjs:894
-scripts/sync-sveltekit-app.mjs:895
-scripts/sync-sveltekit-app.mjs:897
-scripts/sync-sveltekit-app.mjs:898
-scripts/sync-sveltekit-app.mjs:901
-scripts/sync-sveltekit-app.mjs:902
-```
 
 No matching references found in `.github/**`, `playwright.config.ts`, `vitest.config.ts`, or `benchmarks/playwright.config.ts`.
 
@@ -379,10 +335,5 @@ Assume POST-WS-C:
 - `app-generated` should only cover patched codec wrappers. Do not rewrite `codecs/...` imports; `codecs` alias remains.
 - `worker-shared/supports-wasm-threads` becomes `shared/worker/supports-wasm-threads`.
 
-If WS-C has not landed:
-
-- `scripts/sync-sveltekit-app.mjs` still emits generated modules containing `features/...` and `worker-shared/...`; rewrite the generator strings or the build will regenerate stale imports.
-- The three special `client/lazy-app/feature-meta*` aliases in `vite.config.ts` / `svelte.config.js` still point at `.svelte-kit/app-generated/feature-meta/*`; either land WS-C first or update generator output and aliases together.
-- Keep `tsconfig.json:20` include for `.svelte-kit/app-generated/**/*.ts` until wrapper generation is confirmed as the only generated TS surface.
 
 Verification gate for the later session: after moves + rewrites, run `npm run sync`, `npm run check`, and a focused `rg "client/lazy-app|from 'features/|from \"features/|worker-shared/" src tests scripts docs`.

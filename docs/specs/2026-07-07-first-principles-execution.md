@@ -15,10 +15,7 @@ Working rules (bind every executor, human or model):
 - After any `.svelte` edit, run the Svelte MCP autofixer on the file.
 - Markdown is never auto-formatted.
 
-Model ladder: **Fable/top-tier** = design decisions, final review (this
-session). **Codex** = every implementation below (specs are written to be
-Codex-executable), research, sweeps. **Opus** = only if a task turns out to
-need visual/UX taste (none below should).
+Judgment-dense design and final review stayed with the orchestrating session; implementation was delegated to coding agents. Each workstream lists its gates.
 
 ---
 
@@ -160,7 +157,8 @@ Target shape (decided):
      and vice versa (this replaces the generator's guarantee).
 3. **The only codegen that remains** is the Emscripten/wasm-bindgen wrapper
    patching → new `scripts/patch-codec-wrappers.mjs` (extract the patch
-   functions verbatim from sync-sveltekit-app.mjs, unchanged regexes), still
+   functions verbatim from `scripts/sync-sveltekit-app.mjs` (since deleted),
+   unchanged regexes), still
    writing to `.svelte-kit/app-generated/codecs/**`; `app-generated` alias
    shrinks to that. `npm run sync` runs only this (fast).
 4. Delete `scripts/sync-sveltekit-app.mjs`. Update `tsconfig.json` include,
@@ -368,16 +366,4 @@ apply its delta header (post-A1/post-C state) before starting.**
 
 ## Day-1 execution order (this session)
 
-| # | WS | Writer | Reviewer |
-|---|----|--------|----------|
-| 1 | A1 dead code | Codex (running) | Fable |
-| 2 | A2 dedup → A3 tooling | Codex | Fable |
-| 3 | B decoded-source cache (+E bulk drain) | Codex (high effort) | Fable |
-| 4 | C codegen retirement | Codex (medium) | Fable |
-| 5 | D(a) transfers + bench | Codex (medium) | Fable |
-| 6 | F Svelte idioms | Codex + autofixer | Fable |
-| 7 | Commit ledger + doc reconciliation | Fable | — |
-
-Left deliberately for later cheap sessions: D(b), D(c), G implementation,
-H rename, the LRU-core merge (A2.5). Every one of them is specced above to
-be executable without top-tier judgment.
+All eight workstreams landed 2026-07-07. D(b), D(c), WS-G UI wiring, and WS-H remain specified for later sessions.

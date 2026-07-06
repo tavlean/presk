@@ -106,7 +106,7 @@ proposed here as plain `S` instead, keeping browser saves untouched — decide.
 ## Phases
 
 1. **K1 — core layer + format keys + S + overlay** (the registry, guards,
-   migration of existing handlers; Opus-executable from a spec).
+   migration of existing handlers; executable from the spec by a coding agent).
 2. **K2 — digit value entry** (buffer, readout, per-codec clamps; needs the
    divider-key decision first).
 3. **K3 — bulk depth + view keys** (L/F/R in bulk, strip size, scope tabs).

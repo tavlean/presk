@@ -1,9 +1,9 @@
 # Bulk image architecture
 
-This document defines the first bulk image optimization design for Frisp. Bulk
-optimization is post-migration roadmap work, not part of the Svelte migration
-closeout. The goal is to keep the processing model independent from the UI
-framework.
+This document records the framework-neutral bulk engine model. Bulk Phase 2
+shipped to production on 2026-07-03; current UI decisions and phased follow-ups
+live in [bulk-ui-design-options.md](bulk-ui-design-options.md) and the executed
+specs in [specs/](specs/).
 
 The framework-neutral helper surface is exported from `src/client/lazy-app/bulk/index.ts`. UI code should prefer that entry point over deep imports when it needs several bulk helpers together.
 
@@ -277,88 +277,17 @@ Later implementation:
 - support naming templates;
 - preserve relative folder paths if folder import is added.
 
-## Suggested implementation order
+## Current implementation record
 
-1. Extract pure settings helpers.
-   - `getEffectiveSettings`
-   - settings hashing
-   - override detection
-   - Initial module: `src/client/lazy-app/bulk/settings.ts`
+The original implementation-order roadmap is superseded by the production bulk
+ship. The useful current references are:
 
-2. Add bulk session state types.
-   - Keep them framework-neutral.
-   - Do not bind them to Preact lifecycle.
-   - Initial module: `src/client/lazy-app/bulk/session.ts`
-   - Session helper can create a batch, append imported jobs, select an image, and report progress.
-
-3. Add multi-file import.
-   - Accept multiple files from file input and drag/drop.
-   - Keep single-image behavior working.
-   - Initial helper module: `src/client/lazy-app/bulk/import.ts`
-
-4. Add basic queue processing.
-   - Process WebP output for every imported image.
-   - Store output size and percent change.
-   - Initial queue helper module: `src/client/lazy-app/bulk/queue.ts`
-   - Queue helper can detect stale outputs from effective settings hashes.
-
-5. Add image strip.
-   - Display thumbnails and batch status.
-
-6. Add selected-image review.
-   - Reuse the existing comparison component where possible.
-
-7. Add per-image overrides.
-   - Highlight overridden settings.
-   - Add reset-to-global.
-
-8. Add export-all.
-   - Start with individual downloads.
-   - Export helper module: `src/client/lazy-app/bulk/export.ts`
-   - Export helper can list ready jobs and report ready, failed, skipped, pending, and total size-change counts.
-   - Stale outputs are not exportable.
-   - Export entries include duplicate-safe file names derived from the source image name and output extension.
-   - Add ZIP later.
-
-## UI implementation hold
-
-Do not implement the production bulk UI yet. The workflow needs design discussion, iteration, and possibly prototypes first.
-
-When implementation resumes, the safest technical path is:
-
-1. Extract the existing single-image processing pipeline from `Compress/index.tsx` into a shared non-UI module.
-   - Keep the current single-image editor importing the same functions back.
-   - Preserve one-file behavior before adding any bulk screen.
-   - Shared module: `src/client/lazy-app/image-pipeline.ts`
-   - Work-start runtime helper: `src/client/lazy-app/Compress/work-start-runner.ts`
-   - Source-job execution helper: `src/client/lazy-app/Compress/source-job-runner.ts`
-   - Side-job execution helper: `src/client/lazy-app/Compress/side-job-runner.ts`
-   - Current status: decode/preprocess/process/encode functions, work-start abort/controller cycling, source decode/preprocess execution, single-side execution, and runnable side-job loop orchestration are extracted without changing the UI route.
-
-2. Add a bulk processor module separate from the current `Compress` component.
-   - It should consume `ImageJob`, effective settings, `WorkerBridge`, and `AbortSignal`.
-   - It should produce `ImageOutput`.
-   - It should not call or fork `Compress.updateImage()` because that method is tied to the two-side UI state machine.
-   - Initial module: `src/client/lazy-app/bulk/processor.ts`
-   - Current status: processor orchestration exists and is designed to be covered with injected-pipeline tests — no such tests exist yet; the test plan is [test-plan.md](test-plan.md) §4.
-
-3. Keep worker usage bounded.
-   - `WorkerBridge` queues work per bridge.
-   - Bulk mode should use a small pool aligned with `defaultBulkConcurrency`.
-   - Initial runner module: `src/client/lazy-app/bulk/runner.ts`
-   - Current status: runner processes queued jobs up to the concurrency limit, stores per-job failures, and propagates aborts.
-
-4. Detect multi-file import at the app boundary later.
-   - A one-file import should keep using the current single-image `Compress` path.
-   - A multi-file import can route to a separate lazy bulk component after the design is agreed.
-
-5. Treat the existing `Options`, `Output`, and `Results` components as reference material, not as a direct bulk UI.
-   - They are built around two comparison sides.
-   - Bulk settings need global defaults, selected-image overrides, and clear override indicators.
-
-Mixed-size resize lab decision (2026-07-02): percentage presets resolve per
-image, based on that job's source dimensions; Custom remains fixed absolute
-pixels.
+- [bulk-ui-design-options.md](bulk-ui-design-options.md) for shipped UI decisions
+  and Phase 3+ follow-ups;
+- [specs/2026-07-02-bulk-phase-2-promotion.md](specs/2026-07-02-bulk-phase-2-promotion.md)
+  for the executed lab-to-production promotion;
+- [specs/2026-07-02-phase-2b-contextual-left-panel.md](specs/2026-07-02-phase-2b-contextual-left-panel.md)
+  for the contextual left-panel follow-up.
 
 ## Test plan
 
@@ -380,10 +309,8 @@ Then add browser smoke tests:
 - override one image;
 - verify only that image shows override state.
 
-## Open decisions
+## Current follow-ups
 
-- Should bulk mode replace the existing single-image editor or sit beside it first?
-- Should WebP be the only first milestone output?
-- Should resize be part of milestone one or milestone two?
-- Should export-all use individual downloads first, or should ZIP be included in the first release?
-- How many images should the first version officially support in one batch?
+Open bulk product work now lives in [bulk-ui-design-options.md](bulk-ui-design-options.md):
+Phase 3 override polish starts with the options-model minimal slice, followed by
+scale/polish, crop, renditions, and eventual single-image convergence.

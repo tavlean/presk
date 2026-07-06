@@ -1,7 +1,7 @@
 # Spec: Phase 2b — the single editor's contextual left panel
 
 Last updated: 2026-07-03.
-Status: done (executed 2026-07-03, commits `06b33b3b`…`01bb3478` + e2e/docs;
+Status: **executed 2026-07-03**.
 plus a mobile fix — the Compare-as popover anchors above its trigger).
 Decision record: [bulk-ui-design-options.md](../bulk-ui-design-options.md) §4
 ("Decision C — what the left side becomes", maintainer, 2026-07-02) and the

@@ -14,7 +14,7 @@ what breaks, and why. Distinct from the other codec docs:
 - [codec-upgrade-audit.md](codec-upgrade-audit.md) — *what* to upgrade and *why*.
 - [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) — per-codec version
   targets + wrapper diffs.
-- [codec-upgrade-handoff.md](codec-upgrade-handoff.md) — the operational
+- [codec-upgrade-runbooks.md](codec-upgrade-runbooks.md) — the operational
   build+verify+commit loop.
 - **this doc** — the *build engineering knowledge*: toolchains, linker
   behaviour, the gotchas that cost hours, so the next codec update doesn't
@@ -77,7 +77,7 @@ emmake make                         # writes the new .js/.wasm into the codec di
 
 ## Build-integration gotcha (all codecs) — the sync-script patch
 
-`scripts/sync-sveltekit-app.mjs` rewrites each codec's `.js` to replace
+`scripts/patch-codec-wrappers.mjs` rewrites each codec's `.js` to replace
 Emscripten's `new URL("x.wasm", import.meta.url)` with a bare string (so Vite
 doesn't emit a duplicate WASM). The suffix differs by toolchain
 (`.toString()` on 2.0.x, `.href` on 5.x). **Fixed 2026-06-02** to be
@@ -290,7 +290,7 @@ value is robustness + fast-mode/ICC fixes). Wrapper: `Options.interlace`
   still satisfied `"0.2"`, so cargo kept it; a fresh resolve picks 0.2.122.
 - **The sync script's wasm-bindgen wrapper patch broke** on the new glue:
   wasm-bindgen ≥0.2.9x renamed the loader var `input` → `module_or_path`. Fixed
-  `patchWasmBindgenWrapperFallbackUrl` in `scripts/sync-sveltekit-app.mjs` to match
+  `patchWasmBindgenWrapperFallbackUrl` in `scripts/patch-codec-wrappers.mjs` to match
   the `new URL('<asset>', import.meta.url)` expression (variable-name-agnostic),
   same approach as the emscripten patch.
 

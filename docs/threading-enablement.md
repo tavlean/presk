@@ -14,7 +14,7 @@ Read [STATUS.md](STATUS.md) for live state. This finished a **parked migration
 item**, it is not new greenfield work.
 
 > **ALL LANDED & VERIFIED (now on `main`).** Cross-origin isolation activates
-> (COOP/COEP via the `presk-cross-origin-isolation` Vite plugin for dev/preview +
+> (COOP/COEP via the `app-cross-origin-isolation` Vite plugin for dev/preview +
 > `static/_headers` for the host; commits `27ae8b88`, `09f08f22`), and all three
 > threaded codecs engage multi-core: oxipng (wasm-bindgen-rayon, shared-memory
 > build fix) and AVIF + JXL (Emscripten pthreads, `?url`/`mainScriptUrlOrBlob`
@@ -90,57 +90,23 @@ seams audits. This plan closes it out.
    so a future regression (e.g. someone dropping the headers again) fails CI.
 3. **Wire the multithread runtime. — ✅ DONE (all three codecs; see below).**
 
-## How multithreading is currently disabled (exact, code-grounded)
+## How it was enabled (historical)
 
-Re-reading the actual pipeline: this is **not** a missing-asset bug — the
-SvelteKit code generator **deliberately disables** the threaded runtime. In
-`scripts/sync-sveltekit-app.mjs` the generated worker hardcodes:
+The migration-era SvelteKit generator originally forced the threaded AVIF, JPEG
+XL, and OxiPNG runtimes off and emitted only single-thread assets. The landed
+fix replaced those stubs with real thread/SIMD detection, committed the codec
+worker and codec-asset records as source, emitted the threaded worker-helper
+assets, and kept single-thread fallback intact. The detailed build and runtime
+gotchas below are preserved for future threading maintenance.
 
-- AVIF: `createAvifEncoderRuntime({ supportsThreads: async () => false, … })`
-- JPEG XL: `createJxlEncoderRuntime({ supportsThreads: async () => false,
-  supportsSimd: async () => false, loadSingleThread: …, async loadMultiThread()
-  { throw new Error('JPEG XL multithread runtime is unavailable in the SvelteKit
-  app.') }, async loadMultiThreadSimd() { throw … } })`
-- OxiPNG: `createOxiPngEncoderRuntime({ supportsThreads: async () => false, … })`
+## How the runtime is wired now
 
-So even though `crossOriginIsolated` is now true, every encoder reports
-`supportsThreads → false` and runs single-thread; the `_mt` / `pkg-parallel`
-modules are never imported, so the build emits **only** single-thread assets
-(confirmed: `build/` has `jxl_enc.wasm`, `avif_enc.wasm`,
-`squoosh_oxipng_bg.wasm` — no `*_mt*`, no `workerHelpers`). `audit:static-output`
-**asserts** these threaded assets are absent (e.g. "Expected no JPEG XL threaded
-worker helper assets when the SvelteKit app injects the single-thread runtime").
-
-This was a deliberate migration decision, almost certainly because Emscripten
-pthreads + wasm-bindgen-rayon spawn **nested** workers (the codec already runs
-inside a worker), and Safari historically can't do nested workers (see
-`worker-shared/supports-wasm-threads.ts`), and the threaded `.worker.js` + wasm
-URL resolution under SvelteKit static output was unproven.
-
-## Re-enablement plan (per codec: avif, jxl, oxipng)
-
-The data contract already supports it — `src/shared/codec-assets.ts` already has
-the `multi-thread` variant, `worker-helper` role, and `threaded-only` cache. The
-work is:
-
-1. **Emit + map the threaded assets.** In the generator, add `?url` imports +
-   `CodecAssetRecord`s (variant `multi-thread`, role `worker-helper`, cache
-   `threaded-only`) for: `jxl_enc_mt(.worker).js` + `jxl_enc_mt_simd`, `avif_enc_mt(.worker)`,
-   and oxipng `pkg-parallel` + its `snippets/.../workerHelpers.js`. Extend the
-   generated `locateCodecWasm` map to resolve the threaded `.wasm`.
-2. **Generate a threaded worker.** Replace the `supportsThreads: () => false`
-   stubs with real detection (`worker-shared/supports-wasm-threads`) and implement
-   `loadMultiThread`/`loadMultiThreadSimd` to instantiate the `_mt` modules with
-   the injected threaded wasm URL **and** the `.worker.js`/`workerHelpers` URL
-   (Emscripten `mainScriptUrlOrBlob` / wasm-bindgen-rayon `initThreadPool`).
-3. **Service worker.** Cache the `threaded-only` assets at runtime (the cache type
-   exists for exactly this) so offline still works once threads are used.
-4. **Flip the audit.** Change the three `=== 0` asserts in
-   `scripts/audit-static-output.mjs` to expect the threaded assets, and add their
-   logical records to `expectedLogicalAssetRecords`.
-5. **Verify.** `npm run test:e2e` must stay green (single-thread fallback intact),
-   then confirm in an isolated browser that the `_mt` modules actually load (200,
-   not 404) and a real encode runs threaded.
+The committed data contract carries the `multi-thread` variant, `worker-helper`
+role, and `threaded-only` cache class. The codec worker uses real thread/SIMD
+detection, imports the threaded wasm and worker-helper assets through Vite
+`?url`, passes Emscripten `mainScriptUrlOrBlob` where needed, and keeps
+single-thread fallback paths for every threaded codec. The static-output audit
+expects the threaded assets and service-worker records.
 
 ## Risks / watch-list
 
@@ -165,7 +131,7 @@ work is:
 verified, and test-protected; and the **nested-worker-in-Safari make-or-break is
 now verified working** (via Playwright WebKit — see Risks above), which was the
 reason this was sized "Large / its own session." What remains is the mechanical
-multi-file wiring (generator worker + asset records + `OxipngWasmUrls.multiThread`
+multi-file wiring (worker + asset records + `OxipngWasmUrls.multiThread`
 in the bridge + audit flip + SW cache) and the one empirical unknown left: whether
 wasm-bindgen-rayon's `new Worker(new URL('./workerHelpers.js', import.meta.url))`
 resolves correctly under Vite's static output — testable in CI now that WebKit is
@@ -177,18 +143,7 @@ The full oxipng threaded runtime is wired, the shared-memory blocker is solved,
 and threading is **verified engaging multi-core in both engines**. All the wiring
 from the plan above WORKS:
 
-- Generator (`sync-sveltekit-app.mjs`): emits the `oxipng:encoder:multi-thread`
-  asset record (cache `threaded-only`, correctly excluded from precache), real
-  `supportsThreads: checkThreadsSupport`, and `loadMultiThread` (dynamic import of
-  `pkg-parallel` + `initThreadPool`). It copies `pkg-parallel/` + its
-  `snippets/workerHelpers.js` + `package.json` into the generated tree (the last
-  is required: workerHelpers does `import('../../..')`, resolved via `"main"`).
-- Vite/rolldown **bundles the nested wasm-bindgen-rayon worker** —
-  `workerHelpers-*.js` is emitted, the threaded `.wasm` is emitted, `npm run check`
-  + the audit pass (audit now asserts 2 oxipng wasm assets + worker-helper assets
-  present).
-- Safety: the runtime falls back to single-thread if MT load throws, so oxipng
-  never hard-fails. The single-thread `pkg/` stays non-shared and is the fallback.
+- The committed source now carries the `oxipng:encoder:multi-thread` asset record (cache `threaded-only`), real `supportsThreads: checkThreadsSupport`, and `loadMultiThread` wiring for `pkg-parallel` + `initThreadPool`. The production build emits the nested wasm-bindgen-rayon worker helper and threaded wasm; the audit asserts those assets are present. The single-thread `pkg/` stays non-shared and is the fallback.
 
 ### The fix — the threaded wasm now ships a SHARED + IMPORTED memory
 
@@ -260,9 +215,9 @@ Their `_mt` / `_mt_simd` variants are **Emscripten pthreads** (built with
 `-pthread`, so the shared-memory fix above does **not** apply. Two pieces were
 needed:
 
-**1. JS-side wiring (the `?url` + `mainScriptUrlOrBlob` pattern).** The generator
-now flips the `supportsThreads`/`loadMultiThread`(`Simd`) stubs to real detection
-(`checkThreadsSupport` + `wasm-feature-detect`'s `simd`), emits the threaded
+**1. JS-side wiring (the `?url` + `mainScriptUrlOrBlob` pattern).** The committed worker runtime
+now uses the `supportsThreads`/`loadMultiThread`(`Simd`) stubs to real detection
+(`checkThreadsSupport` + `wasm-feature-detect`'s `simd`), imports the threaded
 assets as `?url` records (wasm + `.worker.js` + the glue `.js`), and the audit
 asserts them. Because the codec runs inside a worker and the assets are served from
 hashed `?url` paths, the spawned pthread workers can't fall back to a relative
@@ -327,7 +282,7 @@ never appeared in the deployed app or CI. (Confirmed against Vite #7019 / #15377
 and Emscripten #22394; the ITK-Wasm and jSquash projects hit the same wall and
 also serve the workers raw.)
 
-**Fix (`vite.config.ts`, plugin `presk-raw-threaded-codec-workers`).** A dev-only
+**Fix (`vite.config.ts`, plugin `app-raw-threaded-codec-workers`).** A dev-only
 `configureServer` middleware that serves `/codecs/**/*_mt(_simd)?.worker.js`
 **raw from disk**, bypassing the transform — matching what the production build
 already emits. It deliberately leaves the `?url` / `?worker` *module* forms to

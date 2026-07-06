@@ -22,13 +22,22 @@ follow its build / generated-metadata / service-worker / browser verification
 rules.
 
 Every runbook ends the same way: after rebuilding the codec artifacts, run the
-app build gate `npm run check` (format:check → sync → svelte-kit sync →
-svelte-check → vite build → audit:static-output). The regenerated `.wasm`/`.js`
-are `?url`-imported through `src/shared/codec-assets.ts`, the worker bridge
-(`src/lib/sveltekit-worker-bridge.ts`), and the SW precache plan
-(`src/sw/cache-plan.ts`); `npm run check` confirms they still resolve. Because
+app build gate `npm run check` (`typecheck` → vite build →
+audit:static-output). Codec `.wasm`/`.js` files are `?url`-imported through
+`src/shared/codec-assets/`, with records in
+`src/shared/codec-asset-records.json`; `npm run check` confirms the worker
+bridge and service-worker selections still resolve. Because
 `.wasm` sizes shift on every rebuild, **re-check the `audit:static-output` size
 budget** if it asserts exact sizes.
+
+## Future codec-update loop
+
+The retired handoff doc was merged here before deletion. For a future codec
+update, build one codec at a time, then run `npm run check`, `npm run test:e2e`,
+`npm run bench`, and `npm run bench:compare`. Commit codec artifacts and any
+benchmark re-baseline separately after the gates pass. The modern-emcc wrapper
+patch lives in `scripts/patch-codec-wrappers.mjs`; it handles both
+`new URL(...).toString()` and `.href` wrapper styles.
 
 ## Toolchain note
 

@@ -11,7 +11,7 @@ and provenance come from `docs/codec-provenance.md` and the codec build recipes.
   SvelteKit worker surface.
 - **Threading is enabled (multi-core), with single-thread fallback.** AVIF,
   JPEG XL, and OxiPNG encode multi-core when the page is cross-origin-isolated
-  (COOP/COEP via the `presk-cross-origin-isolation` Vite plugin for dev/preview +
+  (COOP/COEP via the `app-cross-origin-isolation` Vite plugin for dev/preview +
   `static/_headers` on the host), falling back to single-thread when threads /
   `SharedArrayBuffer` are unavailable. WebP runs a SIMD build. The production
   build emits the threaded helper assets, `audit:static-output` asserts them, and
@@ -116,10 +116,10 @@ removed (encoder + decoder); its `codecs/wp2/` tree and all wiring are gone.
 ## Offline / Service Worker
 
 - **Service worker** (`src/service-worker.ts`): SvelteKit-native. Cache name
-  `presk-${version}`. On `install` it precaches `build + files + prerendered +
+  `app-${version}`. On `install` it precaches `build + files + prerendered +
 serviceWorkerCodecAssetUrls` (codec WASM/JS via
   `src/lib/service-worker-codec-assets.ts`, merged from generated
-  `app-generated/service-worker/cache-plan` + local probe workers). Strategy:
+  committed `src/shared/codec-assets/service-worker.ts` records + local probe workers). Strategy:
   **cache-first for known asset pathnames, network-first (with cache fallback)**
   for everything else. On `activate` it deletes stale caches and claims clients.
   Result: offline reload on the deployed origin once cached.

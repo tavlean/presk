@@ -221,7 +221,7 @@ Deferred polish/features:
 ## Testing
 
 The app today has a strong Playwright E2E suite (codec/threading/offline) but
-**no unit-test layer**, and the ~2,000-line framework-neutral bulk engine under
+**a Vitest unit layer**, and the framework-neutral bulk engine under
 `src/client/lazy-app/bulk/` has no automated coverage. The full strategy —
 two layers (fast unit tests run always; expensive E2E runs only when codec/build
 files change), the gap analysis, the per-module unit-test plan, E2E additions,

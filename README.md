@@ -29,7 +29,7 @@ There is no upload and no server doing the work. Every step happens in the page,
 
 ## Status
 
-Maintained and ready for everyday single-image work. Bulk optimization and a multi-format compare view are next ([roadmap](docs/road-map.md), [live status](docs/STATUS.md)).
+Maintained and ready for everyday single-image and bulk optimization work. Bulk Phase 2 and 2b shipped on 2026-07-03; next bulk work is Phase 3 overrides polish, with multi-format compare after that ([roadmap](docs/road-map.md), [live status](docs/STATUS.md)).
 
 ## Browser support
 
@@ -43,8 +43,8 @@ Node 24.12 or newer and npm 11 or newer (see [.nvmrc](.nvmrc)).
 npm install
 npm run dev      # dev server
 npm run build    # static production build
-npm run check    # format, codegen, svelte-check, build, asset audit
-npm test         # check plus Playwright
+npm run check    # typecheck, production build, static-output audit
+npm test         # check, unit tests, Playwright e2e
 ```
 
 ## Docs
