@@ -132,9 +132,12 @@ Do a minimal middle slice, then Phase 3, and defer the full refactor.**
   consumes it for dots/resets. Single-image panels stay untouched (their
   mirror/`apply()` pattern is unaffected), so the frozen localStorage wire
   format and parity are safe.
-- Maintainer decisions needed before the slice: do Phase-3 dots/resets cover
-  **all visible controls or only headline ones**, and is an "override path" a
-  **human control id** (recommended) or a raw codec field?
+- ~~Maintainer decisions needed before the slice~~ **RESOLVED 2026-07-07**
+  (decided during the first-principles execution session; maintainer may veto —
+  rationale in [specs/2026-07-07-first-principles-execution.md](specs/2026-07-07-first-principles-execution.md)
+  §WS-G): dots/resets cover **all visible controls**, and an override path is
+  a **human control id**. The slice's engine/registry/UI spec lives in that
+  WS-G section; this doc remains the design rationale.
 
 The full model (steps 1–5 above) remains worthwhile but should follow Phase 3;
 its blast radius (all five panels + OptionsPanel + history/persist behavior)
