@@ -1,4 +1,4 @@
-import { expose } from 'comlink';
+import { expose, transfer } from 'comlink';
 import { createAvifDecoderRuntime } from 'features/decoders/avif/worker/runtime';
 import avifDecoder from 'app-generated/codecs/avif/dec/avif_dec';
 import { createAvifEncoderRuntime } from 'features/encoders/avif/worker/runtime';
@@ -242,10 +242,20 @@ function rotateWith(wasmUrls: RotateWasmUrls): ReturnType<typeof createRotate> {
   return rotate;
 }
 
+const transferBuffer = async (p: Promise<ArrayBuffer>) => {
+  const b = await p;
+  return transfer(b, [b]);
+};
+
+const transferImage = async (p: Promise<ImageData>) => {
+  const i = await p;
+  return transfer(i, [i.data.buffer]);
+};
+
 const workerApi = {
   avifDecode(blob: Blob, wasmUrls: AvifWasmUrls): Promise<ImageData> {
     locateCodecWasm({ avif: wasmUrls });
-    return decodeAvif(blob);
+    return transferImage(decodeAvif(blob));
   },
   avifEncode(
     imageData: ImageData,
@@ -253,7 +263,7 @@ const workerApi = {
     wasmUrls: AvifWasmUrls,
   ): Promise<ArrayBuffer> {
     locateCodecWasm({ avif: wasmUrls });
-    return encodeAvif(imageData, options);
+    return transferBuffer(encodeAvif(imageData, options));
   },
   webpEncode(
     imageData: ImageData,
@@ -261,15 +271,15 @@ const workerApi = {
     wasmUrls: WebpWasmUrls,
   ): Promise<ArrayBuffer> {
     locateCodecWasm({ webp: wasmUrls });
-    return encodeWebp(imageData, options);
+    return transferBuffer(encodeWebp(imageData, options));
   },
   webpDecode(blob: Blob, wasmUrls: WebpWasmUrls): Promise<ImageData> {
     locateCodecWasm({ webp: wasmUrls });
-    return decodeWebp(blob);
+    return transferImage(decodeWebp(blob));
   },
   qoiDecode(blob: Blob, wasmUrls: QoiWasmUrls): Promise<ImageData> {
     locateCodecWasm({ qoi: wasmUrls });
-    return decodeQoi(blob);
+    return transferImage(decodeQoi(blob));
   },
   qoiEncode(
     imageData: ImageData,
@@ -277,11 +287,11 @@ const workerApi = {
     wasmUrls: QoiWasmUrls,
   ): Promise<ArrayBuffer> {
     locateCodecWasm({ qoi: wasmUrls });
-    return encodeQoi(imageData, options);
+    return transferBuffer(encodeQoi(imageData, options));
   },
   jxlDecode(blob: Blob, wasmUrls: JxlWasmUrls): Promise<ImageData> {
     locateCodecWasm({ jxl: wasmUrls });
-    return decodeJxl(blob);
+    return transferImage(decodeJxl(blob));
   },
   jxlEncode(
     imageData: ImageData,
@@ -289,7 +299,7 @@ const workerApi = {
     wasmUrls: JxlWasmUrls,
   ): Promise<ArrayBuffer> {
     locateCodecWasm({ jxl: wasmUrls });
-    return encodeJxl(imageData, options);
+    return transferBuffer(encodeJxl(imageData, options));
   },
   mozjpegEncode(
     imageData: ImageData,
@@ -297,16 +307,18 @@ const workerApi = {
     wasmUrls: MozjpegWasmUrls,
   ): Promise<ArrayBuffer> {
     locateCodecWasm({ mozjpeg: wasmUrls });
-    return encodeMozjpeg(imageData, options);
+    return transferBuffer(encodeMozjpeg(imageData, options));
   },
   oxipngEncode(
     imageData: ImageData,
     options: OxipngEncodeOptions,
     wasmUrls: OxipngWasmUrls,
   ): Promise<ArrayBuffer> {
-    return encodeOxipng(imageData, options, {
-      wasmUrls,
-    });
+    return transferBuffer(
+      encodeOxipng(imageData, options, {
+        wasmUrls,
+      }),
+    );
   },
   quantize(
     imageData: ImageData,
@@ -314,21 +326,21 @@ const workerApi = {
     wasmUrls: ImagequantWasmUrls,
   ): Promise<ImageData> {
     locateCodecWasm({ imagequant: wasmUrls });
-    return quantize(imageData, options);
+    return transferImage(quantize(imageData, options));
   },
   resize(
     imageData: ImageData,
     options: WorkerResizeOptions,
     wasmUrls: ResizeWasmUrls,
   ): Promise<ImageData> {
-    return resize(imageData, options, wasmUrls);
+    return transferImage(resize(imageData, options, wasmUrls));
   },
   rotate(
     data: ImageData,
     options: RotateOptions,
     wasmUrls: RotateWasmUrls,
   ): Promise<ImageData> {
-    return rotateWith(wasmUrls)(data, options);
+    return transferImage(rotateWith(wasmUrls)(data, options));
   },
 };
 
