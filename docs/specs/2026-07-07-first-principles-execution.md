@@ -87,7 +87,7 @@ unit tests green.**
 
 ## WS-B Decoded-source cache (P1) — design fixed, Codex implements
 
-**Status: queued (after WS-A).**
+**Status: ✅ DONE (`3a44a63d`). Amendment during review: #preparedSource takes the pass's own preprocessor snapshot (no live re-read after the decode await). Bulk per-job decode caching remains out of scope (Phase-3 memory design).**
 
 Design (decided, do not re-litigate):
 
@@ -216,7 +216,7 @@ are static), stop and report rather than hand-patching.
 
 ## WS-E Bulk per-slot drain (P9) — design fixed, Codex implements
 
-**Status: queued (small; bundle into the WS-B session).**
+**Status: ✅ DONE (`116928aa`). Known micro-limitation (not a regression — old code behaved the same): a job imported mid-drain waits for the current outer round before an idle slot picks it up.**
 
 Replace `BulkRuntime.run`'s pair-barrier with two independent drain loops:
 
