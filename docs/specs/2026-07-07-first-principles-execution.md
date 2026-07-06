@@ -179,7 +179,12 @@ are static), stop and report rather than hand-patching.
 
 ## WS-D Worker-boundary copies (P2) — staged; (a) today, (b)/(c) specced
 
-**Status: (a) queued · (b) specced · (c) specced.**
+**Status: (a) ✅ DONE (`cf380396`) · (b) FULLY DESIGNED below · (c) FULLY DESIGNED below.**
+(a) bench outcome: outputs byte-identical on every codec/fixture; photo-large
+timing swings (−45%…−58% AND one +40% small-fixture blip) are single-cold-run
+variance per the calibration note — recorded as NO credible regression, no
+speedup claim. The 13-method ownership verification table is in the WS-D
+executor report (scratchpad) and summarized in the commit message.
 
 - **(a) Worker→main transfers.** In the worker entry (post-WS-C:
   `src/worker/codec-worker.ts`), wrap every returned fresh buffer in
