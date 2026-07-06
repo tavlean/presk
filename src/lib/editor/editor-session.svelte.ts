@@ -14,6 +14,7 @@ import { EditorHistory } from './editor-history.svelte';
 import { snackbar } from './snackbar-store.svelte';
 import { isAbortError } from 'client/lazy-app/abort';
 import { APP_NAME } from 'shared/brand';
+import { stableStringify } from 'shared/stable-stringify';
 import {
   defaultPreprocessorState,
   defaultProcessorState,
@@ -71,28 +72,6 @@ const SETTINGS_PERSIST_DELAY = 200;
 const HISTORY_COMMIT_DELAY = 350;
 
 const sideLabel = (index: SideIndex) => (index === 0 ? 'Left' : 'Right');
-
-/**
- * JSON.stringify with sorted object keys, so logically-equal objects produce
- * identical signatures regardless of key insertion order (imported/saved
- * payloads arrive in an order we don't control; plain JSON.stringify would
- * silently turn them into permanent cache misses). Signatures are in-memory
- * only — cache keys and history dedupe — never persisted.
- */
-function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value))
-    return '[' + value.map(stableStringify).join(',') + ']';
-  const record = value as Record<string, unknown>;
-  return (
-    '{' +
-    Object.keys(record)
-      .sort()
-      .map((key) => JSON.stringify(key) + ':' + stableStringify(record[key]))
-      .join(',') +
-    '}'
-  );
-}
 
 /**
  * The canonical OUTPUT-AFFECTING projection of one side's document state: only

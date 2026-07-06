@@ -69,6 +69,7 @@ import {
   getMatchingResizePreset,
   getResizePresetSize,
 } from 'features/processors/resize/client/preset-state';
+import { stableStringify } from 'shared/stable-stringify';
 // Bulk is WebP-locked for the first production pass, so use the CONCRETE WebP option type (which has
 // `quality`/`method`) rather than the wide `EncoderOptions` union (whose members
 // share no common keys — it can't be indexed by encoder-specific fields, and
@@ -117,22 +118,6 @@ export type BulkOverridablePath = 'quality' | 'method';
 const THUMB_MAX = 320;
 
 let sessionCounter = 0;
-
-function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value))
-    return '[' + value.map(stableStringify).join(',') + ']';
-
-  const record = value as Record<string, unknown>;
-  return (
-    '{' +
-    Object.keys(record)
-      .sort()
-      .map((key) => JSON.stringify(key) + ':' + stableStringify(record[key]))
-      .join(',') +
-    '}'
-  );
-}
 
 export function deepEqual(a: unknown, b: unknown): boolean {
   return stableStringify(a) === stableStringify(b);

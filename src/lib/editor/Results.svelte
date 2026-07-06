@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { prettySizeParts } from './pretty-size';
+
   // The result footer of each side's panel: output filesize + a semantic
   // delta badge (green = smaller, red = larger) and the download button.
   // Accent-tinted per side via the inherited --main-theme-color /
@@ -33,22 +35,7 @@
     disabled,
   }: Props = $props();
 
-  // Decimal (SI, base-1000) units with 3 significant figures, matching the
-  // original's Results/pretty-bytes.ts (so displayed sizes are identical).
-  const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  function prettySize(bytes: number): { value: string; unit: string } {
-    if (bytes < 1) return { value: '0', unit: 'B' };
-    const exponent = Math.min(
-      Math.floor(Math.log10(bytes) / 3),
-      SIZE_UNITS.length - 1,
-    );
-    return {
-      value: (bytes / 1000 ** exponent).toPrecision(3),
-      unit: SIZE_UNITS[exponent],
-    };
-  }
-
-  const pretty = $derived(size === null ? null : prettySize(size));
+  const pretty = $derived(size === null ? null : prettySizeParts(size));
   const direction = $derived(
     isOriginal || percent === null || percent === 0
       ? null

@@ -2,6 +2,7 @@ import type {
   EncoderState,
   ProcessorState,
 } from 'client/lazy-app/feature-meta/shared';
+import { stableStringify } from 'shared/stable-stringify';
 
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
@@ -41,16 +42,6 @@ function mergeDeep<T>(base: T, override: DeepPartial<T> | undefined | null): T {
   }
 
   return result as T;
-}
-
-function stableStringify(value: unknown): string {
-  if (!isRecord(value)) return JSON.stringify(value);
-
-  const entries = Object.keys(value)
-    .sort()
-    .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`);
-
-  return `{${entries.join(',')}}`;
 }
 
 function cloneOrNull<T>(value: T): T {

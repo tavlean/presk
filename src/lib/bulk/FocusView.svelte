@@ -4,6 +4,7 @@
   import OptionsPanel from '$lib/editor/OptionsPanel.svelte';
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
   import type { SideFormat } from '$lib/compress';
+  import { prettySize } from '$lib/editor/pretty-size';
   import { bulkStore } from './store.svelte';
   import BatchInfoPanel from './BatchInfoPanel.svelte';
   import FilmStrip from './FilmStrip.svelte';
@@ -126,15 +127,6 @@
 
   // Compact summary figures for the phone summary bar (mirrors BatchInfoPanel).
   const summary = $derived(bulkStore.summary);
-  const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB'];
-  function prettySize(bytes: number): string {
-    if (bytes < 1) return '0 B';
-    const exponent = Math.min(
-      Math.floor(Math.log10(bytes) / 3),
-      SIZE_UNITS.length - 1,
-    );
-    return `${(bytes / 1000 ** exponent).toPrecision(3)} ${SIZE_UNITS[exponent]}`;
-  }
   const summaryOriginal = $derived(
     prettySize(summary.output.totalOriginalSize),
   );

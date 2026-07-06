@@ -17,6 +17,7 @@
   import type { BulkStripItem } from 'client/lazy-app/bulk';
   import { bulkStore } from './store.svelte';
   import DeltaPill from './DeltaPill.svelte';
+  import { prettySize } from '$lib/editor/pretty-size';
 
   interface Props {
     item: BulkStripItem;
@@ -25,18 +26,6 @@
   }
 
   let { item, mode }: Props = $props();
-
-  const SIZE_UNITS = ['B', 'kB', 'MB', 'GB', 'TB'];
-  // Decimal (SI, base-1000), 3 sig figs — matches Results.svelte / BatchInfoPanel
-  // so every size in the app reads identically.
-  function prettySize(bytes: number): string {
-    if (bytes < 1) return '0 B';
-    const exponent = Math.min(
-      Math.floor(Math.log10(bytes) / 3),
-      SIZE_UNITS.length - 1,
-    );
-    return `${(bytes / 1000 ** exponent).toPrecision(3)} ${SIZE_UNITS[exponent]}`;
-  }
 
   const thumbUrl = $derived(bulkStore.thumbs.get(item.id)?.url);
   const processing = $derived(item.statusGroup === 'active');

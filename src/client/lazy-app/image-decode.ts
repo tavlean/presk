@@ -1,5 +1,6 @@
 import { abortable, assertSignal } from './abort';
 import { drawableToImageData } from './util/canvas';
+import { blobToArrayBuffer } from 'shared/blob';
 
 async function decodeImage(url: string): Promise<HTMLImageElement> {
   const img = new Image();
@@ -52,10 +53,6 @@ export function canDecodeImageType(type: string): Promise<boolean> {
   }
 
   return canDecodeCache.get(type)!;
-}
-
-export function blobToArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
-  return new Response(blob).arrayBuffer();
 }
 
 export function blobToText(blob: Blob): Promise<string> {

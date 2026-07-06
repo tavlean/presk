@@ -2,7 +2,7 @@
  * Throw an abort error if a signal is aborted.
  */
 export function assertSignal(signal: AbortSignal) {
-  if (signal.aborted) throw new DOMException('AbortError', 'AbortError');
+  signal.throwIfAborted();
 }
 
 export function isAbortError(err: unknown): err is Error {
