@@ -265,10 +265,12 @@ Slice spec (engine-first, UI-second):
 
 - `src/client/lazy-app/bulk/controls/<codec>.ts` — per-encoder registry:
   `{ id, label, fields: string[], equal?(a,b), apply(source→target) }` for
-  every currently visible control of the 5 encoders (pull the field lists
-  from the option panels; Lossless-style controls own all their coupled
-  fields). Pure data + functions, no UI imports, unit-tested (equal/apply
-  round-trips per control).
+  every currently visible control of the 5 encoders. **The complete control
+  inventory (fields, transforms, couplings, per-panel tables) is in
+  [2026-07-07-ws-g-control-inventory.md](2026-07-07-ws-g-control-inventory.md),
+  including four binding reviewer directives** (mode-overlap rule, UI-only
+  exclusion, shared-field couples, no QOI). Pure data + functions, no UI
+  imports, unit-tested (equal/apply round-trips per control).
 - Engine: same-format encoder overrides become per-control sparse — stored as
   `{ controlIds: string[] }` + the owned raw-field values; merge =
   global options, then apply each overridden control's fields. Format
@@ -287,6 +289,10 @@ is NO, keep the decided mapping); aliases shrink to `engine`, `shared`,
 docs sweep (`docs/build-and-runtime.md`, `AGENTS.md` paths). Gates: full
 `npm run check` + `npm run test:e2e` + `npm run test:unit`. Trivially
 Codex-executable in a fresh session; needs no top-tier presence.
+**The full paint-by-numbers inventory (git-mv list, alias end-state, sed
+patterns, every doc reference) is in
+[2026-07-07-ws-h-rename-inventory.md](2026-07-07-ws-h-rename-inventory.md) —
+apply its delta header (post-A1/post-C state) before starting.**
 
 ---
 
