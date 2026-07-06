@@ -195,7 +195,11 @@ are static), stop and report rather than hand-patching.
   "optimize" sends.
   Gates: `npm run check` + full e2e both browsers (WebKit especially —
   transfer + COEP interactions), `npm run bench` before/after recorded in
-  this doc.
+  this doc. **Bench calibration (2026-07-07):** the harness medians 3 warm
+  runs per fixture but `photo-large` — where transfers matter most — is 1
+  cold run, and encode time dwarfs clone time on the small fixtures. So the
+  bench gate proves NO REGRESSION (±12% time tolerance); a headline speedup
+  claim belongs to stage (b)'s round-trip elimination.
 - **(b) Composite pipeline op (next session).** New worker method
   `processAndEncode(signal, preprocessed, processorState, encoderState, urls…)`
   running worker-resize → quantize → encode → decode-back in ONE round trip,
