@@ -194,6 +194,17 @@
     overflow: hidden;
     text-decoration: none;
     color: inherit;
+  }
+  /* True squircles where supported (Chromium); the radius is re-tuned upward
+     because superellipse corners read tighter than round ones at the same
+     value. Other engines keep the plain 16px rounding above. */
+  @supports (corner-shape: squircle) {
+    .card {
+      corner-shape: squircle;
+      border-radius: 20px;
+    }
+  }
+  .card {
     transition:
       transform 160ms ease,
       box-shadow 160ms ease,
