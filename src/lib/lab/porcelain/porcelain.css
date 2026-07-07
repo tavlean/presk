@@ -1,0 +1,370 @@
+/*
+ * porcelain — a dev-only LAB re-skin of the single-image editor.
+ *
+ * A light, airy, warm-porcelain workspace: pure-white floating panels with
+ * large soft corners and very diffuse shadows, hairline near-invisible borders,
+ * and a strictly two-level depth language — RAISED (white + hairline + soft
+ * shadow) and INSET (a slightly darker warm-gray recessed track). Color appears
+ * only in tiny semantic moments (side dots, slider fill, delta chip).
+ *
+ * Mechanism: every porcelain value is a `light-dark(lightVal, darkVal)`, and
+ * `.porcelain-root` sets `color-scheme: light dark;` so the OS drives the mode.
+ * The ThemeSwitch forces it via `.force-light` / `.force-dark` on the same root.
+ *
+ * This file is plain CSS (imported alongside theme.css). It does two things:
+ *   1. Defines private `--pc-*` tokens (used by the NEW lab components), and
+ *   2. OVERRIDES the existing token CONTRACT (`--bg-0`, `--surface`, …) under
+ *      `.porcelain-root` so every REUSED editor component re-skins for free,
+ *      plus a handful of targeted selector overrides for dark-hardcoded bits.
+ *
+ * All selectors are scoped under `.porcelain-root`. Component styles compile to
+ * global CSS, so we override their class selectors at higher specificity here.
+ */
+
+.porcelain-root {
+  color-scheme: light dark;
+
+  /* ── Private porcelain palette (light-dark) ──────────────────────────── */
+  --pc-page: light-dark(#f2f1ef, #131315);
+  --pc-panel: light-dark(#ffffff, #1c1c1f);
+  --pc-surface: light-dark(#ffffff, #242428);
+  /* Raised control surface. */
+  --pc-raise: light-dark(#ffffff, #242428);
+  /* Inset recessed track — darker than the panel in both modes. */
+  --pc-inset: light-dark(#ecebe8, #151517);
+  --pc-inset-strong: light-dark(#e3e2de, #101012);
+
+  --pc-border: light-dark(rgba(20, 20, 15, 0.08), rgba(255, 255, 255, 0.08));
+  --pc-border-strong: light-dark(
+    rgba(20, 20, 15, 0.14),
+    rgba(255, 255, 255, 0.16)
+  );
+
+  --pc-text-1: light-dark(#1b1b1f, #f5f5f7);
+  --pc-text-2: light-dark(rgba(27, 27, 31, 0.6), rgba(245, 245, 247, 0.62));
+  --pc-text-3: light-dark(rgba(27, 27, 31, 0.38), rgba(245, 245, 247, 0.38));
+
+  /* Semantics. */
+  --pc-good: light-dark(#1f8a5d, #3ddc97);
+  --pc-bad: light-dark(#c2334b, #ff7d92);
+
+  /* Side accents (coral / azure), brighter in dark. */
+  --pc-accent-1: light-dark(#e4602f, #ff8a5e);
+  --pc-accent-1-hot: light-dark(#d24e1f, #ff6a3c);
+  --pc-accent-2: light-dark(#2276c9, #53b2ff);
+  --pc-accent-2-hot: light-dark(#1a63ad, #2b95f5);
+
+  --pc-focus: light-dark(#2276c9, #53b2ff);
+
+  /* Tooltips stay near-black in BOTH modes. */
+  --pc-tooltip-bg: #222226;
+  --pc-tooltip-text: #ffffff;
+  --pc-tooltip-kbd: rgba(255, 255, 255, 0.55);
+
+  /* Spinner (on inset button surfaces). */
+  --pc-spinner-track: light-dark(
+    rgba(20, 20, 15, 0.18),
+    rgba(255, 255, 255, 0.2)
+  );
+  --pc-spinner-head: light-dark(
+    rgba(20, 20, 15, 0.7),
+    rgba(255, 255, 255, 0.85)
+  );
+
+  /* Two-level shadow language. `light-dark()` accepts exactly two comma-
+     separated arguments, and shadow LAYERS are also comma-separated — so a
+     multi-layer shadow can't live inside light-dark(). We instead switch a
+     single alpha channel per mode and compose the (fixed) layer geometry
+     around it, keeping each light-dark() to two argument-safe color values. */
+  --pc-shadow-c1: light-dark(rgba(20, 20, 15, 0.05), rgba(0, 0, 0, 0.5));
+  --pc-shadow-c2: light-dark(rgba(20, 20, 15, 0.05), rgba(0, 0, 0, 0.35));
+  --pc-shadow-control:
+    0 1px 2px var(--pc-shadow-c1), 0 4px 12px var(--pc-shadow-c2);
+
+  --pc-shadow-p1: light-dark(rgba(20, 20, 15, 0.04), rgba(0, 0, 0, 0.5));
+  --pc-shadow-p2: light-dark(rgba(20, 20, 15, 0.1), rgba(0, 0, 0, 0.4));
+  --pc-shadow-panel:
+    0 2px 6px var(--pc-shadow-p1), 0 16px 40px -8px var(--pc-shadow-p2);
+
+  --pc-shadow-pop: light-dark(rgba(20, 20, 15, 0.12), rgba(0, 0, 0, 0.55));
+  --pc-shadow-popover: 0 12px 32px var(--pc-shadow-pop);
+
+  --pc-inset-shadow: inset 0 1px 2px
+    light-dark(rgba(20, 20, 15, 0.05), rgba(0, 0, 0, 0.35));
+
+  /* ── Bridge the EXISTING contract so reused components re-skin ──────────
+     These names are read (with dark fallbacks) throughout the editor
+     components; overriding them here repaints all of them at once. */
+  --bg-0: var(--pc-page);
+  --bg-1: var(--pc-page);
+  /* SOLID surfaces — kill the dark translucency the studio theme used. */
+  --surface: var(--pc-surface);
+  --surface-solid: var(--pc-panel);
+  --surface-raise: var(--pc-inset);
+  --surface-raise-2: var(--pc-inset-strong);
+  --border: var(--pc-border);
+  --border-strong: var(--pc-border-strong);
+  --text-1: var(--pc-text-1);
+  --text-2: var(--pc-text-2);
+  --text-3: var(--pc-text-3);
+  --good: var(--pc-good);
+  --bad: var(--pc-bad);
+
+  --accent-1: var(--pc-accent-1);
+  --accent-1-hot: var(--pc-accent-1-hot);
+  --accent-1-glow: light-dark(rgba(228, 96, 47, 0.22), rgba(255, 122, 80, 0.3));
+  --accent-2: var(--pc-accent-2);
+  --accent-2-hot: var(--pc-accent-2-hot);
+  --accent-2-glow: light-dark(
+    rgba(34, 118, 201, 0.2),
+    rgba(83, 178, 255, 0.32)
+  );
+
+  --options-radius: 20px;
+  --control-radius: 12px;
+  --panel-shadow: var(--pc-shadow-panel);
+
+  /* The floating value chip / download button use dark text on the accent
+     fill; in porcelain the download button becomes a neutral primary, so keep
+     the chip text readable against the (light-mode) accent. */
+}
+
+.porcelain-root.force-light {
+  color-scheme: light;
+}
+.porcelain-root.force-dark {
+  color-scheme: dark;
+}
+
+/* Per-side accent glow tuning (the base per-side hue mapping lives in
+   theme.css's .options-1 / .options-2 rules; those still resolve because our
+   panels carry those classes). */
+
+/* ── Output canvas backdrop: neutralize the dark-hardcoded stage ──────────
+   Keep the dot grid but drive the fill from the page token and lower the dot
+   alpha for the light workspace. */
+.porcelain-root .output::before {
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(
+      ellipse 120% 90% at 50% 40%,
+      light-dark(rgba(20, 20, 15, 0.03), rgba(255, 255, 255, 0.04)),
+      transparent 70%
+    ),
+    radial-gradient(
+      light-dark(rgba(20, 20, 15, 0.09), rgba(180, 180, 190, 0.28)) 1px,
+      transparent 1.4px
+    );
+}
+.porcelain-root .output.alt-background::before {
+  background-color: light-dark(#ffffff, #d4d4d8);
+}
+
+/* ── Output bottom controls: white raised pills with inset hovers ─────────
+   The component hardcodes dark backdrop-blur fills + rgba(45,45,54) hovers. */
+.porcelain-root .controls .button,
+.porcelain-root .controls .zoom {
+  background-color: var(--pc-surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: var(--pc-border);
+  color: var(--pc-text-2);
+}
+.porcelain-root .controls .button:hover {
+  background: var(--pc-inset);
+  color: var(--pc-text-1);
+}
+.porcelain-root .controls .button.active {
+  background: var(--pc-inset-strong);
+  color: var(--pc-text-1);
+}
+.porcelain-root .controls .button:disabled:hover {
+  background-color: var(--pc-surface);
+  color: var(--pc-text-2);
+}
+.porcelain-root .controls .button-group {
+  box-shadow: var(--pc-shadow-control);
+}
+.porcelain-root .controls .zoom-value {
+  color: var(--pc-text-1);
+  border-bottom-color: var(--pc-border-strong);
+}
+.porcelain-root .controls input.zoom {
+  color: var(--pc-text-1);
+}
+/* Output's view-options popover (opens upward). */
+.porcelain-root .view-options {
+  background-color: var(--pc-surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: var(--pc-border);
+  box-shadow: var(--pc-shadow-popover);
+}
+.porcelain-root .view-option:hover {
+  background: var(--pc-inset);
+  color: var(--pc-text-1);
+}
+.porcelain-root .view-options-trigger.dirty::after {
+  background: var(--main-theme-color);
+}
+
+/* ── Options section labels: NO uppercase tracking in porcelain ───────────
+   (Reused encoder panels emit `.options-title`; drop the studio treatment.) */
+.porcelain-root .options-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pc-text-1);
+  background: transparent;
+  padding: 8px var(--horizontal-padding) 6px;
+}
+.porcelain-root .options-title::before {
+  display: none;
+}
+
+/* ── The section-enabler chips (used by reused ResizeOptions internals) ───
+   Reduce to porcelain inset chips. */
+.porcelain-root .section-enabler {
+  background: var(--pc-inset);
+  border: 1px solid var(--pc-border);
+  border-radius: 12px;
+}
+.porcelain-root .section-enabler:hover {
+  background: var(--pc-inset-strong);
+  border-color: var(--pc-border-strong);
+}
+
+/* ── Reveal rows / advanced sections ──────────────────────────────────── */
+.porcelain-root .option-reveal:hover,
+.porcelain-root .option-reveal:focus-within {
+  background-color: var(--pc-inset);
+  color: var(--pc-text-1);
+}
+
+/* ── Text fields (resize width/height etc.): black bg → inset gray ────────*/
+.porcelain-root .text-field {
+  background-color: var(--pc-inset);
+  border-color: var(--pc-border);
+  color: var(--pc-text-1);
+  border-radius: 9px;
+}
+.porcelain-root .text-field:focus {
+  border-color: var(--pc-focus);
+}
+
+/* ── Reused Select (inside ResizeOptions): recolor dark hardcoded fills ───*/
+.porcelain-root .builtin-select {
+  background: var(--pc-inset);
+  border-color: var(--pc-border);
+  color: var(--pc-text-1);
+  border-radius: 10px;
+}
+.porcelain-root .builtin-select:hover {
+  background: var(--pc-inset-strong);
+  border-color: var(--pc-border-strong);
+}
+.porcelain-root .builtin-select.large {
+  background: var(--pc-raise);
+  box-shadow: var(--pc-shadow-control);
+}
+.porcelain-root .arrow {
+  fill: var(--pc-text-3);
+}
+
+/* ── Reused Toggle switch: iOS-like charcoal-on / inset-off ───────────────
+   The component's track uses rgba white fills + accent-gradient when checked;
+   porcelain wants a neutral near-black ON (near-white in dark). */
+.porcelain-root .checkbox .track {
+  background: var(--pc-inset);
+  box-shadow: var(--pc-inset-shadow);
+}
+.porcelain-root .checkbox .real-checkbox:checked + .track {
+  background: light-dark(#1b1b1f, #f5f5f7);
+  box-shadow: none;
+}
+.porcelain-root .checkbox .thumb {
+  background: light-dark(#ffffff, #ffffff);
+  box-shadow: 0 1px 3px rgba(20, 20, 15, 0.25);
+}
+.porcelain-root .checkbox .real-checkbox:checked + .track .thumb {
+  background: light-dark(#ffffff, #1b1b1f);
+}
+
+/* ── Reused Range: keep accent fill (quality affordance), neutral rail ────
+   The rail's fallback var --medium-light-gray is a white alpha; give it an
+   inset gray so it reads on the light track. The floating value chip keeps the
+   accent fill; ensure its text stays legible. */
+.porcelain-root .range-input::before {
+  background:
+    linear-gradient(
+        90deg,
+        var(--hot-theme-color, #888),
+        var(--main-theme-color, #aaa)
+      )
+      0 / var(--value-percent, 0%) 100% no-repeat,
+    light-dark(rgba(20, 20, 15, 0.12), rgba(255, 255, 255, 0.16));
+}
+.porcelain-root .range .thumb {
+  border-color: light-dark(#ffffff, #1c1c1f);
+  box-shadow: 0 1px 3px rgba(20, 20, 15, 0.28);
+}
+.porcelain-root .range .value-display {
+  color: light-dark(#ffffff, #16161c);
+}
+.porcelain-root .range .text-input {
+  color: var(--pc-text-1);
+}
+.porcelain-root .range .text-input:focus {
+  background: var(--pc-inset);
+}
+
+/* ── Reused Results footer: neutral primary Save, colored delta chip ──────
+   The download button is an accent gradient with dark text; porcelain makes it
+   a charcoal (light) / near-white (dark) neutral primary. The footer strip's
+   dark rgba background must go too (it's applied where LabOptionsPanel wraps
+   Results, but the reused Results has its own `.download`). */
+.porcelain-root .results .file-size {
+  color: var(--pc-text-1);
+}
+.porcelain-root .results .unit {
+  color: var(--pc-text-2);
+}
+.porcelain-root .results .download {
+  background: light-dark(#1b1b1f, #f5f5f7);
+  color: light-dark(#ffffff, #16161c);
+  box-shadow: var(--pc-shadow-control);
+  border-radius: 11px;
+}
+.porcelain-root .results .download:hover {
+  filter: none;
+  background: light-dark(#000000, #ffffff);
+}
+.porcelain-root .results .download.ghost {
+  background: var(--pc-raise);
+  color: var(--pc-text-1);
+  border: 1px solid var(--pc-border);
+  box-shadow: var(--pc-shadow-control);
+}
+.porcelain-root .results .download.ghost:hover {
+  background: var(--pc-inset);
+}
+.porcelain-root .results .spinner {
+  border-color: light-dark(rgba(255, 255, 255, 0.35), rgba(20, 20, 15, 0.3));
+  border-top-color: light-dark(#ffffff, #16161c);
+}
+@supports (corner-shape: squircle) {
+  .porcelain-root .results .download {
+    corner-shape: squircle;
+    border-radius: 13px;
+  }
+}
+
+/* ── Snackbar: it reads --surface / --border / --text-1, so it already
+   re-skins via the bridge. No extra rule needed. */
+
+@media (prefers-reduced-motion: reduce) {
+  .porcelain-root .output::before {
+    transition-duration: 0ms;
+  }
+}
