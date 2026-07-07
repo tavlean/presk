@@ -1,0 +1,778 @@
+/*
+ * darkroom — dev-only LAB re-skin of the single-image editor.
+ *
+ * A dense, quiet PRO TOOL: compact chips, small type, micro-uppercase labels,
+ * hairline separators, monochrome, moderate radii, solid surfaces (no glass /
+ * blur). Both modes share the same geometry + depth logic (raised chip vs inset
+ * field); only the token VALUES invert, expressed with light-dark(). Default is
+ * System; .force-light / .force-dark pin color-scheme.
+ *
+ * Everything is scoped under .darkroom-root. Reused production components are
+ * restyled here by overriding their compiled classes with higher specificity —
+ * .editor-root already hardcodes dark colours in several places, so those need
+ * a token-based override under this scope. No production file is touched.
+ */
+
+.darkroom-root {
+  color-scheme: light dark;
+}
+.darkroom-root.force-light {
+  color-scheme: light;
+}
+.darkroom-root.force-dark {
+  color-scheme: dark;
+}
+
+/* ── Darkroom tokens (every value light-dark(light, dark)) ─────────────────── */
+.darkroom-root {
+  --dr-page: light-dark(#f4f4f3, #161616);
+  --dr-canvas: light-dark(#f4f4f3, #161616);
+  --dr-panel: light-dark(#ffffff, #1d1d1f);
+  --dr-chip: light-dark(#ffffff, #242428);
+  --dr-chip-hover: light-dark(#f6f6f5, #2c2c30);
+  --dr-chip-active: light-dark(#ececea, #2e2e32);
+  --dr-inset: light-dark(#efefed, #111113);
+  --dr-border: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.06));
+  --dr-border-strong: light-dark(
+    rgba(0, 0, 0, 0.14),
+    rgba(255, 255, 255, 0.14)
+  );
+  --dr-text-1: light-dark(#17171a, #ededef);
+  --dr-text-2: light-dark(rgba(23, 23, 26, 0.55), rgba(237, 237, 239, 0.55));
+  --dr-text-3: light-dark(rgba(23, 23, 26, 0.35), rgba(237, 237, 239, 0.35));
+  --dr-ring: light-dark(#17171a, #ffffff);
+  --dr-focus: light-dark(#17171a, #ededef);
+  --dr-good: light-dark(#1f9d63, #3ddc97);
+  --dr-bad: light-dark(#d23a54, #ff7d92);
+
+  /* Chip cluster on the canvas (Output controls). */
+  --dr-canvas-chip: light-dark(#ffffff, rgba(0, 0, 0, 0.55));
+  --dr-canvas-chip-hover: light-dark(#f6f6f5, rgba(0, 0, 0, 0.7));
+  --dr-canvas-chip-ink: light-dark(#17171a, #ffffff);
+  --dr-canvas-chip-border: light-dark(
+    rgba(0, 0, 0, 0.08),
+    rgba(255, 255, 255, 0.14)
+  );
+
+  --dr-shadow-panel: light-dark(
+    0 1px 3px rgba(20, 20, 15, 0.05),
+    0 0 0 rgba(0, 0, 0, 0)
+  );
+  --dr-shadow-pop: light-dark(
+    0 1px 3px rgba(20, 20, 15, 0.05),
+    0 8px 24px rgba(20, 20, 15, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.35)
+  );
+
+  /* Tooltip pill (same in both modes — a dark pill everywhere). */
+  --dr-tip-bg: #222226;
+  --dr-tip-ink: #ffffff;
+  --dr-tip-kbd: rgba(255, 255, 255, 0.55);
+}
+
+/* Layout region reservations for Output's auto-fit (mirrors production's
+   .compress vars: rail on the left, inspector on the right, top bar + filmstrip
+   top/bottom). The rail is thin; the visual left panel is small. */
+.darkroom-root.compress {
+  --panel-inset: 12px;
+  --fit-inset-left: 72px; /* 12px margin + 40px rail + 20px breathing */
+  --fit-inset-right: 296px; /* 272px inspector + 12px margin + 12px gap */
+  --fit-inset-top: 68px; /* top bar */
+  --fit-inset-bottom: 88px; /* filmstrip */
+  background: var(--dr-page);
+}
+
+/* The page background + text baseline for the whole lab route. */
+.darkroom-root {
+  background: var(--dr-page);
+  color: var(--dr-text-1);
+  font-size: 1rem;
+}
+
+/* Drop overlay: neutral dashed frame (kill the coral used in production). */
+.darkroom-root::after {
+  border-color: var(--dr-border-strong) !important;
+  background-color: light-dark(
+    rgba(0, 0, 0, 0.03),
+    rgba(255, 255, 255, 0.03)
+  ) !important;
+}
+
+/* ── Canvas stage ──────────────────────────────────────────────────────────
+   Flatten Output's near-black vignette + dot grid into a plain page-coloured
+   stage (the reference canvas is flat). */
+.darkroom-root .output::before {
+  background-color: var(--dr-canvas) !important;
+  background-image: none !important;
+  transition: background-color 300ms ease;
+}
+.darkroom-root .output.alt-background::before {
+  background-color: light-dark(#ffffff, #0c0c0d) !important;
+}
+
+/* ── Output bottom controls → canvas chip cluster ──────────────────────────
+   Reference: small chips bottom-RIGHT. Re-skin the pill button-group into
+   individual-feeling chips and push the cluster to the right — but reserve the
+   inspector-dock width on the right (it floats above the canvas at a higher
+   stacking level, so a full-width flex-end would tuck the chips underneath it).
+   The cluster lands in the canvas area just left of the inspector, clear of the
+   filmstrip below. */
+.darkroom-root .controls {
+  justify-content: flex-end;
+  padding: 0 var(--fit-inset-right) 0 16px;
+  gap: 8px;
+  bottom: 96px; /* clear the filmstrip */
+}
+
+.darkroom-root .button-group {
+  border-radius: 8px;
+  box-shadow: var(--dr-shadow-panel);
+  overflow: hidden;
+}
+
+.darkroom-root .button,
+.darkroom-root .zoom {
+  height: 28px;
+  background-color: var(--dr-canvas-chip);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: var(--dr-canvas-chip-border);
+  color: var(--dr-canvas-chip-ink);
+  font-size: 0.95rem;
+}
+.darkroom-root .button:hover {
+  background: var(--dr-canvas-chip-hover);
+  color: var(--dr-canvas-chip-ink);
+}
+.darkroom-root .button.active {
+  background: var(--dr-canvas-chip-hover);
+  color: var(--dr-canvas-chip-ink);
+}
+.darkroom-root .button:disabled:hover {
+  background-color: var(--dr-canvas-chip);
+  color: var(--dr-canvas-chip-ink);
+}
+.darkroom-root .first-button {
+  border-radius: 8px 0 0 8px;
+}
+.darkroom-root .last-button {
+  border-radius: 0 8px 8px 0;
+}
+.darkroom-root .zoom {
+  width: 5.5rem;
+}
+.darkroom-root span.zoom {
+  color: var(--dr-text-2);
+}
+.darkroom-root .zoom-value {
+  color: var(--dr-canvas-chip-ink);
+  border-bottom-color: var(--dr-border-strong);
+}
+.darkroom-root input.zoom {
+  color: var(--dr-canvas-chip-ink);
+}
+.darkroom-root .view-options-trigger.dirty::after {
+  background: var(--dr-text-1);
+}
+
+/* View-options popover (opens upward) re-skinned to a solid panel card. */
+.darkroom-root .view-options {
+  background-color: var(--dr-panel);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: var(--dr-border);
+  border-radius: 10px;
+  box-shadow: var(--dr-shadow-pop);
+}
+.darkroom-root .view-option {
+  color: var(--dr-text-2);
+}
+.darkroom-root .view-option:hover {
+  background: var(--dr-chip-hover);
+  color: var(--dr-text-1);
+}
+.darkroom-root .view-option.active {
+  color: var(--dr-text-1);
+}
+.darkroom-root .view-option-state {
+  color: var(--dr-text-3);
+}
+.darkroom-root .view-option.active .view-option-state {
+  color: var(--dr-text-1);
+}
+
+/* ── Fixed inspector dock (right column) ───────────────────────────────────── */
+.darkroom-root .dr-inspector-dock {
+  position: fixed;
+  top: 68px;
+  right: 12px;
+  bottom: 88px;
+  width: 272px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  border: 1px solid var(--dr-border);
+  background: var(--dr-panel);
+  box-shadow: var(--dr-shadow-panel);
+  overflow: hidden;
+}
+
+/* ── Error pill ────────────────────────────────────────────────────────────── */
+.darkroom-root .dr-error-pill {
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 26;
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--dr-border);
+  background: var(--dr-panel);
+  box-shadow: var(--dr-shadow-pop);
+  color: var(--dr-bad);
+  font-weight: 600;
+  font-size: 0.95rem;
+  pointer-events: none;
+  max-width: 60vw;
+}
+
+/* ── Flyout content bits owned by the page ─────────────────────────────────── */
+.darkroom-root .dr-flyout-filename {
+  margin: 0 0 12px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: var(--dr-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.darkroom-root .dr-compare-caption,
+.darkroom-root .dr-original-note {
+  color: var(--dr-text-2);
+}
+.darkroom-root .dr-compare-caption {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+}
+.darkroom-root .dr-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.darkroom-root .dr-compare-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--dr-border);
+  background: var(--dr-chip);
+  color: var(--dr-text-1);
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+.darkroom-root .dr-compare-tile:hover {
+  background: var(--dr-chip-hover);
+  border-color: var(--dr-border-strong);
+}
+.darkroom-root .dr-tile-label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.darkroom-root .dr-tile-ext {
+  font-size: 0.85rem;
+  color: var(--dr-text-3);
+}
+.darkroom-root .dr-compare-active {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: -4px -6px 0;
+}
+.darkroom-root .dr-compare-clear {
+  align-self: flex-start;
+  margin: 0 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--dr-border);
+  background: var(--dr-chip);
+  color: var(--dr-text-2);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.darkroom-root .dr-compare-clear:hover {
+  color: var(--dr-text-1);
+  background: var(--dr-chip-hover);
+}
+
+/* ── No-file state ─────────────────────────────────────────────────────────── */
+.darkroom-root .dr-empty {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.darkroom-root .dr-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 40px 48px;
+  border-radius: 12px;
+  border: 1px solid var(--dr-border);
+  background: var(--dr-panel);
+  box-shadow: var(--dr-shadow-panel);
+  text-align: center;
+}
+.darkroom-root .dr-empty-eyebrow {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dr-text-3);
+}
+.darkroom-root .dr-empty-title {
+  margin: 4px 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--dr-text-1);
+}
+.darkroom-root .dr-empty-caption {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: var(--dr-text-2);
+}
+.darkroom-root .dr-empty-browse {
+  padding: 8px 18px;
+  border-radius: 9px;
+  border: 1px solid var(--dr-border);
+  background: var(--dr-chip);
+  color: var(--dr-text-1);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.darkroom-root .dr-empty-browse:hover {
+  background: var(--dr-chip-hover);
+  border-color: var(--dr-border-strong);
+}
+
+/* ── Shared rail button + generic chip button ──────────────────────────────── */
+.darkroom-root .dr-rail-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--dr-border);
+  background: var(--dr-chip);
+  color: var(--dr-text-2);
+  cursor: pointer;
+  box-shadow: var(--dr-shadow-panel);
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.darkroom-root .dr-rail-btn:hover {
+  color: var(--dr-text-1);
+  background: var(--dr-chip-hover);
+  border-color: var(--dr-border-strong);
+}
+.darkroom-root .dr-rail-btn.active {
+  color: var(--dr-text-1);
+  background: var(--dr-chip-active);
+  border-color: var(--dr-border-strong);
+}
+.darkroom-root .dr-rail-btn:focus-visible {
+  outline: 2px solid var(--dr-focus);
+  outline-offset: 2px;
+}
+.darkroom-root .dr-rail-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.darkroom-root .dr-chip-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  border-radius: 9px;
+  border: 1px solid var(--dr-border);
+  background: var(--dr-chip);
+  color: var(--dr-text-2);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: var(--dr-shadow-panel);
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.darkroom-root .dr-chip-btn:hover {
+  color: var(--dr-text-1);
+  background: var(--dr-chip-hover);
+  border-color: var(--dr-border-strong);
+}
+.darkroom-root .dr-chip-btn.active {
+  color: var(--dr-text-1);
+  background: var(--dr-chip-active);
+}
+.darkroom-root .dr-chip-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+.darkroom-root .dr-chip-btn:focus-visible {
+  outline: 2px solid var(--dr-focus);
+  outline-offset: 2px;
+}
+.darkroom-root .dr-chip-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* ── Tooltips: pure-CSS dark pills, 300ms delay, no title reliance ─────────── */
+.darkroom-root [data-tooltip] {
+  position: relative;
+}
+.darkroom-root [data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  z-index: 60;
+  left: 50%;
+  top: calc(100% + 8px);
+  transform: translateX(-50%) translateY(-3px);
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: var(--dr-tip-bg);
+  color: var(--dr-tip-ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+  transition-delay: 0ms;
+}
+.darkroom-root [data-tooltip]:hover::after,
+.darkroom-root [data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  transition-delay: 300ms;
+}
+/* Rail tooltips sit to the RIGHT of the button (rail is on the far left). */
+.darkroom-root .dr-rail [data-tooltip]::after {
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-3px);
+}
+.darkroom-root .dr-rail [data-tooltip]:hover::after,
+.darkroom-root .dr-rail [data-tooltip]:focus-visible::after {
+  transform: translateY(-50%) translateX(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Restyle the REUSED production option components (compiled classes) into the
+   darkroom's compact 11-12px look. These live in .editor-root scope with
+   hardcoded darks; override under .darkroom-root with token values.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Compact rows: relabel the theme.css grid classes to the tighter darkroom
+   metrics (label-left / control-right, 11-12px, no per-encoder accent). */
+.darkroom-root .editor-root,
+.darkroom-root.editor-root {
+  --horizontal-padding: 14px;
+}
+
+.darkroom-root .option-text-first,
+.darkroom-root .option-one-cell,
+.darkroom-root .option-toggle {
+  padding: 8px 14px;
+  color: var(--dr-text-2);
+  font-size: 1rem;
+}
+.darkroom-root .option-text-first {
+  grid-template-columns: 84px 1fr;
+  gap: 10px;
+}
+.darkroom-root .option-toggle:hover {
+  color: var(--dr-text-1);
+}
+
+/* The Resize/Palette enabler rows aren't used inside the darkroom Inspector
+   (SectionHeader replaces them), but ResizeOptions/QuantizeOptions bodies still
+   render option-* rows — normalise their colours. */
+.darkroom-root .section-enabler {
+  background: var(--dr-chip);
+  border-color: var(--dr-border);
+}
+.darkroom-root .section-enabler:hover {
+  background: var(--dr-chip-hover);
+  border-color: var(--dr-border-strong);
+}
+
+/* Advanced-settings reveal row → hairline section header look. */
+.darkroom-root .option-reveal {
+  border-top-color: var(--dr-border);
+  color: var(--dr-text-2);
+  font-size: 1rem;
+  padding: 10px 14px;
+}
+.darkroom-root .option-reveal:hover,
+.darkroom-root .option-reveal:focus-within {
+  background: var(--dr-chip-hover);
+  color: var(--dr-text-1);
+}
+
+/* Text/number fields → inset chips with right-aligned numerals. */
+.darkroom-root .text-field {
+  background-color: var(--dr-inset);
+  color: var(--dr-text-1);
+  border-color: var(--dr-border);
+  border-radius: 8px;
+  height: 28px;
+  padding: 0 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.darkroom-root .text-field:focus {
+  border-color: var(--dr-border-strong);
+}
+
+/* Select (used inside ResizeOptions: fit method, etc.). */
+.darkroom-root .builtin-select {
+  background: var(--dr-inset);
+  border-color: var(--dr-border);
+  color: var(--dr-text-1);
+  border-radius: 8px;
+  padding: 6px 25px 6px 10px;
+}
+.darkroom-root .builtin-select:hover {
+  background: var(--dr-inset);
+  border-color: var(--dr-border-strong);
+}
+.darkroom-root .builtin-select:focus-visible {
+  border-color: var(--dr-border-strong);
+}
+.darkroom-root .arrow {
+  fill: var(--dr-text-2);
+}
+.darkroom-root .select:hover .arrow {
+  fill: var(--dr-text-1);
+}
+
+/* Range: thin inset track + small monochrome knob, right-aligned number. */
+.darkroom-root .label-text {
+  color: var(--dr-text-2);
+}
+.darkroom-root .range:hover .label-text,
+.darkroom-root .range:focus-within .label-text {
+  color: var(--dr-text-1);
+}
+.darkroom-root .range-input::before {
+  height: 3px;
+  background:
+    var(--dr-text-1) 0 / var(--value-percent, 0%) 100% no-repeat,
+    var(--dr-inset);
+}
+.darkroom-root .thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--dr-ring);
+  border-color: var(--dr-panel);
+  border-width: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.darkroom-root .range-input:focus-within .thumb,
+.darkroom-root .range-input.active .thumb {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.darkroom-root .value-display {
+  background: var(--dr-tip-bg);
+  color: var(--dr-tip-ink);
+}
+.darkroom-root .text-input {
+  color: var(--dr-text-1);
+  text-decoration-color: var(--dr-border-strong);
+}
+.darkroom-root .text-input:focus {
+  background: var(--dr-inset);
+  box-shadow: inset 0 0 0 1px var(--dr-border-strong);
+}
+
+/* Toggle switch: monochrome (no per-side accent) so it reads calm. */
+.darkroom-root .track {
+  background: var(--dr-border-strong);
+}
+.darkroom-root .real-checkbox:checked + .track {
+  background: var(--dr-text-1);
+  box-shadow: none;
+}
+.darkroom-root .checkbox:focus-within .track {
+  outline-color: var(--dr-focus);
+}
+.darkroom-root .real-checkbox:checked + .track .thumb-track .thumb,
+.darkroom-root .track .thumb {
+  background: var(--dr-panel);
+}
+
+/* Checkbox (QuantizeOptions dither, etc.) → monochrome fill. */
+.darkroom-root .box.checked {
+  background: var(--dr-text-1);
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--dr-panel);
+}
+
+/* ── Results footer (reused Results.svelte) ────────────────────────────────── */
+.darkroom-root .results {
+  padding: 10px 14px 12px;
+}
+.darkroom-root .file-size {
+  color: var(--dr-text-1);
+  font-size: 1.4rem;
+}
+.darkroom-root .unit {
+  color: var(--dr-text-2);
+}
+.darkroom-root .type-label {
+  color: var(--dr-text-3);
+}
+.darkroom-root .pending {
+  color: var(--dr-text-3);
+}
+.darkroom-root .delta.down {
+  color: var(--dr-good);
+  background: color-mix(in srgb, var(--dr-good) 14%, transparent);
+}
+.darkroom-root .delta.up {
+  color: var(--dr-bad);
+  background: color-mix(in srgb, var(--dr-bad) 14%, transparent);
+}
+/* Save button → full-width raised chip (like the reference's bottom action). */
+.darkroom-root .results {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.darkroom-root .download {
+  height: 34px;
+  border-radius: 9px;
+  background: var(--dr-chip-active);
+  color: var(--dr-text-1);
+  border: 1px solid var(--dr-border-strong);
+  box-shadow: none;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0 16px;
+}
+.darkroom-root .download:hover {
+  background: var(--dr-chip-hover);
+  filter: none;
+  transform: none;
+  box-shadow: none;
+}
+.darkroom-root .download.ghost {
+  background: var(--dr-chip);
+  color: var(--dr-text-1);
+  border-color: var(--dr-border);
+}
+.darkroom-root .download.ghost:hover {
+  background: var(--dr-chip-hover);
+}
+.darkroom-root .download:focus-visible {
+  outline-color: var(--dr-focus);
+}
+.darkroom-root .download .spinner {
+  border-color: color-mix(in srgb, var(--dr-text-1) 25%, transparent);
+  border-top-color: var(--dr-text-1);
+}
+.darkroom-root .download.ghost .spinner {
+  border-color: color-mix(in srgb, var(--dr-text-1) 25%, transparent);
+  border-top-color: var(--dr-text-1);
+}
+
+/* ── ImageInfoRows re-skin (used in the Info flyout) ───────────────────────── */
+.darkroom-root .rows dt {
+  color: var(--dr-text-3);
+}
+.darkroom-root .rows dd {
+  color: var(--dr-text-1);
+}
+.darkroom-root .rows .chip {
+  background: var(--dr-chip);
+  border-color: var(--dr-border);
+  color: var(--dr-text-1);
+}
+.darkroom-root .rows .row {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--dr-border);
+}
+.darkroom-root .rows .row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* ── Visually-hidden file inputs ───────────────────────────────────────────── */
+.darkroom-root .dr-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Responsive: below 900px, inspector overlays the canvas from the right ──── */
+@media (max-width: 900px) {
+  .darkroom-root.compress {
+    --fit-inset-right: 72px;
+    --fit-inset-bottom: 20px;
+  }
+  .darkroom-root .dr-inspector-dock {
+    bottom: 20px;
+  }
+  .darkroom-root .controls {
+    bottom: 20px;
+    /* The inspector still overlays from the right here (full 272px), so the
+       chips must clear its width even though the auto-fit inset shrank. */
+    padding: 0 296px 0 16px;
+  }
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .darkroom-root *,
+  .darkroom-root *::after,
+  .darkroom-root *::before {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
