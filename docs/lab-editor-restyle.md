@@ -1,11 +1,12 @@
-# Editor re-style lab — porcelain & darkroom (2026-07-07)
+# Editor re-style lab — porcelain, darkroom & hybrid (2026-07-07)
 
-Two dev-only lab experiments exploring a full visual re-skin (and, in the
-second, a re-arrangement) of the single-image editor, each translated from a
-reference screenshot the maintainer supplied in chat. Goal: decide by LOOKING
-— pick a direction (or a hybrid) for the editor's next visual iteration, and
-harvest control/panel patterns for upcoming features (bulk overrides UI,
-keyboard control, theming).
+Three dev-only lab experiments exploring a full visual re-skin (and, in two
+of them, a re-arrangement) of the single-image editor — the first two
+translated from reference screenshots the maintainer supplied in chat, the
+third a maintainer-requested fusion of them. Goal: decide by LOOKING — pick a
+direction for the editor's next visual iteration, and harvest control/panel
+patterns for upcoming features (bulk overrides UI, keyboard control,
+theming). A card-gallery INDEX at `/lab` links all experiments.
 
 Both experiments are REAL editors, not mockups: they instantiate the
 production `EditorSession`, encode with the real pipeline, and show real
@@ -15,9 +16,11 @@ old bulk lab: `prerender=false`, `dev` guard) and `src/lib/lab/<name>/`.
 
 ## How to run
 
-`npm run dev`, then open `/lab/porcelain` and `/lab/darkroom`. Both follow the
-system light/dark preference and have a manual override (porcelain: a
-System|Light|Dark pill bottom-left; darkroom: a sun/moon rail button).
+`npm run dev`, then open **`/lab`** (the card gallery) — or directly
+`/lab/porcelain`, `/lab/darkroom`, `/lab/hybrid`. All follow the system
+light/dark preference and have a manual override (porcelain: a
+System|Light|Dark pill top-right; darkroom & hybrid: a sun/moon rail button
+cycling System→Light→Dark).
 
 ## Theming mechanism (shared idea, new to this app)
 
@@ -74,6 +77,35 @@ Feature mapping (reference → Frisp):
 | Bottom timeline | SESSION FILMSTRIP: real multi-image gallery (add/drop many, click to switch, remove) — a stepping stone toward the bulk-override UI |
 | Canvas corner chips ("4:3", "HQ") | Output's zoom/reset/rotate/view cluster restyled as bottom-right canvas chips |
 
+## Experiment 3 — `hybrid` (darkroom IA in porcelain skin) — RECOMMENDED
+
+The round-2 fusion (maintainer asked for it as a third view after the
+orchestrator recommended it): darkroom's architecture — top brand bar, icon
+rail opening flyouts (Image info / Compare), right inspector, bottom session
+filmstrip — wearing porcelain's warm `light-dark()` tokens, squircles and
+raised/inset depth. Its own signatures beyond the parents:
+
+- Inspector drops darkroom's Adjust/Compress tabs for STACKED collapsible
+  sections: Resize + Reduce palette (eye = real enable), always-on Compress.
+- ONE bottom bar: the canvas zoom cluster is CSS-docked into the filmstrip
+  bar's right end (`right: 24px`, centred in the 64px bar, 290px reserved
+  well) — no stray floating control panels anywhere.
+
+## Round-2 refinements to the parents (same session)
+
+- Porcelain: zoom cluster moved INTO the top toolbar (reference-1 faithful);
+  view-options popover flips downward; theme pill top-right.
+- Both parents: light-mode purity — two-up scrubber, snackbar and
+  ProcessingBadge themed via `light-dark()` (previously hardcoded
+  studio-dark); tooltips stay near-black by design. Darkroom's range track
+  was invisible (invalid non-final background color layer) — fixed with a
+  flat-gradient layer.
+- Squircle convention (maintainer-confirmed): base `border-radius` for every
+  engine + `@supports (corner-shape: squircle)` switching on `corner-shape`
+  with a RE-TUNED (larger) radius — superellipse corners read tighter at the
+  same value. Porcelain + hybrid + the /lab index cards use it; darkroom
+  intentionally keeps standard tight corners (its reference does).
+
 ## Status
 
 - 2026-07-07: both experiments speced by the top-tier session, built by Opus
@@ -86,10 +118,17 @@ Feature mapping (reference → Frisp):
   moved bottom-left → top-right (it collided with the left panel's results
   footer).
 
+- 2026-07-07 round 2 (maintainer follow-up): hybrid built (`fe578225`),
+  `/lab` index gallery (`f1c44129`, squircle cards `544726d7`), porcelain
+  toolbar-dock + both-lab light purity (`ac2d992a`). All verified in dev at
+  1440×900, both modes, real encode flows. `npm run check` clean throughout
+  (corner-shape lint warnings only, `@supports`-gated).
+
 ## Decision
 
-PENDING — maintainer to compare `/lab/porcelain` vs `/lab/darkroom` (both
-modes each) and pick a direction, a hybrid, or neither. Record the outcome
+PENDING — maintainer to compare `/lab/porcelain`, `/lab/darkroom` and
+`/lab/hybrid` (both modes each; start at `/lab`) and pick a direction or a
+mix. The orchestrator's recommendation is **hybrid**. Record the outcome
 here + in the registry row; delete losing lab code (git history keeps it).
 
 ## Ideas harvested while translating (candidates, NOT commitments)

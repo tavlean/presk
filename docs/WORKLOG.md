@@ -151,3 +151,24 @@ root class (`.controls .button`, `.results .download`, `.option-text-first`…)
 after touching editor components while the experiments live. Decision is
 PENDING (maintainer to pick a direction/hybrid); losing lab code should be
 deleted on promotion.
+
+## 2026-07-07 (round 2) — hybrid experiment, /lab index, control docking, light purity
+
+Maintainer follow-up on the re-style lab: (1) `/lab/hybrid` (`fe578225`) —
+darkroom's IA in porcelain's skin; inspector uses STACKED eye-enable
+sections (no tabs) and the canvas zoom cluster is CSS-docked into the bottom
+filmstrip bar (one bar, no stray floating panels). (2) `/lab` card-gallery
+index (`f1c44129` + squircle cards `544726d7`) — pure-CSS vignette cards
+linking all three experiments. (3) Porcelain: zoom cluster moved INTO the
+top toolbar (view-options popover flips downward), theme pill relocated
+top-right. (4) Light-mode purity in both parents (`ac2d992a`): two-up
+scrubber, snackbar, ProcessingBadge de-hardcoded via light-dark(); darkroom
+range track was invisible — a bare color in a non-final background layer
+invalidates the whole shorthand at computed-value time; fixed with a
+flat-gradient fill layer (gotcha worth remembering). Squircle convention
+confirmed by maintainer: @supports (corner-shape: squircle) + re-tuned
+larger radius, plain rounding as fallback. All verified in dev preview both
+modes; check clean. Decision still PENDING (start at /lab; recommendation:
+hybrid). Verification gotcha: getComputedStyle sweeps right after a
+color-scheme flip or HMR reload can return stale values — re-query after
+settling before trusting a dark-background audit.
