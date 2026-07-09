@@ -1220,8 +1220,22 @@ export class BulkStore {
     }
   }
 
+  /** Drop both debounced settings applies (their snapshots are pre-reset/-teardown state). */
+  #clearApplyTimers(): void {
+    if (this.#globalApplyTimer !== null) {
+      clearTimeout(this.#globalApplyTimer);
+      this.#globalApplyTimer = null;
+    }
+    if (this.#selectedApplyTimer !== null) {
+      clearTimeout(this.#selectedApplyTimer);
+      this.#selectedApplyTimer = null;
+    }
+    this.#pendingSelectedApply = null;
+  }
+
   /** Tear down the whole bulk session: cancel, revoke every URL, start fresh. */
   reset(): void {
+    this.#clearApplyTimers();
     this.runtime.cancelProcessing(this);
     this.#finalizePendingRemoval();
     this.#revokeAll();
@@ -1397,10 +1411,7 @@ export class BulkStore {
 
   /** Full teardown (workers + URLs). Call from the route's onMount cleanup. */
   dispose(): void {
-    if (this.#globalApplyTimer !== null) {
-      clearTimeout(this.#globalApplyTimer);
-      this.#globalApplyTimer = null;
-    }
+    this.#clearApplyTimers();
     this.runtime.disposeBridges();
     this.#finalizePendingRemoval();
     this.#revokeAll();
