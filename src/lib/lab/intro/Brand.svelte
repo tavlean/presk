@@ -1,8 +1,11 @@
 <script lang="ts">
   // The frisp lockup for the intro-lab variants: origami-bird mark + lowercase
-  // wordmark. Uses /logo.webp (coral bird, real alpha) in BOTH modes — the
-  // light-mode asset has an opaque near-white square baked in and would show
-  // as a tile on the lab's warm porcelain background.
+  // wordmark. Uses /logo-dark-mode.webp — the GRAPHITE bird (real alpha) — in
+  // BOTH modes: maintainer doctrine 2026-07-10 is graphite-as-main-identity
+  // with the orange/blue accents reserved for rare moments. A light-mode
+  // filter deepens the grey so it holds against the warm porcelain page.
+  // (/logo.webp = the coral bird, now the accent-tier asset;
+  // /logo-light-mode.webp has an opaque tile baked in — never use it here.)
   import { asset } from '$app/paths';
   import { APP_NAME } from 'shared/brand';
 
@@ -15,7 +18,13 @@
 </script>
 
 <span class="brand" style="--brand-size: {size}px">
-  <img class="bird" src={asset('/logo.webp')} alt="" width="176" height="176" />
+  <img
+    class="bird"
+    src={asset('/logo-dark-mode.webp')}
+    alt=""
+    width="176"
+    height="176"
+  />
   <span class="name">{APP_NAME}</span>
 </span>
 
@@ -23,7 +32,7 @@
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: calc(var(--brand-size) * 0.5);
+    gap: calc(var(--brand-size) * 0.35);
     line-height: 1;
   }
   .bird {
@@ -31,6 +40,10 @@
     width: calc(var(--brand-size) * 1.35);
     height: calc(var(--brand-size) * 1.35);
     display: block;
+    /* The steel bird is tuned for dark; deepen it in light so it doesn't
+       wash out on porcelain. light-dark() can't feed a filter's strength
+       directly, so gate on the resolved scheme via a custom property. */
+    filter: brightness(var(--il-bird-brightness, 1)) contrast(1.02);
   }
   .name {
     font-size: var(--brand-size);

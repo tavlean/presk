@@ -211,8 +211,10 @@
   .line-1 {
     color: var(--il-text-1);
   }
+  /* Graphite-first doctrine: the second line whispers in grey; coral appears
+     only as the drag-over ignition (wash + card border). */
   .line-2 {
-    color: var(--il-accent);
+    color: var(--il-text-3);
   }
 
   .subline {

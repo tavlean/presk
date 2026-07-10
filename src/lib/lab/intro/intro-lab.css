@@ -35,11 +35,17 @@
   --il-text-2: light-dark(rgba(26, 26, 30, 0.62), rgba(245, 245, 247, 0.64));
   --il-text-3: light-dark(rgba(26, 26, 30, 0.4), rgba(245, 245, 247, 0.4));
 
-  /* Brand accents — coral is the voice, azure the whisper. */
+  /* Brand accents. Doctrine (maintainer, 2026-07-10): graphite is the main
+     identity; coral/azure appear RARELY — interaction ignitions and at most
+     one deliberate moment per page, never structural color. */
   --il-accent: light-dark(#e4602f, #ff8a5e);
   --il-accent-hot: light-dark(#d24e1f, #ff6a3c);
   --il-accent-2: light-dark(#2276c9, #53b2ff);
   --il-good: light-dark(#1f8a5d, #3ddc97);
+
+  /* The graphite bird (see Brand.svelte) is tuned for dark surfaces; in
+     light mode it's darkened via filter so it anchors on porcelain. */
+  --il-bird-brightness: light-dark(0.62, 1);
 
   --il-focus: light-dark(#2276c9, #53b2ff);
 

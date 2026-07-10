@@ -290,8 +290,10 @@
     letter-spacing: -0.03em;
   }
 
+  /* Graphite-first doctrine: the emphasis word recedes to grey; coral stays
+     reserved for the drag-over ignition on the panel. */
   h1 span {
-    color: var(--il-accent);
+    color: var(--il-text-3);
   }
 
   .subline {

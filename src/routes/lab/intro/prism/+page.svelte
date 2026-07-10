@@ -7,7 +7,7 @@
   // file is touched; +page.ts opts this subtree out of prerender/SSR and we
   // hard-guard on `dev` below.
   import { dev } from '$app/environment';
-  import { asset, resolve } from '$app/paths';
+  import { resolve } from '$app/paths';
   import { APP_NAME } from 'shared/brand';
   import { IntroDropDemo } from '$lib/lab/intro/drop-demo.svelte';
   import Brand from '$lib/lab/intro/Brand.svelte';
@@ -128,13 +128,6 @@
 
         {#if demo.hasFiles}
           <div class="stage-inner accepted">
-            <img
-              class="mark accepted-mark"
-              src={asset('/logo.webp')}
-              alt=""
-              width="56"
-              height="56"
-            />
             <p class="summary">{demo.summary}</p>
             <ul class="filelist">
               {#each shownFiles as item (item.relativePath ?? item.file.name)}
@@ -160,14 +153,7 @@
             onclick={stageClick}
             aria-label="Drop images here, or click to browse files"
           >
-            <img
-              class="mark"
-              src={asset('/logo.webp')}
-              alt=""
-              width="104"
-              height="104"
-            />
-            <span class="tray"><Icon name="drop-tray" size={26} /></span>
+            <span class="tray"><Icon name="drop-tray" size={40} /></span>
             <span class="drop-title">
               {demo.dragActive ? 'Release to add' : 'Drag & drop images'}
             </span>
@@ -419,14 +405,10 @@
     appearance: none;
   }
 
-  .mark {
-    width: clamp(72px, 9vw, 104px);
-    height: auto;
-    filter: drop-shadow(0 10px 30px rgba(255, 122, 80, 0.28));
-  }
   .tray {
     display: inline-grid;
-    color: var(--il-text-2);
+    color: var(--il-text-1);
+    opacity: 0.85;
   }
   .drop-title {
     font-size: 17px;
@@ -455,10 +437,6 @@
   /* Accepted state — same footprint, no jump. */
   .accepted {
     gap: 10px;
-  }
-  .accepted-mark {
-    width: 56px;
-    filter: none;
   }
   .summary {
     margin: 0;
