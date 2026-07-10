@@ -4,6 +4,7 @@
   // compact button a variant places INSIDE its own header layout. It only
   // reports the mode up; the page toggles force-light/force-dark on its
   // .intro-lab-root, and light-dark() does the rest.
+  import Icon from './Icon.svelte';
 
   export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -32,34 +33,11 @@
   onclick={() => onchange(next[value])}
 >
   {#if value === 'light'}
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <circle cx="10" cy="10" r="4" fill="currentColor" />
-      <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-        <path d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2" />
-        <path
-          d="M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M15.8 4.2l-1.4 1.4M5.6 14.4l-1.4 1.4"
-        />
-      </g>
-    </svg>
+    <Icon name="theme-sun" size={17} />
   {:else if value === 'dark'}
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path
-        d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z"
-        fill="currentColor"
-      />
-    </svg>
+    <Icon name="theme-moon" size={17} />
   {:else}
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <circle
-        cx="10"
-        cy="10"
-        r="7"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-      />
-      <path d="M10 3a7 7 0 0 1 0 14z" fill="currentColor" />
-    </svg>
+    <Icon name="theme-auto" size={17} />
   {/if}
 </button>
 
@@ -90,10 +68,5 @@
     color: var(--il-text-1);
     border-color: var(--il-border-strong);
     background: var(--il-surface);
-  }
-  .theme-toggle svg {
-    width: 17px;
-    height: 17px;
-    display: block;
   }
 </style>
