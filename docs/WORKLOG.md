@@ -4,6 +4,28 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-10 (later) — intro-page lab: four landing variants
+
+Maintainer-requested lab experiment: the landing screen as a minimal
+full-viewport single section (drop area + tiny header/footer, light+dark).
+Scaffold (orchestrator-authored): `src/lib/lab/intro/` tokens + IntroDropDemo
+(REAL production import path, reactive dragActive, stubbed editor handoff) +
+ThemeToggle + Nucleo duotone icon set (`Icon.svelte`, currentColor exports
+from the local Nucleo library). Variants (parallel delegated builds, each one
+self-contained +page.svelte, orchestrator-reviewed + icon-retrofitted):
+`/lab/intro/billboard` (statement headline + floating card), `frame`
+(viewport-as-drop-zone viewfinder, marching dashes), `split` (editorial
+asymmetry + canvas-generated try-a-sample PNGs), `ledger` (typographic
+privacy ledger). Design grounded in Mobbin references (V7/Shuttle/Shade).
+All four verified live in both modes; split's sample click produced a real
+507 kB PNG through the accept path. Doc: `docs/lab-intro-page.md`
+(registry row added). Decision PENDING; commits `477c2f1d` + `01ed6333`.
+Gotchas: the /lab index's old `labRoute` type-widening hack died once all
+routes existed — plain `resolve()` literals now; an SVG used as a full-bleed
+frame needs an explicit CSS box (inset alone leaves it at intrinsic 300×150);
+the Nucleo "photos" pinwheel reads as the Apple Photos brand at display sizes
+— use the plain image glyph instead.
+
 ## 2026-07-10 — Whole-project quality pass (fable-pass)
 
 Deep senior pass over the production code (labs excluded by design — decision
