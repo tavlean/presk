@@ -37,8 +37,9 @@
       vignette: 'intro',
       tag: null,
       tagline:
-        'Five takes on the landing screen — minimal full-viewport drop area, tiny header + footer.',
-      caption: 'billboard · frame · split · ledger · prism — all light + dark',
+        'Six takes on the landing screen — minimal full-viewport drop area, tiny header + footer.',
+      caption:
+        'billboard · frame · split · ledger · prism · showcase — light + dark',
     },
   ] as const;
 </script>

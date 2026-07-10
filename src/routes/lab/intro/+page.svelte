@@ -31,7 +31,13 @@
       name: 'prism',
       href: resolve('/lab/intro/prism'),
       tagline:
-        'Three-zone hero — headline left, luminous prismatic drop stage around the bird, trust column right.',
+        'Three-zone hero — headline left, luminous prismatic drop stage, trust column right.',
+    },
+    {
+      name: 'showcase',
+      href: resolve('/lab/intro/showcase'),
+      tagline:
+        'The hero IS the app — drop an image on the framed UI and it morphs into the real editor, already encoding.',
     },
   ] as const;
 </script>

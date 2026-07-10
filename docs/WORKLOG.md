@@ -38,6 +38,22 @@ tile) and adopted by all five headers. Ledger re-composed onto a single
 a synchronous DOM read right after .click() misses the update and fakes a
 "broken toggle"; wait a tick before asserting.
 
+Round 3 (same day): (1) GRAPHITE identity — new `/logo-dark-mode.webp` steel
+bird adopted as the main mark in Brand.svelte for BOTH modes (light mode
+darkens it via `--il-bird-brightness` filter token); permanent coral demoted
+to grey in billboard ("Nothing uploaded.") and split ("locally."); ledger's
+"never" + drag ignitions stay as the rare accents. Prism: bird removed from
+the drop stage (header-only), lockup gap tightened. (2) SIXTH variant
+`/lab/intro/showcase` (Opus build, orchestrator-verified end-to-end): hero
+features a CSS-mock app window that is a live drop target; on accept it
+feeds the REAL EditorSession and FLIP-morphs (measured rect → fullscreen,
+480ms) into the production editor composition (Output + panels + undo/redo,
+styles ported from routes/+page.svelte) — encode runs DURING the animation;
+Back fades home and clears the session. Verified personally: synthetic drop
+→ morph → real 265 kB PNG → 1.70 kB WebP ↓99% → Back restores the hero.
+Gotcha: full-page screenshots composite fixed overlays at partial opacity
+(ghost header) — trust elementFromPoint over the stitched capture.
+
 ## 2026-07-10 — Whole-project quality pass (fable-pass)
 
 Deep senior pass over the production code (labs excluded by design — decision
