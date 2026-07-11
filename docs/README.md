@@ -1,6 +1,6 @@
 # Frisp Docs — map, registry & work order
 
-Last updated: 2026-07-11.
+Last updated: 2026-07-12.
 
 The single hub for all project docs: the **work priority order** plus the
 **registry** of every doc with explicit "read when" / "update when" triggers.
@@ -35,7 +35,7 @@ time-pressure (security); everything else is value/effort.
 | # | Track | Plan | Status | Why |
 |---|-------|------|--------|-----|
 | ✓ | **Wire threaded MT runtime** | [threading-enablement.md](threading-enablement.md) | **✅ DONE** | **oxipng, AVIF, JXL all thread multi-core** — full worker pool in Chromium, no fallback in WebKit, verified, ST fallback intact. oxipng needed a shared-memory build fix; AVIF/JXL needed the `?url`/`mainScriptUrlOrBlob` wiring **+ a `PTHREAD_POOL_SIZE` rebuild** (the `_mt` builds deadlocked spawning pthreads on-demand). |
-| 2 | **Investigate new codecs** | [new-codec-investigation.md](new-codec-investigation.md) | 🟡 Partly decided | SVGO/HEIC still undecided; **jpegli and JPEG→JXL transcode were DECIDED 2026-07-11** (specs below) — the doc's skip verdicts are superseded. |
+| 2 | **Investigate new codecs** | [new-codec-investigation.md](new-codec-investigation.md) | 🟡 Partly decided | HEIC still undecided; **jpegli and JPEG→JXL transcode were DECIDED 2026-07-11** (specs below); **SVG got a full analysis 2026-07-12** — [svg-optimization-analysis.md](svg-optimization-analysis.md), maintainer decision pending. |
 | 3 | **Bulk optimization** | [specs/2026-07-02-bulk-phase-2-promotion.md](specs/2026-07-02-bulk-phase-2-promotion.md) | ✅ Phase 2 + 2b done (2026-07-03) | **Top product priority (maintainer, 2026-07-02).** Design phase COMPLETE (all questions decided — [bulk-ui-design-options.md](bulk-ui-design-options.md)); Phase 2 production bulk shipped on the main route with ZIP export, folder import, remove+Undo, and bulk e2e coverage. Phase 2b left panel also shipped: shared image info by default, **Compare as…** for opt-in A/B. Next: Phase 3 overrides polish, starting with the options-model minimal slice first (see [codec-options-model.md](codec-options-model.md) sequencing analysis). Multi-Format Compare follows bulk ([road-map.md](road-map.md)). |
 | 4 | **Codec batch 2026-07** | [jxl 0.12](specs/2026-07-11-libjxl-0-12-upgrade.md) · [jpegli](specs/2026-07-11-jpegli-codec.md) · [JPEG→JXL](specs/2026-07-11-jpeg-to-jxl-transcode.md) · [auto-quality](specs/2026-07-11-auto-quality-mode.md) | ⚪ Specced | Maintainer-approved 2026-07-11. Order: jxl upgrade (isolated branch) → jpegli → transcode (blocked on jxl) → auto-quality. Queues behind bulk Phase 3; each spec is Codex-executable. CLI decision pending ([frisp-cli-analysis.md](frisp-cli-analysis.md)). |
 | ✓ | **Codec security rebuilds** | [codec-build-notes.md](codec-build-notes.md) · [codec-upgrade-audit.md](codec-upgrade-audit.md) | **✅ DONE** | All 7 codecs upgraded natively, merged into `main` (CVEs fixed; some faster). The engineering record is `codec-build-notes.md`; the runbooks/audit are now reference records. |
@@ -72,6 +72,7 @@ Every project doc: what it holds, when to **read** it, when to **update** it.
 | [codec-options-model.md](codec-options-model.md) | Design proposal for a unified codec-options model. Minimal slice started; includes the 2026-07-02 Phase-3 sequencing analysis (minimal slice first). | Working the options-model project or bulk Phase 3. | Progress on that project, or the codec option surface changes. |
 | [keyboard-control.md](keyboard-control.md) | Design proposal for Figma-style app-wide keyboard control (single-key actions, digit value entry, shortcut overlay). Proposed 2026-07-02; build after bulk Phase 2 + 2b. | Designing or building keyboard shortcuts. | Keymap decisions are made, or any keyboard handler is added/changed. |
 | [new-codec-investigation.md](new-codec-investigation.md) | Researched-but-not-added candidates (SVGO, HEIC, jpegli…). | Investigating or adding a new codec. | A candidate is investigated, decided on, or added. |
+| [svg-optimization-analysis.md](svg-optimization-analysis.md) | The 2026-07-12 SVG import/export analysis: SVGO v4 vector-lane design, nano/ImageOptim competitive findings, phased plan (lane → auto candidate search → fonts), open decisions. **Decision PENDING.** | Considering or building SVG support; comparing against nano/ImageOptim. | The maintainer decides, a phase lands, or the optimizer landscape shifts (oxvg/SVGM WASM). |
 | `benchmarks/README.md` · `tests/fixtures/README.md` | The benchmark harness + the test/bench fixture corpus (incl. the 9 fixtures + provenance). | Adding fixtures, changing the bench, reading benchmark methodology. | A fixture is added/changed, the bench harness/baseline changes. |
 
 ### Threading

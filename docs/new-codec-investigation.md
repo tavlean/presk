@@ -1,7 +1,7 @@
 # New-Codec Investigation — Researched, NOT Added
 
-Last updated: 2026-07-11. Status: **investigation record — two verdicts
-superseded (see below); SVGO/HEIC still open.**
+Last updated: 2026-07-12. Status: **investigation record — three verdicts
+superseded (see below); HEIC still open.**
 
 This doc records a research pass on four candidate new codecs/processors that
 came out of the codec audit ([codec-upgrade-audit.md](codec-upgrade-audit.md)
@@ -27,6 +27,13 @@ the app cannot handle today, and it needs no codec toolchain.
 ---
 
 ## 1. SVGO v4 — SVG / vector optimization — **KEEP / do first**
+
+> **SUPERSEDED 2026-07-12 by a full analysis.** A four-agent research pass
+> (nano reverse-engineering, optimizer landscape, techniques, integration
+> audit) produced a phased approach targeting parity with ImageOptim and
+> match-or-beat vs vecta nano:
+> [svg-optimization-analysis.md](svg-optimization-analysis.md). Maintainer
+> decision pending there. The entry below is the original short verdict.
 
 - **What it adds:** Optimizes SVG/vector files, which the raster codec pipeline
   cannot touch at all. Complements the existing codecs rather than competing with

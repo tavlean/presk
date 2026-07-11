@@ -1,0 +1,153 @@
+# SVG Import/Export & Optimization — Analysis and Recommended Approach
+
+Last updated: 2026-07-12. Status: **analysis complete — maintainer decision pending.**
+
+The maintainer's ask (2026-07-12): import SVGs, export optimized SVGs, matching or
+beating his current workflow — **vecta.io/nano** as the default compressor,
+sometimes chained with **ImageOptim** for extra gains. Research was run by four
+parallel agents (nano reverse-engineering, 2026 optimizer landscape, beat-SVGO
+techniques, Frisp integration audit); this doc is the distilled record. All web
+claims below were sourced with citations in the agent reports; load-bearing repo
+facts were verified directly.
+
+## TL;DR — can we match or beat nano + ImageOptim?
+
+**Yes.** Three findings make this tractable:
+
+1. **ImageOptim's SVG engine IS SVGO** (plus svgcleaner — GPL-2.0, archived 2021,
+   license-incompatible and dead). Running the same SVGO v4 in a browser worker
+   gives ImageOptim parity essentially by construction. Its "Lossy minification"
+   toggle maps to SVGO precision reduction, which we can expose with better
+   control (a slider + live preview instead of a blind checkbox).
+2. **Nano's "22% smaller than the competition" claim is stale marketing** — it
+   dates from 2018–2019 against SVGO 1.x, with no published corpus, config, or
+   even a named competitor. SVGO v4 (2025–2026) closed years of gaps; on
+   documented technique-by-technique mapping, almost everything nano does has a
+   stock SVGO v4 plugin equivalent. Nano's real remaining edges are (a) font
+   embedding/subsetting for text-bearing SVGs, (b) embedding-mode profiles
+   (img/object/inline), and (c) per-file visual verification that lets it be
+   aggressive safely.
+3. **The chain "nano then ImageOptim sometimes wins" is a crude candidate
+   search** — two different pipelines, keep the smaller output. That's exactly
+   the mechanism Frisp can industrialize: generate N candidates (precision grid ×
+   plugin sets × single/multipass), render each, gate on pixel diff, keep the
+   smallest by compressed size. Nobody ships this in the open ecosystem (SVGOMG
+   is manual; SVGym is weeks old); Frisp's client-side rendering + compare UI is
+   the natural home for it.
+
+Honest bound: on **text-bearing SVGs with embedded fonts**, nano's font
+subsetting can win big (its own example: 71.3 KB → 20.1 KB of font payload) and
+we won't match that without a font-subsetting phase (deferred). On everything
+else — icons, logos, illustrations, editor exports — SVGO v4 tuned + candidate
+search should match or beat nano, and always match ImageOptim.
+
+## Engine decision
+
+**SVGO v4.0.1** (MIT, active, pure JS) via the official `svgo/browser` ESM entry
+in a **dedicated lazy worker**. ~780 KB raw chunk (much less over the wire).
+Not 4.0.0 — 4.0.1 fixes an XML entity-expansion DoS. Alternatives ruled out:
+
+| Tool | Verdict |
+|---|---|
+| oxvg (Rust→WASM, MIT) | Pre-1.0, incomplete parity; benchmark later, don't build on it |
+| SVGM (Rust, MIT) | Best 2026 benchmark (marginally beats SVGO 4.0.1, 33× faster natively) but **no browser/WASM build**; track it |
+| svgcleaner | Dead (archived 2021) + GPL — excluded |
+| scour | Apache-2.0 but stale (2020) + Python-only — excluded |
+| SVGOMG / online tools | SVGO frontends, not engines; steal UX ideas only |
+
+## Recommended product shape (three phases)
+
+### Phase 1 — the vector lane (ImageOptim parity, nano-competitive)
+
+Frisp **already imports SVG** (rasterizes via `<img>` — `processSvg` in
+[image-pipeline-shared.ts:222](../src/client/lazy-app/image-pipeline-shared.ts);
+bulk accepts `.svg`; the Vector resize method re-renders from source). New work
+is the SVG **output** lane:
+
+- SVG source → right side defaults to **"Optimized SVG"**; raster formats stay
+  available (existing rasterize path untouched). SVG is never offered for
+  raster sources.
+- A separate **vector lane** through the editor, NOT a fake raster encoder:
+  SVG text → SVGO worker → SVG file, rasterized only to feed the existing
+  canvas compare view (render both sides at identical dimensions). The
+  ImageData invariant in compress/processors is left alone.
+- Options panel (replaces Edit section for the SVG format): conservative
+  default = `preset-default` + multipass, **precision slider** (per-plugin
+  mapping: number/path precision with transform precision stepped
+  independently — never uniform), and advanced toggles grouped by risk
+  (safe extras / visually-verify / context-changing / destructive), following
+  the landscape report's grouping. `removeViewBox` never recommended.
+- **Report raw AND gzipped size** (fflate in the worker) — SVGs ship
+  compressed; nano reports both and users compare against that.
+- Bulk: keep rasterizing SVGs in v1 (current behavior, clearer wording);
+  preserve-format bulk is a later, larger design (bulk is one-encoder-shaped).
+
+Key integration facts (verified in-repo): lane-aware side recipe +
+`encodeSide` dispatch in
+[editor-session.svelte.ts](../src/lib/editor/editor-session.svelte.ts);
+signature must hash optimizer options and EXCLUDE raster processor state
+([encode-signature.ts](../src/lib/editor/encode-signature.ts));
+`ResultCache` needs modest generalization; `optionsByFormat` in the frozen
+`app:settings:v3` payload extends backward-compatibly; ZIP export already
+format-agnostic. Full touch-list and risk register live in the integration
+report (agent output, 2026-07-12); the ten weight-bearing files are listed
+there and match this doc.
+
+### Phase 2 — "Auto" candidate search (the differentiator; beats nano on most files)
+
+The vector twin of the already-specced raster auto-quality mode
+([specs/2026-07-11-auto-quality-mode.md](specs/2026-07-11-auto-quality-mode.md)):
+
+- Generate candidates: precision grid (3/5 → 2/4 → 1/3, optional 0/2) ×
+  {single-pass, multipass} × isolated risky plugins (`reusePaths`,
+  `convertStyleToAttrs`, `removeOffCanvasPaths` static-only,
+  `convertPathData.makeArcs`).
+- Visual gate per candidate: render at multiple sizes (16/32/64/256/512 px,
+  1× and 2×) on transparent/white/black, compare with **pixelmatch** (ISC),
+  mismatch normalized by union-of-painted-pixels (not canvas area). Strict
+  gate for icons.
+- Pick the smallest **gzipped** survivor (raw as tie-break); show the diff in
+  the existing compare UI so "lossy but verified" is a first-class, honest
+  state — better than nano's opaque 1%-warning.
+- Embedding-mode profiles (nano's best transferable idea): Static image /
+  Inline / Interactive presets controlling scripts, IDs, title/desc,
+  dimensions.
+
+### Phase 3 — only if benchmarks demand (deferred)
+
+- **Font subsetting** for text-bearing SVGs (the one place nano keeps a real
+  edge). Big: shaping, glyph closure, WOFF2, license flags (`fsType`). Needs
+  WASM (HarfBuzz-class). Separate project.
+- **Lossy curve refitting** (paper.js `simplify` / fit-curve) as an explicit
+  "simplify paths" control — potentially beats nano on traced/over-sampled
+  art; never part of default optimization.
+
+### Verification
+
+A small SVG corpus in the existing benchmark culture: stratified fixtures
+(icons/logos/illustrations/editor-exports/adversarial), compare Frisp
+conservative + auto vs saved nano and ImageOptim outputs (hash + settings
+recorded — nano is a hosted moving target), report raw/gzip/Brotli + visual
+status, win/tie/loss. This is what makes "matches or beats nano" a claim
+instead of a hope.
+
+## Open maintainer decisions
+
+1. **Service-worker policy for the SVGO chunk**: precache (~780 KB raw on every
+   install, keeps the full offline promise) vs runtime-cache on first SVG use
+   (recommended: SVG users are a subset; document "SVG optimizer is
+   offline-ready after first use").
+2. **Phase 2 scope**: ship Phase 1 alone first, or 1+2 together (recommend 1
+   then 2 — Phase 1 is independently shippable and validates the lane).
+3. Priority vs the queued codec batch (jxl 0.12 → jpegli → transcode →
+   auto-quality) and bulk Phase 3.
+
+## Related
+
+- [new-codec-investigation.md](new-codec-investigation.md) — the original SVGO
+  candidate entry (this doc supersedes its "still open" verdict analysis-wise).
+- [specs/2026-07-11-auto-quality-mode.md](specs/2026-07-11-auto-quality-mode.md)
+  — raster sibling of the Phase-2 candidate-search concept.
+- Agent reports (session scratchpad, 2026-07-12): nano reverse-engineering,
+  optimizer landscape, techniques, integration audit — cited sources for every
+  external claim above.
