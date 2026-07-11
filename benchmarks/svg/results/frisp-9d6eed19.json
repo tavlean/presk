@@ -1,0 +1,3763 @@
+{
+  "date": "2026-07-11T22:22:20.810Z",
+  "sha": "9d6eed19",
+  "corpusCount": 215,
+  "records": [
+    {
+      "path": "adversarial/bom-comments.svg",
+      "stratum": "adversarial",
+      "inputBytes": 130,
+      "inputGzipBytes": 134,
+      "safe": {
+        "rawBytes": 95,
+        "gzipBytes": 105,
+        "ms": 128.2
+      },
+      "auto": {
+        "rawBytes": 95,
+        "gzipBytes": 105,
+        "winner": "p3",
+        "verified": true,
+        "ms": 102.1
+      }
+    },
+    {
+      "path": "adversarial/clip-transform.svg",
+      "stratum": "adversarial",
+      "inputBytes": 208,
+      "inputGzipBytes": 179,
+      "safe": {
+        "rawBytes": 205,
+        "gzipBytes": 177,
+        "ms": 5.5
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/compound-evenodd.svg",
+      "stratum": "adversarial",
+      "inputBytes": 109,
+      "inputGzipBytes": 121,
+      "safe": {
+        "rawBytes": 109,
+        "gzipBytes": 122,
+        "ms": 2.1
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/compound-nonzero.svg",
+      "stratum": "adversarial",
+      "inputBytes": 109,
+      "inputGzipBytes": 120,
+      "safe": {
+        "rawBytes": 89,
+        "gzipBytes": 104,
+        "ms": 1.5
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/css-media-query.svg",
+      "stratum": "adversarial",
+      "inputBytes": 193,
+      "inputGzipBytes": 170,
+      "safe": {
+        "rawBytes": 186,
+        "gzipBytes": 172,
+        "ms": 11.3
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/css-vars-selectors.svg",
+      "stratum": "adversarial",
+      "inputBytes": 174,
+      "inputGzipBytes": 166,
+      "safe": {
+        "rawBytes": 173,
+        "gzipBytes": 160,
+        "ms": 4.6
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/embedded-raster.svg",
+      "stratum": "adversarial",
+      "inputBytes": 218,
+      "inputGzipBytes": 193,
+      "safe": {
+        "rawBytes": 218,
+        "gzipBytes": 194,
+        "ms": 2.6
+      },
+      "auto": {
+        "rawBytes": 218,
+        "gzipBytes": 194,
+        "winner": "p3",
+        "verified": true,
+        "ms": 104.5
+      }
+    },
+    {
+      "path": "adversarial/filter-blur.svg",
+      "stratum": "adversarial",
+      "inputBytes": 153,
+      "inputGzipBytes": 142,
+      "safe": {
+        "rawBytes": 153,
+        "gzipBytes": 143,
+        "ms": 1.8
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/filter-color-matrix.svg",
+      "stratum": "adversarial",
+      "inputBytes": 197,
+      "inputGzipBytes": 161,
+      "safe": {
+        "rawBytes": 192,
+        "gzipBytes": 160,
+        "ms": 2.1
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/foreign-object.svg",
+      "stratum": "adversarial",
+      "inputBytes": 167,
+      "inputGzipBytes": 143,
+      "safe": {
+        "rawBytes": 166,
+        "gzipBytes": 143,
+        "ms": 1.2
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/gradient-reference.svg",
+      "stratum": "adversarial",
+      "inputBytes": 222,
+      "inputGzipBytes": 172,
+      "safe": {
+        "rawBytes": 199,
+        "gzipBytes": 163,
+        "ms": 2
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/hidden-elements.svg",
+      "stratum": "adversarial",
+      "inputBytes": 153,
+      "inputGzipBytes": 145,
+      "safe": {
+        "rawBytes": 67,
+        "gzipBytes": 84,
+        "ms": 2.2
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/huge-coordinates.svg",
+      "stratum": "adversarial",
+      "inputBytes": 111,
+      "inputGzipBytes": 110,
+      "safe": {
+        "rawBytes": 111,
+        "gzipBytes": 108,
+        "ms": 1
+      },
+      "auto": {
+        "rawBytes": 111,
+        "gzipBytes": 108,
+        "winner": "p3",
+        "verified": true,
+        "ms": 210.8
+      }
+    },
+    {
+      "path": "adversarial/mask.svg",
+      "stratum": "adversarial",
+      "inputBytes": 229,
+      "inputGzipBytes": 166,
+      "safe": {
+        "rawBytes": 205,
+        "gzipBytes": 165,
+        "ms": 2.4
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/negative-viewbox.svg",
+      "stratum": "adversarial",
+      "inputBytes": 157,
+      "inputGzipBytes": 148,
+      "safe": {
+        "rawBytes": 140,
+        "gzipBytes": 144,
+        "ms": 2.1
+      },
+      "auto": {
+        "rawBytes": 140,
+        "gzipBytes": 144,
+        "winner": "p3",
+        "verified": true,
+        "ms": 113.6
+      }
+    },
+    {
+      "path": "adversarial/path-command-mix.svg",
+      "stratum": "adversarial",
+      "inputBytes": 136,
+      "inputGzipBytes": 133,
+      "safe": {
+        "rawBytes": 129,
+        "gzipBytes": 120,
+        "ms": 3.3
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/physical-units.svg",
+      "stratum": "adversarial",
+      "inputBytes": 129,
+      "inputGzipBytes": 125,
+      "safe": {
+        "rawBytes": 125,
+        "gzipBytes": 126,
+        "ms": 1.7
+      },
+      "auto": {
+        "rawBytes": 124,
+        "gzipBytes": 126,
+        "winner": "p1",
+        "verified": true,
+        "ms": 117.4
+      }
+    },
+    {
+      "path": "adversarial/script-handlers.svg",
+      "stratum": "adversarial",
+      "inputBytes": 152,
+      "inputGzipBytes": 135,
+      "safe": {
+        "rawBytes": 157,
+        "gzipBytes": 142,
+        "ms": 1.8
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/smil-animate.svg",
+      "stratum": "adversarial",
+      "inputBytes": 166,
+      "inputGzipBytes": 151,
+      "safe": {
+        "rawBytes": 166,
+        "gzipBytes": 151,
+        "ms": 1.6
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/symbol-use.svg",
+      "stratum": "adversarial",
+      "inputBytes": 160,
+      "inputGzipBytes": 147,
+      "safe": {
+        "rawBytes": 154,
+        "gzipBytes": 144,
+        "ms": 2.2
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/text-font.svg",
+      "stratum": "adversarial",
+      "inputBytes": 131,
+      "inputGzipBytes": 136,
+      "safe": {
+        "rawBytes": 131,
+        "gzipBytes": 135,
+        "ms": 2
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/tiny-coordinates.svg",
+      "stratum": "adversarial",
+      "inputBytes": 125,
+      "inputGzipBytes": 120,
+      "safe": {
+        "rawBytes": 92,
+        "gzipBytes": 103,
+        "ms": 2.4
+      },
+      "auto": {
+        "rawBytes": 91,
+        "gzipBytes": 103,
+        "winner": "p2",
+        "verified": true,
+        "ms": 136.8
+      }
+    },
+    {
+      "path": "adversarial/use-defs-chain.svg",
+      "stratum": "adversarial",
+      "inputBytes": 179,
+      "inputGzipBytes": 144,
+      "safe": {
+        "rawBytes": 172,
+        "gzipBytes": 142,
+        "ms": 3.3
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/viewbox-only.svg",
+      "stratum": "adversarial",
+      "inputBytes": 103,
+      "inputGzipBytes": 111,
+      "safe": {
+        "rawBytes": 103,
+        "gzipBytes": 109,
+        "ms": 1.4
+      },
+      "auto": {
+        "rawBytes": 103,
+        "gzipBytes": 109,
+        "winner": "p3",
+        "verified": true,
+        "ms": 169.5
+      }
+    },
+    {
+      "path": "adversarial/xlink-use.svg",
+      "stratum": "adversarial",
+      "inputBytes": 162,
+      "inputGzipBytes": 132,
+      "safe": {
+        "rawBytes": 158,
+        "gzipBytes": 132,
+        "ms": 2.8
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "editor-exports/figma-01.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 930,
+      "inputGzipBytes": 462,
+      "safe": {
+        "rawBytes": 770,
+        "gzipBytes": 415,
+        "ms": 4
+      },
+      "auto": {
+        "rawBytes": 751,
+        "gzipBytes": 406,
+        "winner": "p1",
+        "verified": true,
+        "ms": 197.7
+      }
+    },
+    {
+      "path": "editor-exports/figma-02.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 930,
+      "inputGzipBytes": 461,
+      "safe": {
+        "rawBytes": 770,
+        "gzipBytes": 414,
+        "ms": 3.7
+      },
+      "auto": {
+        "rawBytes": 751,
+        "gzipBytes": 405,
+        "winner": "p1",
+        "verified": true,
+        "ms": 247.1
+      }
+    },
+    {
+      "path": "editor-exports/figma-03.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 931,
+      "inputGzipBytes": 460,
+      "safe": {
+        "rawBytes": 771,
+        "gzipBytes": 414,
+        "ms": 3.9
+      },
+      "auto": {
+        "rawBytes": 766,
+        "gzipBytes": 412,
+        "winner": "p2",
+        "verified": true,
+        "ms": 188.8
+      }
+    },
+    {
+      "path": "editor-exports/figma-04.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 931,
+      "inputGzipBytes": 462,
+      "safe": {
+        "rawBytes": 771,
+        "gzipBytes": 416,
+        "ms": 3.6
+      },
+      "auto": {
+        "rawBytes": 766,
+        "gzipBytes": 413,
+        "winner": "p2",
+        "verified": true,
+        "ms": 239.3
+      }
+    },
+    {
+      "path": "editor-exports/figma-05.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 931,
+      "inputGzipBytes": 462,
+      "safe": {
+        "rawBytes": 771,
+        "gzipBytes": 415,
+        "ms": 6.3
+      },
+      "auto": {
+        "rawBytes": 752,
+        "gzipBytes": 406,
+        "winner": "p1",
+        "verified": true,
+        "ms": 886.4
+      }
+    },
+    {
+      "path": "editor-exports/figma-06.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 932,
+      "inputGzipBytes": 460,
+      "safe": {
+        "rawBytes": 772,
+        "gzipBytes": 415,
+        "ms": 4.6
+      },
+      "auto": {
+        "rawBytes": 767,
+        "gzipBytes": 413,
+        "winner": "p2",
+        "verified": true,
+        "ms": 217.9
+      }
+    },
+    {
+      "path": "editor-exports/figma-07.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 932,
+      "inputGzipBytes": 463,
+      "safe": {
+        "rawBytes": 772,
+        "gzipBytes": 413,
+        "ms": 4.9
+      },
+      "auto": {
+        "rawBytes": 753,
+        "gzipBytes": 406,
+        "winner": "p1",
+        "verified": true,
+        "ms": 239.8
+      }
+    },
+    {
+      "path": "editor-exports/figma-08.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 932,
+      "inputGzipBytes": 461,
+      "safe": {
+        "rawBytes": 772,
+        "gzipBytes": 416,
+        "ms": 4.7
+      },
+      "auto": {
+        "rawBytes": 767,
+        "gzipBytes": 413,
+        "winner": "p2",
+        "verified": true,
+        "ms": 228
+      }
+    },
+    {
+      "path": "editor-exports/illustrator-01.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 525,
+      "inputGzipBytes": 391,
+      "safe": {
+        "rawBytes": 334,
+        "gzipBytes": 254,
+        "ms": 7.4
+      },
+      "auto": {
+        "rawBytes": 334,
+        "gzipBytes": 254,
+        "winner": "p3",
+        "verified": true,
+        "ms": 172.3
+      }
+    },
+    {
+      "path": "editor-exports/illustrator-02.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 525,
+      "inputGzipBytes": 390,
+      "safe": {
+        "rawBytes": 334,
+        "gzipBytes": 254,
+        "ms": 4.9
+      },
+      "auto": {
+        "rawBytes": 334,
+        "gzipBytes": 254,
+        "winner": "p3",
+        "verified": true,
+        "ms": 205.9
+      }
+    },
+    {
+      "path": "editor-exports/illustrator-03.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 525,
+      "inputGzipBytes": 391,
+      "safe": {
+        "rawBytes": 334,
+        "gzipBytes": 255,
+        "ms": 3.8
+      },
+      "auto": {
+        "rawBytes": 334,
+        "gzipBytes": 255,
+        "winner": "p3",
+        "verified": true,
+        "ms": 257.4
+      }
+    },
+    {
+      "path": "editor-exports/illustrator-04.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 526,
+      "inputGzipBytes": 392,
+      "safe": {
+        "rawBytes": 335,
+        "gzipBytes": 255,
+        "ms": 5.2
+      },
+      "auto": {
+        "rawBytes": 335,
+        "gzipBytes": 255,
+        "winner": "p3",
+        "verified": true,
+        "ms": 210.3
+      }
+    },
+    {
+      "path": "editor-exports/illustrator-05.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 526,
+      "inputGzipBytes": 392,
+      "safe": {
+        "rawBytes": 335,
+        "gzipBytes": 254,
+        "ms": 5.8
+      },
+      "auto": {
+        "rawBytes": 335,
+        "gzipBytes": 254,
+        "winner": "p3",
+        "verified": true,
+        "ms": 209
+      }
+    },
+    {
+      "path": "editor-exports/illustrator-06.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 526,
+      "inputGzipBytes": 392,
+      "safe": {
+        "rawBytes": 335,
+        "gzipBytes": 254,
+        "ms": 10.5
+      },
+      "auto": {
+        "rawBytes": 335,
+        "gzipBytes": 254,
+        "winner": "p3",
+        "verified": true,
+        "ms": 211.2
+      }
+    },
+    {
+      "path": "editor-exports/illustrator-07.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 526,
+      "inputGzipBytes": 391,
+      "safe": {
+        "rawBytes": 335,
+        "gzipBytes": 254,
+        "ms": 6.7
+      },
+      "auto": {
+        "rawBytes": 335,
+        "gzipBytes": 254,
+        "winner": "p3",
+        "verified": true,
+        "ms": 222.6
+      }
+    },
+    {
+      "path": "editor-exports/illustrator-08.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 526,
+      "inputGzipBytes": 392,
+      "safe": {
+        "rawBytes": 335,
+        "gzipBytes": 255,
+        "ms": 7.6
+      },
+      "auto": {
+        "rawBytes": 335,
+        "gzipBytes": 255,
+        "winner": "p3",
+        "verified": true,
+        "ms": 279.2
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-01.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 665,
+      "inputGzipBytes": 406,
+      "safe": {
+        "rawBytes": 264,
+        "gzipBytes": 215,
+        "ms": 9.9
+      },
+      "auto": {
+        "rawBytes": 264,
+        "gzipBytes": 215,
+        "winner": "p3",
+        "verified": true,
+        "ms": 335.1
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-02.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 665,
+      "inputGzipBytes": 407,
+      "safe": {
+        "rawBytes": 264,
+        "gzipBytes": 216,
+        "ms": 8.6
+      },
+      "auto": {
+        "rawBytes": 264,
+        "gzipBytes": 216,
+        "winner": "p3",
+        "verified": true,
+        "ms": 369.2
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-03.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 665,
+      "inputGzipBytes": 407,
+      "safe": {
+        "rawBytes": 264,
+        "gzipBytes": 217,
+        "ms": 10.7
+      },
+      "auto": {
+        "rawBytes": 264,
+        "gzipBytes": 217,
+        "winner": "p3",
+        "verified": true,
+        "ms": 379.8
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-04.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 667,
+      "inputGzipBytes": 407,
+      "safe": {
+        "rawBytes": 266,
+        "gzipBytes": 215,
+        "ms": 8
+      },
+      "auto": {
+        "rawBytes": 266,
+        "gzipBytes": 215,
+        "winner": "p3",
+        "verified": true,
+        "ms": 751.6
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-05.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 667,
+      "inputGzipBytes": 407,
+      "safe": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "ms": 22.4
+      },
+      "auto": {
+        "rawBytes": 238,
+        "gzipBytes": 198,
+        "winner": "p0+convertStyleToAttrs",
+        "verified": true,
+        "ms": 533.6
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-06.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 667,
+      "inputGzipBytes": 408,
+      "safe": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "ms": 5.1
+      },
+      "auto": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "winner": "p3",
+        "verified": true,
+        "ms": 316.8
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-07.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 667,
+      "inputGzipBytes": 408,
+      "safe": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "ms": 6.3
+      },
+      "auto": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "winner": "p3",
+        "verified": true,
+        "ms": 309.2
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-08.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 667,
+      "inputGzipBytes": 408,
+      "safe": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "ms": 6
+      },
+      "auto": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "winner": "p3",
+        "verified": true,
+        "ms": 305.7
+      }
+    },
+    {
+      "path": "editor-exports/inkscape-09.svg",
+      "stratum": "editor-exports",
+      "inputBytes": 667,
+      "inputGzipBytes": 408,
+      "safe": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "ms": 7.6
+      },
+      "auto": {
+        "rawBytes": 266,
+        "gzipBytes": 216,
+        "winner": "p3",
+        "verified": true,
+        "ms": 314
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f308.svg",
+      "stratum": "icons-color",
+      "inputBytes": 733,
+      "inputGzipBytes": 363,
+      "safe": {
+        "rawBytes": 726,
+        "gzipBytes": 368,
+        "ms": 7.6
+      },
+      "auto": {
+        "rawBytes": 613,
+        "gzipBytes": 287,
+        "winner": "p2",
+        "verified": true,
+        "ms": 316
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f30d.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1156,
+      "inputGzipBytes": 573,
+      "safe": {
+        "rawBytes": 1106,
+        "gzipBytes": 554,
+        "ms": 17
+      },
+      "auto": {
+        "rawBytes": 945,
+        "gzipBytes": 520,
+        "winner": "p2",
+        "verified": true,
+        "ms": 277.5
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f389.svg",
+      "stratum": "icons-color",
+      "inputBytes": 3153,
+      "inputGzipBytes": 1330,
+      "safe": {
+        "rawBytes": 2844,
+        "gzipBytes": 1244,
+        "ms": 4.9
+      },
+      "auto": {
+        "rawBytes": 2348,
+        "gzipBytes": 1000,
+        "winner": "p2",
+        "verified": true,
+        "ms": 178.6
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f499.svg",
+      "stratum": "icons-color",
+      "inputBytes": 368,
+      "inputGzipBytes": 261,
+      "safe": {
+        "rawBytes": 367,
+        "gzipBytes": 259,
+        "ms": 3.4
+      },
+      "auto": {
+        "rawBytes": 207,
+        "gzipBytes": 177,
+        "winner": "p1",
+        "verified": true,
+        "ms": 213.3
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f4a1.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1078,
+      "inputGzipBytes": 483,
+      "safe": {
+        "rawBytes": 869,
+        "gzipBytes": 421,
+        "ms": 31.8
+      },
+      "auto": {
+        "rawBytes": 706,
+        "gzipBytes": 368,
+        "winner": "p2",
+        "verified": true,
+        "ms": 164.5
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f525.svg",
+      "stratum": "icons-color",
+      "inputBytes": 822,
+      "inputGzipBytes": 479,
+      "safe": {
+        "rawBytes": 807,
+        "gzipBytes": 477,
+        "ms": 9.9
+      },
+      "auto": {
+        "rawBytes": 599,
+        "gzipBytes": 374,
+        "winner": "p2",
+        "verified": true,
+        "ms": 242.4
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f600.svg",
+      "stratum": "icons-color",
+      "inputBytes": 450,
+      "inputGzipBytes": 272,
+      "safe": {
+        "rawBytes": 448,
+        "gzipBytes": 266,
+        "ms": 11.7
+      },
+      "auto": {
+        "rawBytes": 415,
+        "gzipBytes": 245,
+        "winner": "p1",
+        "verified": true,
+        "ms": 195.7
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f601.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1129,
+      "inputGzipBytes": 543,
+      "safe": {
+        "rawBytes": 956,
+        "gzipBytes": 507,
+        "ms": 9.4
+      },
+      "auto": {
+        "rawBytes": 956,
+        "gzipBytes": 507,
+        "winner": "p3",
+        "verified": true,
+        "ms": 88.8
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f602.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1668,
+      "inputGzipBytes": 751,
+      "safe": {
+        "rawBytes": 1264,
+        "gzipBytes": 630,
+        "ms": 3
+      },
+      "auto": {
+        "rawBytes": 999,
+        "gzipBytes": 491,
+        "winner": "p2",
+        "verified": true,
+        "ms": 132.9
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f603.svg",
+      "stratum": "icons-color",
+      "inputBytes": 526,
+      "inputGzipBytes": 305,
+      "safe": {
+        "rawBytes": 524,
+        "gzipBytes": 300,
+        "ms": 16
+      },
+      "auto": {
+        "rawBytes": 439,
+        "gzipBytes": 260,
+        "winner": "p1",
+        "verified": true,
+        "ms": 138.9
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f604.svg",
+      "stratum": "icons-color",
+      "inputBytes": 920,
+      "inputGzipBytes": 422,
+      "safe": {
+        "rawBytes": 753,
+        "gzipBytes": 385,
+        "ms": 2.3
+      },
+      "auto": {
+        "rawBytes": 519,
+        "gzipBytes": 280,
+        "winner": "p1",
+        "verified": true,
+        "ms": 203.3
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f605.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1010,
+      "inputGzipBytes": 460,
+      "safe": {
+        "rawBytes": 842,
+        "gzipBytes": 426,
+        "ms": 2.9
+      },
+      "auto": {
+        "rawBytes": 594,
+        "gzipBytes": 313,
+        "winner": "p1",
+        "verified": true,
+        "ms": 197.5
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f606.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1058,
+      "inputGzipBytes": 569,
+      "safe": {
+        "rawBytes": 850,
+        "gzipBytes": 465,
+        "ms": 16.1
+      },
+      "auto": {
+        "rawBytes": 600,
+        "gzipBytes": 345,
+        "winner": "p1",
+        "verified": true,
+        "ms": 184.6
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f609.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1183,
+      "inputGzipBytes": 642,
+      "safe": {
+        "rawBytes": 912,
+        "gzipBytes": 500,
+        "ms": 2.3
+      },
+      "auto": {
+        "rawBytes": 610,
+        "gzipBytes": 354,
+        "winner": "p1",
+        "verified": true,
+        "ms": 194.9
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f60a.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1055,
+      "inputGzipBytes": 565,
+      "safe": {
+        "rawBytes": 860,
+        "gzipBytes": 476,
+        "ms": 8.3
+      },
+      "auto": {
+        "rawBytes": 634,
+        "gzipBytes": 330,
+        "winner": "p1",
+        "verified": true,
+        "ms": 255.6
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f60d.svg",
+      "stratum": "icons-color",
+      "inputBytes": 941,
+      "inputGzipBytes": 504,
+      "safe": {
+        "rawBytes": 852,
+        "gzipBytes": 446,
+        "ms": 4.2
+      },
+      "auto": {
+        "rawBytes": 852,
+        "gzipBytes": 446,
+        "winner": "p3",
+        "verified": true,
+        "ms": 99.2
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f60e.svg",
+      "stratum": "icons-color",
+      "inputBytes": 997,
+      "inputGzipBytes": 539,
+      "safe": {
+        "rawBytes": 944,
+        "gzipBytes": 512,
+        "ms": 2.9
+      },
+      "auto": {
+        "rawBytes": 625,
+        "gzipBytes": 364,
+        "winner": "p1",
+        "verified": true,
+        "ms": 211
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f618.svg",
+      "stratum": "icons-color",
+      "inputBytes": 2224,
+      "inputGzipBytes": 1024,
+      "safe": {
+        "rawBytes": 1831,
+        "gzipBytes": 865,
+        "ms": 11.3
+      },
+      "auto": {
+        "rawBytes": 1201,
+        "gzipBytes": 607,
+        "winner": "p2",
+        "verified": true,
+        "ms": 125.8
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f621.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1070,
+      "inputGzipBytes": 554,
+      "safe": {
+        "rawBytes": 881,
+        "gzipBytes": 469,
+        "ms": 2.1
+      },
+      "auto": {
+        "rawBytes": 512,
+        "gzipBytes": 297,
+        "winner": "p1",
+        "verified": true,
+        "ms": 203.6
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f62d.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1318,
+      "inputGzipBytes": 630,
+      "safe": {
+        "rawBytes": 1023,
+        "gzipBytes": 502,
+        "ms": 8.4
+      },
+      "auto": {
+        "rawBytes": 735,
+        "gzipBytes": 364,
+        "winner": "p1",
+        "verified": true,
+        "ms": 244.2
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f680.svg",
+      "stratum": "icons-color",
+      "inputBytes": 677,
+      "inputGzipBytes": 394,
+      "safe": {
+        "rawBytes": 625,
+        "gzipBytes": 361,
+        "ms": 6.3
+      },
+      "auto": {
+        "rawBytes": 485,
+        "gzipBytes": 299,
+        "winner": "p1",
+        "verified": true,
+        "ms": 194.5
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f914.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1573,
+      "inputGzipBytes": 805,
+      "safe": {
+        "rawBytes": 1487,
+        "gzipBytes": 776,
+        "ms": 5.5
+      },
+      "auto": {
+        "rawBytes": 1183,
+        "gzipBytes": 579,
+        "winner": "p2",
+        "verified": true,
+        "ms": 151.9
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f917.svg",
+      "stratum": "icons-color",
+      "inputBytes": 2570,
+      "inputGzipBytes": 1117,
+      "safe": {
+        "rawBytes": 2408,
+        "gzipBytes": 1093,
+        "ms": 3.6
+      },
+      "auto": {
+        "rawBytes": 1860,
+        "gzipBytes": 830,
+        "winner": "p2",
+        "verified": true,
+        "ms": 142.3
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f923.svg",
+      "stratum": "icons-color",
+      "inputBytes": 1658,
+      "inputGzipBytes": 791,
+      "safe": {
+        "rawBytes": 1384,
+        "gzipBytes": 690,
+        "ms": 3.2
+      },
+      "auto": {
+        "rawBytes": 1384,
+        "gzipBytes": 690,
+        "winner": "p3",
+        "verified": true,
+        "ms": 185.4
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f970.svg",
+      "stratum": "icons-color",
+      "inputBytes": 2384,
+      "inputGzipBytes": 994,
+      "safe": {
+        "rawBytes": 1841,
+        "gzipBytes": 831,
+        "ms": 11.9
+      },
+      "auto": {
+        "rawBytes": 1419,
+        "gzipBytes": 633,
+        "winner": "p2",
+        "verified": true,
+        "ms": 165.5
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f973.svg",
+      "stratum": "icons-color",
+      "inputBytes": 2487,
+      "inputGzipBytes": 1188,
+      "safe": {
+        "rawBytes": 2194,
+        "gzipBytes": 1058,
+        "ms": 12.5
+      },
+      "auto": {
+        "rawBytes": 1821,
+        "gzipBytes": 850,
+        "winner": "p2",
+        "verified": true,
+        "ms": 228.8
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f984.svg",
+      "stratum": "icons-color",
+      "inputBytes": 2417,
+      "inputGzipBytes": 1200,
+      "safe": {
+        "rawBytes": 2280,
+        "gzipBytes": 1196,
+        "ms": 5.5
+      },
+      "auto": {
+        "rawBytes": 1702,
+        "gzipBytes": 888,
+        "winner": "p2",
+        "verified": true,
+        "ms": 211.6
+      }
+    },
+    {
+      "path": "icons-color/twemoji-1f9e1.svg",
+      "stratum": "icons-color",
+      "inputBytes": 368,
+      "inputGzipBytes": 260,
+      "safe": {
+        "rawBytes": 367,
+        "gzipBytes": 258,
+        "ms": 3.9
+      },
+      "auto": {
+        "rawBytes": 207,
+        "gzipBytes": 176,
+        "winner": "p1",
+        "verified": true,
+        "ms": 333.8
+      }
+    },
+    {
+      "path": "icons-color/twemoji-2764.svg",
+      "stratum": "icons-color",
+      "inputBytes": 368,
+      "inputGzipBytes": 260,
+      "safe": {
+        "rawBytes": 367,
+        "gzipBytes": 258,
+        "ms": 11.8
+      },
+      "auto": {
+        "rawBytes": 207,
+        "gzipBytes": 176,
+        "winner": "p1",
+        "verified": true,
+        "ms": 284.1
+      }
+    },
+    {
+      "path": "icons-color/twemoji-2b50.svg",
+      "stratum": "icons-color",
+      "inputBytes": 554,
+      "inputGzipBytes": 354,
+      "safe": {
+        "rawBytes": 463,
+        "gzipBytes": 293,
+        "ms": 6.8
+      },
+      "auto": {
+        "rawBytes": 252,
+        "gzipBytes": 186,
+        "winner": "p1",
+        "verified": true,
+        "ms": 158.7
+      }
+    },
+    {
+      "path": "icons-fill/material-account_circle.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 328,
+      "inputGzipBytes": 235,
+      "safe": {
+        "rawBytes": 323,
+        "gzipBytes": 232,
+        "ms": 3
+      },
+      "auto": {
+        "rawBytes": 323,
+        "gzipBytes": 232,
+        "winner": "p3",
+        "verified": true,
+        "ms": 148.2
+      }
+    },
+    {
+      "path": "icons-fill/material-add.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 136,
+      "inputGzipBytes": 138,
+      "safe": {
+        "rawBytes": 134,
+        "gzipBytes": 138,
+        "ms": 16.9
+      },
+      "auto": {
+        "rawBytes": 134,
+        "gzipBytes": 138,
+        "winner": "p3",
+        "verified": true,
+        "ms": 168
+      }
+    },
+    {
+      "path": "icons-fill/material-check_circle.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 217,
+      "inputGzipBytes": 179,
+      "safe": {
+        "rawBytes": 211,
+        "gzipBytes": 172,
+        "ms": 2
+      },
+      "auto": {
+        "rawBytes": 180,
+        "gzipBytes": 155,
+        "winner": "p1",
+        "verified": true,
+        "ms": 233.7
+      }
+    },
+    {
+      "path": "icons-fill/material-close.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 202,
+      "inputGzipBytes": 156,
+      "safe": {
+        "rawBytes": 202,
+        "gzipBytes": 156,
+        "ms": 4.2
+      },
+      "auto": {
+        "rawBytes": 202,
+        "gzipBytes": 156,
+        "winner": "p3",
+        "verified": true,
+        "ms": 164.7
+      }
+    },
+    {
+      "path": "icons-fill/material-delete.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 178,
+      "inputGzipBytes": 165,
+      "safe": {
+        "rawBytes": 173,
+        "gzipBytes": 159,
+        "ms": 6.6
+      },
+      "auto": {
+        "rawBytes": 169,
+        "gzipBytes": 159,
+        "winner": "p1",
+        "verified": true,
+        "ms": 197.3
+      }
+    },
+    {
+      "path": "icons-fill/material-favorite.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 274,
+      "inputGzipBytes": 211,
+      "safe": {
+        "rawBytes": 265,
+        "gzipBytes": 205,
+        "ms": 7.9
+      },
+      "auto": {
+        "rawBytes": 232,
+        "gzipBytes": 184,
+        "winner": "p1",
+        "verified": true,
+        "ms": 221.2
+      }
+    },
+    {
+      "path": "icons-fill/material-home.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 136,
+      "inputGzipBytes": 136,
+      "safe": {
+        "rawBytes": 136,
+        "gzipBytes": 138,
+        "ms": 9.9
+      },
+      "auto": {
+        "rawBytes": 136,
+        "gzipBytes": 138,
+        "winner": "p3",
+        "verified": true,
+        "ms": 211.9
+      }
+    },
+    {
+      "path": "icons-fill/material-info.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 197,
+      "inputGzipBytes": 169,
+      "safe": {
+        "rawBytes": 192,
+        "gzipBytes": 163,
+        "ms": 7.6
+      },
+      "auto": {
+        "rawBytes": 166,
+        "gzipBytes": 148,
+        "winner": "p2",
+        "verified": true,
+        "ms": 205.1
+      }
+    },
+    {
+      "path": "icons-fill/material-lock.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 326,
+      "inputGzipBytes": 231,
+      "safe": {
+        "rawBytes": 315,
+        "gzipBytes": 229,
+        "ms": 1.8
+      },
+      "auto": {
+        "rawBytes": 275,
+        "gzipBytes": 205,
+        "winner": "p2",
+        "verified": true,
+        "ms": 137.7
+      }
+    },
+    {
+      "path": "icons-fill/material-mail.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 209,
+      "inputGzipBytes": 181,
+      "safe": {
+        "rawBytes": 206,
+        "gzipBytes": 176,
+        "ms": 3.8
+      },
+      "auto": {
+        "rawBytes": 192,
+        "gzipBytes": 164,
+        "winner": "p1",
+        "verified": true,
+        "ms": 233.2
+      }
+    },
+    {
+      "path": "icons-fill/material-menu.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 146,
+      "inputGzipBytes": 141,
+      "safe": {
+        "rawBytes": 140,
+        "gzipBytes": 138,
+        "ms": 17.3
+      },
+      "auto": {
+        "rawBytes": 140,
+        "gzipBytes": 138,
+        "winner": "p3",
+        "verified": true,
+        "ms": 190.7
+      }
+    },
+    {
+      "path": "icons-fill/material-pause.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 132,
+      "inputGzipBytes": 137,
+      "safe": {
+        "rawBytes": 126,
+        "gzipBytes": 134,
+        "ms": 2.1
+      },
+      "auto": {
+        "rawBytes": 126,
+        "gzipBytes": 134,
+        "winner": "p3",
+        "verified": true,
+        "ms": 206.2
+      }
+    },
+    {
+      "path": "icons-fill/material-place.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 215,
+      "inputGzipBytes": 176,
+      "safe": {
+        "rawBytes": 213,
+        "gzipBytes": 174,
+        "ms": 7.5
+      },
+      "auto": {
+        "rawBytes": 203,
+        "gzipBytes": 161,
+        "winner": "p1",
+        "verified": true,
+        "ms": 280.8
+      }
+    },
+    {
+      "path": "icons-fill/material-play_arrow.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 114,
+      "inputGzipBytes": 122,
+      "safe": {
+        "rawBytes": 114,
+        "gzipBytes": 123,
+        "ms": 8.8
+      },
+      "auto": {
+        "rawBytes": 114,
+        "gzipBytes": 123,
+        "winner": "p3",
+        "verified": true,
+        "ms": 179.2
+      }
+    },
+    {
+      "path": "icons-fill/material-remove.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 118,
+      "inputGzipBytes": 126,
+      "safe": {
+        "rawBytes": 116,
+        "gzipBytes": 126,
+        "ms": 10.1
+      },
+      "auto": {
+        "rawBytes": 116,
+        "gzipBytes": 126,
+        "winner": "p3",
+        "verified": true,
+        "ms": 222.5
+      }
+    },
+    {
+      "path": "icons-fill/material-search.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 303,
+      "inputGzipBytes": 223,
+      "safe": {
+        "rawBytes": 292,
+        "gzipBytes": 217,
+        "ms": 6.8
+      },
+      "auto": {
+        "rawBytes": 292,
+        "gzipBytes": 217,
+        "winner": "p3",
+        "verified": true,
+        "ms": 116.9
+      }
+    },
+    {
+      "path": "icons-fill/material-settings.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 793,
+      "inputGzipBytes": 422,
+      "safe": {
+        "rawBytes": 779,
+        "gzipBytes": 420,
+        "ms": 3.3
+      },
+      "auto": {
+        "rawBytes": 397,
+        "gzipBytes": 270,
+        "winner": "p1",
+        "verified": true,
+        "ms": 218.4
+      }
+    },
+    {
+      "path": "icons-fill/material-star.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 189,
+      "inputGzipBytes": 167,
+      "safe": {
+        "rawBytes": 189,
+        "gzipBytes": 169,
+        "ms": 3.4
+      },
+      "auto": {
+        "rawBytes": 172,
+        "gzipBytes": 155,
+        "winner": "p1",
+        "verified": true,
+        "ms": 166.9
+      }
+    },
+    {
+      "path": "icons-fill/material-visibility.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 310,
+      "inputGzipBytes": 218,
+      "safe": {
+        "rawBytes": 307,
+        "gzipBytes": 215,
+        "ms": 2.6
+      },
+      "auto": {
+        "rawBytes": 238,
+        "gzipBytes": 186,
+        "winner": "p1",
+        "verified": true,
+        "ms": 186
+      }
+    },
+    {
+      "path": "icons-fill/material-warning.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 151,
+      "inputGzipBytes": 141,
+      "safe": {
+        "rawBytes": 142,
+        "gzipBytes": 137,
+        "ms": 3.7
+      },
+      "auto": {
+        "rawBytes": 142,
+        "gzipBytes": 137,
+        "winner": "p3",
+        "verified": true,
+        "ms": 195
+      }
+    },
+    {
+      "path": "icons-fill/simple-adobeillustrator.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1012,
+      "inputGzipBytes": 563,
+      "safe": {
+        "rawBytes": 987,
+        "gzipBytes": 559,
+        "ms": 3.9
+      },
+      "auto": {
+        "rawBytes": 722,
+        "gzipBytes": 439,
+        "winner": "p2",
+        "verified": true,
+        "ms": 193.1
+      }
+    },
+    {
+      "path": "icons-fill/simple-apple.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 650,
+      "inputGzipBytes": 389,
+      "safe": {
+        "rawBytes": 639,
+        "gzipBytes": 387,
+        "ms": 4.9
+      },
+      "auto": {
+        "rawBytes": 374,
+        "gzipBytes": 257,
+        "winner": "p1",
+        "verified": true,
+        "ms": 287.5
+      }
+    },
+    {
+      "path": "icons-fill/simple-cloudflare.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1178,
+      "inputGzipBytes": 649,
+      "safe": {
+        "rawBytes": 867,
+        "gzipBytes": 492,
+        "ms": 7.4
+      },
+      "auto": {
+        "rawBytes": 624,
+        "gzipBytes": 366,
+        "winner": "p2",
+        "verified": true,
+        "ms": 295.9
+      }
+    },
+    {
+      "path": "icons-fill/simple-css3.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 328,
+      "inputGzipBytes": 251,
+      "safe": {
+        "rawBytes": 299,
+        "gzipBytes": 235,
+        "ms": 9.6
+      },
+      "auto": {
+        "rawBytes": 223,
+        "gzipBytes": 192,
+        "winner": "p1",
+        "verified": true,
+        "ms": 281.3
+      }
+    },
+    {
+      "path": "icons-fill/simple-docker.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1765,
+      "inputGzipBytes": 601,
+      "safe": {
+        "rawBytes": 1772,
+        "gzipBytes": 603,
+        "ms": 8.5
+      },
+      "auto": {
+        "rawBytes": 1375,
+        "gzipBytes": 491,
+        "winner": "p2",
+        "verified": true,
+        "ms": 167.5
+      }
+    },
+    {
+      "path": "icons-fill/simple-figma.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1093,
+      "inputGzipBytes": 425,
+      "safe": {
+        "rawBytes": 1050,
+        "gzipBytes": 413,
+        "ms": 3.6
+      },
+      "auto": {
+        "rawBytes": 1050,
+        "gzipBytes": 413,
+        "winner": "p3",
+        "verified": true,
+        "ms": 142.3
+      }
+    },
+    {
+      "path": "icons-fill/simple-firefox.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1016,
+      "inputGzipBytes": 578,
+      "safe": {
+        "rawBytes": 971,
+        "gzipBytes": 569,
+        "ms": 3.2
+      },
+      "auto": {
+        "rawBytes": 998,
+        "gzipBytes": 580,
+        "winner": "p4",
+        "verified": true,
+        "ms": 206.6
+      }
+    },
+    {
+      "path": "icons-fill/simple-github.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 822,
+      "inputGzipBytes": 458,
+      "safe": {
+        "rawBytes": 811,
+        "gzipBytes": 461,
+        "ms": 11.8
+      },
+      "auto": {
+        "rawBytes": 811,
+        "gzipBytes": 461,
+        "winner": "p3",
+        "verified": true,
+        "ms": 166.6
+      }
+    },
+    {
+      "path": "icons-fill/simple-gitlab.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 573,
+      "inputGzipBytes": 338,
+      "safe": {
+        "rawBytes": 474,
+        "gzipBytes": 296,
+        "ms": 6.3
+      },
+      "auto": {
+        "rawBytes": 278,
+        "gzipBytes": 200,
+        "winner": "p1",
+        "verified": true,
+        "ms": 278.2
+      }
+    },
+    {
+      "path": "icons-fill/simple-googlechrome.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 535,
+      "inputGzipBytes": 338,
+      "safe": {
+        "rawBytes": 513,
+        "gzipBytes": 329,
+        "ms": 8.2
+      },
+      "auto": {
+        "rawBytes": 513,
+        "gzipBytes": 329,
+        "winner": "p3",
+        "verified": true,
+        "ms": 148.2
+      }
+    },
+    {
+      "path": "icons-fill/simple-html5.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 327,
+      "inputGzipBytes": 254,
+      "safe": {
+        "rawBytes": 303,
+        "gzipBytes": 239,
+        "ms": 11.1
+      },
+      "auto": {
+        "rawBytes": 224,
+        "gzipBytes": 192,
+        "winner": "p1",
+        "verified": true,
+        "ms": 198.7
+      }
+    },
+    {
+      "path": "icons-fill/simple-inkscape.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1036,
+      "inputGzipBytes": 594,
+      "safe": {
+        "rawBytes": 1021,
+        "gzipBytes": 596,
+        "ms": 8.7
+      },
+      "auto": {
+        "rawBytes": 1021,
+        "gzipBytes": 596,
+        "winner": "p3",
+        "verified": true,
+        "ms": 195.3
+      }
+    },
+    {
+      "path": "icons-fill/simple-javascript.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 974,
+      "inputGzipBytes": 554,
+      "safe": {
+        "rawBytes": 942,
+        "gzipBytes": 551,
+        "ms": 9.9
+      },
+      "auto": {
+        "rawBytes": 942,
+        "gzipBytes": 551,
+        "winner": "p3",
+        "verified": true,
+        "ms": 176.9
+      }
+    },
+    {
+      "path": "icons-fill/simple-linux.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 5463,
+      "inputGzipBytes": 2532,
+      "safe": {
+        "rawBytes": 5292,
+        "gzipBytes": 2603,
+        "ms": 8
+      },
+      "auto": {
+        "rawBytes": 5292,
+        "gzipBytes": 2603,
+        "winner": "p3",
+        "verified": true,
+        "ms": 169.7
+      }
+    },
+    {
+      "path": "icons-fill/simple-npm.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 317,
+      "inputGzipBytes": 230,
+      "safe": {
+        "rawBytes": 306,
+        "gzipBytes": 225,
+        "ms": 5.5
+      },
+      "auto": {
+        "rawBytes": 274,
+        "gzipBytes": 210,
+        "winner": "p2",
+        "verified": true,
+        "ms": 295.4
+      }
+    },
+    {
+      "path": "icons-fill/simple-reddit.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1233,
+      "inputGzipBytes": 648,
+      "safe": {
+        "rawBytes": 975,
+        "gzipBytes": 542,
+        "ms": 5.8
+      },
+      "auto": {
+        "rawBytes": 975,
+        "gzipBytes": 542,
+        "winner": "p3",
+        "verified": true,
+        "ms": 157.6
+      }
+    },
+    {
+      "path": "icons-fill/simple-safari.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 11844,
+      "inputGzipBytes": 3622,
+      "safe": {
+        "rawBytes": 11166,
+        "gzipBytes": 3612,
+        "ms": 15.4
+      },
+      "auto": {
+        "rawBytes": 11166,
+        "gzipBytes": 3612,
+        "winner": "p3",
+        "verified": true,
+        "ms": 201.4
+      }
+    },
+    {
+      "path": "icons-fill/simple-svelte.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1496,
+      "inputGzipBytes": 627,
+      "safe": {
+        "rawBytes": 1358,
+        "gzipBytes": 582,
+        "ms": 7.5
+      },
+      "auto": {
+        "rawBytes": 1095,
+        "gzipBytes": 477,
+        "winner": "p2",
+        "verified": true,
+        "ms": 266.5
+      }
+    },
+    {
+      "path": "icons-fill/simple-typescript.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 1294,
+      "inputGzipBytes": 679,
+      "safe": {
+        "rawBytes": 1046,
+        "gzipBytes": 581,
+        "ms": 15.7
+      },
+      "auto": {
+        "rawBytes": 845,
+        "gzipBytes": 489,
+        "winner": "p2",
+        "verified": true,
+        "ms": 171.3
+      }
+    },
+    {
+      "path": "icons-fill/simple-vite.svg",
+      "stratum": "icons-fill",
+      "inputBytes": 909,
+      "inputGzipBytes": 460,
+      "safe": {
+        "rawBytes": 879,
+        "gzipBytes": 455,
+        "ms": 3.2
+      },
+      "auto": {
+        "rawBytes": 879,
+        "gzipBytes": 455,
+        "winner": "p3",
+        "verified": true,
+        "ms": 142.2
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-activity.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 369,
+      "inputGzipBytes": 239,
+      "safe": {
+        "rawBytes": 327,
+        "gzipBytes": 226,
+        "ms": 5.2
+      },
+      "auto": {
+        "rawBytes": 327,
+        "gzipBytes": 226,
+        "winner": "p3",
+        "verified": true,
+        "ms": 301
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-alarm.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 471,
+      "inputGzipBytes": 262,
+      "safe": {
+        "rawBytes": 382,
+        "gzipBytes": 250,
+        "ms": 6.5
+      },
+      "auto": {
+        "rawBytes": 380,
+        "gzipBytes": 249,
+        "winner": "p1",
+        "verified": true,
+        "ms": 192.2
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-anchor.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 444,
+      "inputGzipBytes": 268,
+      "safe": {
+        "rawBytes": 377,
+        "gzipBytes": 254,
+        "ms": 5.7
+      },
+      "auto": {
+        "rawBytes": 377,
+        "gzipBytes": 254,
+        "winner": "p3",
+        "verified": true,
+        "ms": 289
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-aperture.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 586,
+      "inputGzipBytes": 318,
+      "safe": {
+        "rawBytes": 450,
+        "gzipBytes": 295,
+        "ms": 8.3
+      },
+      "auto": {
+        "rawBytes": 433,
+        "gzipBytes": 287,
+        "winner": "p2",
+        "verified": true,
+        "ms": 288.7
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-archive.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 508,
+      "inputGzipBytes": 275,
+      "safe": {
+        "rawBytes": 416,
+        "gzipBytes": 259,
+        "ms": 7.9
+      },
+      "auto": {
+        "rawBytes": 416,
+        "gzipBytes": 259,
+        "winner": "p3",
+        "verified": true,
+        "ms": 378
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-award.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 521,
+      "inputGzipBytes": 294,
+      "safe": {
+        "rawBytes": 444,
+        "gzipBytes": 284,
+        "ms": 9.4
+      },
+      "auto": {
+        "rawBytes": 420,
+        "gzipBytes": 271,
+        "winner": "p1",
+        "verified": true,
+        "ms": 226.2
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-bell.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 468,
+      "inputGzipBytes": 277,
+      "safe": {
+        "rawBytes": 407,
+        "gzipBytes": 260,
+        "ms": 6.9
+      },
+      "auto": {
+        "rawBytes": 407,
+        "gzipBytes": 260,
+        "winner": "p3",
+        "verified": true,
+        "ms": 225.5
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-bolt.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 377,
+      "inputGzipBytes": 245,
+      "safe": {
+        "rawBytes": 322,
+        "gzipBytes": 226,
+        "ms": 2.5
+      },
+      "auto": {
+        "rawBytes": 322,
+        "gzipBytes": 226,
+        "winner": "p3",
+        "verified": true,
+        "ms": 237.6
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-bookmark.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 401,
+      "inputGzipBytes": 253,
+      "safe": {
+        "rawBytes": 354,
+        "gzipBytes": 240,
+        "ms": 15
+      },
+      "auto": {
+        "rawBytes": 354,
+        "gzipBytes": 240,
+        "winner": "p3",
+        "verified": true,
+        "ms": 333.1
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-box.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 468,
+      "inputGzipBytes": 254,
+      "safe": {
+        "rawBytes": 358,
+        "gzipBytes": 249,
+        "ms": 6.6
+      },
+      "auto": {
+        "rawBytes": 358,
+        "gzipBytes": 249,
+        "winner": "p3!",
+        "verified": false,
+        "ms": 84.9
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-briefcase.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 547,
+      "inputGzipBytes": 287,
+      "safe": {
+        "rawBytes": 455,
+        "gzipBytes": 271,
+        "ms": 6.5
+      },
+      "auto": {
+        "rawBytes": 452,
+        "gzipBytes": 268,
+        "winner": "p2",
+        "verified": true,
+        "ms": 264
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-calendar.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 542,
+      "inputGzipBytes": 282,
+      "safe": {
+        "rawBytes": 408,
+        "gzipBytes": 262,
+        "ms": 6.3
+      },
+      "auto": {
+        "rawBytes": 408,
+        "gzipBytes": 262,
+        "winner": "p3",
+        "verified": true,
+        "ms": 226.7
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-camera.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 531,
+      "inputGzipBytes": 286,
+      "safe": {
+        "rawBytes": 476,
+        "gzipBytes": 275,
+        "ms": 8.9
+      },
+      "auto": {
+        "rawBytes": 476,
+        "gzipBytes": 275,
+        "winner": "p3",
+        "verified": true,
+        "ms": 259.8
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-chart-bar.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 623,
+      "inputGzipBytes": 279,
+      "safe": {
+        "rawBytes": 521,
+        "gzipBytes": 273,
+        "ms": 6.5
+      },
+      "auto": {
+        "rawBytes": 521,
+        "gzipBytes": 273,
+        "winner": "p3",
+        "verified": true,
+        "ms": 214.2
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-circle.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 386,
+      "inputGzipBytes": 242,
+      "safe": {
+        "rawBytes": 338,
+        "gzipBytes": 227,
+        "ms": 3.9
+      },
+      "auto": {
+        "rawBytes": 338,
+        "gzipBytes": 227,
+        "winner": "p3",
+        "verified": true,
+        "ms": 344.3
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-clock.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 406,
+      "inputGzipBytes": 250,
+      "safe": {
+        "rawBytes": 360,
+        "gzipBytes": 237,
+        "ms": 17.9
+      },
+      "auto": {
+        "rawBytes": 360,
+        "gzipBytes": 237,
+        "winner": "p3",
+        "verified": true,
+        "ms": 209.6
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-cloud.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 602,
+      "inputGzipBytes": 368,
+      "safe": {
+        "rawBytes": 524,
+        "gzipBytes": 338,
+        "ms": 2.6
+      },
+      "auto": {
+        "rawBytes": 427,
+        "gzipBytes": 279,
+        "winner": "p1",
+        "verified": true,
+        "ms": 328.1
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-code.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 412,
+      "inputGzipBytes": 242,
+      "safe": {
+        "rawBytes": 337,
+        "gzipBytes": 230,
+        "ms": 16.2
+      },
+      "auto": {
+        "rawBytes": 337,
+        "gzipBytes": 230,
+        "winner": "p3",
+        "verified": true,
+        "ms": 355.6
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-compass.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 530,
+      "inputGzipBytes": 276,
+      "safe": {
+        "rawBytes": 396,
+        "gzipBytes": 258,
+        "ms": 15.7
+      },
+      "auto": {
+        "rawBytes": 396,
+        "gzipBytes": 258,
+        "winner": "p3",
+        "verified": true,
+        "ms": 259.3
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-crop.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 406,
+      "inputGzipBytes": 246,
+      "safe": {
+        "rawBytes": 361,
+        "gzipBytes": 235,
+        "ms": 26
+      },
+      "auto": {
+        "rawBytes": 361,
+        "gzipBytes": 235,
+        "winner": "p3",
+        "verified": true,
+        "ms": 244.6
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-database.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 468,
+      "inputGzipBytes": 261,
+      "safe": {
+        "rawBytes": 410,
+        "gzipBytes": 244,
+        "ms": 4.8
+      },
+      "auto": {
+        "rawBytes": 410,
+        "gzipBytes": 244,
+        "winner": "p3",
+        "verified": true,
+        "ms": 223.3
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-device-mobile.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 477,
+      "inputGzipBytes": 273,
+      "safe": {
+        "rawBytes": 394,
+        "gzipBytes": 256,
+        "ms": 19.3
+      },
+      "auto": {
+        "rawBytes": 391,
+        "gzipBytes": 254,
+        "winner": "p1",
+        "verified": true,
+        "ms": 287.7
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-download.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 444,
+      "inputGzipBytes": 262,
+      "safe": {
+        "rawBytes": 367,
+        "gzipBytes": 246,
+        "ms": 16
+      },
+      "auto": {
+        "rawBytes": 367,
+        "gzipBytes": 246,
+        "winner": "p3",
+        "verified": true,
+        "ms": 287
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-edit.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 511,
+      "inputGzipBytes": 292,
+      "safe": {
+        "rawBytes": 424,
+        "gzipBytes": 270,
+        "ms": 7.2
+      },
+      "auto": {
+        "rawBytes": 424,
+        "gzipBytes": 270,
+        "winner": "p3",
+        "verified": true,
+        "ms": 189.3
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-eye.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 473,
+      "inputGzipBytes": 284,
+      "safe": {
+        "rawBytes": 382,
+        "gzipBytes": 252,
+        "ms": 23.8
+      },
+      "auto": {
+        "rawBytes": 382,
+        "gzipBytes": 252,
+        "winner": "p3",
+        "verified": true,
+        "ms": 258.6
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-file.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 451,
+      "inputGzipBytes": 267,
+      "safe": {
+        "rawBytes": 397,
+        "gzipBytes": 251,
+        "ms": 3.4
+      },
+      "auto": {
+        "rawBytes": 397,
+        "gzipBytes": 251,
+        "winner": "p3",
+        "verified": true,
+        "ms": 350.1
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-flame.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 582,
+      "inputGzipBytes": 350,
+      "safe": {
+        "rawBytes": 513,
+        "gzipBytes": 334,
+        "ms": 7.6
+      },
+      "auto": {
+        "rawBytes": 464,
+        "gzipBytes": 308,
+        "winner": "p2",
+        "verified": true,
+        "ms": 256.4
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-folder.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 426,
+      "inputGzipBytes": 258,
+      "safe": {
+        "rawBytes": 377,
+        "gzipBytes": 243,
+        "ms": 6.4
+      },
+      "auto": {
+        "rawBytes": 377,
+        "gzipBytes": 243,
+        "winner": "p3",
+        "verified": true,
+        "ms": 309.9
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-heart.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 419,
+      "inputGzipBytes": 261,
+      "safe": {
+        "rawBytes": 370,
+        "gzipBytes": 249,
+        "ms": 4.2
+      },
+      "auto": {
+        "rawBytes": 366,
+        "gzipBytes": 247,
+        "winner": "p2",
+        "verified": true,
+        "ms": 178.2
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-home.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 481,
+      "inputGzipBytes": 272,
+      "safe": {
+        "rawBytes": 412,
+        "gzipBytes": 257,
+        "ms": 5
+      },
+      "auto": {
+        "rawBytes": 412,
+        "gzipBytes": 257,
+        "winner": "p3",
+        "verified": true,
+        "ms": 430.2
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-link.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 515,
+      "inputGzipBytes": 303,
+      "safe": {
+        "rawBytes": 420,
+        "gzipBytes": 278,
+        "ms": 8
+      },
+      "auto": {
+        "rawBytes": 411,
+        "gzipBytes": 275,
+        "winner": "p2",
+        "verified": true,
+        "ms": 198.1
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-lock.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 511,
+      "inputGzipBytes": 287,
+      "safe": {
+        "rawBytes": 439,
+        "gzipBytes": 270,
+        "ms": 5.3
+      },
+      "auto": {
+        "rawBytes": 439,
+        "gzipBytes": 270,
+        "winner": "p3",
+        "verified": true,
+        "ms": 338.4
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-map.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 429,
+      "inputGzipBytes": 255,
+      "safe": {
+        "rawBytes": 348,
+        "gzipBytes": 235,
+        "ms": 7.9
+      },
+      "auto": {
+        "rawBytes": 348,
+        "gzipBytes": 235,
+        "winner": "p3",
+        "verified": true,
+        "ms": 217.4
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-message.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 478,
+      "inputGzipBytes": 274,
+      "safe": {
+        "rawBytes": 395,
+        "gzipBytes": 257,
+        "ms": 4.5
+      },
+      "auto": {
+        "rawBytes": 395,
+        "gzipBytes": 257,
+        "winner": "p3",
+        "verified": true,
+        "ms": 291.8
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-mountain.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 456,
+      "inputGzipBytes": 278,
+      "safe": {
+        "rawBytes": 390,
+        "gzipBytes": 261,
+        "ms": 8
+      },
+      "auto": {
+        "rawBytes": 387,
+        "gzipBytes": 258,
+        "winner": "p2",
+        "verified": true,
+        "ms": 240.8
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-music.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 482,
+      "inputGzipBytes": 263,
+      "safe": {
+        "rawBytes": 400,
+        "gzipBytes": 248,
+        "ms": 6.6
+      },
+      "auto": {
+        "rawBytes": 400,
+        "gzipBytes": 248,
+        "winner": "p3",
+        "verified": true,
+        "ms": 378.4
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-palette.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 677,
+      "inputGzipBytes": 348,
+      "safe": {
+        "rawBytes": 545,
+        "gzipBytes": 317,
+        "ms": 23.8
+      },
+      "auto": {
+        "rawBytes": 545,
+        "gzipBytes": 317,
+        "winner": "p3",
+        "verified": true,
+        "ms": 185.1
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-photo.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 562,
+      "inputGzipBytes": 301,
+      "safe": {
+        "rawBytes": 481,
+        "gzipBytes": 281,
+        "ms": 4.1
+      },
+      "auto": {
+        "rawBytes": 452,
+        "gzipBytes": 271,
+        "winner": "p1",
+        "verified": true,
+        "ms": 372.8
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-player-play.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 363,
+      "inputGzipBytes": 234,
+      "safe": {
+        "rawBytes": 321,
+        "gzipBytes": 222,
+        "ms": 7.1
+      },
+      "auto": {
+        "rawBytes": 321,
+        "gzipBytes": 222,
+        "winner": "p3",
+        "verified": true,
+        "ms": 504
+      }
+    },
+    {
+      "path": "icons-stroke/tabler-stack.svg",
+      "stratum": "icons-stroke",
+      "inputBytes": 398,
+      "inputGzipBytes": 241,
+      "safe": {
+        "rawBytes": 333,
+        "gzipBytes": 226,
+        "ms": 4.7
+      },
+      "auto": {
+        "rawBytes": 333,
+        "gzipBytes": 226,
+        "winner": "p3",
+        "verified": true,
+        "ms": 333.5
+      }
+    },
+    {
+      "path": "illustrations/healthicons-agriculture-worker.svg",
+      "stratum": "illustrations",
+      "inputBytes": 2107,
+      "inputGzipBytes": 945,
+      "safe": {
+        "rawBytes": 1206,
+        "gzipBytes": 644,
+        "ms": 32.7
+      },
+      "auto": {
+        "rawBytes": 1522,
+        "gzipBytes": 806,
+        "winner": "p4",
+        "verified": true,
+        "ms": 260.9
+      }
+    },
+    {
+      "path": "illustrations/healthicons-ambulance.svg",
+      "stratum": "illustrations",
+      "inputBytes": 1665,
+      "inputGzipBytes": 771,
+      "safe": {
+        "rawBytes": 803,
+        "gzipBytes": 423,
+        "ms": 9.1
+      },
+      "auto": {
+        "rawBytes": 752,
+        "gzipBytes": 411,
+        "winner": "p2",
+        "verified": true,
+        "ms": 216.3
+      }
+    },
+    {
+      "path": "illustrations/healthicons-ambulatory-clinic.svg",
+      "stratum": "illustrations",
+      "inputBytes": 529,
+      "inputGzipBytes": 349,
+      "safe": {
+        "rawBytes": 374,
+        "gzipBytes": 276,
+        "ms": 4.7
+      },
+      "auto": {
+        "rawBytes": 340,
+        "gzipBytes": 250,
+        "winner": "p1",
+        "verified": true,
+        "ms": 264.6
+      }
+    },
+    {
+      "path": "illustrations/healthicons-child-care.svg",
+      "stratum": "illustrations",
+      "inputBytes": 2247,
+      "inputGzipBytes": 988,
+      "safe": {
+        "rawBytes": 1041,
+        "gzipBytes": 595,
+        "ms": 15.3
+      },
+      "auto": {
+        "rawBytes": 845,
+        "gzipBytes": 497,
+        "winner": "p2",
+        "verified": true,
+        "ms": 312.4
+      }
+    },
+    {
+      "path": "illustrations/healthicons-child-cognition.svg",
+      "stratum": "illustrations",
+      "inputBytes": 5037,
+      "inputGzipBytes": 2098,
+      "safe": {
+        "rawBytes": 2590,
+        "gzipBytes": 1283,
+        "ms": 16.5
+      },
+      "auto": {
+        "rawBytes": 3461,
+        "gzipBytes": 1760,
+        "winner": "p4",
+        "verified": true,
+        "ms": 384.2
+      }
+    },
+    {
+      "path": "illustrations/healthicons-child-program.svg",
+      "stratum": "illustrations",
+      "inputBytes": 4040,
+      "inputGzipBytes": 1663,
+      "safe": {
+        "rawBytes": 1651,
+        "gzipBytes": 805,
+        "ms": 5.5
+      },
+      "auto": {
+        "rawBytes": 1283,
+        "gzipBytes": 560,
+        "winner": "p2",
+        "verified": true,
+        "ms": 217.1
+      }
+    },
+    {
+      "path": "illustrations/healthicons-city-worker.svg",
+      "stratum": "illustrations",
+      "inputBytes": 1079,
+      "inputGzipBytes": 556,
+      "safe": {
+        "rawBytes": 700,
+        "gzipBytes": 420,
+        "ms": 5.5
+      },
+      "auto": {
+        "rawBytes": 505,
+        "gzipBytes": 323,
+        "winner": "p1",
+        "verified": true,
+        "ms": 250.6
+      }
+    },
+    {
+      "path": "illustrations/healthicons-clean-hands.svg",
+      "stratum": "illustrations",
+      "inputBytes": 1345,
+      "inputGzipBytes": 631,
+      "safe": {
+        "rawBytes": 791,
+        "gzipBytes": 487,
+        "ms": 6
+      },
+      "auto": {
+        "rawBytes": 676,
+        "gzipBytes": 421,
+        "winner": "p2",
+        "verified": true,
+        "ms": 277.4
+      }
+    },
+    {
+      "path": "illustrations/healthicons-community-healthworker.svg",
+      "stratum": "illustrations",
+      "inputBytes": 2470,
+      "inputGzipBytes": 1053,
+      "safe": {
+        "rawBytes": 1078,
+        "gzipBytes": 583,
+        "ms": 7.4
+      },
+      "auto": {
+        "rawBytes": 1308,
+        "gzipBytes": 698,
+        "winner": "p4",
+        "verified": true,
+        "ms": 324.2
+      }
+    },
+    {
+      "path": "illustrations/healthicons-construction-worker.svg",
+      "stratum": "illustrations",
+      "inputBytes": 2041,
+      "inputGzipBytes": 902,
+      "safe": {
+        "rawBytes": 916,
+        "gzipBytes": 505,
+        "ms": 9
+      },
+      "auto": {
+        "rawBytes": 767,
+        "gzipBytes": 429,
+        "winner": "p2",
+        "verified": true,
+        "ms": 211.7
+      }
+    },
+    {
+      "path": "illustrations/healthicons-cpr.svg",
+      "stratum": "illustrations",
+      "inputBytes": 1206,
+      "inputGzipBytes": 594,
+      "safe": {
+        "rawBytes": 641,
+        "gzipBytes": 383,
+        "ms": 9.3
+      },
+      "auto": {
+        "rawBytes": 502,
+        "gzipBytes": 303,
+        "winner": "p1",
+        "verified": true,
+        "ms": 347.5
+      }
+    },
+    {
+      "path": "illustrations/healthicons-crisis-response_center_person.svg",
+      "stratum": "illustrations",
+      "inputBytes": 1807,
+      "inputGzipBytes": 729,
+      "safe": {
+        "rawBytes": 867,
+        "gzipBytes": 477,
+        "ms": 9.9
+      },
+      "auto": {
+        "rawBytes": 732,
+        "gzipBytes": 413,
+        "winner": "p1",
+        "verified": true,
+        "ms": 243.3
+      }
+    },
+    {
+      "path": "illustrations/healthicons-doctor-female.svg",
+      "stratum": "illustrations",
+      "inputBytes": 2656,
+      "inputGzipBytes": 1194,
+      "safe": {
+        "rawBytes": 1492,
+        "gzipBytes": 818,
+        "ms": 14.3
+      },
+      "auto": {
+        "rawBytes": 833,
+        "gzipBytes": 483,
+        "winner": "p1",
+        "verified": true,
+        "ms": 260.3
+      }
+    },
+    {
+      "path": "illustrations/healthicons-doctor-male.svg",
+      "stratum": "illustrations",
+      "inputBytes": 2747,
+      "inputGzipBytes": 1227,
+      "safe": {
+        "rawBytes": 1472,
+        "gzipBytes": 800,
+        "ms": 5.8
+      },
+      "auto": {
+        "rawBytes": 1472,
+        "gzipBytes": 800,
+        "winner": "p3",
+        "verified": true,
+        "ms": 197.9
+      }
+    },
+    {
+      "path": "illustrations/healthicons-elderly.svg",
+      "stratum": "illustrations",
+      "inputBytes": 2808,
+      "inputGzipBytes": 1166,
+      "safe": {
+        "rawBytes": 1249,
+        "gzipBytes": 644,
+        "ms": 10.5
+      },
+      "auto": {
+        "rawBytes": 1082,
+        "gzipBytes": 561,
+        "winner": "p2",
+        "verified": true,
+        "ms": 369
+      }
+    },
+    {
+      "path": "illustrations/healthicons-family-planning.svg",
+      "stratum": "illustrations",
+      "inputBytes": 2001,
+      "inputGzipBytes": 799,
+      "safe": {
+        "rawBytes": 935,
+        "gzipBytes": 444,
+        "ms": 28.2
+      },
+      "auto": {
+        "rawBytes": 802,
+        "gzipBytes": 375,
+        "winner": "p1",
+        "verified": true,
+        "ms": 347.6
+      }
+    },
+    {
+      "path": "illustrations/healthicons-group-discussion_meeting.svg",
+      "stratum": "illustrations",
+      "inputBytes": 1037,
+      "inputGzipBytes": 436,
+      "safe": {
+        "rawBytes": 594,
+        "gzipBytes": 351,
+        "ms": 6
+      },
+      "auto": {
+        "rawBytes": 439,
+        "gzipBytes": 281,
+        "winner": "p1",
+        "verified": true,
+        "ms": 229.1
+      }
+    },
+    {
+      "path": "illustrations/healthicons-health-worker.svg",
+      "stratum": "illustrations",
+      "inputBytes": 747,
+      "inputGzipBytes": 391,
+      "safe": {
+        "rawBytes": 444,
+        "gzipBytes": 306,
+        "ms": 4.5
+      },
+      "auto": {
+        "rawBytes": 369,
+        "gzipBytes": 255,
+        "winner": "p1",
+        "verified": true,
+        "ms": 382.8
+      }
+    },
+    {
+      "path": "illustrations/healthicons-i-training_class.svg",
+      "stratum": "illustrations",
+      "inputBytes": 1294,
+      "inputGzipBytes": 681,
+      "safe": {
+        "rawBytes": 669,
+        "gzipBytes": 427,
+        "ms": 7.8
+      },
+      "auto": {
+        "rawBytes": 412,
+        "gzipBytes": 290,
+        "winner": "p1",
+        "verified": true,
+        "ms": 249.9
+      }
+    },
+    {
+      "path": "illustrations/healthicons-pregnant.svg",
+      "stratum": "illustrations",
+      "inputBytes": 5727,
+      "inputGzipBytes": 2107,
+      "safe": {
+        "rawBytes": 926,
+        "gzipBytes": 548,
+        "ms": 8.1
+      },
+      "auto": {
+        "rawBytes": 926,
+        "gzipBytes": 548,
+        "winner": "p3",
+        "verified": true,
+        "ms": 184.6
+      }
+    },
+    {
+      "path": "logos/devicon-angularjs-original.svg",
+      "stratum": "logos",
+      "inputBytes": 621,
+      "inputGzipBytes": 371,
+      "safe": {
+        "rawBytes": 595,
+        "gzipBytes": 365,
+        "ms": 6.2
+      },
+      "auto": {
+        "rawBytes": 450,
+        "gzipBytes": 283,
+        "winner": "p1",
+        "verified": true,
+        "ms": 506.3
+      }
+    },
+    {
+      "path": "logos/devicon-chrome-original.svg",
+      "stratum": "logos",
+      "inputBytes": 3380,
+      "inputGzipBytes": 1034,
+      "safe": {
+        "rawBytes": 3135,
+        "gzipBytes": 1044,
+        "ms": 25.7
+      },
+      "auto": {
+        "rawBytes": 3135,
+        "gzipBytes": 1044,
+        "winner": "p3",
+        "verified": true,
+        "ms": 262.7
+      }
+    },
+    {
+      "path": "logos/devicon-firefox-original.svg",
+      "stratum": "logos",
+      "inputBytes": 38092,
+      "inputGzipBytes": 10533,
+      "safe": {
+        "rawBytes": 35787,
+        "gzipBytes": 11168,
+        "ms": 57.1
+      },
+      "auto": {
+        "rawBytes": 32065,
+        "gzipBytes": 9064,
+        "winner": "p2+reusePaths",
+        "verified": true,
+        "ms": 636.9
+      }
+    },
+    {
+      "path": "logos/devicon-kubernetes-original.svg",
+      "stratum": "logos",
+      "inputBytes": 8951,
+      "inputGzipBytes": 3802,
+      "safe": {
+        "rawBytes": 8213,
+        "gzipBytes": 3784,
+        "ms": 7.9
+      },
+      "auto": {
+        "rawBytes": 2605,
+        "gzipBytes": 1289,
+        "winner": "p1",
+        "verified": true,
+        "ms": 292.1
+      }
+    },
+    {
+      "path": "logos/devicon-react-original.svg",
+      "stratum": "logos",
+      "inputBytes": 2387,
+      "inputGzipBytes": 1101,
+      "safe": {
+        "rawBytes": 2348,
+        "gzipBytes": 1115,
+        "ms": 5.4
+      },
+      "auto": {
+        "rawBytes": 1707,
+        "gzipBytes": 871,
+        "winner": "p1",
+        "verified": true,
+        "ms": 429.4
+      }
+    },
+    {
+      "path": "logos/devicon-safari-original.svg",
+      "stratum": "logos",
+      "inputBytes": 3186,
+      "inputGzipBytes": 1483,
+      "safe": {
+        "rawBytes": 3184,
+        "gzipBytes": 1524,
+        "ms": 13.6
+      },
+      "auto": {
+        "rawBytes": 2753,
+        "gzipBytes": 1263,
+        "winner": "p2",
+        "verified": true,
+        "ms": 441.9
+      }
+    },
+    {
+      "path": "logos/devicon-tensorflow-original.svg",
+      "stratum": "logos",
+      "inputBytes": 291,
+      "inputGzipBytes": 221,
+      "safe": {
+        "rawBytes": 243,
+        "gzipBytes": 197,
+        "ms": 31
+      },
+      "auto": {
+        "rawBytes": 243,
+        "gzipBytes": 197,
+        "winner": "p3",
+        "verified": true,
+        "ms": 488.8
+      }
+    },
+    {
+      "path": "logos/devicon-vuejs-original.svg",
+      "stratum": "logos",
+      "inputBytes": 561,
+      "inputGzipBytes": 350,
+      "safe": {
+        "rawBytes": 559,
+        "gzipBytes": 351,
+        "ms": 5.6
+      },
+      "auto": {
+        "rawBytes": 316,
+        "gzipBytes": 226,
+        "winner": "p0",
+        "verified": true,
+        "ms": 422.8
+      }
+    },
+    {
+      "path": "logos/simple-apple.svg",
+      "stratum": "logos",
+      "inputBytes": 650,
+      "inputGzipBytes": 389,
+      "safe": {
+        "rawBytes": 639,
+        "gzipBytes": 387,
+        "ms": 5
+      },
+      "auto": {
+        "rawBytes": 374,
+        "gzipBytes": 257,
+        "winner": "p1",
+        "verified": true,
+        "ms": 289.4
+      }
+    },
+    {
+      "path": "logos/simple-cloudflare.svg",
+      "stratum": "logos",
+      "inputBytes": 1178,
+      "inputGzipBytes": 649,
+      "safe": {
+        "rawBytes": 867,
+        "gzipBytes": 492,
+        "ms": 4.8
+      },
+      "auto": {
+        "rawBytes": 624,
+        "gzipBytes": 366,
+        "winner": "p2",
+        "verified": true,
+        "ms": 297.3
+      }
+    },
+    {
+      "path": "logos/simple-docker.svg",
+      "stratum": "logos",
+      "inputBytes": 1765,
+      "inputGzipBytes": 601,
+      "safe": {
+        "rawBytes": 1772,
+        "gzipBytes": 603,
+        "ms": 15.2
+      },
+      "auto": {
+        "rawBytes": 1375,
+        "gzipBytes": 491,
+        "winner": "p2",
+        "verified": true,
+        "ms": 401.9
+      }
+    },
+    {
+      "path": "logos/simple-figma.svg",
+      "stratum": "logos",
+      "inputBytes": 1093,
+      "inputGzipBytes": 425,
+      "safe": {
+        "rawBytes": 1050,
+        "gzipBytes": 413,
+        "ms": 9.7
+      },
+      "auto": {
+        "rawBytes": 1050,
+        "gzipBytes": 413,
+        "winner": "p3",
+        "verified": true,
+        "ms": 204.5
+      }
+    },
+    {
+      "path": "logos/simple-github.svg",
+      "stratum": "logos",
+      "inputBytes": 822,
+      "inputGzipBytes": 458,
+      "safe": {
+        "rawBytes": 811,
+        "gzipBytes": 461,
+        "ms": 4.4
+      },
+      "auto": {
+        "rawBytes": 811,
+        "gzipBytes": 461,
+        "winner": "p3",
+        "verified": true,
+        "ms": 329.2
+      }
+    },
+    {
+      "path": "logos/simple-gitlab.svg",
+      "stratum": "logos",
+      "inputBytes": 573,
+      "inputGzipBytes": 338,
+      "safe": {
+        "rawBytes": 474,
+        "gzipBytes": 296,
+        "ms": 39.2
+      },
+      "auto": {
+        "rawBytes": 278,
+        "gzipBytes": 200,
+        "winner": "p1",
+        "verified": true,
+        "ms": 823.8
+      }
+    },
+    {
+      "path": "logos/simple-inkscape.svg",
+      "stratum": "logos",
+      "inputBytes": 1036,
+      "inputGzipBytes": 594,
+      "safe": {
+        "rawBytes": 1021,
+        "gzipBytes": 596,
+        "ms": 19.8
+      },
+      "auto": {
+        "rawBytes": 1021,
+        "gzipBytes": 596,
+        "winner": "p3",
+        "verified": true,
+        "ms": 274.7
+      }
+    },
+    {
+      "path": "logos/simple-linux.svg",
+      "stratum": "logos",
+      "inputBytes": 5463,
+      "inputGzipBytes": 2532,
+      "safe": {
+        "rawBytes": 5292,
+        "gzipBytes": 2603,
+        "ms": 26.7
+      },
+      "auto": {
+        "rawBytes": 5292,
+        "gzipBytes": 2603,
+        "winner": "p3",
+        "verified": true,
+        "ms": 229.5
+      }
+    },
+    {
+      "path": "logos/simple-npm.svg",
+      "stratum": "logos",
+      "inputBytes": 317,
+      "inputGzipBytes": 230,
+      "safe": {
+        "rawBytes": 306,
+        "gzipBytes": 225,
+        "ms": 4.9
+      },
+      "auto": {
+        "rawBytes": 274,
+        "gzipBytes": 210,
+        "winner": "p2",
+        "verified": true,
+        "ms": 309.9
+      }
+    },
+    {
+      "path": "logos/simple-svelte.svg",
+      "stratum": "logos",
+      "inputBytes": 1496,
+      "inputGzipBytes": 627,
+      "safe": {
+        "rawBytes": 1358,
+        "gzipBytes": 582,
+        "ms": 33.5
+      },
+      "auto": {
+        "rawBytes": 1095,
+        "gzipBytes": 477,
+        "winner": "p2",
+        "verified": true,
+        "ms": 358.2
+      }
+    },
+    {
+      "path": "logos/simple-typescript.svg",
+      "stratum": "logos",
+      "inputBytes": 1294,
+      "inputGzipBytes": 679,
+      "safe": {
+        "rawBytes": 1046,
+        "gzipBytes": 581,
+        "ms": 10.5
+      },
+      "auto": {
+        "rawBytes": 845,
+        "gzipBytes": 489,
+        "winner": "p2",
+        "verified": true,
+        "ms": 353.1
+      }
+    },
+    {
+      "path": "logos/simple-vite.svg",
+      "stratum": "logos",
+      "inputBytes": 909,
+      "inputGzipBytes": 460,
+      "safe": {
+        "rawBytes": 879,
+        "gzipBytes": 455,
+        "ms": 10.1
+      },
+      "auto": {
+        "rawBytes": 879,
+        "gzipBytes": 455,
+        "winner": "p3",
+        "verified": true,
+        "ms": 194.8
+      }
+    },
+    {
+      "path": "large/2020-republican-presidential-primary-map-by-county.svg",
+      "stratum": "large",
+      "inputBytes": 689452,
+      "inputGzipBytes": 176724,
+      "safe": {
+        "rawBytes": 470578,
+        "gzipBytes": 150624,
+        "ms": 2500.7
+      },
+      "auto": {
+        "rawBytes": 469613,
+        "gzipBytes": 150162,
+        "winner": "p1+convertStyleToAttrs",
+        "verified": true,
+        "ms": 20784.7
+      }
+    },
+    {
+      "path": "large/apollo-11-photo-map-fr.svg",
+      "stratum": "large",
+      "inputBytes": 1011215,
+      "inputGzipBytes": 148050,
+      "safe": {
+        "rawBytes": 391504,
+        "gzipBytes": 85315,
+        "ms": 1125.3
+      },
+      "auto": {
+        "rawBytes": 322114,
+        "gzipBytes": 84355,
+        "winner": "p3+reusePaths+convertStyleToAttrs",
+        "verified": true,
+        "ms": 7340.9
+      }
+    },
+    {
+      "path": "large/flag-map-of-argentina-patagonia.svg",
+      "stratum": "large",
+      "inputBytes": 432544,
+      "inputGzipBytes": 166401,
+      "safe": {
+        "rawBytes": 148404,
+        "gzipBytes": 63376,
+        "ms": 148.2
+      },
+      "auto": {
+        "rawBytes": 90191,
+        "gzipBytes": 34344,
+        "winner": "p1",
+        "verified": true,
+        "ms": 1842.6
+      }
+    },
+    {
+      "path": "large/gaza-flotilla-raid-map-ar.svg",
+      "stratum": "large",
+      "inputBytes": 644449,
+      "inputGzipBytes": 138945,
+      "safe": {
+        "rawBytes": 237070,
+        "gzipBytes": 78684,
+        "ms": 561.7
+      },
+      "auto": {
+        "rawBytes": 166642,
+        "gzipBytes": 58898,
+        "winner": "p2+convertStyleToAttrs",
+        "verified": true,
+        "ms": 3378.7
+      }
+    },
+    {
+      "path": "large/libaom-edge-direction.svg",
+      "stratum": "large",
+      "inputBytes": 407232,
+      "inputGzipBytes": 25020,
+      "safe": {
+        "rawBytes": 151358,
+        "gzipBytes": 13921,
+        "ms": 488.9
+      },
+      "error": "Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The canvas has been tainted by cross-origin data."
+    },
+    {
+      "path": "large/libaom-primary-tap.svg",
+      "stratum": "large",
+      "inputBytes": 70304,
+      "inputGzipBytes": 4349,
+      "safe": {
+        "rawBytes": 31779,
+        "gzipBytes": 3305,
+        "ms": 268.2
+      },
+      "auto": {
+        "rawBytes": 30001,
+        "gzipBytes": 3298,
+        "winner": "p3+reusePaths",
+        "verified": true,
+        "ms": 1205.2
+      }
+    },
+    {
+      "path": "large/libaom-quant-ac.svg",
+      "stratum": "large",
+      "inputBytes": 136546,
+      "inputGzipBytes": 17607,
+      "safe": {
+        "rawBytes": 122369,
+        "gzipBytes": 14569,
+        "ms": 2830.2
+      },
+      "auto": {
+        "rawBytes": 122369,
+        "gzipBytes": 14569,
+        "winner": "p3!",
+        "verified": false,
+        "ms": 4443.5
+      }
+    },
+    {
+      "path": "large/libaom-quant-dc.svg",
+      "stratum": "large",
+      "inputBytes": 133303,
+      "inputGzipBytes": 17316,
+      "safe": {
+        "rawBytes": 119467,
+        "gzipBytes": 14145,
+        "ms": 1810.7
+      },
+      "auto": {
+        "rawBytes": 119467,
+        "gzipBytes": 14145,
+        "winner": "p3!",
+        "verified": false,
+        "ms": 4446.7
+      }
+    },
+    {
+      "path": "large/map-of-territorial-growth-1775.svg",
+      "stratum": "large",
+      "inputBytes": 515966,
+      "inputGzipBytes": 192948,
+      "safe": {
+        "rawBytes": 217551,
+        "gzipBytes": 89600,
+        "ms": 271.4
+      },
+      "auto": {
+        "rawBytes": 162518,
+        "gzipBytes": 64475,
+        "winner": "p2+reusePaths+convertStyleToAttrs",
+        "verified": true,
+        "ms": 2485.4
+      }
+    },
+    {
+      "path": "large/map-of-wales-ru.svg",
+      "stratum": "large",
+      "inputBytes": 430042,
+      "inputGzipBytes": 128812,
+      "safe": {
+        "rawBytes": 200814,
+        "gzipBytes": 67919,
+        "ms": 296.6
+      },
+      "auto": {
+        "rawBytes": 200814,
+        "gzipBytes": 67919,
+        "winner": "p3!",
+        "verified": false,
+        "ms": 1447.9
+      }
+    },
+    {
+      "path": "large/orthographic-map-of-chinland.svg",
+      "stratum": "large",
+      "inputBytes": 826065,
+      "inputGzipBytes": 122833,
+      "safe": {
+        "rawBytes": 196167,
+        "gzipBytes": 56872,
+        "ms": 3421.5
+      },
+      "auto": {
+        "rawBytes": 124432,
+        "gzipBytes": 44382,
+        "winner": "p2+convertStyleToAttrs",
+        "verified": true,
+        "ms": 19343.6
+      }
+    },
+    {
+      "path": "large/south-africa-2011-zulu-speakers-proportion-map.svg",
+      "stratum": "large",
+      "inputBytes": 547286,
+      "inputGzipBytes": 119162,
+      "safe": {
+        "rawBytes": 337302,
+        "gzipBytes": 103640,
+        "ms": 485.1
+      },
+      "auto": {
+        "rawBytes": 217516,
+        "gzipBytes": 46081,
+        "winner": "p1+convertStyleToAttrs",
+        "verified": true,
+        "ms": 4352.3
+      }
+    },
+    {
+      "path": "large/telekom-map.svg",
+      "stratum": "large",
+      "inputBytes": 718655,
+      "inputGzipBytes": 217047,
+      "safe": {
+        "rawBytes": 482692,
+        "gzipBytes": 179860,
+        "ms": 1188.5
+      },
+      "auto": {
+        "rawBytes": 403400,
+        "gzipBytes": 137103,
+        "winner": "p2",
+        "verified": true,
+        "ms": 7461.8
+      }
+    },
+    {
+      "path": "large/territorial-map-of-eu-roam-like-at-home.svg",
+      "stratum": "large",
+      "inputBytes": 722748,
+      "inputGzipBytes": 242908,
+      "safe": {
+        "rawBytes": 403557,
+        "gzipBytes": 162879,
+        "ms": 526.4
+      },
+      "auto": {
+        "rawBytes": 303535,
+        "gzipBytes": 120055,
+        "winner": "p2",
+        "verified": true,
+        "ms": 4063.5
+      }
+    },
+    {
+      "path": "large/ukraine-export-routes-map-02.svg",
+      "stratum": "large",
+      "inputBytes": 703349,
+      "inputGzipBytes": 408604,
+      "safe": {
+        "rawBytes": 522034,
+        "gzipBytes": 360880,
+        "ms": 224.7
+      },
+      "auto": {
+        "rawBytes": 513550,
+        "gzipBytes": 360377,
+        "winner": "p3+reusePaths",
+        "verified": true,
+        "ms": 2058.6
+      }
+    }
+  ]
+}

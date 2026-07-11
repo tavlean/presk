@@ -13,3 +13,9 @@ playwright-report
 blob-report
 .last-run.json
 benchmarks/results
+
+# Regenerable benchmark outputs (rerun bench:svg / run-imageoptim.sh).
+# nano* outputs ARE tracked: a hosted tool is not reproducible.
+benchmarks/svg/external/frisp-safe/
+benchmarks/svg/external/frisp-auto/
+benchmarks/svg/external/imageoptim/
