@@ -118,9 +118,14 @@ function parseSavedSide(raw: string | null): ParsedSide | null {
   return {
     format: incoming.format,
     optionsByFormat: incoming.optionsByFormat,
+    // Merge grain per-field, not wholesale: a stored payload may predate the
+    // grain processor entirely, or predate an individual grain field.
     processorState: {
-      grain: structuredClone(defaultProcessorState.grain),
       ...incoming.processorState,
+      grain: {
+        ...structuredClone(defaultProcessorState.grain),
+        ...incoming.processorState.grain,
+      },
     },
   };
 }

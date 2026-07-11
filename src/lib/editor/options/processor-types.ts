@@ -26,6 +26,7 @@ export interface ResizeOptionsState {
 export interface GrainOptionsState {
   enabled: boolean;
   amount: number;
+  size: number;
 }
 
 export interface QuantizeOptionsState {

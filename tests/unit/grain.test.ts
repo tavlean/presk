@@ -37,21 +37,21 @@ describe('applyGrainToPixels', () => {
   it('is deterministic: identical runs produce identical bytes', () => {
     const a = flatPixels(128);
     const b = flatPixels(128);
-    applyGrainToPixels(a, 50);
-    applyGrainToPixels(b, 50);
+    applyGrainToPixels(a, SIZE, 50, 1);
+    applyGrainToPixels(b, SIZE, 50, 1);
     expect(a).toEqual(b);
   });
 
   it('amount 0 is a byte-level no-op', () => {
     const pixels = flatPixels(128);
-    applyGrainToPixels(pixels, 0);
+    applyGrainToPixels(pixels, SIZE, 0, 1);
     expect(pixels).toEqual(flatPixels(128));
   });
 
   it('hits the calibrated σ ≈ 0.44·amount at mid-gray', () => {
     for (const amount of [12, 50, 100]) {
       const pixels = flatPixels(128);
-      applyGrainToPixels(pixels, amount);
+      applyGrainToPixels(pixels, SIZE, amount, 1);
       const sigma = channelStd(pixels, 128);
       expect(sigma).toBeGreaterThan(0.44 * amount * 0.93);
       expect(sigma).toBeLessThan(0.44 * amount * 1.07);
@@ -61,8 +61,8 @@ describe('applyGrainToPixels', () => {
   it('follows the midtone parabola: quarter-tones get ~75% of peak σ', () => {
     const mid = flatPixels(128);
     const quarter = flatPixels(64);
-    applyGrainToPixels(mid, 50);
-    applyGrainToPixels(quarter, 50);
+    applyGrainToPixels(mid, SIZE, 50, 1);
+    applyGrainToPixels(quarter, SIZE, 50, 1);
     // 4L(1−L) at L=64/255 is ≈ 0.752 of the mid-gray peak.
     const ratio = channelStd(quarter, 64) / channelStd(mid, 128);
     expect(ratio).toBeGreaterThan(0.7);
@@ -72,14 +72,14 @@ describe('applyGrainToPixels', () => {
   it('fades to (near) nothing at the tonal extremes', () => {
     for (const tone of [0, 255]) {
       const pixels = flatPixels(tone);
-      applyGrainToPixels(pixels, 100);
+      applyGrainToPixels(pixels, SIZE, 100, 1);
       expect(channelStd(pixels, tone)).toBeLessThan(1);
     }
   });
 
   it('adds monochrome grain: R, G and B move together', () => {
     const pixels = flatPixels(120, 130, 140);
-    applyGrainToPixels(pixels, 50);
+    applyGrainToPixels(pixels, SIZE, 50, 1);
     for (let i = 0; i < pixels.length; i += 4) {
       const dr = pixels[i] - 120;
       const dg = pixels[i + 1] - 130;
@@ -92,23 +92,71 @@ describe('applyGrainToPixels', () => {
 
   it('leaves fully transparent pixels byte-identical', () => {
     const pixels = flatPixels(128, 128, 128, 0);
-    applyGrainToPixels(pixels, 100);
+    applyGrainToPixels(pixels, SIZE, 100, 1);
     expect(pixels).toEqual(flatPixels(128, 128, 128, 0));
   });
 
   it('never touches alpha', () => {
     const pixels = flatPixels(128, 128, 128, 137);
-    applyGrainToPixels(pixels, 100);
+    applyGrainToPixels(pixels, SIZE, 100, 1);
     for (let i = 3; i < pixels.length; i += 4) {
       expect(pixels[i]).toBe(137);
     }
+  });
+
+  it('size ≥ 2 keeps the calibrated per-pixel σ (normalized interpolation)', () => {
+    for (const size of [2, 3, 4]) {
+      const pixels = flatPixels(128);
+      applyGrainToPixels(pixels, SIZE, 50, size);
+      const sigma = channelStd(pixels, 128);
+      expect(sigma).toBeGreaterThan(0.44 * 50 * 0.93);
+      expect(sigma).toBeLessThan(0.44 * 50 * 1.07);
+    }
+  });
+
+  it('size ≥ 2 produces spatially correlated (larger) grain, size 1 does not', () => {
+    const grainField = (size: number) => {
+      const pixels = flatPixels(128);
+      applyGrainToPixels(pixels, SIZE, 50, size);
+      return pixels;
+    };
+    const lag1 = (pixels: Uint8ClampedArray) => {
+      // horizontal lag-1 autocorrelation of the green-channel grain
+      let sum = 0;
+      let sumSq = 0;
+      let cross = 0;
+      let n = 0;
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE - 1; x++) {
+          const a = pixels[(y * SIZE + x) * 4 + 1] - 128;
+          const b = pixels[(y * SIZE + x + 1) * 4 + 1] - 128;
+          sum += a;
+          sumSq += a * a;
+          cross += a * b;
+          n++;
+        }
+      }
+      const mean = sum / n;
+      return (cross / n - mean * mean) / (sumSq / n - mean * mean);
+    };
+    expect(Math.abs(lag1(grainField(1)))).toBeLessThan(0.1);
+    expect(lag1(grainField(2))).toBeGreaterThan(0.3);
+    expect(lag1(grainField(4))).toBeGreaterThan(lag1(grainField(2)));
+  });
+
+  it('size 2 is deterministic too', () => {
+    const a = flatPixels(128);
+    const b = flatPixels(128);
+    applyGrainToPixels(a, SIZE, 50, 2);
+    applyGrainToPixels(b, SIZE, 50, 2);
+    expect(a).toEqual(b);
   });
 });
 
 describe('grainIsReal', () => {
   it('requires enabled AND a non-zero amount', () => {
-    expect(grainIsReal({ enabled: true, amount: 12 })).toBe(true);
-    expect(grainIsReal({ enabled: true, amount: 0 })).toBe(false);
-    expect(grainIsReal({ enabled: false, amount: 12 })).toBe(false);
+    expect(grainIsReal({ enabled: true, amount: 12, size: 1 })).toBe(true);
+    expect(grainIsReal({ enabled: true, amount: 0, size: 1 })).toBe(false);
+    expect(grainIsReal({ enabled: false, amount: 12, size: 1 })).toBe(false);
   });
 });

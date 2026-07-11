@@ -9,4 +9,9 @@ export const grainControls: readonly BulkControl<GrainOptions>[] = [
     label: 'Grain',
     fields: ['amount'],
   }),
+  defineControl({
+    id: 'grain.size',
+    label: 'Grain size',
+    fields: ['size'],
+  }),
 ];

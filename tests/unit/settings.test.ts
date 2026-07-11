@@ -122,6 +122,7 @@ describe('bulk settings helpers', () => {
         grain: {
           enabled: true,
           amount: 12,
+          size: 1,
         },
         resize: {
           enabled: true,
@@ -157,6 +158,7 @@ describe('bulk settings helpers', () => {
         },
         grain: {
           amount: 12,
+          size: 1,
           enabled: true,
         },
       },
@@ -173,6 +175,7 @@ describe('bulk settings helpers', () => {
         grain: {
           enabled: false,
           amount: 80,
+          size: 3,
         },
         resize: {
           enabled: false,
