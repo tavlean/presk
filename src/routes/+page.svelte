@@ -166,7 +166,10 @@
   {#if bulkStore.hasJobs}
     <BulkMode onExit={exitBulk} />
   {:else if session.file}
-    <div class="compress editor-root">
+    <div
+      class="compress editor-root"
+      class:vector-source={session.isVectorSource}
+    >
       <!-- grainPreview (the live grain scrub frame) outranks the stale result
            while its encode is in flight; see EditorSession.updateGrainPreview. -->
       <Output
@@ -522,6 +525,12 @@
   }
   .options-2 {
     right: var(--panel-inset);
+  }
+
+  /* Output owns the toolbar, but SVG sources cannot honestly apply rotation
+     until the vector lane supports it. Keep its space out of the v1 UI. */
+  .vector-source :global(button[aria-label='Rotate']) {
+    display: none;
   }
 
   @media (max-width: 760px) {

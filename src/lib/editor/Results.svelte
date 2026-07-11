@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { prettySizeParts } from './pretty-size';
+  import { prettySize, prettySizeParts } from './pretty-size';
+  import type { CompressOutcome } from '$lib/compress';
 
   // The result footer of each side's panel: output filesize + a semantic
   // delta badge (green = smaller, red = larger) and the download button.
@@ -13,6 +14,7 @@
     size: number | null;
     /** Signed percent change vs the original (negative = smaller = good). */
     percent: number | null;
+    svg?: CompressOutcome['svg'];
     /** True for the Original/identity side: hides the delta badge. */
     isOriginal: boolean;
     downloadHref: string;
@@ -27,6 +29,7 @@
     side,
     size,
     percent,
+    svg,
     isOriginal,
     downloadHref,
     downloadName,
@@ -89,6 +92,13 @@
       {/if}
     </div>
     <span class="type-label">{isOriginal ? 'Original' : typeLabel}</span>
+    {#if svg}
+      <span class="gzip-size">
+        gzip: {prettySize(svg.gzipBytes)} · was {prettySize(
+          svg.originalGzipBytes,
+        )}
+      </span>
+    {/if}
   </div>
   <a
     class="download"
@@ -197,6 +207,12 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .gzip-size {
+    color: var(--text-3);
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
   .download {

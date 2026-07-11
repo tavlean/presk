@@ -274,8 +274,19 @@ export class EditorSession {
 
   isVectorSource = $derived(this.file !== null && isSvgSource(this.file));
 
-  // Every encoder is an always-available WASM codec, so the list is static.
-  availableFormats = OUTPUT_FORMATS;
+  availableFormats = $derived(
+    this.isVectorSource
+      ? [
+          {
+            id: 'svg',
+            label: SVG_FORMAT.label,
+            tooltip: 'SVGO',
+            ext: SVG_FORMAT.extension,
+          },
+          ...OUTPUT_FORMATS,
+        ]
+      : OUTPUT_FORMATS,
+  );
 
   leftContain = $derived(this.sideContains(0));
   rightContain = $derived(this.sideContains(1));
@@ -969,6 +980,13 @@ export class EditorSession {
     this.preprocessorState = structuredClone(defaultPreprocessorState);
 
     const isVector = isSvgSource(next);
+    if (isVector) {
+      this.sides[1].format = 'svg';
+    } else {
+      for (const side of this.sides) {
+        if (side.format === 'svg') side.format = 'webP';
+      }
+    }
     for (const side of this.sides) {
       side.processorState = structuredClone(defaultProcessorState);
       // Match the original: vector (SVG) sources default the resize method to

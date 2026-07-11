@@ -15,6 +15,7 @@
   import JxlOptions from './options/JxlOptions.svelte';
   import MozjpegOptions from './options/MozjpegOptions.svelte';
   import OxipngOptions from './options/OxipngOptions.svelte';
+  import SvgOptions from './options/SvgOptions.svelte';
   import ResizeOptions from './options/ResizeOptions.svelte';
   import GrainOptions from './options/GrainOptions.svelte';
   import QuantizeOptions from './options/QuantizeOptions.svelte';
@@ -35,6 +36,7 @@
   import type { EncodeOptions as JxlEncodeOptions } from 'features/encoders/jxl/shared/meta';
   import type { EncodeOptions as MozjpegEncodeOptions } from 'features/encoders/mozJPEG/shared/meta';
   import type { EncodeOptions as OxipngEncodeOptions } from 'features/encoders/oxiPNG/shared/meta';
+  import type { SvgOptimizeOptions } from '$lib/svg/optimize-options';
 
   interface Props {
     side: 'left' | 'right';
@@ -86,7 +88,7 @@
 </script>
 
 <div class="options-scroller" class:original-image={isOriginal}>
-  {#if !isOriginal}
+  {#if !isOriginal && format !== 'svg'}
     <div transition:slide={{ duration: 300 }}>
       <h3 class="options-title">
         <div class="title-and-buttons">
@@ -220,7 +222,9 @@
            replaces the options object. In-place edits keep the same identity,
            so this does not disrupt normal slider dragging. -->
       {#key options}
-        {#if format === 'webP'}
+        {#if format === 'svg'}
+          <SvgOptions options={options as unknown as SvgOptimizeOptions} />
+        {:else if format === 'webP'}
           <WebpOptions options={options as unknown as WebpEncodeOptions} />
         {:else if format === 'avif'}
           <AvifOptions options={options as unknown as AvifEncodeOptions} />
@@ -256,6 +260,7 @@
     {typeLabel}
     size={result ? result.outputSize : null}
     percent={result ? result.percentChange : null}
+    svg={result?.svg}
     downloadHref={result?.outputUrl ?? '#'}
     {downloadName}
     loading={working}
