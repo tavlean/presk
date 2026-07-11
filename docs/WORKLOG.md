@@ -4,6 +4,30 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-12 (night) — SVG optimization SHIPPED (S1–S6) + benchmark harness
+
+Same-day build of the approved plan, spec
+[specs/2026-07-12-svg-optimization.md](specs/2026-07-12-svg-optimization.md)
+(stage states + commit shas live there). SVG sources now get an "SVG
+(optimized)" output: SVGO 4.0.2 in a lazy dedicated worker, Auto mode
+default (precision ladder + reusePaths/convertStyleToAttrs trials, every
+candidate gated by pixelmatch at 3 sizes × 3 backgrounds against the
+original, winner badge), manual precision/toggles, raw+gzip lines,
+vector-true preview (SvgPreview layout-sized overlay — crisp at 3200%,
+verified live; pinch-zoom children can opt out of the pinched transform via
+`data-pinch-overlay`), SW first-use caching of the worker chunk (audit
+tripwire asserts svgo stays worker-side). Gotchas for future sessions:
+pinch-zoom transforms EVERY child via `pinch-zoom > *` CSS (not just the
+first); SvelteKit emits hash-only chunk names so SW exclusions must key on
+the stable `workers/<name>-` segment; `$lib/svg/optimize` must only ever be
+dynamic-imported; the auto gate deliberately upscales small sources
+(precision loss invisible at 24px is obvious at 256px); dimensionless SVGs
+(no width/height/viewBox) are rejected by the inherited import contract —
+surfaced as errors in the bench, possible v2 relaxation. Benchmark corpus
+(200 stratified files + licenses) and a Playwright harness driving the REAL
+pipeline via dev-only /bench-svg landed; external nano/ImageOptim
+comparison next.
+
 ## 2026-07-12 (evening) — SVG optimization research pass (analysis only)
 
 Maintainer asked whether Frisp can import/export SVGs at nano/ImageOptim

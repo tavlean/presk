@@ -293,9 +293,9 @@ tests**, 61+ e2e green. No stage may reduce those.
 | S3 | UI: SvgOptions panel, OptionsPanel wiring, size display, availableFormats, rotate hiding | check + svelte-autofixer + manual | ✅ `d6038f76` |
 | S4 | vector-true preview (contract §7) | crispness acceptance test | ✅ `539c6ba9` — crisp at 3200% in Chromium (pinch-zoom gained `data-pinch-overlay` opt-out); WebKit via S6 e2e |
 | S5 | auto mode (auto-search + gate + UI badge) | unit (gate math) + manual | ✅ `522b3507` — verified live (badge "Auto: precision 1 · styles → attributes"); gate upscales small sources on purpose |
-| S6 | SW exclusion + e2e suite + docs sweep | check + full e2e | 🔄 in progress |
-| S7 | benchmark corpus + harness (below) | harness runs green | 🟡 corpus committed `2864eb58` (+ large-file top-up in flight); harness pending |
-| S8 | external baselines (nano, ImageOptim, nano→ImageOptim) + report | report published | ⚪ |
+| S6 | SW exclusion + e2e suite + docs sweep | check + full e2e | ✅ `ee438b03` — full suite 68 passed / 2 known WebKit-offline skips; SVGO payload lives in the worker file, only that file is excluded from precache (audit tripwire guards the design) |
+| S7 | benchmark corpus + harness (below) | harness runs green | 🟡 corpus `2864eb58` + harness `58563a36` (subset-validated); large-file top-up + full-corpus run pending |
+| S8 | external baselines (nano, ImageOptim, nano→ImageOptim) + report | report published | ⚪ plan: full corpus through Frisp + ImageOptim (installed app, maintainer's settings, recorded); nano + chained on a ~60-file stratified sample (10-file upload batches) |
 
 ## Benchmark plan (S7–S8)
 
