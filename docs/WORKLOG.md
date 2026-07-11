@@ -7,17 +7,20 @@ session must know. Newest first. (Live project state stays in
 ## 2026-07-12 (evening) — SVG optimization research pass (analysis only)
 
 Maintainer asked whether Frisp can import/export SVGs at nano/ImageOptim
-quality. Four parallel Codex research agents (nano reverse-engineering,
-2026 optimizer landscape, beat-SVGO techniques, repo integration audit) →
-distilled into [svg-optimization-analysis.md](svg-optimization-analysis.md);
-decision pending. Headlines: ImageOptim's SVG engine IS SVGO (parity by
+quality. Four parallel Codex research agents (nano published-technique
+analysis — public blog/docs sources only, 2026 optimizer landscape,
+beat-SVGO techniques, repo integration audit) → distilled into
+[svg-optimization-analysis.md](svg-optimization-analysis.md); **direction
+approved same day**. Headlines: ImageOptim's SVG engine IS SVGO (parity by
 construction); nano's 22% claim is 2018-era vs SVGO 1.x; the winning design
-is a vector lane (SVG text → SVGO v4.0.1 in a lazy worker, rasterize only
-for compare) plus a Phase-2 candidate search with a pixelmatch visual gate.
-Gotchas recorded there: use SVGO 4.0.1 not 4.0.0 (XML-entity DoS),
-svgcleaner is GPL+dead (never bundle), signature must exclude raster
-processor state on the vector lane, SW precache policy for the ~780 KB
-chunk is an open maintainer decision. No code changed.
+is a vector lane (SVG text → SVGO v4.0.1 in a lazy worker) plus a Phase-2
+candidate search with a pixelmatch visual gate. Maintainer decisions:
+precache the SVGO chunk (SVG is first-class — he optimizes SVGs daily) and
+**vector-true preview** (SVG sides re-render at current zoom, never a
+scaled frozen bitmap; offscreen raster only for the diff gate). Gotchas:
+use SVGO 4.0.1 not 4.0.0 (XML-entity DoS), svgcleaner is GPL+dead (never
+bundle), signature must exclude raster processor state on the vector lane.
+No code changed.
 
 ## 2026-07-12 (later still) — Grain size rescaled to a 1–100 slider
 

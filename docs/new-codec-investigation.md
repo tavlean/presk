@@ -29,9 +29,9 @@ the app cannot handle today, and it needs no codec toolchain.
 ## 1. SVGO v4 — SVG / vector optimization — **KEEP / do first**
 
 > **SUPERSEDED 2026-07-12 by a full analysis.** A four-agent research pass
-> (nano reverse-engineering, optimizer landscape, techniques, integration
-> audit) produced a phased approach targeting parity with ImageOptim and
-> match-or-beat vs vecta nano:
+> (nano published-technique analysis, optimizer landscape, techniques,
+> integration audit — public sources only) produced a phased approach
+> targeting parity with ImageOptim and match-or-beat vs vecta nano:
 > [svg-optimization-analysis.md](svg-optimization-analysis.md). Maintainer
 > decision pending there. The entry below is the original short verdict.
 

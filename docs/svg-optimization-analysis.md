@@ -1,14 +1,23 @@
 # SVG Import/Export & Optimization — Analysis and Recommended Approach
 
-Last updated: 2026-07-12. Status: **analysis complete — maintainer decision pending.**
+Last updated: 2026-07-12. Status: **direction APPROVED by maintainer
+2026-07-12** (he is a daily SVG user and wants this in Frisp instead of
+external tools); sequencing vs other tracks still open.
 
-The maintainer's ask (2026-07-12): import SVGs, export optimized SVGs, matching or
-beating his current workflow — **vecta.io/nano** as the default compressor,
+The maintainer's ask (2026-07-12): import SVGs, export optimized SVGs, matching
+or beating his current workflow — **vecta.io/nano** as the default compressor,
 sometimes chained with **ImageOptim** for extra gains. Research was run by four
-parallel agents (nano reverse-engineering, 2026 optimizer landscape, beat-SVGO
-techniques, Frisp integration audit); this doc is the distilled record. All web
-claims below were sourced with citations in the agent reports; load-bearing repo
-facts were verified directly.
+parallel agents (nano published-technique analysis, 2026 optimizer landscape,
+beat-SVGO techniques, Frisp integration audit); this doc is the distilled
+record.
+
+> **Sources note.** Every claim about other tools comes from their own
+> published material — Vecta's blog posts and product pages, ImageOptim's
+> changelog and open-source repository, SVGO's docs and releases — cited in
+> the agent reports. Nothing was probed or decompiled. Naming benchmark
+> targets is standard practice; the comparisons here are factual and the
+> respect for those tools' work is genuine. Load-bearing repo facts were
+> verified directly in-tree.
 
 ## TL;DR — can we match or beat nano + ImageOptim?
 
@@ -68,9 +77,18 @@ is the SVG **output** lane:
   available (existing rasterize path untouched). SVG is never offered for
   raster sources.
 - A separate **vector lane** through the editor, NOT a fake raster encoder:
-  SVG text → SVGO worker → SVG file, rasterized only to feed the existing
-  canvas compare view (render both sides at identical dimensions). The
-  ImageData invariant in compress/processors is left alone.
+  SVG text → SVGO worker → SVG file. The ImageData invariant in
+  compress/processors is left alone.
+- **Vector-true preview (maintainer requirement, 2026-07-12):** SVG sides in
+  the compare view must re-render at the current zoom scale — crisp at ANY
+  magnification, because pixel-peeping an extreme zoom to confirm zero
+  raster artifacts is the whole point of vectors. A once-rasterized,
+  bitmap-scaled preview is explicitly rejected as dishonest. Two acceptable
+  implementations (spec decides by two-up rework cost): native `<img>`
+  elements sized by layout (browser re-rasterizes per zoom), or re-rendering
+  the vector into the existing canvas two-up at each settled zoom level.
+  Offscreen rasterization remains only for the automated pixel-diff gate
+  (measurement, not display) and for the raster-export branch.
 - Options panel (replaces Edit section for the SVG format): conservative
   default = `preset-default` + multipass, **precision slider** (per-plugin
   mapping: number/path precision with transform precision stepped
@@ -131,15 +149,17 @@ recorded — nano is a hosted moving target), report raw/gzip/Brotli + visual
 status, win/tie/loss. This is what makes "matches or beats nano" a claim
 instead of a hope.
 
-## Open maintainer decisions
+## Decisions
 
-1. **Service-worker policy for the SVGO chunk**: precache (~780 KB raw on every
-   install, keeps the full offline promise) vs runtime-cache on first SVG use
-   (recommended: SVG users are a subset; document "SVG optimizer is
-   offline-ready after first use").
-2. **Phase 2 scope**: ship Phase 1 alone first, or 1+2 together (recommend 1
-   then 2 — Phase 1 is independently shippable and validates the lane).
-3. Priority vs the queued codec batch (jxl 0.12 → jpegli → transcode →
+1. **DECIDED 2026-07-12 — precache the SVGO chunk.** SVG is a first-class
+   format (the maintainer optimizes SVGs daily); the full offline promise
+   holds. Revisit only if install size becomes a measured problem.
+2. **DECIDED 2026-07-12 — vector-true preview** (see Phase 1 above): SVG
+   sides re-render at the current zoom; no frozen-bitmap scaling.
+3. Open: **Phase 2 scope** — ship Phase 1 alone first, or 1+2 together
+   (recommend 1 then 2 — Phase 1 is independently shippable and validates
+   the lane).
+4. Open: priority vs the queued codec batch (jxl 0.12 → jpegli → transcode →
    auto-quality) and bulk Phase 3.
 
 ## Related
@@ -148,6 +168,6 @@ instead of a hope.
   candidate entry (this doc supersedes its "still open" verdict analysis-wise).
 - [specs/2026-07-11-auto-quality-mode.md](specs/2026-07-11-auto-quality-mode.md)
   — raster sibling of the Phase-2 candidate-search concept.
-- Agent reports (session scratchpad, 2026-07-12): nano reverse-engineering,
-  optimizer landscape, techniques, integration audit — cited sources for every
-  external claim above.
+- Agent reports (session scratchpad, 2026-07-12): nano published-technique
+  analysis, optimizer landscape, techniques, integration audit — cited sources
+  for every external claim above.
