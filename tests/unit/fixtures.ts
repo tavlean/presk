@@ -65,7 +65,7 @@ export function settings(
       grain: {
         enabled: false,
         amount: 12,
-        size: 1,
+        size: 20,
       },
       quantize: {
         enabled: false,

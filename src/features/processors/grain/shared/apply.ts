@@ -5,8 +5,9 @@ import type { Options } from './meta';
 // In short: monochrome white noise, amplitude following a midtone parabola of
 // the pixel's own luma, samples drawn flatter-than-gaussian.
 //
-// `size` sets the grain particle scale in output pixels. 1 = per-pixel noise
-// (the calibrated film look, the default). 2–4 = band-limited grain from a
+// `size` is the 1–100 slider value, 20 units per output pixel of particle
+// scale (see meta.ts). At or below one pixel it's per-pixel noise (the
+// calibrated film look, the default at 20); above, band-limited grain from a
 // bilinear-interpolated noise lattice — measurably the efficient debanding
 // shape: the codec's quantization deletes fine noise first, so coarser grain
 // survives encoding at a fraction of the amplitude and byte cost (the size
@@ -31,7 +32,12 @@ const SIGMA_PER_AMOUNT = 0.44;
 
 const SEED = 0x9e3779b9;
 
-/** Add grain in place. `amount` 0–100 (the UI slider), `size` 1–4 px. */
+// Slider units per pixel of particle scale: slider 20 (the default) = 1px,
+// 40 = 2px, 100 = 5px. Every slider step is a 0.05px change, so the growth
+// between neighboring values is gradual instead of jumping whole pixels.
+const SIZE_UNITS_PER_PIXEL = 20;
+
+/** Add grain in place. `amount` and `size` are the 0–100 UI slider values. */
 export function applyGrainToPixels(
   pixels: Uint8ClampedArray,
   width: number,
@@ -39,10 +45,13 @@ export function applyGrainToPixels(
   size: number,
 ): void {
   const peak = (SIGMA_PER_AMOUNT * amount) / SHAPE_SIGMA;
-  if (Math.round(size) <= 1) {
+  const scale = size / SIZE_UNITS_PER_PIXEL;
+  if (scale <= 1) {
+    // Sub-pixel particles don't exist; everything at or below one pixel is
+    // the calibrated per-pixel path (byte-identical to the original model).
     applyPerPixel(pixels, peak);
   } else {
-    applyLattice(pixels, width, peak, Math.min(4, Math.round(size)));
+    applyLattice(pixels, width, peak, scale);
   }
 }
 
@@ -73,21 +82,23 @@ function applyPerPixel(pixels: Uint8ClampedArray, peak: number): void {
 }
 
 /**
- * size ≥ 2: bilinear interpolation over a noise lattice with `size`-pixel
- * spacing. Interpolation shrinks variance position-dependently (blended
- * lattice nodes are independent), so each of the size² fractional phases gets
- * an exact 1/√(Σwᵢ²) correction — per-pixel σ stays identical to the
- * per-pixel path and the Amount scale means the same thing at every size.
- * Lattice rows are generated on demand (two-row window) to keep memory flat.
+ * scale > 1 (fractional allowed): bilinear interpolation over a noise
+ * lattice with `scale`-pixel spacing. Interpolation shrinks variance
+ * position-dependently (blended lattice nodes are independent), so every
+ * pixel gets an exact 1/√(Σwᵢ²) correction — per-pixel σ stays identical to
+ * the per-pixel path and the Amount scale means the same thing at every
+ * size. Σwᵢ² is separable, ((1−fx)²+fx²)·((1−fy)²+fy²), so the correction
+ * is a precomputed per-column factor times a per-row factor. Lattice rows
+ * are generated on demand (two-row window) to keep memory flat.
  */
 function applyLattice(
   pixels: Uint8ClampedArray,
   width: number,
   peak: number,
-  size: number,
+  scale: number,
 ): void {
   const height = pixels.length / 4 / width;
-  const cols = Math.floor((width - 1) / size) + 2;
+  const cols = Math.floor((width - 1) / scale) + 2;
 
   let state = SEED;
   const nextShaped = () => {
@@ -101,18 +112,15 @@ function applyLattice(
     for (let i = 0; i < cols; i++) row[i] = nextShaped();
   };
 
-  const invNorm = new Float64Array(size * size);
-  for (let py = 0; py < size; py++) {
-    for (let px = 0; px < size; px++) {
-      const fx = px / size;
-      const fy = py / size;
-      const w00 = (1 - fx) * (1 - fy);
-      const w01 = fx * (1 - fy);
-      const w10 = (1 - fx) * fy;
-      const w11 = fx * fy;
-      invNorm[py * size + px] =
-        1 / Math.sqrt(w00 * w00 + w01 * w01 + w10 * w10 + w11 * w11);
-    }
+  const gxArr = new Int32Array(width);
+  const fxArr = new Float64Array(width);
+  const invColNorm = new Float64Array(width);
+  for (let x = 0; x < width; x++) {
+    const gx = Math.floor(x / scale);
+    const fx = x / scale - gx;
+    gxArr[x] = gx;
+    fxArr[x] = fx;
+    invColNorm[x] = 1 / Math.sqrt((1 - fx) * (1 - fx) + fx * fx);
   }
 
   let top = new Float64Array(cols);
@@ -122,7 +130,9 @@ function applyLattice(
   let topRow = 0;
 
   for (let y = 0; y < height; y++) {
-    const gy = Math.floor(y / size);
+    const gy = Math.floor(y / scale);
+    // scale > 1 means gy advances by at most 1 per row, but keep the loop —
+    // it's the honest invariant, not a hot path.
     while (topRow < gy) {
       const swap = top;
       top = bottom;
@@ -130,18 +140,18 @@ function applyLattice(
       fillRow(bottom);
       topRow++;
     }
-    const phaseY = y % size;
-    const fy = phaseY / size;
+    const fy = y / scale - gy;
+    const invRowNorm = 1 / Math.sqrt((1 - fy) * (1 - fy) + fy * fy);
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 4;
       if (pixels[i + 3] === 0) continue;
-      const gx = Math.floor(x / size);
-      const phaseX = x % size;
-      const fx = phaseX / size;
+      const gx = gxArr[x];
+      const fx = fxArr[x];
       const noise =
         ((top[gx] * (1 - fx) + top[gx + 1] * fx) * (1 - fy) +
           (bottom[gx] * (1 - fx) + bottom[gx + 1] * fx) * fy) *
-        invNorm[phaseY * size + phaseX];
+        invColNorm[x] *
+        invRowNorm;
       const r = pixels[i];
       const g = pixels[i + 1];
       const b = pixels[i + 2];

@@ -104,8 +104,16 @@ describe('applyGrainToPixels', () => {
     }
   });
 
-  it('size ≥ 2 keeps the calibrated per-pixel σ (normalized interpolation)', () => {
-    for (const size of [2, 3, 4]) {
+  it('slider size ≤ 20 is byte-identical to the per-pixel path', () => {
+    const one = flatPixels(128);
+    const twenty = flatPixels(128);
+    applyGrainToPixels(one, SIZE, 50, 1);
+    applyGrainToPixels(twenty, SIZE, 50, 20);
+    expect(twenty).toEqual(one);
+  });
+
+  it('coarse sizes keep the calibrated per-pixel σ (normalized interpolation)', () => {
+    for (const size of [30, 40, 60, 100]) {
       const pixels = flatPixels(128);
       applyGrainToPixels(pixels, SIZE, 50, size);
       const sigma = channelStd(pixels, 128);
@@ -114,7 +122,7 @@ describe('applyGrainToPixels', () => {
     }
   });
 
-  it('size ≥ 2 produces spatially correlated (larger) grain, size 1 does not', () => {
+  it('coarser sizes are more spatially correlated, fine grain is not', () => {
     const grainField = (size: number) => {
       const pixels = flatPixels(128);
       applyGrainToPixels(pixels, SIZE, 50, size);
@@ -139,24 +147,29 @@ describe('applyGrainToPixels', () => {
       const mean = sum / n;
       return (cross / n - mean * mean) / (sumSq / n - mean * mean);
     };
-    expect(Math.abs(lag1(grainField(1)))).toBeLessThan(0.1);
-    expect(lag1(grainField(2))).toBeGreaterThan(0.3);
-    expect(lag1(grainField(4))).toBeGreaterThan(lag1(grainField(2)));
+    expect(Math.abs(lag1(grainField(20)))).toBeLessThan(0.1);
+    expect(lag1(grainField(40))).toBeGreaterThan(0.3);
+    // fractional scales sit smoothly between the whole-pixel steps
+    expect(lag1(grainField(30))).toBeGreaterThan(
+      Math.abs(lag1(grainField(20))),
+    );
+    expect(lag1(grainField(40))).toBeGreaterThan(lag1(grainField(30)));
+    expect(lag1(grainField(80))).toBeGreaterThan(lag1(grainField(40)));
   });
 
-  it('size 2 is deterministic too', () => {
+  it('coarse size is deterministic too', () => {
     const a = flatPixels(128);
     const b = flatPixels(128);
-    applyGrainToPixels(a, SIZE, 50, 2);
-    applyGrainToPixels(b, SIZE, 50, 2);
+    applyGrainToPixels(a, SIZE, 50, 45);
+    applyGrainToPixels(b, SIZE, 50, 45);
     expect(a).toEqual(b);
   });
 });
 
 describe('grainIsReal', () => {
   it('requires enabled AND a non-zero amount', () => {
-    expect(grainIsReal({ enabled: true, amount: 12, size: 1 })).toBe(true);
-    expect(grainIsReal({ enabled: true, amount: 0, size: 1 })).toBe(false);
-    expect(grainIsReal({ enabled: false, amount: 12, size: 1 })).toBe(false);
+    expect(grainIsReal({ enabled: true, amount: 12, size: 20 })).toBe(true);
+    expect(grainIsReal({ enabled: true, amount: 0, size: 20 })).toBe(false);
+    expect(grainIsReal({ enabled: false, amount: 12, size: 20 })).toBe(false);
   });
 });

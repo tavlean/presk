@@ -1,7 +1,7 @@
 <script lang="ts">
-  // Shared "Advanced settings" disclosure: a Revealer toggle that slides its
-  // children in and out. Replaces the identical scaffold that was duplicated in
-  // the AVIF / WebP / MozJPEG panels (each with its own `showAdvanced`).
+  // Shared "Advanced" disclosure: a Revealer toggle that slides its children
+  // in and out. Replaces the identical scaffold that was duplicated in the
+  // AVIF / WebP / MozJPEG panels (each with its own `showAdvanced`).
   import type { Snippet } from 'svelte';
   import { slide } from 'svelte/transition';
   import Revealer from './Revealer.svelte';
@@ -13,7 +13,7 @@
 
 <label class="option-reveal">
   <Revealer bind:checked={open} />
-  Advanced settings
+  Advanced
 </label>
 {#if open}
   <div transition:slide={{ duration: 300 }}>

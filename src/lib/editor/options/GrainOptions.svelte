@@ -19,7 +19,7 @@
   </OptionRow>
   <AdvancedSection>
     <OptionRow>
-      <Range min={1} max={4} bind:value={options.size}>Size:</Range>
+      <Range min={1} max={100} bind:value={options.size}>Grain size:</Range>
     </OptionRow>
   </AdvancedSection>
 </form>
