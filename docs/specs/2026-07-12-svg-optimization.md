@@ -327,6 +327,48 @@ stand vs nano, ImageOptim, and nano→ImageOptim".
   win/tie/loss (tie = within max(4 B, 0.1%)), per-stratum tables.
 - **Report**: `benchmarks/svg/RESULTS.md` — the "clear picture" deliverable.
 
+## S8 execution protocol (self-contained — any session can run this)
+
+State when written (2026-07-12 night): full-corpus Frisp run IN FLIGHT
+(`npm run bench:svg`, writes `benchmarks/svg/results/frisp-<sha>.json` +
+optimized files under `benchmarks/svg/external/frisp-{safe,auto}/`). If it
+died, just rerun it — it is deterministic and self-contained.
+
+1. **ImageOptim leg** (app 1.9.3 installed, factory settings — verified: no
+   `net.pornel.ImageOptim` overrides): `bash benchmarks/svg/run-imageoptim.sh`
+   (copies the corpus, batches it through the app, waits for the size+mtime
+   fingerprint to go quiet). Record app version + "factory settings" in
+   RESULTS.md. Do NOT change the app's preferences — the baseline is
+   "ImageOptim as the maintainer uses it".
+2. **nano sample** (hosted tool, 10 files/upload, 5 MB cap): stratified
+   sample of 70 = for each of the 7 strata take the 10 files closest to that
+   stratum's size deciles (deterministic: sort by bytes, take every
+   ceil(n/10)-th). Write the list to `benchmarks/svg/external/nano-sample.txt`
+   first. Upload batches of 10 to https://vecta.io/nano in a browser, download
+   each optimized file, save under `benchmarks/svg/external/nano/<same
+   relative path>`. Record: date, any visual warnings nano shows, and any
+   file it refuses. The maintainer uses nano daily and asked for this
+   comparison; the corpus is public/synthetic files only.
+3. **Chained leg**: copy `external/nano/` → `external/nano-imageoptim/`, run
+   the ImageOptim batch on that directory (reuse the script's open/fingerprint
+   pattern or point the script at it).
+4. **Compare + report**: `npm run bench:svg:compare` — it reads every
+   `external/<tool>/` directory plus the frisp outputs, recompresses ALL
+   outputs with one gzip (Node zlib, level 9), and emits RESULTS.md with
+   totals, median/geomean ratios, win/tie/loss (tie = max(4 B, 0.1%)), and
+   per-stratum tables. nano/chained tools cover only the sample — the compare
+   must restrict cross-tool win/loss rows to the sample intersection (verify
+   it does; fix if not).
+5. **Honest reporting rules**: dimensionless SVGs error by design (import
+   contract) — count them separately, not as losses. Frisp-auto's visual
+   gate means its lossy candidates are verified; nano/ImageOptim outputs get
+   NO visual verification in this protocol — note that asymmetry. Report the
+   `p3!` (gate-failed, unverified) count. State plainly where Frisp wins,
+   ties, and loses; the goal is a true picture, not a marketing number.
+6. Flip S7/S8 stage states above, add the RESULTS.md headline to STATUS.md +
+   WORKLOG, and update the user guide's svg page only if claims there need
+   correcting.
+
 ## Gotchas (read before implementing)
 
 - `createImageBitmap(svgBlob)` is NOT reliably supported — SVG rasterization
