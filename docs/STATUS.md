@@ -8,7 +8,8 @@ browser, the build is static, and offline reload must work after load.
 ## Current State
 
 - **Film grain v1.1 (2026-07-12, later).** Two same-day follow-ups: an
-  **Advanced Size control** (1–4 px; size 2 at Amount 4–6 is the measured
+  **Advanced "Grain size" control** (slider 1–100 at 20 units/px, default 20
+  = the calibrated finest; size 40 at Amount 4–6 is the measured
   byte-efficient debanding recipe — the size experiment lives in the spec) and
   a **live scrub preview** (dragging Grain controls shows the exact
   pre-encode frame instantly; the settled encode replaces it; suppressed when

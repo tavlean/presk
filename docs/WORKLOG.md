@@ -4,6 +4,19 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-12 (later still) — Grain size rescaled to a 1–100 slider
+
+Maintainer feedback: whole-pixel size steps (1–4) jumped too much. The
+`size` option is now the 1–100 slider value at 20 units per pixel (default
+20 = the calibrated 1px look, byte-identical; 40 = 2px = the debanding
+recipe; 100 = 5px), with values ≤20 clamped to the per-pixel path — like
+Luminar, the default sits mid-scale with room both ways. The lattice now
+takes fractional spacing; the variance correction became separable
+(per-column array × per-row factor — no per-pixel sqrt). Labels: the shared
+AdvancedSection disclosure now reads "Advanced" (all panels), the control
+reads "Grain size". Old saves with size 1–20 render identically to the new
+default.
+
 ## 2026-07-12 (later) — Grain v1.1: Size control + live scrub preview
 
 Same session, maintainer go on both follow-ups. (1) **Advanced Size (1–4)**:

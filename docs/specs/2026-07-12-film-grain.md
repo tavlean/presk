@@ -100,16 +100,21 @@ Wiring (mirrors quantize everywhere):
   override dots/resets work via the WS-G registry.
 - UI (`OptionsPanel.svelte` + `options/GrainOptions.svelte`): ToggleRow
   **"Film grain"** between Resize and Reduce palette (panel order = pipeline
-  order), one **Amount** slider 0–100, no advanced section. Shared by single
-  editor and bulk (same component).
+  order), one **Amount** slider 0–100 (v1 had no advanced section; v1.1 added
+  the "Grain size" reveal — see §Size). Shared by single editor and bulk
+  (same component).
 
 ## Size (v1.1, 2026-07-12)
 
-`size` (1–4, default 1, Advanced reveal) sets grain particle scale. 1 keeps
-the calibrated per-pixel path byte-identical. 2–4 bilinear-interpolate a
-noise lattice with `size`-px spacing; each of the size² fractional phases
-gets an exact `1/√(Σwᵢ²)` variance correction, so Amount means the same σ at
-every size (unit-tested).
+`size` (slider 1–100, default 20, "Advanced" reveal, labeled "Grain size") —
+20 slider units per pixel of particle scale, so 20 = 1px (the calibrated
+per-pixel path, byte-identical), 40 = 2px, 100 = 5px, and each step is a
+0.05px change (maintainer 2026-07-12: whole-pixel jumps were too big; the
+default sits at 20 like Luminar's, ≤20 clamps to the finest). Above 1px the
+grain bilinear-interpolates a noise lattice with fractional spacing; the
+variance correction is separable (`Σwᵢ² = ((1−fx)²+fx²)·((1−fy)²+fy²)`), a
+per-column array times a per-row factor, so Amount means the same σ at every
+size (unit-tested at 30/40/60/100).
 
 Why it exists — the debanding experiment (WebP, banding-prone dark gradient,
 q30/50/75; band-limited noise = bilinear-upsampled gaussian, generated via
@@ -124,9 +129,10 @@ Pillow in the session scratchpad):
 
 Lessons: sub-threshold fine noise is deleted by the encoder (pay nothing,
 fix nothing); coarser grain survives quantization at low amplitude. The
-byte-efficient debanding recipe is **Size 2, Amount 4–6**. (Multipliers are
-worst-case: clean gradients compress to almost nothing.) Roughness was
-deliberately NOT added: histogram-shape-only, no size/debanding effect.
+byte-efficient debanding recipe is **Grain size 40 (2px), Amount 4–6**.
+(Multipliers are worst-case: clean gradients compress to almost nothing.)
+Roughness was deliberately NOT added: histogram-shape-only, no size/debanding
+effect.
 
 ## Live preview (v1.1, 2026-07-12)
 

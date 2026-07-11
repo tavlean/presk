@@ -15,7 +15,7 @@ The honest trade-off: grain is fine detail, and fine detail costs bytes. Turning
 
 ## Controls / Settings
 
-The panel has one visible slider, plus a Size slider under "Advanced settings" (`src/lib/editor/options/GrainOptions.svelte`). That's deliberate: the grain's *texture* is fixed to carefully calibrated film-like values, so the everyday decision is just *how much* — and Size exists for one specific job (efficient debanding, below).
+The panel has one visible slider, plus a Grain size slider under "Advanced" (`src/lib/editor/options/GrainOptions.svelte`). That's deliberate: the grain's *texture* is fixed to carefully calibrated film-like values, so the everyday decision is just *how much* — and Size exists for one specific job (efficient debanding, below).
 
 ### Amount
 
@@ -25,11 +25,11 @@ The panel has one visible slider, plus a Size slider under "Advanced settings" (
 - **Live preview:** while you drag, the view shows the grain applied instantly (the exact pixels the encoder is about to receive); when you pause, the real compressed result replaces it. If the grain looks softer after it settles, that's the encoder eating fine detail — raise Amount, raise quality, or raise Size.
 - **Determinism:** The grain pattern is fixed for a given image and settings — re-encoding with the same settings produces byte-identical output, so undo/redo and the instant-result cache behave exactly as they do for every other option.
 
-### Size (Advanced)
+### Grain size (Advanced)
 
-- **What it does:** Sets the grain particle size in pixels, **1 to 4**, default **1** (option key `size`). 1 is the calibrated fine film look. Larger values make coarser, softer grain — same overall strength.
-- **When to use it — debanding on a budget:** compressors delete fine noise first, so faint 1px grain often vanishes at low quality (and the banding comes back), while strong 1px grain survives but costs a lot of bytes. Coarser grain survives at *low* strength: measured on gradient images, **Size 2 with Amount 4–6** removes banding for roughly **one-sixth the byte cost** of doing it with Size 1. If you want the smallest possible file that still fixes banding, start there.
-- For the film look, leave Size at 1 and ignore this control entirely.
+- **What it does:** Sets the grain particle size, **1 to 100**, default **20** (option key `size`). 20 and below is the calibrated fine film look (one-pixel grain — the finest that physically exists); every 20 slider units adds another pixel of particle size, so 40 ≈ 2px, 100 ≈ 5px, and small moves make gradual changes rather than jumps.
+- **When to use it — debanding on a budget:** compressors delete fine noise first, so faint fine grain often vanishes at low quality (and the banding comes back), while strong fine grain survives but costs a lot of bytes. Coarser grain survives at *low* strength: measured on gradient images, **Grain size 40 with Amount 4–6** removes banding for roughly **one-sixth the byte cost** of doing it at the default size. If you want the smallest possible file that still fixes banding, start there.
+- For the film look, leave Grain size at its default and ignore this control entirely.
 
 ## Tips
 
