@@ -8,9 +8,10 @@
 
 import { stableStringify } from 'shared/stable-stringify';
 import type { SideFormat } from '$lib/compress';
-import type {
-  PreprocessorState,
-  ProcessorState,
+import {
+  grainIsReal,
+  type PreprocessorState,
+  type ProcessorState,
 } from 'client/lazy-app/feature-meta';
 
 /**
@@ -32,6 +33,9 @@ export function sideRecipe(
   return {
     format,
     options: options ?? {},
+    // Grain folds to null unless it actually changes pixels (enabled at a
+    // non-zero amount), so toggling it on at 0 stays a cache hit.
+    grain: grainIsReal(processorState.grain) ? processorState.grain : null,
     quantize: processorState.quantize,
     resize: resizeCounts ? processorState.resize : null,
   };

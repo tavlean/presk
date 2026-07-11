@@ -1,5 +1,8 @@
 import { IDENTITY, OUTPUT_FORMATS, type SideFormat } from '$lib/compress';
-import type { ProcessorState } from 'client/lazy-app/feature-meta';
+import {
+  defaultProcessorState,
+  type ProcessorState,
+} from 'client/lazy-app/feature-meta';
 
 /**
  * The editor's localStorage persistence: the auto-saved encoder settings (both
@@ -46,7 +49,14 @@ function isValidFormat(format: unknown): format is SideFormat {
   );
 }
 
-function isValidProcessorState(value: unknown): value is ProcessorState {
+// A stored processorState may predate the grain processor (2026-07-12), so
+// grain is absent-or-valid here and default-filled in parseSavedSide. The
+// storage keys are frozen; extending the payload this way keeps old saves
+// importing forever.
+type SavedProcessorState = Omit<ProcessorState, 'grain'> &
+  Partial<Pick<ProcessorState, 'grain'>>;
+
+function isValidProcessorState(value: unknown): value is SavedProcessorState {
   const state = value as ProcessorState | undefined;
   return (
     !!state &&
@@ -58,7 +68,11 @@ function isValidProcessorState(value: unknown): value is ProcessorState {
     Object.values(state.resize).every((v) => v != null) &&
     !!state.quantize &&
     typeof state.quantize.enabled === 'boolean' &&
-    Object.values(state.quantize).every((v) => v != null)
+    Object.values(state.quantize).every((v) => v != null) &&
+    (state.grain === undefined ||
+      (!!state.grain &&
+        typeof state.grain.enabled === 'boolean' &&
+        Object.values(state.grain).every((v) => v != null)))
   );
 }
 
@@ -104,7 +118,10 @@ function parseSavedSide(raw: string | null): ParsedSide | null {
   return {
     format: incoming.format,
     optionsByFormat: incoming.optionsByFormat,
-    processorState: incoming.processorState,
+    processorState: {
+      grain: structuredClone(defaultProcessorState.grain),
+      ...incoming.processorState,
+    },
   };
 }
 

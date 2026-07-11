@@ -16,6 +16,7 @@
   import MozjpegOptions from './options/MozjpegOptions.svelte';
   import OxipngOptions from './options/OxipngOptions.svelte';
   import ResizeOptions from './options/ResizeOptions.svelte';
+  import GrainOptions from './options/GrainOptions.svelte';
   import QuantizeOptions from './options/QuantizeOptions.svelte';
   import Results from './Results.svelte';
   import {
@@ -25,6 +26,7 @@
   } from '$lib/compress';
   import type {
     ResizeOptionsState,
+    GrainOptionsState,
     QuantizeOptionsState,
   } from './options/processor-types';
   import type { ProcessorState } from 'client/lazy-app/feature-meta';
@@ -167,6 +169,18 @@
             inputWidth={naturalWidth}
             inputHeight={naturalHeight}
             {isVector}
+          />
+        </div>
+      {/if}
+
+      <!-- Panel order mirrors pipeline order: resize → grain → reduce palette. -->
+      <ToggleRow class="section-enabler" label="Film grain">
+        <Toggle bind:checked={processorState.grain.enabled} />
+      </ToggleRow>
+      {#if processorState.grain.enabled}
+        <div transition:slide={{ duration: 300 }}>
+          <GrainOptions
+            options={processorState.grain as unknown as GrainOptionsState}
           />
         </div>
       {/if}

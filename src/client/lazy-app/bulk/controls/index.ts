@@ -3,6 +3,7 @@ import type {
   EncoderType,
 } from 'client/lazy-app/feature-meta/shared';
 import { avifControls } from './avif';
+import { grainControls } from './grain';
 import { jxlControls } from './jxl';
 import { mozJPEGControls } from './mozJPEG';
 import { oxiPNGControls } from './oxiPNG';
@@ -22,6 +23,7 @@ export const encoderControls = {
 } as const;
 
 export const processorControls = {
+  grain: grainControls,
   quantize: quantizeControls,
   resize: resizeControls,
 };

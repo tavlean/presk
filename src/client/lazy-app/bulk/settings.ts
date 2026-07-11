@@ -1,8 +1,9 @@
-import type {
-  EncoderOptions,
-  EncoderState,
-  EncoderType,
-  ProcessorState,
+import {
+  grainIsReal,
+  type EncoderOptions,
+  type EncoderState,
+  type EncoderType,
+  type ProcessorState,
 } from 'client/lazy-app/feature-meta/shared';
 import { stableStringify } from 'shared/stable-stringify';
 import { controlsForEncoderType, type BulkControl } from './controls';
@@ -184,10 +185,14 @@ function normalizedProcessorRecipe(
   processorState: ProcessorState,
   sourceDimensions?: BulkSourceDimensions,
 ): {
+  grain: ProcessorState['grain'] | null;
   quantize: ProcessorState['quantize'] | null;
   resize: ProcessorState['resize'] | null;
 } {
   return {
+    grain: grainIsReal(processorState.grain)
+      ? clone(processorState.grain)
+      : null,
     quantize: processorState.quantize.enabled
       ? clone(processorState.quantize)
       : null,

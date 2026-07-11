@@ -62,6 +62,10 @@ export function settings(
       },
     },
     processorState: {
+      grain: {
+        enabled: false,
+        amount: 12,
+      },
       quantize: {
         enabled: false,
         numColors: 256,

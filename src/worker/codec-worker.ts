@@ -30,6 +30,8 @@ import initOxipngWasm, {
 } from 'app-generated/codecs/oxipng/pkg/squoosh_oxipng';
 import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
 import { simd } from 'wasm-feature-detect';
+import { applyGrain } from 'features/processors/grain/shared/apply';
+import type { Options as GrainOptions } from 'features/processors/grain/shared/meta';
 import { createQuantizeRuntime } from 'features/processors/quantize/worker/runtime';
 import type { Options as QuantizeOptions } from 'features/processors/quantize/shared/meta';
 import imagequant from 'app-generated/codecs/imagequant/imagequant';
@@ -319,6 +321,13 @@ const workerApi = {
         wasmUrls,
       }),
     );
+  },
+  grain(
+    imageData: ImageData,
+    options: GrainOptions & { enabled: boolean },
+  ): Promise<ImageData> {
+    // Pure JS — no WASM to locate.
+    return transferImage(Promise.resolve(applyGrain(imageData, options)));
   },
   quantize(
     imageData: ImageData,

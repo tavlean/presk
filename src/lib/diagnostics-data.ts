@@ -26,6 +26,7 @@ const globalSettings: BulkImageSettings = {
     },
   },
   processorState: {
+    grain: { ...defaultProcessorState.grain },
     resize: {
       ...defaultProcessorState.resize,
       enabled: true,

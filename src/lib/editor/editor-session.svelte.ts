@@ -120,6 +120,7 @@ function snapshotProcessorStateForEncode(
   // on width/height and fire a redundant re-encode right after the first one.
   const resizeEnabled = state.resize.enabled;
   return {
+    grain: $state.snapshot(state.grain),
     quantize: $state.snapshot(state.quantize),
     resize: resizeEnabled
       ? $state.snapshot(state.resize)

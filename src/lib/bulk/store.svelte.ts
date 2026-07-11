@@ -144,6 +144,7 @@ export function normalizeProcessorStateForBulkDiff(
   return {
     ...structuredClone(processorState),
     resize: normalizeProcessorSub(processorState.resize),
+    grain: normalizeProcessorSub(processorState.grain),
     quantize: normalizeProcessorSub(processorState.quantize),
   } as BulkImageSettings['processorState'];
 }

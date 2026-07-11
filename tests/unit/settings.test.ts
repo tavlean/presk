@@ -119,6 +119,10 @@ describe('bulk settings helpers', () => {
   it('keeps settings hashes stable regardless of object key insertion order', () => {
     const left = settings({
       processorState: {
+        grain: {
+          enabled: true,
+          amount: 12,
+        },
         resize: {
           enabled: true,
           width: 640,
@@ -151,6 +155,10 @@ describe('bulk settings helpers', () => {
           width: 640,
           enabled: true,
         },
+        grain: {
+          amount: 12,
+          enabled: true,
+        },
       },
       encoderState: left.encoderState,
     };
@@ -162,6 +170,10 @@ describe('bulk settings helpers', () => {
     const left = settings();
     const right = settings({
       processorState: {
+        grain: {
+          enabled: false,
+          amount: 80,
+        },
         resize: {
           enabled: false,
           width: 999,

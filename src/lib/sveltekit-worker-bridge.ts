@@ -6,6 +6,7 @@ import type { EncodeOptions as QoiEncodeOptions } from 'features/encoders/qoi/sh
 import type { EncodeOptions as JxlEncodeOptions } from 'features/encoders/jxl/shared/meta';
 import type { EncodeOptions as MozjpegEncodeOptions } from 'features/encoders/mozJPEG/shared/meta';
 import type { EncodeOptions as OxipngEncodeOptions } from 'features/encoders/oxiPNG/shared/meta';
+import type { Options as GrainOptions } from 'features/processors/grain/shared/meta';
 import type { Options as QuantizeOptions } from 'features/processors/quantize/shared/meta';
 import type { WorkerResizeOptions } from 'features/processors/resize/shared/meta';
 import type { Options as RotateOptions } from 'features/preprocessors/rotate/shared/meta';
@@ -36,6 +37,7 @@ const methodNames = [
   'qoiEncode',
   'jxlEncode',
   'mozjpegEncode',
+  'grain',
   'quantize',
   'resize',
   'oxipngEncode',
@@ -81,6 +83,11 @@ export interface SvelteKitWorkerBridgeApi {
     imageData: ImageData,
     options: OxipngEncodeOptions,
   ): Promise<ArrayBuffer>;
+  grain(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: GrainOptions & { enabled: boolean },
+  ): Promise<ImageData>;
   quantize(
     signal: AbortSignal,
     imageData: ImageData,
@@ -151,6 +158,13 @@ interface SvelteKitWorkerBridgeWorkerApi {
     options: OxipngEncodeOptions,
     wasmUrls: OxipngWasmUrls,
   ): Promise<ArrayBuffer>;
+  // No wasmUrls: grain is pure JS in the worker, so the base bridge method
+  // passes through unwrapped (no subclass override needed).
+  grain(
+    signal: AbortSignal,
+    imageData: ImageData,
+    options: GrainOptions & { enabled: boolean },
+  ): Promise<ImageData>;
   quantize(
     signal: AbortSignal,
     imageData: ImageData,

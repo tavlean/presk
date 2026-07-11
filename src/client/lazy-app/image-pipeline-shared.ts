@@ -8,9 +8,10 @@ import {
 import type { ImageMimeTypes } from './image-decode';
 import { abortable, assertSignal, isAbortError } from './abort';
 import { parseSvgViewBoxSize } from './util/svg';
-import type {
-  PreprocessorState,
-  ProcessorState,
+import {
+  grainIsReal,
+  type PreprocessorState,
+  type ProcessorState,
 } from 'client/lazy-app/feature-meta/shared';
 import { resize } from 'features/processors/resize/client/runtime';
 import { getOutputFileName } from './output-filename';
@@ -48,6 +49,11 @@ export interface PreprocessWorkerBridge {
 
 export interface ProcessWorkerBridge {
   resize: Parameters<typeof resize>[3]['resize'];
+  grain(
+    signal: AbortSignal,
+    data: ImageData,
+    options: ProcessorState['grain'],
+  ): WorkerBridgeReturn<ImageData>;
   quantize(
     signal: AbortSignal,
     data: ImageData,
@@ -161,7 +167,11 @@ export async function processImage(
   assertSignal(signal);
   let result = source.preprocessed;
 
-  const { resize: resizeState, quantize: quantizeState } = processorState;
+  const {
+    resize: resizeState,
+    grain: grainState,
+    quantize: quantizeState,
+  } = processorState;
   // Only resize when the target differs from the source's own dimensions. At
   // identical dimensions the interpolating filters (Lanczos3 default, Catmull-Rom,
   // Triangle) are a mathematical identity, so running the pass would burn CPU — and
@@ -172,6 +182,12 @@ export async function processImage(
     resizeState.height !== source.preprocessed.height;
   if (resizeState.enabled && resizeChangesSize) {
     result = await resize(signal, source, resizeState, workerBridge);
+  }
+  // Grain runs after resize (so grain scale is stable at the output
+  // resolution) and before quantize (so a reduced-palette request still
+  // yields exactly that many colors — the quantizer dithers the grain in).
+  if (grainIsReal(grainState)) {
+    result = await workerBridge.grain(signal, result, grainState);
   }
   if (quantizeState.enabled) {
     result = await workerBridge.quantize(signal, result, quantizeState);

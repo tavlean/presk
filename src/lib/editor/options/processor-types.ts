@@ -23,6 +23,11 @@ export interface ResizeOptionsState {
   linearRGB: boolean;
 }
 
+export interface GrainOptionsState {
+  enabled: boolean;
+  amount: number;
+}
+
 export interface QuantizeOptionsState {
   enabled: boolean;
   zx: number;

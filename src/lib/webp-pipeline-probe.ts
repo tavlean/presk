@@ -88,6 +88,7 @@ const pipelineSettings: BulkImageSettings = {
     },
   },
   processorState: {
+    grain: { ...defaultProcessorState.grain },
     resize: {
       ...defaultProcessorState.resize,
       enabled: true,

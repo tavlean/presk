@@ -4,6 +4,7 @@ import * as mozJPEGEncoderMeta from 'features/encoders/mozJPEG/shared/meta';
 import * as oxiPNGEncoderMeta from 'features/encoders/oxiPNG/shared/meta';
 import * as qoiEncoderMeta from 'features/encoders/qoi/shared/meta';
 import * as webPEncoderMeta from 'features/encoders/webP/shared/meta';
+import * as grainProcessorMeta from 'features/processors/grain/shared/meta';
 import * as quantizeProcessorMeta from 'features/processors/quantize/shared/meta';
 import * as resizeProcessorMeta from 'features/processors/resize/shared/meta';
 import * as rotatePreprocessorMeta from 'features/preprocessors/rotate/shared/meta';
@@ -40,19 +41,32 @@ interface Enableable {
 }
 
 export interface ProcessorOptions {
+  grain: grainProcessorMeta.Options;
   quantize: quantizeProcessorMeta.Options;
   resize: resizeProcessorMeta.Options;
 }
 
 export interface ProcessorState {
+  grain: Enableable & grainProcessorMeta.Options;
   quantize: Enableable & quantizeProcessorMeta.Options;
   resize: Enableable & resizeProcessorMeta.Options;
 }
 
 export const defaultProcessorState: ProcessorState = {
+  grain: { enabled: false, ...grainProcessorMeta.defaultOptions },
   quantize: { enabled: false, ...quantizeProcessorMeta.defaultOptions },
   resize: { enabled: false, ...resizeProcessorMeta.defaultOptions },
 };
+
+/**
+ * Grain only affects the output when it's enabled at a non-zero amount, so
+ * every consumer that fingerprints or runs the pipeline (encode signature,
+ * bulk recipe normalization, processImage) folds "enabled at 0" to a true
+ * no-op through this one predicate.
+ */
+export function grainIsReal(grain: ProcessorState['grain']): boolean {
+  return grain.enabled && grain.amount > 0;
+}
 
 export interface PreprocessorState {
   rotate: rotatePreprocessorMeta.Options;
