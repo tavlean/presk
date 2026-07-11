@@ -149,18 +149,22 @@ recorded — nano is a hosted moving target), report raw/gzip/Brotli + visual
 status, win/tie/loss. This is what makes "matches or beats nano" a claim
 instead of a hope.
 
-## Decisions
+## Decisions (all closed 2026-07-12)
 
-1. **DECIDED 2026-07-12 — precache the SVGO chunk.** SVG is a first-class
-   format (the maintainer optimizes SVGs daily); the full offline promise
-   holds. Revisit only if install size becomes a measured problem.
-2. **DECIDED 2026-07-12 — vector-true preview** (see Phase 1 above): SVG
-   sides re-render at the current zoom; no frozen-bitmap scaling.
-3. Open: **Phase 2 scope** — ship Phase 1 alone first, or 1+2 together
-   (recommend 1 then 2 — Phase 1 is independently shippable and validates
-   the lane).
-4. Open: priority vs the queued codec batch (jxl 0.12 → jpegli → transcode →
-   auto-quality) and bulk Phase 3.
+1. **SVGO chunk loads on first SVG use** (runtime-cached by the SW from then
+   on), NOT precached at install. Maintainer reversed the earlier precache
+   call after discussion: first-use caching keeps the install lean and the
+   offline story honest ("SVG optimizer is offline-ready after first use").
+2. **Vector-true preview** (see Phase 1 above): SVG sides re-render at the
+   current zoom; no frozen-bitmap scaling.
+3. **Phases 1+2 ship together.** Phase 1 alone is not enough for the
+   maintainer's daily SVG workflow — the auto candidate search is the point.
+4. **Priority: above the queued codec batch** (jxl 0.12 → jpegli → transcode
+   → auto-quality). The maintainer optimizes SVGs daily; the codec batch
+   waits.
+5. Executable spec:
+   [specs/2026-07-12-svg-optimization.md](specs/2026-07-12-svg-optimization.md)
+   — execution state lives THERE.
 
 ## Related
 
