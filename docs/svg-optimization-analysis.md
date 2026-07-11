@@ -133,6 +133,18 @@ The vector twin of the already-specced raster auto-quality mode
 
 ### Phase 3 — only if benchmarks demand (deferred)
 
+> **First benchmark signal (2026-07-12, benchmarks/svg/RESULTS.md):**
+> frisp-auto beats ImageOptim 1.9.3 overall (144W/18T/34L on gzip) but
+> LOSES the editor-exports stratum (ImageOptim median −51% vs our −36%) —
+> its cleaner is more aggressive on editor junk (`<style>` class inlining,
+> data-attributes). Concrete v2 lever: add an `inlineStyles`-aggressive /
+> `removeAttrs`(data-*) candidate to the auto search for style-heavy
+> sources. Also parked for v2: dimensionless-SVG import relaxation (19
+> corpus files rejected by the inherited width/height/viewBox contract).
+> Font-subsetting scope note: Frisp can never fetch remote fonts (privacy /
+> offline), so subsetting only ever applies to fonts ALREADY EMBEDDED in
+> the file — that bounds the design sharply and is why it stays deferred.
+
 - **Font subsetting** for text-bearing SVGs (the one place nano keeps a real
   edge). Big: shaping, glyph closure, WOFF2, license flags (`fsType`). Needs
   WASM (HarfBuzz-class). Separate project.

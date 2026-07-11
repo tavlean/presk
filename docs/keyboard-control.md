@@ -78,6 +78,26 @@ to `[`/`]`/`\` and free ALL digits for value entry (recommended); (b) reserve
 1–3 for the divider and accept quality entry starting at 4 (bad); (c) require
 a leading key for value entry, e.g. `Q` then digits (less Photoshop-like).
 
+**Recommendations on the five open decisions (Fable, 2026-07-12 — each is a
+yes/no for the maintainer, with reasoning):**
+
+1. **Letters:** keep `J`=JPEG, `X`=JPEG XL. JPEG is the higher-frequency
+   target and "X" is the natural JXL mnemonic; `G` for JPEG has no mental
+   hook.
+2. **Divider digits:** option (a) — move divider snapping to `[` / `]` / `\`
+   and free ALL digits for quality entry. Digit-quality is the Photoshop
+   muscle memory this feature exists for; divider snapping is low-frequency,
+   and `[`/`]` are spatially better mnemonics for "split left/right" anyway.
+3. **"0" alone:** = maximum quality (100, clamped to 99 on AVIF/JXL),
+   matching Photoshop's opacity convention. Anyone typing a bare 0 at a
+   quality control is reaching for that muscle memory; 0-as-minimum would be
+   a rude surprise, and an explicit "0","1" still gives 1 if truly wanted.
+4. **Save key:** plain `S`; do NOT intercept `Cmd+S`. The whole layer is
+   bare-letter Figma-style — hijacking the browser's save shortcut buys
+   nothing except broken user expectations in a web app.
+5. **`S` in bulk = Save all (ZIP):** yes. One consistent meaning — "save
+   what I'm looking at" — and in bulk what you're looking at is the batch.
+
 **Browser-clash analysis:** bare letters/digits carry no browser default
 outside inputs, so Figma-style keys are safe. Cmd/Ctrl combos stay untouched
 (existing undo/redo pattern). `/` and `'` trigger Firefox quick-find —
