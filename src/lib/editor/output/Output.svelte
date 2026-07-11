@@ -9,6 +9,7 @@
   // gives us the TwoUp class for typing the ref — we now call its public API
   // (centerSplit / splitFraction) and listen for its 'splitchange' event.
   import TwoUp from './two-up';
+  import SvgPreview from './SvgPreview.svelte';
   import { drawDataToCanvas } from 'client/lazy-app/util/canvas';
   import { isSafari } from 'client/lazy-app/util';
   import { retargetViewEvents } from './retarget-events';
@@ -43,7 +44,15 @@
     containWidth?: number;
     containHeight?: number;
     orientationOverride?: 'horizontal' | 'vertical' | null;
+    /** Omitted (undefined) = rotation unavailable for this source (SVG in v1);
+     *  the rotate button is then not rendered at all. */
     onRotate?: () => void;
+    /** Blob URL of a side's SVG file, when that side's output IS an SVG.
+     *  Switches the side from the canvas to the vector-true <img> preview
+     *  (SvgPreview) — the canvas would bitmap-scale under zoom, which is
+     *  exactly what a vector preview must never do. */
+    leftSvgUrl?: string | null;
+    rightSvgUrl?: string | null;
   }
 
   let {
@@ -62,6 +71,8 @@
     containHeight = 0,
     orientationOverride = null,
     onRotate,
+    leftSvgUrl = null,
+    rightSvgUrl = null,
   }: Props = $props();
 
   // Source fallback, mirroring the original Squoosh Output (rightDrawable() =>
@@ -306,6 +317,12 @@
     }}
     {@attach retargetViewEvents(() => pinchLeft)}
   >
+    <!-- A side with an SVG output keeps its canvas mounted (pinch-zoom drives
+         its first child, and the fit/zoom geometry hangs off it) but hidden,
+         and shows the vector-true SvgPreview overlay instead. The overlay is a
+         later sibling, OUTSIDE the pinch-zoom transform: it mirrors the same
+         tracked scale/viewX/viewY as layout size + translate, so the browser
+         re-rasterizes the vector at every zoom step. -->
     <pinch-zoom
       class="pinch-zoom"
       bind:this={pinchLeft}
@@ -319,8 +336,19 @@
         style:width={boxWidth}
         style:height={boxHeight}
         style:object-fit={leftContain ? 'contain' : null}
+        style:visibility={leftSvgUrl ? 'hidden' : null}
         bind:this={canvasLeft}
       ></canvas>
+      {#if leftSvgUrl}
+        <SvgPreview
+          url={leftSvgUrl}
+          naturalWidth={containWidth}
+          naturalHeight={containHeight}
+          {scale}
+          x={viewX}
+          y={viewY}
+        />
+      {/if}
     </pinch-zoom>
     <pinch-zoom class="pinch-zoom" bind:this={pinchRight}>
       <canvas
@@ -331,8 +359,19 @@
         style:width={boxWidth}
         style:height={boxHeight}
         style:object-fit={rightContain ? 'contain' : null}
+        style:visibility={rightSvgUrl ? 'hidden' : null}
         bind:this={canvasRight}
       ></canvas>
+      {#if rightSvgUrl}
+        <SvgPreview
+          url={rightSvgUrl}
+          naturalWidth={containWidth}
+          naturalHeight={containHeight}
+          {scale}
+          x={viewX}
+          y={viewY}
+        />
+      {/if}
     </pinch-zoom>
   </two-up>
 
@@ -430,20 +469,23 @@
        popover opens upward from the trigger; light-dismiss + the dirty dot are
        wired in the script. -->
   <div class="button-group" {@attach viewOptionsLightDismiss}>
-    <button
-      class="button first-button"
-      onclick={() => onRotate?.()}
-      title="Rotate"
-      aria-label="Rotate"
-    >
-      <svg class="icon" viewBox="0 0 24 24"
-        ><path
-          d="M15.6 5.5L11 1v3a8 8 0 0 0 0 16v-2a6 6 0 0 1 0-12v4l4.5-4.5zm4.3 5.5a8 8 0 0 0-1.6-3.9L17 8.5c.5.8.9 1.6 1 2.5h2zM13 17.9v2a8 8 0 0 0 3.9-1.6L15.5 17c-.8.5-1.6.9-2.5 1zm3.9-2.4l1.4 1.4A8 8 0 0 0 20 13h-2c-.1.9-.5 1.7-1 2.5z"
-        /></svg
+    {#if onRotate}
+      <button
+        class="button first-button"
+        onclick={() => onRotate?.()}
+        title="Rotate"
+        aria-label="Rotate"
       >
-    </button>
+        <svg class="icon" viewBox="0 0 24 24"
+          ><path
+            d="M15.6 5.5L11 1v3a8 8 0 0 0 0 16v-2a6 6 0 0 1 0-12v4l4.5-4.5zm4.3 5.5a8 8 0 0 0-1.6-3.9L17 8.5c.5.8.9 1.6 1 2.5h2zM13 17.9v2a8 8 0 0 0 3.9-1.6L15.5 17c-.8.5-1.6.9-2.5 1zm3.9-2.4l1.4 1.4A8 8 0 0 0 20 13h-2c-.1.9-.5 1.7-1 2.5z"
+          /></svg
+        >
+      </button>
+    {/if}
     <button
       class="button last-button view-options-trigger"
+      class:first-button={!onRotate}
       class:active={viewOptionsOpen}
       class:dirty={viewOptionsDirty}
       onclick={() => (viewOptionsOpen = !viewOptionsOpen)}

@@ -252,10 +252,17 @@ export default class PinchZoom extends HTMLElement {
 
   private _stageElChange() {
     this._positioningEl = undefined;
-    if (this.children.length === 0) return;
-    this._positioningEl = this.children[0];
-    if (this.children.length > 1) {
-      console.warn('<pinch-zoom> must not have more than one child.');
+    // Overlay children ([data-pinch-overlay]) are not positioned by this
+    // element — they mirror the transform themselves (see pinch-zoom.css).
+    const positioned = [...this.children].filter(
+      (child) => !child.hasAttribute('data-pinch-overlay'),
+    );
+    if (positioned.length === 0) return;
+    this._positioningEl = positioned[0];
+    if (positioned.length > 1) {
+      console.warn(
+        '<pinch-zoom> must not have more than one positioned child.',
+      );
     }
     this.setTransform({ allowChangeEvent: true });
   }

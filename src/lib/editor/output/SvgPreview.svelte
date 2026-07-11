@@ -35,6 +35,7 @@
 
 <img
   class="svg-preview"
+  data-pinch-overlay
   src={url}
   alt=""
   draggable="false"

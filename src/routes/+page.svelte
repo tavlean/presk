@@ -19,12 +19,18 @@
   import { snackbar } from '$lib/editor/snackbar-store.svelte';
   import { fileDrop } from '$lib/editor/file-drop';
   import { EditorSession } from '$lib/editor/editor-session.svelte';
-  import { IDENTITY } from '$lib/compress';
+  import { IDENTITY, type CompressOutcome } from '$lib/compress';
   import { isSupportedBulkImage } from 'client/lazy-app/bulk';
   import { APP_NAME } from 'shared/brand';
   import '$lib/editor/theme.css';
 
   const session = new EditorSession();
+
+  // A side whose output IS an SVG file (the Original side of an SVG source, or
+  // the optimized 'svg' side) previews via the vector-true overlay instead of
+  // the canvas — Output switches on the URL's presence.
+  const svgPreviewUrl = (outcome: CompressOutcome | null) =>
+    outcome?.outputFile.type === 'image/svg+xml' ? outcome.outputUrl : null;
 
   // Drives the shortcut hint in the Undo/Redo tooltips (⌘ on Apple, Ctrl else).
   let isMac = $state(false);
@@ -166,10 +172,7 @@
   {#if bulkStore.hasJobs}
     <BulkMode onExit={exitBulk} />
   {:else if session.file}
-    <div
-      class="compress editor-root"
-      class:vector-source={session.isVectorSource}
-    >
+    <div class="compress editor-root">
       <!-- grainPreview (the live grain scrub frame) outranks the stale result
            while its encode is in flight; see EditorSession.updateGrainPreview. -->
       <Output
@@ -188,7 +191,9 @@
         rightContain={session.rightContain}
         containWidth={session.naturalWidth}
         containHeight={session.naturalHeight}
-        onRotate={() => session.rotate()}
+        onRotate={session.isVectorSource ? undefined : () => session.rotate()}
+        leftSvgUrl={svgPreviewUrl(session.runtime[0].result)}
+        rightSvgUrl={svgPreviewUrl(session.runtime[1].result)}
       />
 
       {#if session.firstError}
@@ -525,12 +530,6 @@
   }
   .options-2 {
     right: var(--panel-inset);
-  }
-
-  /* Output owns the toolbar, but SVG sources cannot honestly apply rotation
-     until the vector lane supports it. Keep its space out of the v1 UI. */
-  .vector-source :global(button[aria-label='Rotate']) {
-    display: none;
   }
 
   @media (max-width: 760px) {

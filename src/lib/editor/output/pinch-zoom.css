@@ -1,4 +1,7 @@
-/* Ported verbatim from src/client/lazy-app/Compress/Output/custom-els/PinchZoom/styles.css. */
+/* Ported from src/client/lazy-app/Compress/Output/custom-els/PinchZoom/styles.css.
+   Local change: [data-pinch-overlay] children opt out of the pinched transform —
+   they track the view by other means (SvgPreview mirrors it as layout size, so
+   the browser re-rasterizes the vector instead of bitmap-scaling it). */
 pinch-zoom {
   display: block;
   overflow: hidden;
@@ -8,7 +11,7 @@ pinch-zoom {
   --y: 0;
 }
 
-pinch-zoom > * {
+pinch-zoom > :not([data-pinch-overlay]) {
   transform: translate(var(--x), var(--y)) scale(var(--scale));
   transform-origin: 0 0;
   will-change: transform;
