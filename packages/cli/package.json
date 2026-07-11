@@ -1,0 +1,38 @@
+{
+  "name": "frisp",
+  "version": "0.0.1",
+  "description": "Placeholder for the frisp CLI — target-driven, agent-first image compression (WebP, AVIF, JPEG XL, jpegli). The real CLI is in development.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "frisp": "bin/frisp.mjs"
+  },
+  "main": "index.mjs",
+  "files": [
+    "bin/",
+    "index.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "image",
+    "compression",
+    "optimizer",
+    "webp",
+    "avif",
+    "jpeg-xl",
+    "jxl",
+    "jpegli",
+    "ssimulacra2",
+    "cli",
+    "agent"
+  ],
+  "homepage": "https://frisp.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tavlean/frisp.git",
+    "directory": "packages/cli"
+  }
+}
