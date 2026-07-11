@@ -1,7 +1,7 @@
 # Film Grain processor (v1)
 
 Last updated: 2026-07-12.
-Status: in progress.
+Status: done (shipped 2026-07-12, `3db56a3e`–`7b548dea` + e2e/docs follow-ups).
 
 Maintainer-approved 2026-07-12 (design session; supersedes the road-map.md
 "Film Grain / Debanding" idea sketch). Two use cases, one mechanism: a filmic

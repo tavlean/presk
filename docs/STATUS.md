@@ -1,11 +1,27 @@
 # Frisp Status
 
-Last updated: 2026-07-11.
+Last updated: 2026-07-12.
 
 Read this first. Frisp is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
 
 ## Current State
+
+- **Film grain SHIPPED (2026-07-12, `3db56a3e`–`7b548dea`).** New processor
+  step (resize → **grain** → quantize) with a single calibrated **Amount**
+  slider, live in the single editor, bulk global settings, and bulk per-image
+  overrides. The grain model was measured from the maintainer's Luminar
+  Neo/Pixelmator reference exports (20 synthetic + 3 real-photo pairs) and
+  matches Luminar's default look 1:1 on its Amount scale: monochrome per-pixel
+  white noise, σ = 0.44·amount at mid-gray, 4L(1−L) midtone parabola,
+  flatter-than-gaussian samples, fixed-seed deterministic (cache/undo/bulk
+  staleness contracts hold). Spec + calibration + decision record (baked
+  uniform grain over codec-native synthesis, and why):
+  [specs/2026-07-12-film-grain.md](specs/2026-07-12-film-grain.md). Old saved
+  side-settings without `grain` default-fill on parse (`app:settings:v3`
+  unchanged). Verified: unit suite (119, incl. 9 grain model tests), live
+  browser check (lossless PNG output measures σ 5.31 vs 5.28 predicted at
+  Amount 12; WebP/bulk/override flows exercised), full e2e both browsers.
 
 - **Codec batch decided & specced (2026-07-11).** Four maintainer-approved
   features, each with a Codex-executable spec in docs/specs/ dated 2026-07-11:

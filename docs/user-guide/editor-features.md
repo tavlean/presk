@@ -62,14 +62,14 @@ The two **preview-only** display toggles live together behind a single **View op
 
 ### Copy settings to the other side
 
-- **What it does:** Copies this panel's complete settings (its format, that format's options, and its Resize/Reduce-palette state) onto the _other_ side in one click. The button is an arrow that points toward the side it will copy to.
+- **What it does:** Copies this panel's complete settings (its format, that format's options, and its Resize/Film-grain/Reduce-palette state) onto the _other_ side in one click. The button is an arrow that points toward the side it will copy to.
 - **Range & default:** Action button; lives in the **Edit** header (so it is hidden on a side set to "Original Image"). After copying, a "Settings copied across" message appears with an **Undo** option for a few seconds.
 - **How to choose:** Use it to A/B two encoders from the same baseline — set one side up the way you like, copy it across, then change just the format on the other side to compare them fairly.
 - **Recommended starting point:** Use whenever you want both sides to start from identical settings.
 
 ### Save side settings / Import saved side settings
 
-- **What it does:** **Save** (the gear button) remembers this side's full setup — format, that format's options, and the Resize/Reduce-palette state — in your browser so it survives reloads and future images. **Import** (the gear-with-arrow button) applies your saved setup back onto this side.
+- **What it does:** **Save** (the gear button) remembers this side's full setup — format, that format's options, and the Resize/Film-grain/Reduce-palette state — in your browser so it survives reloads and future images. **Import** (the gear-with-arrow button) applies your saved setup back onto this side.
 - **Range & default:** Two action buttons in the **Edit** header (hidden on the "Original Image" side). Saving confirms with a "<Left/Right> side settings saved" message. Importing confirms with a "<Left/Right> side settings imported" message and offers **Undo**. **Import is greyed out until a valid saved setup exists** for that side — and it only enables if the stored data actually passes validation, not merely because something was saved.
 - **How to choose:** Save the encoder + options you reach for most (your house WebP or AVIF recipe), then Import it on any new image instead of re-dialling every slider. Save is stored separately per side (left vs. right).
 - **Recommended starting point:** Save once you've found settings you like; Import them on each new image.
@@ -90,7 +90,7 @@ The two **preview-only** display toggles live together behind a single **View op
 
 ### Undo / Redo
 
-- **What it does:** Steps backward and forward through the changes you've made to the current image — format, quality and every encoder option, Resize, Reduce-palette, and rotation, across **both** sides. Returning to an earlier state is **instant**: Frisp keeps the already-compressed image for the settings you've visited, so stepping back shows that exact result again with no re-compression wait (see "Revisiting a setting is instant" above).
+- **What it does:** Steps backward and forward through the changes you've made to the current image — format, quality and every encoder option, Resize, Film grain, Reduce-palette, and rotation, across **both** sides. Returning to an earlier state is **instant**: Frisp keeps the already-compressed image for the settings you've visited, so stepping back shows that exact result again with no re-compression wait (see "Revisiting a setting is instant" above).
 - **Range & default:** Two round buttons — a back-arrow (Undo) and a forward-arrow (Redo) — in the top-left, just right of the **Back (X)** button, shown while an image is open. **Undo** is greyed out until you've made a change; **Redo** is greyed out unless you've just undone something. Keyboard: **⌘Z / Ctrl+Z** to undo, **⇧⌘Z / Ctrl+Shift+Z** (or **Ctrl+Y**) to redo. History is **per-image** — loading or replacing the image starts fresh.
 - **How to use it:** Make a few changes, then Undo to walk them back one step at a time, Redo to re-apply. Rapid tweaks to the same control (dragging a slider) collapse into a **single** step, so one Undo takes you back to before that whole adjustment rather than through every intermediate value.
 - **How to choose:** Use it to experiment without fear — try a more aggressive setting, and if it isn't worth it, Undo to snap straight back to the version you liked, instantly.

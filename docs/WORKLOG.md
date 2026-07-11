@@ -4,6 +4,43 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-12 — Film grain shipped (measured model, single slider)
+
+Designed and shipped the film-grain processor in one session, pulled ahead of
+the 2026-07 codec batch by the maintainer. The design question ("use
+JXL/AVIF's native grain synthesis or bake uniform grain?") was resolved by
+research + measurement: **baked pixels won** (native paths can't author
+aesthetic grain on AVIF, only decode in Safari for JXL, and don't exist at all
+for JPEG/WebP/PNG; baked is WYSIWYG everywhere). Full rationale in
+`docs/specs/2026-07-12-film-grain.md`.
+
+The grain model was **measured, not invented**: the maintainer exported 20
+calibration images from Luminar Neo + Pixelmator Pro onto known synthetic
+canvases plus 3 real-photo pairs; analysis (numpy, session scratchpad)
+decoded Luminar's default look — monochrome per-pixel white noise (lag-1
+autocorr ≈ 0; Luminar's Size slider is measurably inert), flatter-than-
+gaussian samples (kurtosis ≈ −1.5 ⇒ `sign(u)·|u|^0.683`), amplitude =
+`0.44·amount · 4L(1−L)` (midtone parabola over the pixel's own sRGB luma).
+Verified against the real photos within ~5%, then verified again END-TO-END in
+the browser: lossless PNG output measures σ 5.31 vs 5.28 predicted at the
+default Amount 12. Frisp's slider is 1:1 on Luminar's Amount scale
+(maintainer's taste: 10–12 everyday, ~24 creative).
+
+Implementation mirrors quantize everywhere: `features/processors/grain/`
+(pure-JS apply, fixed-seed xorshift32, one PRNG step per pixel, alpha-0 pixels
+untouched), pipeline order resize → grain → quantize (grain scale stable at
+output resolution; palette contract preserved), `grainIsReal()` folds
+"enabled at 0" out of the encode signature / bulk recipe (toggle-off = cache
+hit, asserted by the new `tests/e2e/grain.spec.ts`), UI = one "Film grain"
+ToggleRow + Amount slider shared by both editors. **Gotchas:** (1) per-side
+saved settings default-fill a missing `grain` on parse — `app:settings:v3`
+frozen, do NOT bump; (2) `BulkMode.svelte`'s per-image override diff loop
+hardcodes the processor key list — new processors must be added there
+(`['grain', 'resize', 'quantize']`) or per-image edits silently drop; (3) the
+bulk `processorControls` registry has no consumer yet (WS-G UI half pending) —
+the grain entry is registered for when the dots/resets wiring lands. Gates:
+check 0 errors, 119 unit (9 new), full e2e 61+2 passed both browsers.
+
 ## 2026-07-11 (later) — CLI scope notes, npm name, film-grain idea
 
 Follow-up in the same session. The maintainer agreed with the CLI direction;

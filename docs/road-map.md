@@ -223,32 +223,23 @@ lossy-tolerant *Compact* preset, agent-DX as a v1 requirement); the `frisp`
 npm name is reserved by a placeholder at `packages/cli/` (publish pending a
 fresh npm login).
 
-## Film Grain / Debanding (idea — design later)
+## Film Grain / Debanding — ✅ SHIPPED 2026-07-12
 
-Maintainer idea 2026-07-11, two distinct use cases with one mechanism:
+Maintainer idea 2026-07-11; designed, calibrated, and shipped 2026-07-12
+(maintainer pulled it ahead of the codec batch). Spec + the measured grain
+model: [specs/2026-07-12-film-grain.md](specs/2026-07-12-film-grain.md).
+Both use cases in one mechanism: debanding (noise-as-dither before lossy
+encoding) and "de-plasticking" AI-generated images.
 
-- **Debanding:** gradients band at low quality; subtle grain masks banding
-  (noise-as-dither), letting quality drop further while staying usable —
-  a strong pairing with Auto-Quality Mode (grain + lower target).
-- **De-plasticking:** a touch of film grain makes AI-generated images read
-  as photographs. Valuable on its own, independent of compression.
-
-Technical shape (the "before or after encoding?" answer): for WebP/JPEG the
-grain must be **baked in before encoding** as a new processor step (like
-resize/quantize), previewed in the existing compare view — with the honest
-caveat that baked grain costs bytes and very low quality smooths it away, so
-there is a sweet spot the preview makes visible. Two codec-native freebies
-change the picture: **JPEG XL already ships decode-time noise synthesis and
-Frisp already exposes it** (the advanced "Noise equivalent to ISO" /
-`photonNoiseIso` control — near-zero byte cost; consider promoting it out of
-Advanced), and **AV1/AVIF has Film Grain Synthesis in the format** —
-investigate whether the libavif/libaom WASM path can signal it (grain
-rendered by the decoder, parameters cost ~nothing).
-
-v1 sketch: luma-only gaussian grain, intensity + grain-size controls,
-deterministic seed (so the encode signature and result cache stay honest),
-applied in the worker. Roughly a few days of work once designed. Sequenced
-after the 2026-07 codec batch; CLI inherits it later.
+What shipped: a **Film grain processor** (resize → grain → quantize),
+identical for every output format — codec-native synthesis was researched and
+rejected for v1 (JPEG/WebP/PNG have none; AVIF FGS can't author aesthetic
+grain; JXL-only decode support). Single **Amount** slider (0–100), calibrated
+1:1 to Luminar Neo's Amount scale against the maintainer's reference exports;
+monochrome per-pixel white noise, midtone-parabola luma response,
+deterministic fixed seed. Works in the single editor, bulk global settings,
+and bulk per-image overrides. JXL's `photonNoiseIso` stays as the advanced
+codec-native extra. CLI inherits grain later via the shared pipeline.
 
 ## PWA, Import, And Persistence
 

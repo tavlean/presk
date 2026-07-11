@@ -47,6 +47,7 @@ Adjustments you can apply to either side _before_ compression (shown in the "Edi
 | Page                                  | What it covers                                                                                                                                                                    |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Resize](./resize.md)                 | Changing pixel dimensions, resampling methods (Lanczos3, Mitchell, and friends), presets, aspect-ratio lock, fit method, and the advanced premultiply-alpha / linear-RGB options. |
+| [Film grain](./film-grain.md)         | Adding a fine film-like texture with one Amount slider — makes clean/AI images feel photographic and hides gradient banding at low quality.                                       |
 | [Reduce palette](./reduce-palette.md) | Shrinking the number of colours (2–256) with optional dithering — great for flat graphics and tiny PNGs.                                                                          |
 
 ## Under the hood
