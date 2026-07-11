@@ -7,6 +7,23 @@ browser, the build is static, and offline reload must work after load.
 
 ## Current State
 
+- **SVG optimization IN BUILD (2026-07-12, evening — top priority, jumps the
+  codec batch).** Maintainer-approved same day as the research pass. SVG
+  sources now get a first-class **"SVG (optimized)" output**: SVGO v4 in a
+  dedicated lazy worker (dynamic-import only — never import
+  `$lib/svg/optimize` statically), **Auto mode by default** (precision ladder
+  + addon trials, each candidate gated by a multi-scale pixelmatch check
+  against the original; winner badge in the panel), manual precision/plugin
+  controls, raw + gzip size lines, and a **vector-true preview** (SvgPreview
+  overlay re-rasterizes at every zoom — crisp at 3200%; pinch-zoom children
+  can now opt out of the pinched transform via `data-pinch-overlay`). Rotate
+  is hidden for SVG sources (v1). Stages S1–S5 committed
+  (`9e1560a5`…`522b3507`); S6 (SW first-use caching + e2e + user docs) and the
+  benchmark track (corpus at `benchmarks/svg/`, nano/ImageOptim comparison)
+  in flight. Spec + stage states:
+  [specs/2026-07-12-svg-optimization.md](specs/2026-07-12-svg-optimization.md);
+  decision record: [svg-optimization-analysis.md](svg-optimization-analysis.md).
+
 - **Film grain v1.1 (2026-07-12, later).** Two same-day follow-ups: an
   **Advanced "Grain size" control** (slider 1–100 at 20 units/px, default 20
   = the calibrated finest; size 40 at Amount 4–6 is the measured
