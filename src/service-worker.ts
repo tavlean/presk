@@ -24,13 +24,22 @@ const codecAssetUrlSet = new Set(codecAssetUrls);
 // shipping to every visitor up front.
 const isProbeWorkerUrl = (url: string) => /probe\.worker[^/]*\.js$/.test(url);
 
+// The SVG optimizer worker contains the heavy SVGO + fflate payload. Keep it
+// out of the install shell so non-SVG visitors do not download it; it remains
+// in `assets` below and is cached by the fetch handler on first SVG use.
+const isSvgOptimizerWorkerUrl = (url: string) =>
+  url.includes('/workers/svg-optimizer.worker-');
+
 // The app shell: everything needed to boot offline, minus the
 // variant-selected codec assets (`build` lists every emitted file, including
 // all mutually-exclusive codec variants). Tiny codec files not in the records
 // (rotate WASM, pthread worker stubs) deliberately stay in the shell.
 const appShellUrls = [
   ...build.filter(
-    (url) => !codecAssetUrlSet.has(url) && !isProbeWorkerUrl(url),
+    (url) =>
+      !codecAssetUrlSet.has(url) &&
+      !isProbeWorkerUrl(url) &&
+      !isSvgOptimizerWorkerUrl(url),
   ),
   ...files,
   ...prerendered,

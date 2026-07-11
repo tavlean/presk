@@ -51,7 +51,7 @@ The Method dropdown (and its Premultiply / Linear RGB companions) lives under th
 
 #### Vector (`vector`)
 
-- **What it is:** Only shown when the source is an **SVG**. Instead of resizing a grid of pixels, it re-draws (rasterizes) the vector artwork directly at your target size.
+- **What it is:** Only shown when the source is an **SVG** and you choose a raster output such as WebP, AVIF, JPEG, or PNG. Instead of resizing a grid of pixels, it draws the vector artwork directly at the raster export's target size. An **SVG output itself is text-optimized and never resized**.
 - **Sharpness vs smoothness vs ringing:** The cleanest possible result for vector art, because the shapes are rendered fresh at the chosen resolution rather than scaled from an existing pixel grid — no blur, no ringing.
 - **Speed:** Fast.
 - **Pick it for:** Any SVG source. It is selected automatically as the method for SVG inputs.

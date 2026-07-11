@@ -1,6 +1,6 @@
 # Editor parity audit & deviation log
 
-Last updated: 2026-07-03.
+Last updated: 2026-07-12.
 
 Goal: the Svelte editor must not **lose** any feature or gain any bug relative
 to the original Preact Squoosh editor. This doc tracks (a) deliberate deviations
@@ -294,7 +294,7 @@ behavior parity is preserved.
       light-dismiss via outside-`pointerdown` + Escape (Escape restores focus to the
       trigger).
     - `Output.svelte` only; commit `cadfaa16`. `svelte-check` 0/0 via `npm run
-      check`; browser-verified desktop + mobile (toggles apply to both canvases,
+check`; browser-verified desktop + mobile (toggles apply to both canvases,
       click-outside + Escape dismiss, no clipping at 375px, no console errors).
       User-guide + reference reconciled.
 
@@ -308,7 +308,7 @@ behavior parity is preserved.
     the shortcut when nothing is focused or while interacting with the two-up, but
     no longer hijacking "2" from unrelated controls. The `_position` math is
     unchanged. `two-up.ts`; commit `fix(editor): stop two-up divider keys firing
-    from unrelated controls`. `npm run check` 0/0; `resize-twoup-footprint`
+from unrelated controls`. `npm run check` 0/0; `resize-twoup-footprint`
     e2e green.
 
 17. **Production bulk mode is a deliberate Frisp addition (2026-07-03).**
@@ -329,6 +329,14 @@ behavior parity is preserved.
     **Compare as…**; choosing **Original Image** or closing compare returns the
     info panel. This is intentional: quick inspection is the common path, while
     two-encoder A/B remains available when needed.
+
+19. **First-class SVG optimization (2026-07-12).** Upstream Squoosh could
+    import an SVG and rasterize it into a pixel format, but it could not emit an
+    optimized SVG. Frisp adds an SVG-to-SVG vector lane powered by SVGO v4: an
+    Auto search visually verifies candidates at several sizes/backgrounds,
+    Manual exposes precision and opt-in structural clean-ups, raw and gzip
+    sizes are reported separately, and both sides use vector-true previews.
+    The older SVG-to-raster path remains available and unchanged.
 
 ---
 

@@ -244,6 +244,27 @@ const immutableFeaturesWorkerAsset = files.find(
     /^_app\/immutable\/workers\/codec-worker-[A-Za-z0-9_-]+\.js$/.test(file) &&
     file.endsWith('.js'),
 );
+const svgOptimizerWorkerAssets = files.filter((file) =>
+  /^_app\/immutable\/workers\/svg-optimizer\.worker-[A-Za-z0-9_-]+\.js$/.test(
+    file,
+  ),
+);
+const svgOptimizerWorkerSources = await Promise.all(
+  svgOptimizerWorkerAssets.map((file) =>
+    readFile(join(buildDir, file), 'utf8'),
+  ),
+);
+const otherJavascriptSources = await Promise.all(
+  files
+    .filter(
+      (file) =>
+        file.endsWith('.js') && !svgOptimizerWorkerAssets.includes(file),
+    )
+    .map(async (file) => ({
+      file,
+      source: await readFile(join(buildDir, file), 'utf8'),
+    })),
+);
 const expectedLogicalAssetRecords = codecAssetRecordSources.map(
   ({ path: _path, ...record }) => record,
 );
@@ -394,6 +415,29 @@ assert(
   'Missing app-emitted immutable codec worker asset.',
 );
 assert(
+  svgOptimizerWorkerAssets.length === 1,
+  `Expected exactly one app-emitted SVG optimizer worker asset, found ${svgOptimizerWorkerAssets.length}.`,
+);
+assert(
+  svgOptimizerWorkerSources[0]?.includes('preset-default') &&
+    svgOptimizerWorkerSources[0]?.includes('removeXMLProcInst'),
+  'SVG optimizer worker no longer contains the SVGO preset-default payload.',
+);
+assert(
+  !otherJavascriptSources.some(
+    ({ source }) =>
+      source.includes('preset-default') && source.includes('removeXMLProcInst'),
+  ),
+  `SVGO preset-default payload escaped the lazy SVG optimizer worker into: ${otherJavascriptSources
+    .filter(
+      ({ source }) =>
+        source.includes('preset-default') &&
+        source.includes('removeXMLProcInst'),
+    )
+    .map(({ file }) => file)
+    .join(', ')}.`,
+);
+assert(
   codecAssetManifest.includes('codec-asset-records.json'),
   'Codec asset manifest does not derive records from the JSON source.',
 );
@@ -511,6 +555,10 @@ assert(
   'Service worker does not feature-detect native decoders for variant-aware precache.',
 );
 assert(
+  serviceWorker.includes('/workers/svg-optimizer.worker-'),
+  'Service worker is missing the stable SVG optimizer worker precache exclusion.',
+);
+assert(
   serviceWorker.includes(appEntryAsset),
   `Service-worker build manifest does not include ${appEntryAsset}.`,
 );
@@ -618,5 +666,6 @@ console.log(
     `App worker asset: ${immutableWorkerAsset}`,
     `App encode worker asset: ${immutableEncodeWorkerAsset}`,
     `App codec worker asset: ${immutableFeaturesWorkerAsset}`,
+    `App SVG optimizer worker asset: ${svgOptimizerWorkerAssets[0]}`,
   ].join('\n'),
 );

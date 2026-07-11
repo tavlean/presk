@@ -1,6 +1,6 @@
 # Choosing a format
 
-> A plain-language guide to picking the right output format in Frisp — when to use the modern formats (WebP, AVIF, JPEG XL), when to stick with the universal ones (JPEG, PNG), and when to leave the image untouched.
+> A plain-language guide to picking the right output format in Frisp — when to preserve and optimize an SVG, use a modern raster format, stick with JPEG or PNG, or leave the image untouched.
 
 ## Overview / When to use it
 
@@ -13,21 +13,29 @@ First, two words you'll see everywhere:
 
 ## Quick "use X when…" table
 
-| Your image is…                                     | Best starting format                                   | Why                                                                    |
-| -------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
-| A photograph (lots of color, soft gradients)       | **AVIF**, or **WebP** for wider reach                  | Modern lossy codecs beat JPEG noticeably at the same quality           |
-| A photo that must open _everywhere_ with zero risk | **JPEG**                                               | The universal lossy format; opens in everything                        |
-| A logo, icon, flat-color illustration, or chart    | **PNG** (or **WebP lossless**)                         | Lossless keeps edges and text crisp                                    |
-| A screenshot                                       | **PNG**, or **WebP** if it has photographic content    | Crisp UI text stays sharp losslessly; mixed content can go WebP        |
-| Anything needing **transparency**                  | **WebP**, **AVIF**, **JPEG XL**, or **PNG**            | All support an alpha channel; JPEG does not                            |
-| You're already happy with the file                 | **Original Image**                                     | No re-encoding; downloads the file unchanged                           |
-| You want the absolute smallest, support be damned  | **AVIF** or **JPEG XL**                                | Best compression, but check browser support before shipping            |
+| Your image is…                                     | Best starting format                                | Why                                                             |
+| -------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------- |
+| Vector artwork already stored as SVG               | **SVG**                                             | Keeps shapes resolution-independent while optimizing the markup |
+| A photograph (lots of color, soft gradients)       | **AVIF**, or **WebP** for wider reach               | Modern lossy codecs beat JPEG noticeably at the same quality    |
+| A photo that must open _everywhere_ with zero risk | **JPEG**                                            | The universal lossy format; opens in everything                 |
+| A logo, icon, flat-color illustration, or chart    | **PNG** (or **WebP lossless**)                      | Lossless keeps edges and text crisp                             |
+| A screenshot                                       | **PNG**, or **WebP** if it has photographic content | Crisp UI text stays sharp losslessly; mixed content can go WebP |
+| Anything needing **transparency**                  | **WebP**, **AVIF**, **JPEG XL**, or **PNG**         | All support an alpha channel; JPEG does not                     |
+| You're already happy with the file                 | **Original Image**                                  | No re-encoding; downloads the file unchanged                    |
+| You want the absolute smallest, support be damned  | **AVIF** or **JPEG XL**                             | Best compression, but check browser support before shipping     |
 
 A note on animation: Frisp has **no animation export**. Every output format here writes a single still frame — there is no animated GIF / WebP / AVIF encoder. If you load an animated source, you'll be compressing one frame of it.
 
 ## Controls / Settings
 
-The format chooser is the dropdown at the top of each side's **Compress** panel. The roster shows plain format names: **WebP, AVIF, JPEG XL, JPEG, and PNG** (the underlying encoder for each appears as a hover tooltip — JPEG→MozJPEG, PNG→OxiPNG, JPEG XL→libjxl, WebP→libwebp, AVIF→libaom). The exact set is defined in `src/lib/compress.ts` (`OUTPUT_FORMATS`). They are all WebAssembly codecs and always available — there is nothing to feature-detect.
+The format chooser is the dropdown at the top of each side's **Compress** panel. Raster sources offer **WebP, AVIF, JPEG XL, JPEG, and PNG**. An SVG source additionally offers **SVG**, which optimizes the vector document without turning it into pixels. The underlying raster encoder appears as a hover tooltip.
+
+### SVG
+
+- **What it does:** Optimizes an SVG's vector markup with SVGO while keeping it as SVG. Auto mode searches several candidates and visually verifies them before choosing the smallest.
+- **Range & default:** Available only for SVG sources and selected by default for them. Auto mode is the default; Manual exposes precision and advanced structural clean-ups.
+- **How to choose:** Keep SVG when the artwork should remain resolution-independent, such as icons, logos, diagrams, and illustrations. Choose a raster format instead when the destination cannot display SVG or needs fixed pixels.
+- **Recommended starting point:** **Auto SVG**, then check the winner badge and preview. See the [full SVG guide](./formats/svg.md) for size reporting, limits, and advanced-control risks.
 
 ### Original Image
 
@@ -73,7 +81,7 @@ The format chooser is the dropdown at the top of each side's **Compress** panel.
 
 ## What about importing other formats?
 
-The format picker above is for **output** — what Frisp writes. The set of formats it can **read** is broader and separate: see [Engine & codecs → Input formats](./engine-and-codecs.md#input-formats-what-you-can-open). In short, you can open JPEG, PNG, GIF, BMP, SVG, WebP, AVIF, JPEG XL, and QOI even though several of those aren't output options. (HEIC is not supported.)
+The format picker above is for **output** — what Frisp writes. The set of formats it can **read** is broader and separate: see [Engine & codecs → Input formats](./engine-and-codecs.md#input-formats-what-you-can-open). You can open JPEG, PNG, GIF, BMP, SVG, WebP, AVIF, JPEG XL, and QOI; SVG output appears only when the source is SVG. (HEIC is not supported.)
 
 ## Tips & pitfalls
 
@@ -88,4 +96,4 @@ The format picker above is for **output** — what Frisp writes. The set of form
 
 ## Under the hood
 
-Every output format (WebP, AVIF, JPEG XL, MozJPEG, OxiPNG) runs as a WebAssembly codec inside a worker (`src/lib/compress.ts`). "Original" is the `identity` pseudo-encoder: it skips encoding entirely, hands back the source file unchanged, and reports 0% change. When you pick a real encoder, Frisp also decodes the result back to pixels so the "after" preview shows the true codec output — compression artifacts and all — rather than an idealized version.
+Raster output formats run as WebAssembly codecs inside workers. SVG output uses SVGO v4 in its own lazy worker and stays vector throughout. "Original" skips encoding and returns the source file unchanged. Raster results are decoded back to pixels so the after preview shows their real compression artifacts; SVG results use a vector preview that is re-rendered as you zoom.
