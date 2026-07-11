@@ -1,0 +1,139 @@
+{
+  "date": "2026-07-11T22:10:07.129Z",
+  "sha": "ee438b03",
+  "corpusCount": 10,
+  "records": [
+    {
+      "path": "adversarial/bom-comments.svg",
+      "stratum": "adversarial",
+      "inputBytes": 130,
+      "inputGzipBytes": 134,
+      "safe": {
+        "rawBytes": 95,
+        "gzipBytes": 105,
+        "ms": 344.4
+      },
+      "auto": {
+        "rawBytes": 95,
+        "gzipBytes": 105,
+        "winner": "p3",
+        "verified": true,
+        "ms": 97.6
+      }
+    },
+    {
+      "path": "adversarial/clip-transform.svg",
+      "stratum": "adversarial",
+      "inputBytes": 208,
+      "inputGzipBytes": 179,
+      "safe": {
+        "rawBytes": 205,
+        "gzipBytes": 177,
+        "ms": 6.5
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/compound-evenodd.svg",
+      "stratum": "adversarial",
+      "inputBytes": 109,
+      "inputGzipBytes": 121,
+      "safe": {
+        "rawBytes": 109,
+        "gzipBytes": 122,
+        "ms": 2.5
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/compound-nonzero.svg",
+      "stratum": "adversarial",
+      "inputBytes": 109,
+      "inputGzipBytes": 120,
+      "safe": {
+        "rawBytes": 89,
+        "gzipBytes": 104,
+        "ms": 2
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/css-media-query.svg",
+      "stratum": "adversarial",
+      "inputBytes": 193,
+      "inputGzipBytes": 170,
+      "safe": {
+        "rawBytes": 186,
+        "gzipBytes": 172,
+        "ms": 10.8
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/css-vars-selectors.svg",
+      "stratum": "adversarial",
+      "inputBytes": 174,
+      "inputGzipBytes": 166,
+      "safe": {
+        "rawBytes": 173,
+        "gzipBytes": 160,
+        "ms": 4.6
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/embedded-raster.svg",
+      "stratum": "adversarial",
+      "inputBytes": 218,
+      "inputGzipBytes": 193,
+      "safe": {
+        "rawBytes": 218,
+        "gzipBytes": 194,
+        "ms": 1.4
+      },
+      "auto": {
+        "rawBytes": 218,
+        "gzipBytes": 194,
+        "winner": "p3",
+        "verified": true,
+        "ms": 84.7
+      }
+    },
+    {
+      "path": "adversarial/filter-blur.svg",
+      "stratum": "adversarial",
+      "inputBytes": 153,
+      "inputGzipBytes": 142,
+      "safe": {
+        "rawBytes": 153,
+        "gzipBytes": 143,
+        "ms": 1.3
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/filter-color-matrix.svg",
+      "stratum": "adversarial",
+      "inputBytes": 197,
+      "inputGzipBytes": 161,
+      "safe": {
+        "rawBytes": 192,
+        "gzipBytes": 160,
+        "ms": 2
+      },
+      "error": "SVG must have width/height or viewBox"
+    },
+    {
+      "path": "adversarial/foreign-object.svg",
+      "stratum": "adversarial",
+      "inputBytes": 167,
+      "inputGzipBytes": 143,
+      "safe": {
+        "rawBytes": 166,
+        "gzipBytes": 143,
+        "ms": 0.9
+      },
+      "error": "SVG must have width/height or viewBox"
+    }
+  ]
+}

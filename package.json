@@ -25,7 +25,9 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "bench": "playwright test --config benchmarks/playwright.config.ts",
-    "bench:compare": "node benchmarks/compare.mjs"
+    "bench:compare": "node benchmarks/compare.mjs",
+    "bench:svg": "node benchmarks/svg/run-frisp.mjs",
+    "bench:svg:compare": "node benchmarks/svg/compare.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

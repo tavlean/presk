@@ -1,5 +1,7 @@
 # Codec benchmarks
 
+For the browser-pipeline SVG benchmark, see [svg/README.md](svg/README.md).
+
 Measures each WASM codec's **output size** (compression), **encode time** (speed),
 and **success** (reliability) on a fixed image, so a codec upgrade can be proven
 to be an improvement — not a regression — and so we have real numbers to quote
