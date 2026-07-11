@@ -441,7 +441,7 @@
     }
 
     const processorState: BulkImageOverrides['processorState'] = {};
-    for (const key of ['resize', 'quantize'] as const) {
+    for (const key of ['grain', 'resize', 'quantize'] as const) {
       if (
         !deepEqual(
           normalizedProcessorState[key],
