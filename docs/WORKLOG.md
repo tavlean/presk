@@ -4,6 +4,30 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-11 — Codec landscape guidance + four-feature batch
+
+Guidance session on the codec landscape: Frisp is current on WebP and AVIF,
+but behind on JPEG XL (libjxl v0.8.5 versus v0.12.0). The maintainer approved
+four features, each now captured in a Codex-executable spec:
+
+- `docs/specs/2026-07-11-libjxl-0-12-upgrade.md` — libjxl v0.12.0 upgrade
+  with a public-API encoder rewrite, isolated on its own branch;
+- `docs/specs/2026-07-11-jpegli-codec.md` — new encode-only jpegli codec from
+  google/jpegli;
+- `docs/specs/2026-07-11-jpeg-to-jxl-transcode.md` — lossless JPEG→JXL
+  transcode, blocked on the libjxl upgrade;
+- `docs/specs/2026-07-11-auto-quality-mode.md` — SSIMULACRA2-targeted
+  auto-quality search plus a new `codecs/ssimulacra2` metric module.
+
+Also written: `docs/frisp-cli-analysis.md`, decision material for a possible
+Frisp CLI; recommendation yes-but-sequenced after the codec batch, decision
+pending. The jpegli and JPEG→JXL skip verdicts in
+`docs/new-codec-investigation.md` are now superseded.
+
+**Gotcha:** the libjxl v0.8.5 pin is an internal-API wall: `enc_file.h` was
+deleted upstream at v0.9, so this is a wrapper rewrite rather than a routine
+version bump. Cross-doc claims about the pin and upgrade were reconciled today.
+
 ## 2026-07-10 (later) — intro-page lab: five landing variants
 
 Maintainer-requested lab experiment: the landing screen as a minimal

@@ -1,7 +1,7 @@
 # New-Codec Investigation — Researched, NOT Added
 
-Last updated: 2026-06-02. Status: **investigation only — nothing added.** Decide
-later.
+Last updated: 2026-07-11. Status: **investigation record — two verdicts
+superseded (see below); SVGO/HEIC still open.**
 
 This doc records a research pass on four candidate new codecs/processors that
 came out of the codec audit ([codec-upgrade-audit.md](codec-upgrade-audit.md)
@@ -18,8 +18,8 @@ as-is.
 |-----------|--------------|----------------|
 | **SVGO v4** (SVG/vector optimizer) | Optimizes SVG/vector files the raster pipeline can't touch | **KEEP — do first.** Pure JS, official browser bundle, no WASM/toolchain. |
 | **libheif decode-only HEIC input** | Opens iPhone `.heic` (browsers can't decode it), convert out | **LATER.** Strong, but defer for LGPL + WASM weight; do SVGO first. |
-| **jpegli WASM encoder** | Better quality-per-byte standard `.jpg` than MozJPEG | **SKIP now.** No off-the-shelf browser build; revisit if one ships. |
-| **Lossless JPEG→JXL transcode** | Recompress `.jpg` to `.jxl` ~20% smaller, reversible | **SKIP.** Recompile-gated and JXL browser reach is weak. |
+| **jpegli WASM encoder** | Better quality-per-byte standard `.jpg` than MozJPEG | **SUPERSEDED 2026-07-11 → BUILD**: [specs/2026-07-11-jpegli-codec.md](specs/2026-07-11-jpegli-codec.md) |
+| **Lossless JPEG→JXL transcode** | Recompress `.jpg` to `.jxl` ~20% smaller, reversible | **SUPERSEDED 2026-07-11 → BUILD** (after the jxl 0.12 upgrade): [specs/2026-07-11-jpeg-to-jxl-transcode.md](specs/2026-07-11-jpeg-to-jxl-transcode.md) |
 
 The one to act on first is **SVGO**: it is the only candidate that adds a format
 the app cannot handle today, and it needs no codec toolchain.
@@ -73,6 +73,13 @@ the app cannot handle today, and it needs no codec toolchain.
 
 ## 3. jpegli WASM encoder — **SKIP now**
 
+> **SUPERSEDED 2026-07-11.** Both blockers below are gone: the emsdk toolchain
+> was installed and proven by the 2026-06 codec sweep, and jpegli is now a
+> standalone project (google/jpegli, extracted from libjxl in v0.12.0). Decided
+> → build:
+> [specs/2026-07-11-jpegli-codec.md](specs/2026-07-11-jpegli-codec.md). The
+> analysis below is kept as the historical record.
+
 - **What it adds:** Better quality-per-byte JPEG than MozJPEG, producing normal
   `.jpg` output — a universal win that would benefit every JPEG export.
 - **WASM feasibility:** No off-the-shelf browser/npm build exists. The libjxl
@@ -92,6 +99,13 @@ the app cannot handle today, and it needs no codec toolchain.
 ---
 
 ## 4. Lossless JPEG→JXL transcoding — **SKIP**
+
+> **SUPERSEDED 2026-07-11.** The recompile blocker is gone (toolchain installed;
+> the encoder rewrite is specced anyway) and JXL browser reach flipped (Safari
+> ships it; Chrome 145 ships the decoder behind a flag, default-on expected H2
+> 2026). Decided → build after the jxl upgrade:
+> [specs/2026-07-11-jpeg-to-jxl-transcode.md](specs/2026-07-11-jpeg-to-jxl-transcode.md).
+> The analysis below is kept as the historical record.
 
 - **What it adds:** Recompresses a `.jpg` into a `.jxl` ~20% smaller,
   **bit-for-bit reversible** (the `cjxl` default behavior for JPEG input).

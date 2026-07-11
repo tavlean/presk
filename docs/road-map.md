@@ -1,6 +1,6 @@
 # Frisp Product Roadmap
 
-Last updated: 2026-07-03.
+Last updated: 2026-07-11.
 
 The SvelteKit migration is now **closed** (`main` is the production app). This
 roadmap is the product track that follows it — not a migration phase list. The
@@ -137,7 +137,12 @@ version currency (which to upgrade, urgency, effort). Product focus:
   urgent (security CVE + real compression gain).
 - **JPEG XL**: advanced/power-user format; upgrade urgent (CVEs). Browser
   support is improving — recheck before making it prominent. A cheap bonus is
-  lossless JPEG→JXL transcoding.
+  lossless JPEG→JXL transcoding. **2026-07-11: upgrade to v0.12.0 decided and
+  specced
+  ([specs/2026-07-11-libjxl-0-12-upgrade.md](specs/2026-07-11-libjxl-0-12-upgrade.md));
+  lossless JPEG→JXL transcode decided too
+  ([specs/2026-07-11-jpeg-to-jxl-transcode.md](specs/2026-07-11-jpeg-to-jxl-transcode.md),
+  blocked on the upgrade).**
 - **WebP 2**: **remove** (reverses the old "keep for parity" stance). Permanently
   experimental, no browser decodes it, non-final bitstream. Staged removal in
   [codec-surface-cleanup.md](codec-surface-cleanup.md).
@@ -147,7 +152,10 @@ version currency (which to upgrade, urgency, effort). Product focus:
   (see [codec-surface-cleanup.md](codec-surface-cleanup.md)).
 - **jpegli** (new): a libjxl-based encoder that outputs standard JPEG at ~30%
   better compression — the highest-ROI *new* codec to add. Needs a custom WASM
-  build; tracked as investigate in the audit.
+  build. **Decided and specced 2026-07-11
+  ([specs/2026-07-11-jpegli-codec.md](specs/2026-07-11-jpegli-codec.md))** —
+  google/jpegli is now standalone and the emsdk toolchain exists locally, so
+  the old blockers are gone.
 
 Deletion is a separate engineering decision. If the product hides codecs, leave
 runtime code intact until build output, generated metadata, workers, WASM
@@ -189,6 +197,27 @@ picks by *result* instead of guessing a format up front.
   take tens of seconds on large images), then a full-quality encode once the user
   commits; bound concurrency to `navigator.hardwareConcurrency`.
 - Pairs naturally with the bulk work and the shared image-pipeline helpers.
+
+## Auto-Quality Mode
+
+New feature decided 2026-07-11, specced in
+[specs/2026-07-11-auto-quality-mode.md](specs/2026-07-11-auto-quality-mode.md):
+a one-shot Auto action on every lossy encoder panel that binary-searches quality
+until the output meets a SSIMULACRA2 target (Visually lossless / High /
+Balanced), powered by a new codecs/ssimulacra2 WASM module. This is the
+app-level intelligence layer on top of the codecs — and the planned engine of a
+possible Frisp CLI ([frisp-cli-analysis.md](frisp-cli-analysis.md)). Sequenced
+with the 2026-07 codec batch, after bulk Phase 3.
+
+## Frisp CLI (proposed — decision pending)
+
+Analysis at [frisp-cli-analysis.md](frisp-cli-analysis.md) (2026-07-11): a
+target-driven, metric-verified, agent-first CLI reusing the repo's WASM codecs
+(the `*_node_*` artifacts already exist), the pure bulk engine, and the
+auto-quality engine. Recommendation: yes, but only after the codec batch lands;
+monorepo workspace, thin shell over shared engine code. No spec yet — the go
+decision and two design questions (Node decode path, format-race policy) come
+first.
 
 ## PWA, Import, And Persistence
 

@@ -1,11 +1,22 @@
 # Frisp Status
 
-Last updated: 2026-07-07.
+Last updated: 2026-07-11.
 
 Read this first. Frisp is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
 
 ## Current State
+
+- **Codec batch decided & specced (2026-07-11).** Four maintainer-approved
+  features, each with a Codex-executable spec in docs/specs/ dated 2026-07-11:
+  libjxl v0.8.5→v0.12.0 (public-API encoder rewrite — isolated branch, the one
+  exception to commit-on-main), jpegli as a new codec, lossless JPEG→JXL
+  transcode (blocked on the jxl upgrade), and auto-quality mode (new
+  codecs/ssimulacra2 module + quality bisection to a SSIMULACRA2 target). The
+  stale jpegli/transcode 'skip' verdicts in new-codec-investigation.md are
+  superseded. A Frisp CLI was analyzed (docs/frisp-cli-analysis.md) —
+  recommendation yes-but-after-the-batch, decision pending. Sequencing: behind
+  bulk Phase 3, per docs/README.md priority table.
 
 - **First-principles review executed (2026-07-07).** A whole-app review
   ([docs/first-principles-review.md](first-principles-review.md), P1–P10) was
