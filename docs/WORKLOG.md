@@ -4,6 +4,28 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-11 (later) — CLI scope notes, npm name, film-grain idea
+
+Follow-up in the same session. The maintainer agreed with the CLI direction;
+scope notes captured in `docs/frisp-cli-analysis.md` §3a: manual `--quality`
+stays first-class (never auto-only), the preset ladder gains a lossy-tolerant
+**Compact** target (SSIMULACRA2 ≈ 60, also added to the auto-quality spec so
+app and CLI share one vocabulary), and agent experience is a v1 requirement
+with a concrete bar (teaching `--help`, fix-stating errors, stable NDJSON,
+determinism, fast `npx` start, `frisp mcp`).
+
+The `frisp` npm name was unclaimed; a placeholder package now lives at
+`packages/cli/` (bin stub + README, deliberately NOT wired as a workspace
+yet). **Publish is pending:** the local npm token is stale (`npm whoami`
+401s) — run `npm login`, then `cd packages/cli && npm publish`.
+
+New idea recorded in the roadmap ("Film Grain / Debanding"): subtle grain to
+mask gradient banding at low quality and to de-plastick AI images. Key
+findings: grain must be baked pre-encode for WebP/JPEG (costs bytes, and very
+low quality smooths it — preview shows the sweet spot), but JXL already has
+decode-time noise (`photonNoiseIso` — shipped in Frisp's advanced options
+today) and AVIF/AV1 has in-format Film Grain Synthesis worth investigating.
+
 ## 2026-07-11 — Codec landscape guidance + four-feature batch
 
 Guidance session on the codec landscape: Frisp is current on WebP and AVIF,

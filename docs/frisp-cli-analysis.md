@@ -1,6 +1,10 @@
 # Frisp CLI — strategic analysis (decision material)
 
-Last updated: 2026-07-11. Status: **analysis — decision pending (maintainer).**
+Last updated: 2026-07-11 (later). Status: **maintainer agreed with the
+direction 2026-07-11** (scope notes in §3a below); still no spec — the two
+design questions in §5 come first. The npm name is claimed by a placeholder
+package at `packages/cli/` (publish pending a fresh npm login — the local
+token was stale).
 Origin: maintainer question 2026-07-11 ("is there value in a single CLI that
 humans and AI agents use to pick the best format/settings for a task?").
 Related: [specs/2026-07-11-auto-quality-mode.md](specs/2026-07-11-auto-quality-mode.md)
@@ -118,7 +122,8 @@ wins.
 **v1 surface (deliberately small):**
 
 ```
-frisp <paths...> [--target visually-lossless|high|balanced|score:<n>]
+frisp <paths...> [--target visually-lossless|high|balanced|compact|score:<n>]
+                 [--quality <0-100>]      # manual mode: explicit knob, no search
                  [--formats auto|webp|avif|jxl|jpegli|keep]
                  [--profile web-safe|modern|archive]
                  [--max-bytes <n>] [--out <dir>|--in-place]
@@ -126,6 +131,29 @@ frisp <paths...> [--target visually-lossless|high|balanced|score:<n>]
 frisp explain <file>      # what would happen and why, human + --json
 frisp mcp                 # stdio MCP server exposing the same verbs
 ```
+
+`--target` and `--quality` are mutually exclusive; neither given =
+`--target balanced`. The four named targets are the same presets (same
+SSIMULACRA2 numbers) as the app's auto-quality mode — one vocabulary
+everywhere.
+
+### 3a. Maintainer scope notes (2026-07-11)
+
+- **Never auto-only.** Manual `--quality` is a first-class path, not a
+  power-user escape hatch — the CLI must be useful to someone who just wants
+  "WebP at 80" with zero metric machinery running.
+- **The preset ladder includes lossy-tolerant targets.** *Compact*
+  (SSIMULACRA2 ≈ 60) exists because for many destinations slight visible
+  loss is the right trade; `score:<n>` covers everything between presets.
+- **Agent experience is a design goal with a concrete bar:** an agent that
+  uses frisp should be impressed enough to say so in its chat. What that
+  means in practice: `--help` that teaches by example (agents read help
+  first); error messages that state the fix, not just the failure
+  ("photo.heic: no decoder — try --formats keep or convert first"); NDJSON
+  with a stable, documented schema; deterministic outputs (same input +
+  flags = same bytes); fast `npx` cold start (lazy-load codecs); `--dry-run`
+  that prints the full plan; and an `frisp mcp` mode so harnesses can mount
+  it as a tool. These are requirements for v1, not polish for v2.
 
 `--formats auto` = the format race (encode candidates, keep smallest meeting
 target within profile). `--json` streams NDJSON per file: input, chosen
@@ -156,9 +184,9 @@ that bill — which is why sequencing matters.
    starts with `/deep-design` on exactly two questions — the Node decode path
    and the format-race/profile policy — then a handoff spec; the rest is
    execution.
-3. Claim the `frisp` npm name now regardless (a 10-minute task; publish a
-   stub or squat via `npm publish --access public` of a placeholder —
-   maintainer action, needs the npm account).
+3. ✅ Placeholder package created at `packages/cli/` (2026-07-11; the name
+   was unclaimed). Publishing needs a fresh `npm login` — the stale local
+   token 401s — then `cd packages/cli && npm publish`.
 4. Do NOT restructure the repo preemptively. The workspace split happens in
    the CLI's first PR, not before.
 

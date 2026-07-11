@@ -217,7 +217,38 @@ target-driven, metric-verified, agent-first CLI reusing the repo's WASM codecs
 auto-quality engine. Recommendation: yes, but only after the codec batch lands;
 monorepo workspace, thin shell over shared engine code. No spec yet — the go
 decision and two design questions (Node decode path, format-race policy) come
-first.
+first. **2026-07-11 (later): maintainer agreed with the direction** — scope
+notes captured in the analysis §3a (manual `--quality` first-class, a
+lossy-tolerant *Compact* preset, agent-DX as a v1 requirement); the `frisp`
+npm name is reserved by a placeholder at `packages/cli/` (publish pending a
+fresh npm login).
+
+## Film Grain / Debanding (idea — design later)
+
+Maintainer idea 2026-07-11, two distinct use cases with one mechanism:
+
+- **Debanding:** gradients band at low quality; subtle grain masks banding
+  (noise-as-dither), letting quality drop further while staying usable —
+  a strong pairing with Auto-Quality Mode (grain + lower target).
+- **De-plasticking:** a touch of film grain makes AI-generated images read
+  as photographs. Valuable on its own, independent of compression.
+
+Technical shape (the "before or after encoding?" answer): for WebP/JPEG the
+grain must be **baked in before encoding** as a new processor step (like
+resize/quantize), previewed in the existing compare view — with the honest
+caveat that baked grain costs bytes and very low quality smooths it away, so
+there is a sweet spot the preview makes visible. Two codec-native freebies
+change the picture: **JPEG XL already ships decode-time noise synthesis and
+Frisp already exposes it** (the advanced "Noise equivalent to ISO" /
+`photonNoiseIso` control — near-zero byte cost; consider promoting it out of
+Advanced), and **AV1/AVIF has Film Grain Synthesis in the format** —
+investigate whether the libavif/libaom WASM path can signal it (grain
+rendered by the decoder, parameters cost ~nothing).
+
+v1 sketch: luma-only gaussian grain, intensity + grain-size controls,
+deterministic seed (so the encode signature and result cache stay honest),
+applied in the worker. Roughly a few days of work once designed. Sequenced
+after the 2026-07 codec batch; CLI inherits it later.
 
 ## PWA, Import, And Persistence
 

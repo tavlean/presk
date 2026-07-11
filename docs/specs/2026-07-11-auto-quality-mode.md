@@ -10,7 +10,7 @@ the planned core of a future CLI), [codec-options-model.md](../codec-options-mod
 
 Add a one-shot **"Auto quality"** action to every lossy encoder panel (WebP,
 AVIF, JPEG XL, MozJPEG). The user picks a perceptual target — *Visually
-lossless*, *High*, or *Balanced* — and Frisp binary-searches the codec's
+lossless*, *High*, *Balanced*, or *Compact* — and Frisp binary-searches the codec's
 `quality` value until the encoded output's **SSIMULACRA2** score against the
 source meets the target, then commits that quality to the normal options state
 (slider moves, normal encode pipeline takes over). This turns "guess a quality
@@ -118,15 +118,23 @@ Emscripten wrapper patching applies.
 ```ts
 // src/lib/editor/auto-quality.ts (new file — pure helpers, no Svelte)
 
-export type AutoQualityTarget = 'visually-lossless' | 'high' | 'balanced';
+export type AutoQualityTarget =
+  | 'visually-lossless'
+  | 'high'
+  | 'balanced'
+  | 'compact';
 
 // SSIMULACRA2 scale (per the reference README): 90 = visually lossless,
-// 70 = high ("artifacts perceptible but not annoying"). Targets sit on/near
-// those published anchors.
+// 70 = high ("artifacts perceptible but not annoying"), 50 = medium/fair.
+// Targets sit on/near those published anchors. 'compact' (maintainer,
+// 2026-07-11) deliberately accepts visible-but-fine slight loss for
+// byte-sensitive targets; these four presets are shared verbatim with the
+// planned CLI (frisp-cli-analysis.md).
 export const AUTO_QUALITY_TARGETS: Record<AutoQualityTarget, number> = {
   'visually-lossless': 90,
   high: 80,
   balanced: 70,
+  compact: 60,
 };
 
 // Per-format quality bounds for the search. hi avoids lossless-mode cliffs.
@@ -228,8 +236,8 @@ decoded frame (it is — see Anticipated mistakes #4).
 One new row in each of the four lossy option panels
 (`src/lib/editor/options/{WebpOptions,AvifOptions,JxlOptions,MozjpegOptions}.svelte`),
 visually grouped with the Quality slider: a compact select labeled
-**Auto** with options *Visually lossless*, *High*, *Balanced* and a Go
-button (or a select that fires on choose and resets to placeholder —
+**Auto** with options *Visually lossless*, *High*, *Balanced*, *Compact* and
+a Go button (or a select that fires on choose and resets to placeholder —
 match whichever idiom `OptionsPanel.svelte` already uses for one-shot
 actions; the parked branch's fit-under-target row is the style reference).
 While running: the row shows a small busy state and a Cancel affordance;
