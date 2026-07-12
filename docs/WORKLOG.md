@@ -4,6 +4,26 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-12 (late night, Opus) — SVG benchmark: nano + ImageOptim legs
+
+Ran the external-baseline comparison the maintainer asked for.
+**ImageOptim 1.9.3** (full 215-file corpus, gzip): Frisp auto 144W/18T/34L,
+loses only editor-exports. **vecta nano** (57-file stratified sample, RAW
+bytes): Frisp auto −41.8% vs nano −26.4% overall; near-even file-by-file
+(28/2/27). Split: Frisp auto wins on precision-heavy content (logos −51% vs
+−6%, illustrations, clean color icons); nano wins on icons-stroke (strips
+Tabler's invisible bounding `<path fill=none stroke=none>` — SVGO keeps it)
+and editor-exports (aggressive dirty-file cleanup). Two v2 levers recorded
+in the analysis doc. **Gotcha for anyone re-running nano:** its compressor
+is client-side (`window.Vecta.compress` / `window.nano`), the drop handler
+is triggerable via a synthetic DragEvent with in-page File objects (bypasses
+the OS picker), but the SVG *download* is a `data:` URI the in-app browser
+sandbox won't save AND `Vecta.compress` diverges from the UI pipeline
+(skips clean+options+mode → drops opacity), so only nano's *reported* output
+sizes are faithfully capturable (exact <1KB, ±51B rounded above). nano caps
+at 10 files total per page load → reload between batches. Full method +
+harness: benchmarks/svg/compile-nano.mjs, external/nano/RESULTS-nano.md.
+
 ## 2026-07-12 (night) — SVG optimization SHIPPED (S1–S6) + benchmark harness
 
 Same-day build of the approved plan, spec
