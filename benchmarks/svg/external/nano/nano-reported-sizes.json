@@ -1,0 +1,304 @@
+{
+  "date": "2026-07-12",
+  "source": "vecta.io/nano (client-side compressor, reported output sizes)",
+  "note": "exact bytes for <1KB files; KB-range values rounded to 0.1KB (±~51B)",
+  "strata": {
+    "icons-stroke": [
+      {
+        "name": "tabler-player-play.svg",
+        "orig": "363B",
+        "res": "192B"
+      },
+      {
+        "name": "tabler-stack.svg",
+        "orig": "398B",
+        "res": "214B"
+      },
+      {
+        "name": "tabler-code.svg",
+        "orig": "412B",
+        "res": "216B"
+      },
+      {
+        "name": "tabler-anchor.svg",
+        "orig": "444B",
+        "res": "253B"
+      },
+      {
+        "name": "tabler-bell.svg",
+        "orig": "468B",
+        "res": "297B"
+      },
+      {
+        "name": "tabler-eye.svg",
+        "orig": "473B",
+        "res": "285B"
+      },
+      {
+        "name": "tabler-music.svg",
+        "orig": "482B",
+        "res": "265B"
+      },
+      {
+        "name": "tabler-link.svg",
+        "orig": "515B",
+        "res": "303B"
+      },
+      {
+        "name": "tabler-calendar.svg",
+        "orig": "542B",
+        "res": "296B"
+      },
+      {
+        "name": "tabler-aperture.svg",
+        "orig": "586B",
+        "res": "340B"
+      }
+    ],
+    "icons-color": [
+      {
+        "name": "twemoji-1f499.svg",
+        "orig": "368B",
+        "res": "363B"
+      },
+      {
+        "name": "twemoji-1f600.svg",
+        "orig": "450B",
+        "res": "434B"
+      },
+      {
+        "name": "twemoji-1f680.svg",
+        "orig": "677B",
+        "res": "654B"
+      },
+      {
+        "name": "twemoji-1f604.svg",
+        "orig": "920B",
+        "res": "845B"
+      },
+      {
+        "name": "twemoji-1f605.svg",
+        "orig": "1010B",
+        "res": "925B"
+      },
+      {
+        "name": "twemoji-1f621.svg",
+        "orig": "1.0KB",
+        "res": "909B"
+      },
+      {
+        "name": "twemoji-1f30d.svg",
+        "orig": "1.1KB",
+        "res": "1.1KB"
+      },
+      {
+        "name": "twemoji-1f914.svg",
+        "orig": "1.5KB",
+        "res": "1.4KB"
+      },
+      {
+        "name": "twemoji-1f618.svg",
+        "orig": "2.2KB",
+        "res": "2.0KB"
+      },
+      {
+        "name": "twemoji-1f973.svg",
+        "orig": "2.4KB",
+        "res": "2.2KB"
+      }
+    ],
+    "icons-fill": [
+      {
+        "name": "material-play_arrow.svg",
+        "orig": "114B",
+        "res": "94B"
+      },
+      {
+        "name": "material-home.svg",
+        "orig": "136B",
+        "res": "116B"
+      },
+      {
+        "name": "material-star.svg",
+        "orig": "189B",
+        "res": "169B"
+      },
+      {
+        "name": "material-place.svg",
+        "orig": "215B",
+        "res": "195B"
+      },
+      {
+        "name": "material-visibility.svg",
+        "orig": "310B",
+        "res": "290B"
+      },
+      {
+        "name": "material-account_circle.svg",
+        "orig": "328B",
+        "res": "308B"
+      },
+      {
+        "name": "simple-apple.svg",
+        "orig": "650B",
+        "res": "619B"
+      },
+      {
+        "name": "simple-javascript.svg",
+        "orig": "974B",
+        "res": "880B"
+      },
+      {
+        "name": "simple-figma.svg",
+        "orig": "1.1KB",
+        "res": "1.0KB"
+      },
+      {
+        "name": "simple-svelte.svg",
+        "orig": "1.5KB",
+        "res": "1.4KB"
+      }
+    ],
+    "logos": [
+      {
+        "name": "devicon-tensorflow-original.svg",
+        "orig": "291B",
+        "res": "243B"
+      },
+      {
+        "name": "devicon-vuejs-original.svg",
+        "orig": "561B",
+        "res": "269B"
+      },
+      {
+        "name": "devicon-angularjs-original.svg",
+        "orig": "621B",
+        "res": "621B"
+      },
+      {
+        "name": "simple-github.svg",
+        "orig": "822B",
+        "res": "753B"
+      },
+      {
+        "name": "simple-inkscape.svg",
+        "orig": "1.0KB",
+        "res": "956B"
+      },
+      {
+        "name": "simple-cloudflare.svg",
+        "orig": "1.2KB",
+        "res": "946B"
+      },
+      {
+        "name": "devicon-react-original.svg",
+        "orig": "2.3KB",
+        "res": "2.3KB"
+      },
+      {
+        "name": "devicon-kubernetes-original.svg",
+        "orig": "8.7KB",
+        "res": "8.5KB"
+      }
+    ],
+    "editor-exports": [
+      {
+        "name": "illustrator-01.svg",
+        "orig": "525B",
+        "res": "218B"
+      },
+      {
+        "name": "illustrator-04.svg",
+        "orig": "526B",
+        "res": "219B"
+      },
+      {
+        "name": "illustrator-07.svg",
+        "orig": "526B",
+        "res": "219B"
+      },
+      {
+        "name": "inkscape-02.svg",
+        "orig": "665B",
+        "res": "200B"
+      },
+      {
+        "name": "inkscape-05.svg",
+        "orig": "667B",
+        "res": "202B"
+      },
+      {
+        "name": "inkscape-08.svg",
+        "orig": "667B",
+        "res": "202B"
+      },
+      {
+        "name": "figma-02.svg",
+        "orig": "930B",
+        "res": "759B"
+      },
+      {
+        "name": "figma-05.svg",
+        "orig": "931B",
+        "res": "760B"
+      },
+      {
+        "name": "figma-08.svg",
+        "orig": "932B",
+        "res": "761B"
+      }
+    ],
+    "illustrations": [
+      {
+        "name": "healthicons-ambulatory-clinic.svg",
+        "orig": "529B",
+        "res": "359B"
+      },
+      {
+        "name": "healthicons-group-discussion_meeting.svg",
+        "orig": "1.0KB",
+        "res": "569B"
+      },
+      {
+        "name": "healthicons-cpr.svg",
+        "orig": "1.2KB",
+        "res": "678B"
+      },
+      {
+        "name": "healthicons-clean-hands.svg",
+        "orig": "1.3KB",
+        "res": "726B"
+      },
+      {
+        "name": "healthicons-crisis-response_center_person.svg",
+        "orig": "1.8KB",
+        "res": "886B"
+      },
+      {
+        "name": "healthicons-construction-worker.svg",
+        "orig": "2.0KB",
+        "res": "945B"
+      },
+      {
+        "name": "healthicons-child-care.svg",
+        "orig": "2.2KB",
+        "res": "1.2KB"
+      },
+      {
+        "name": "healthicons-doctor-female.svg",
+        "orig": "2.6KB",
+        "res": "1.3KB"
+      },
+      {
+        "name": "healthicons-elderly.svg",
+        "orig": "2.7KB",
+        "res": "1.2KB"
+      },
+      {
+        "name": "healthicons-child-cognition.svg",
+        "orig": "4.9KB",
+        "res": "2.7KB"
+      }
+    ]
+  }
+}

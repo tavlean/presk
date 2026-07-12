@@ -133,17 +133,42 @@ The vector twin of the already-specced raster auto-quality mode
 
 ### Phase 3 — only if benchmarks demand (deferred)
 
-> **First benchmark signal (2026-07-12, benchmarks/svg/RESULTS.md):**
-> frisp-auto beats ImageOptim 1.9.3 overall (144W/18T/34L on gzip) but
-> LOSES the editor-exports stratum (ImageOptim median −51% vs our −36%) —
-> its cleaner is more aggressive on editor junk (`<style>` class inlining,
-> data-attributes). Concrete v2 lever: add an `inlineStyles`-aggressive /
-> `removeAttrs`(data-*) candidate to the auto search for style-heavy
-> sources. Also parked for v2: dimensionless-SVG import relaxation (19
-> corpus files rejected by the inherited width/height/viewBox contract).
-> Font-subsetting scope note: Frisp can never fetch remote fonts (privacy /
-> offline), so subsetting only ever applies to fonts ALREADY EMBEDDED in
-> the file — that bounds the design sharply and is why it stays deferred.
+> **Benchmark signals (2026-07-12).**
+>
+> **vs ImageOptim 1.9.3** (full 215-file corpus, gzip, benchmarks/svg/RESULTS.md):
+> frisp-auto beats it overall (144W/18T/34L) but LOSES editor-exports
+> (ImageOptim median −51% vs our −36%) — more aggressive on editor junk.
+>
+> **vs vecta nano** (57-file stratified sample, RAW output bytes,
+> benchmarks/svg/external/nano/RESULTS-nano.md — nano's download is a
+> data:URI the in-app browser can't capture, so this leg is raw-only via
+> nano's own reported sizes; gzip + nano→ImageOptim chain NOT run, stated
+> honestly). Overall **Frisp auto −41.8% vs nano −26.4%** (auto wins on
+> total bytes; file-by-file a near-even 28W/2T/27L). The split is the real
+> story:
+> - **Frisp auto WINS** where precision reduction dominates — logos
+>   (−51% vs −6%), illustrations (−53% vs −48%), already-clean color icons
+>   (−34% vs −8%). Its coordinate rounding crushes decimal-heavy paths nano
+>   leaves alone.
+> - **nano WINS** on **icons-stroke (−43% vs −19%, 0/0/10)** and
+>   **editor-exports (−44% vs −37%)** — it strips structurally. Two concrete
+>   Frisp v2 levers surfaced:
+>   1. **Remove truly-invisible elements** — Tabler stroke icons ship a
+>      `<path stroke="none" … fill="none"/>` bounding rect; nano drops it,
+>      SVGO preset-default keeps it (`removeHiddenElems` only catches
+>      display:none/opacity:0/zero-size). Add a "remove paint-none paths"
+>      pass to the auto search.
+>   2. The editor-junk aggression lever (below), same root cause as the
+>      ImageOptim loss.
+>
+> Concrete v2 lever (both ImageOptim & nano editor-exports losses): add an
+> `inlineStyles`-aggressive / `removeAttrs`(data-*) candidate to the auto
+> search for style-heavy sources. Also parked for v2: dimensionless-SVG
+> import relaxation (19 corpus files rejected by the inherited
+> width/height/viewBox contract). Font-subsetting scope note: Frisp can
+> never fetch remote fonts (privacy / offline), so subsetting only ever
+> applies to fonts ALREADY EMBEDDED in the file — that bounds the design
+> sharply and is why it stays deferred.
 
 - **Font subsetting** for text-bearing SVGs (the one place nano keeps a real
   edge). Big: shaping, glyph closure, WOFF2, license flags (`fsType`). Needs

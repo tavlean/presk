@@ -295,7 +295,7 @@ tests**, 61+ e2e green. No stage may reduce those.
 | S5 | auto mode (auto-search + gate + UI badge) | unit (gate math) + manual | ✅ `522b3507` — verified live (badge "Auto: precision 1 · styles → attributes"); gate upscales small sources on purpose |
 | S6 | SW exclusion + e2e suite + docs sweep | check + full e2e | ✅ `ee438b03` — full suite 68 passed / 2 known WebKit-offline skips; SVGO payload lives in the worker file, only that file is excluded from precache (audit tripwire guards the design) |
 | S7 | benchmark corpus + harness (below) | harness runs green | 🟡 corpus `2864eb58` + harness `58563a36` (subset-validated); large-file top-up + full-corpus run pending |
-| S8 | external baselines (nano, ImageOptim, nano→ImageOptim) + report | report published | ⚪ plan: full corpus through Frisp + ImageOptim (installed app, maintainer's settings, recorded); nano + chained on a ~60-file stratified sample (10-file upload batches) |
+| S8 | external baselines (nano, ImageOptim, nano→ImageOptim) + report | report published | 🟡 **ImageOptim done** (full corpus, gzip, RESULTS.md — auto 144W/18T/34L). **nano done** (57-file sample, RAW bytes, external/nano/RESULTS-nano.md — auto −41.8% vs −26.4%; near-even file-by-file). **nano gzip + nano→ImageOptim chain NOT possible** in this environment: nano's SVG download is a `data:` URI the in-app browser sandbox won't save and the exact serialized text isn't extractable without misrepresenting nano (public `Vecta.compress` API diverges from the UI — drops opacity). Raw-only nano leg is the honest result; documented in RESULTS-nano.md. |
 
 ## Benchmark plan (S7–S8)
 
