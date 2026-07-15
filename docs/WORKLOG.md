@@ -25,12 +25,16 @@ here:
 - **Landing hardening.** The HUD micro-copy failed WCAG AA in both themes
   (2.5:1 light / 3.6:1 dark) — retuned the `--i-text-*` tokens to clear 4.5:1;
   added a `max-width:560px` layout (the two bottom HUD corners collided on
-  phones) and a coarse-pointer headline ("Add an image." instead of the drop
-  instruction); gave the `<h1>` a stable accessible name carrying the app
+  phones) and a coarse-pointer headline variant; gave the `<h1>` a stable
+  accessible name carrying the app
   identity; and reworked the import affordances — the redundant "choose a
   folder" pick link was dropped (folders still import by drag), and "paste"
   moved inline beside Browse as a ghost button with a Nucleo clipboard icon,
-  snackbar feedback rewired. Wordmark set to weight 850.
+  snackbar feedback rewired. Wordmark set to weight 850. Final landing copy +
+  layout: headline "Drop images to optimize." (touch "Add images to optimize."),
+  a bigger balanced subheading carrying the qualities, the format line moved to
+  the bottom-center (SVG added, JPEG last), and the redundant bottom-right HUD
+  removed. Dropped `static/wordmark.svg` (redundant with `logo.svg` + live text).
 - **Precache trim.** Stopped precaching the QOI encoder — QOI is no longer a
   user output (the encoder is only hit by the diagnostics webp-pipeline probe),
   so it was dead weight in every install shell. The QOI decoder stays for `.qoi`
