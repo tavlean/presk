@@ -1,0 +1,611 @@
+<script lang="ts">
+  // "aurora" — the retired production landing, preserved as a dev-only lab
+  // exhibit: brand lockup over a field of soft coral blobs, with a central
+  // drop/paste/browse target. Structure + blob animation are adapted from
+  // Squoosh's prerendered-app/Intro (we keep only the hero — no demo thumbnails,
+  // waves or info sections). Kept verbatim from the live intro at the moment
+  // "frame" was promoted, so it stays a faithful before/after reference. The
+  // wrapping /lab/intro/aurora page owns the drop target (via IntroDropDemo);
+  // this component only raises picked/pasted files through onFiles.
+  import type { Attachment } from 'svelte/attachments';
+  import { fromFileList, type ImportedFile } from '$lib/bulk/import-sources';
+  import { APP_NAME } from 'shared/brand';
+  import { startBlobAnim } from '$lib/editor/intro/blob-anim';
+
+  interface Props {
+    /** Hand chosen files (from picker/folder/paste) up to the page. */
+    onFiles: (files: ImportedFile[]) => void;
+    /** Shown when a paste contains no image (reuses the page's snackbar). */
+    onMessage?: (text: string) => void;
+  }
+  let { onFiles, onMessage }: Props = $props();
+
+  const supportsClipboardRead =
+    typeof navigator !== 'undefined' &&
+    !!navigator.clipboard &&
+    'read' in navigator.clipboard;
+
+  /** Output codec line-up shown as chips under the drop target. */
+  const formats = ['AVIF', 'WebP', 'JPEG XL', 'PNG', 'JPEG'];
+
+  // The hidden file input, captured on mount for the open/change handlers.
+  let fileInput: HTMLInputElement | undefined;
+  let folderInput: HTMLInputElement | undefined;
+  const captureInput: Attachment<HTMLInputElement> = (node) => {
+    fileInput = node;
+  };
+  const captureFolderInput: Attachment<HTMLInputElement> = (node) => {
+    folderInput = node;
+  };
+
+  // Blob animation (canvas). It gravitates towards the load target, so it needs
+  // both the canvas and that element: capture the target into $state so the
+  // canvas attachment re-runs once it's set, then start the animation from the
+  // canvas attachment, returning startBlobAnim's teardown for cleanup on unmount.
+  let blobTarget = $state<HTMLElement>();
+  const captureBlobTarget: Attachment<HTMLElement> = (node) => {
+    blobTarget = node;
+  };
+  const blobAnim: Attachment<HTMLCanvasElement> = (canvas) => {
+    if (blobTarget) return startBlobAnim(canvas, blobTarget);
+  };
+
+  // Deliver a single pasted File through the same ImportedFile[] boundary.
+  function deliver(file: File) {
+    onFiles([{ file }]);
+  }
+
+  function onOpenClick() {
+    fileInput?.click();
+  }
+
+  function onFolderClick() {
+    folderInput?.click();
+  }
+
+  function onFileChange(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    if (input.files?.length) onFiles(fromFileList(input.files));
+    input.value = '';
+  }
+
+  async function onPasteClick() {
+    if (!supportsClipboardRead) return;
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const type = item.types.find((t) => t.startsWith('image/'));
+        if (type) {
+          const blob = await item.getType(type);
+          deliver(new File([blob], 'pasted-image', { type: blob.type }));
+          return;
+        }
+      }
+      onMessage?.('No image found on the clipboard.');
+    } catch {
+      onMessage?.("Couldn't read the clipboard.");
+    }
+  }
+
+  // Catch a Cmd/Ctrl+V paste anywhere on the landing screen (clipboardData is
+  // available synchronously here, no permission prompt).
+  function onWindowPaste(event: ClipboardEvent) {
+    const file = Array.from(event.clipboardData?.files ?? []).find((f) =>
+      f.type.startsWith('image/'),
+    );
+    if (file) {
+      event.preventDefault();
+      deliver(file);
+    }
+  }
+</script>
+
+<svelte:window onpaste={onWindowPaste} />
+
+<div class="intro">
+  <input
+    class="hide"
+    {@attach captureInput}
+    type="file"
+    accept="image/*"
+    multiple
+    onchange={onFileChange}
+  />
+  <input
+    class="hide"
+    {@attach captureFolderInput}
+    type="file"
+    {...{ webkitdirectory: true }}
+    onchange={onFileChange}
+  />
+
+  <div class="main">
+    <canvas class="blob-canvas" {@attach blobAnim} aria-hidden="true"></canvas>
+
+    <h1 class="logo-container reveal" style="--reveal-order: 0">
+      <!-- The full lockup from static/logo.svg, inlined so its colour follows
+           the theme: it keeps its graphite gradient on the light page, and the
+           dark-mode rule below flips every path to white. Inlining (rather than
+           <img src>) is the only way page CSS can reach inside to recolour it,
+           so one asset covers both modes — no separate white file. Keep this in
+           sync with static/logo.svg if the mark or wordmark ever changes. -->
+      <svg
+        class="logo"
+        viewBox="0 0 1309 428"
+        fill="none"
+        role="img"
+        aria-label={APP_NAME}
+      >
+        <g clip-path="url(#frisp-logo-clip)">
+          <path
+            fill="url(#frisp-logo-grad)"
+            d="M124.64 193.62a32.61 32.61 0 1 0 0-65.22 32.61 32.61 0 0 0 0 65.22"
+          />
+          <path
+            fill="url(#frisp-logo-grad)"
+            d="m330.52 325.9-111.75 64.53a71.9 71.9 0 0 1-71.6.06L36 326.63a72 72 0 0 1-36-62.36l.25-128.18a72 72 0 0 1 35.89-62l111.75-64.5a71.9 71.9 0 0 1 71.6-.07l111.14 63.87a72 72 0 0 1 36 62.36l-.25 128.19a72 72 0 0 1-35.86 61.97m-37.78-135.94 34.6 34.6.17-88.91a32.6 32.6 0 0 0-16.36-28.34L200 43.44a32.7 32.7 0 0 0-32.55.03L55.7 107.99a32.8 32.8 0 0 0-16.32 28.19l-.23 128.17a32.6 32.6 0 0 0 16.36 28.34l21 12.06 114.8-114.82c27.99-27.97 73.49-27.97 101.46 0z"
+          />
+        </g>
+        <path
+          fill="#2b303b"
+          d="M469.65 348V78.52h183.52v58.61H535.01v53.56h82.96v54.5H535V348zm312.56-197.2c12.36 0 20.97 3.94 29.03 8.62l-11.05 58.05C785.2 208.3 775.84 207 765.54 207c-9.74 0-21.16 4.5-32.02 14.04V348h-63.48V155.3h37.64l13.1 36.52c14.99-21.35 38.77-41.01 61.43-41.01m78.85-23.03c-20.23 0-36.33-13.67-36.33-32.77 0-18.35 16.1-32.4 36.33-32.4 20.41 0 36.89 14.05 36.89 32.4 0 19.1-16.3 32.77-36.9 32.77M829.4 348V155.3h63.67V348zm168.74 4.5c-30.53 0-61.8-9.18-81.47-19.48l15.92-43.63c22.85 8.8 48.88 17.04 64.05 17.04 13.67 0 21.16-5.62 21.16-13.3 0-8.61-8.24-14.8-26.97-21.35l-15.73-4.87c-30.52-9.92-54.3-27.71-54.3-59.92 0-36.9 33.52-56.37 77.9-56.37 26.22 0 48.13 4.68 68.54 12.92l-13.67 45.7c-17.79-6.56-40.26-12.55-52.06-12.55-11.61 0-19.85 4.5-19.85 11.8 0 6.74 5.24 12.92 22.28 18.35l11.05 3.56c34.46 10.3 63.67 25.84 63.67 62.73 0 38.02-36.33 59.36-80.52 59.36m221.73-201.7c40.45 0 76.59 30.16 76.59 92.9 0 72.84-37.08 108.8-92.13 108.8-15.36 0-29.03-3-39.89-7.12v81.83h-63.48l.18-206.93V155.3h37.64l11.43 31.84c20.78-21.17 48.31-36.33 69.66-36.33m-24.53 151.32c27.9 0 38.58-24.16 38.58-52.25 0-31.84-11.99-46.63-32.96-46.63-12.74 0-24.54 4.68-36.52 14.05v74.53a53 53 0 0 0 30.9 10.3"
+        />
+        <defs>
+          <linearGradient
+            id="frisp-logo-grad"
+            x1="-.09"
+            x2="238.68"
+            y1="0"
+            y2="465.59"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stop-color="#4a5264" />
+            <stop offset="1" stop-color="#111318" />
+          </linearGradient>
+          <clipPath id="frisp-logo-clip">
+            <path fill="#fff" d="M0 0h366.63v400H0z" />
+          </clipPath>
+        </defs>
+      </svg>
+    </h1>
+
+    <div class="load-img" {@attach captureBlobTarget}>
+      <div class="load-img-content reveal" style="--reveal-order: 1">
+        <!-- A click anywhere on the blob opens the picker. The disc below stays
+             the labelled, keyboard-focusable control; this one is skipped in the
+             tab order. The paste/folder links sit above and handle their own
+             clicks (see the pointer-events rules). -->
+        <button
+          class="load-hit"
+          type="button"
+          onclick={onOpenClick}
+          aria-label="Select images"
+          tabindex="-1"
+        ></button>
+        <button
+          class="load-btn"
+          type="button"
+          onclick={onOpenClick}
+          aria-label="Select images"
+        >
+          <svg viewBox="0 0 18 18" class="load-icon" aria-hidden="true">
+            <path
+              d="M16.25 11.44L13.194 8.38395C12.122 7.31195 10.378 7.31295 9.30602 8.38395L3.47002 14.2199C3.34302 14.3459 3.27601 14.511 3.26001 14.683C3.41801 14.722 3.58002 14.75 3.75002 14.75H14.25C15.354 14.75 16.25 13.855 16.25 12.75V11.44Z"
+            />
+            <path
+              d="M5.75 8.5C6.44 8.5 7 7.94 7 7.25C7 6.56 6.44 6 5.75 6C5.06 6 4.5 6.56 4.5 7.25C4.5 7.94 5.06 8.5 5.75 8.5Z"
+            />
+            <path
+              d="M16.75 3H15V1.25C15 0.836 14.664 0.5 14.25 0.5C13.836 0.5 13.5 0.836 13.5 1.25V3H11.75C11.336 3 11 3.336 11 3.75C11 4.164 11.336 4.5 11.75 4.5H13.5V6.25C13.5 6.664 13.836 7 14.25 7C14.664 7 15 6.664 15 6.25V4.5H16.75C17.164 4.5 17.5 4.164 17.5 3.75C17.5 3.336 17.164 3 16.75 3Z"
+            />
+            <path
+              d="M14.25 15.5H3.75C2.2334 15.5 1 14.2666 1 12.75V5.25C1 3.7334 2.2334 2.5 3.75 2.5H8.793C9.2071 2.5 9.543 2.8359 9.543 3.25C9.543 3.6641 9.2071 4 8.793 4H3.75C3.0605 4 2.5 4.5605 2.5 5.25V12.75C2.5 13.4395 3.0605 14 3.75 14H14.25C14.9395 14 15.5 13.4395 15.5 12.75V8.47662C15.5 8.06252 15.8359 7.72662 16.25 7.72662C16.6641 7.72662 17 8.06252 17 8.47662V12.75C17 14.2666 15.7666 15.5 14.25 15.5Z"
+            />
+          </svg>
+        </button>
+        <div class="load-text">
+          <!-- Pointer devices get the full set: drop-target, paste, browse,
+               plus a folder shortcut. -->
+          <p class="load-line pointer-only">
+            <span class="drop-text">Drop</span> an image,
+            {#if supportsClipboardRead}
+              <button class="paste-btn" type="button" onclick={onPasteClick}
+                >paste</button
+              >,
+            {:else}
+              paste,
+            {/if}
+            or click to browse
+          </p>
+          <p class="load-sub pointer-only">
+            or <button class="paste-btn" type="button" onclick={onFolderClick}
+              >choose a folder</button
+            >
+          </p>
+          <!-- Touch devices can't drag-drop or pick folders, so we show only
+               the gesture that applies. -->
+          <p class="load-line touch-only">Tap to add an image</p>
+        </div>
+      </div>
+    </div>
+
+    <ul class="formats reveal" style="--reveal-order: 2">
+      {#each formats as f (f)}
+        <li class="format-chip">{f}</li>
+      {/each}
+    </ul>
+
+    <p class="tagline reveal" style="--reveal-order: 3">
+      <svg class="lock" viewBox="0 0 16 16" aria-hidden="true">
+        <path
+          d="M4.5 6.5V5a3.5 3.5 0 1 1 7 0v1.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+        <rect
+          x="3"
+          y="6.5"
+          width="10"
+          height="7.5"
+          rx="2"
+          fill="currentColor"
+        />
+      </svg>
+      Local-first image compression. Nothing leaves your device.
+    </p>
+  </div>
+</div>
+
+<style>
+  .intro {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    color: var(--white, #fff);
+    /* A faint warm glow rising behind the hero. The intro paints its own base
+       colour (rather than leaning on the shared body background) so it can flip
+       to light on its own — see the prefers-color-scheme block below — without
+       touching the editor, which keeps the dark body background for now. */
+    background:
+      radial-gradient(
+        ellipse 70% 55% at 50% 38%,
+        rgba(255, 122, 80, 0.07),
+        transparent 70%
+      ),
+      #0c0c0f;
+  }
+
+  .hide {
+    /* Hidden, but kept in the tab order so the load button can reach it. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .main {
+    /* The blob colour + softness, read by the canvas animation. Brand coral. */
+    --blob-color: hsl(15, 100%, 65%);
+    --center-blob-opacity: 0.085;
+    position: relative;
+    min-height: 541px;
+    display: grid;
+    grid-template-rows: repeat(4, max-content);
+    justify-items: center;
+    align-content: center;
+    padding: 24px;
+  }
+
+  /* Staggered entrance: each hero row fades up once on load. */
+  .reveal {
+    animation: rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--reveal-order, 0) * 90ms);
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      animation-duration: 1ms;
+      animation-delay: 0ms;
+    }
+  }
+
+  .blob-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .logo-container {
+    position: relative;
+    /* Extra space below lifts the lockup and opens up breathing room over the
+       blob field (which is centred on the load target just below). Desktop
+       gets much more (see the min-width block). */
+    margin: 0 0 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* The whole lockup (mark + wordmark) is one inlined SVG, sized by height. */
+  .logo {
+    display: block;
+    height: 104px;
+    width: auto;
+  }
+  /* Dark mode: flip the graphite lockup to solid white. Light mode keeps the
+     SVG's own gradient mark and #2b303b wordmark ink. */
+  @media (prefers-color-scheme: dark) {
+    .logo :where(path) {
+      fill: #fff;
+    }
+  }
+
+  .load-img {
+    position: relative;
+    color: var(--white, #fff);
+    font-size: 1.25rem;
+  }
+
+  .load-img-content {
+    position: relative;
+    --size: 36rem;
+    width: 90vw;
+    max-width: var(--size);
+    height: var(--size);
+    display: grid;
+    grid-template-rows: max-content max-content;
+    justify-items: center;
+    align-content: center;
+    gap: 1.1rem;
+  }
+
+  /* Transparent full-area hit target: a click anywhere on the blob opens the
+     picker. It sits behind the disc + text (which are lifted above via
+     z-index); the text layer passes clicks through to it (pointer-events:
+     none) except the real paste/folder links. */
+  .load-hit {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  /* The browse button: a coral-gradient disc that invites a squeeze. */
+  .load-btn {
+    position: relative;
+    z-index: 1;
+    --size: 7.2rem;
+    width: var(--size);
+    height: var(--size);
+    background: linear-gradient(145deg, hsl(20, 95%, 66%), hsl(8, 88%, 58%));
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    box-shadow:
+      0 12px 40px rgba(255, 100, 60, 0.35),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.35);
+    transition:
+      transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1),
+      box-shadow 200ms ease;
+  }
+  .load-btn:hover {
+    transform: scale(1.07);
+    box-shadow:
+      0 16px 52px rgba(255, 100, 60, 0.5),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.35);
+  }
+  .load-btn:active {
+    transform: scale(0.97);
+  }
+  .load-btn:focus-visible {
+    outline: 3px solid var(--white, #fff);
+    outline-offset: 5px;
+  }
+  .load-icon {
+    --size: 3.4rem;
+    width: var(--size);
+    height: var(--size);
+    fill: #fff;
+    filter: drop-shadow(0 2px 4px rgba(120, 30, 0, 0.3));
+  }
+
+  .load-text {
+    position: relative;
+    z-index: 1;
+    /* Let clicks fall through to the hit target; the links below re-enable. */
+    pointer-events: none;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+    text-align: center;
+  }
+  .load-line {
+    margin: 0;
+  }
+  /* The folder shortcut sits a touch smaller and dimmer under the main line. */
+  .load-sub {
+    margin: 0.35rem 0 0;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .drop-text {
+    font-weight: 700;
+  }
+
+  /* Copy visibility by input type: pointer devices see drop/paste/folder;
+     touch devices (or very narrow viewports) see only the tap gesture. */
+  .touch-only {
+    display: none;
+  }
+  @media (hover: none) and (pointer: coarse), (max-width: 480px) {
+    .pointer-only {
+      display: none;
+    }
+    .touch-only {
+      display: block;
+    }
+  }
+
+  .paste-btn {
+    /* Re-enable clicks the .load-text layer disabled. */
+    pointer-events: auto;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font: inherit;
+    font-weight: 700;
+    color: inherit;
+  }
+  .paste-btn:hover {
+    color: hsl(20, 100%, 80%);
+  }
+
+  /* The codec line-up. */
+  .formats {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 7px;
+    list-style: none;
+    /* Breathing room below the blob field before the badges. */
+    margin: 2.75rem 0 0;
+    padding: 0;
+  }
+  .format-chip {
+    padding: 4px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .tagline {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 1.4rem 0 0;
+    font-size: 1.15rem;
+    color: rgba(235, 235, 245, 0.45);
+  }
+  .lock {
+    width: 12px;
+    height: 12px;
+    color: rgba(235, 235, 245, 0.45);
+  }
+
+  @media (min-width: 600px) {
+    .main {
+      min-height: 660px;
+    }
+    .load-img-content {
+      --size: 45rem;
+    }
+    /* Much more air around the lockup and above the badges on the roomier
+       desktop canvas. */
+    .logo-container {
+      margin-bottom: 6rem;
+    }
+    .formats {
+      margin-top: 4rem;
+    }
+  }
+
+  /* Ease the lockup down a touch on small screens. */
+  @media (max-width: 599px) {
+    .logo {
+      height: 88px;
+    }
+  }
+
+  /*
+   * Light mode — driven purely by the user's OS/browser theme setting (no
+   * toggle yet), and scoped to the intro screen only. We flip: the base
+   * background (to a soft off-white), the load-target copy, and the format
+   * chips + privacy tagline. The lockup needs nothing here — it carries its
+   * own graphite gradient and ink, which read correctly on the light page (the
+   * dark-mode rule up by .logo is what recolours it to white). The blobs are
+   * left alone on purpose — they paint the coral accent at low opacity, so
+   * they read correctly over either background without a change.
+   */
+  @media (prefers-color-scheme: light) {
+    .intro {
+      color: #18181b;
+      background: #f8fbfb;
+    }
+
+    .load-text {
+      color: rgba(24, 24, 27, 0.85);
+      text-shadow: none;
+    }
+    .load-sub {
+      color: rgba(24, 24, 27, 0.6);
+    }
+    .paste-btn:hover {
+      color: hsl(14, 85%, 46%);
+    }
+
+    .format-chip {
+      border-color: rgba(24, 24, 27, 0.14);
+      background: rgba(24, 24, 27, 0.03);
+      color: rgba(24, 24, 27, 0.62);
+    }
+
+    .tagline,
+    .lock {
+      color: rgba(24, 24, 27, 0.62);
+    }
+
+    /* The white focus ring vanishes on a light background. */
+    .load-btn:focus-visible {
+      outline-color: #18181b;
+    }
+
+    /* On the pale canvas the saturated disc reads as loud, so soften it: a
+       gentler, less-saturated coral and a lighter shadow to match the soft
+       blobs. */
+    .load-btn {
+      background: linear-gradient(150deg, hsl(20, 88%, 71%), hsl(9, 80%, 63%));
+      box-shadow:
+        0 10px 28px rgba(255, 125, 85, 0.22),
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.45);
+    }
+    .load-btn:hover {
+      box-shadow:
+        0 14px 36px rgba(255, 125, 85, 0.3),
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.45);
+    }
+  }
+</style>

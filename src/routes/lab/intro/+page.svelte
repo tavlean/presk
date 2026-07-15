@@ -39,6 +39,12 @@
       tagline:
         'The hero IS the app — drop an image on the framed UI and it morphs into the real editor, already encoding.',
     },
+    {
+      name: 'aurora',
+      href: resolve('/lab/intro/aurora'),
+      tagline:
+        'The retired production landing, preserved — a soft coral blob field around a central drop disc.',
+    },
   ] as const;
 </script>
 
@@ -48,8 +54,9 @@
       <p class="eyebrow">frisp lab</p>
       <h1>Intro page</h1>
       <p class="lede">
-        Four takes on the landing screen — minimal full-viewport single section,
-        real drop handling, light + dark. Pick by looking.
+        Takes on the landing screen — minimal full-viewport single section, real
+        drop handling, light + dark. Pick by looking. (aurora is the retired
+        production landing, kept for reference.)
       </p>
     </header>
     <ul>
