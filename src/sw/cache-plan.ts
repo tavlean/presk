@@ -30,12 +30,18 @@ export function dedupeUrls(urls: readonly string[]): string[] {
  * - WebP encodes through the SIMD build when supported, else baseline;
  * - the AVIF/WebP WASM decoders are fallbacks for browsers without native
  *   decode support — natively-supported browsers never fetch them;
- * - everything else (JXL/QOI decoders, QOI/MozJPEG encoders, processors) has
- *   a single variant used everywhere.
+ * - the JXL/QOI decoders, the MozJPEG encoder, and the processors each have a
+ *   single variant used everywhere.
  *
- * Assets left out stay reachable: the service worker runtime-caches any
- * known asset on first fetch, so a mis-detection only costs a network trip
- * while online — it never breaks the codec.
+ * The QOI ENCODER is deliberately NOT precached: QOI is no longer a
+ * user-selectable output, so the encoder is only ever exercised by the
+ * diagnostics webp-pipeline probe (`src/lib/webp-pipeline-probe.ts`), not by
+ * normal encoding. The QOI DECODER stays (it decodes `.qoi` inputs offline).
+ *
+ * Assets left out stay reachable: the service worker runtime-caches any known
+ * asset on first fetch, so a mis-detection (or the excluded QOI encoder, if the
+ * probe ever runs) only costs a network trip while online — it never breaks the
+ * codec.
  */
 export function selectCodecPrecacheUrls(
   records: readonly CodecAssetRecord[],
@@ -43,7 +49,6 @@ export function selectCodecPrecacheUrls(
 ): string[] {
   const wanted = new Set<string>([
     'qoi:decoder:default',
-    'qoi:encoder:default',
     'jxl:decoder:default',
     'mozjpeg:encoder:default',
     'imagequant:processor:default',
