@@ -601,9 +601,37 @@ assert(
   'Service worker should not pre-cache inlined WASM data URLs.',
 );
 
+// Dev-only UI must not ship. The /lab and /bench-svg routes are development
+// tools; the app-strip-dev-only-routes Vite plugin (vite.config.ts) replaces
+// their +page.svelte with a "Not found" stub in production, so none of the lab
+// UI or its $lib/lab deps are emitted or precached. Assert that holds: no
+// emitted client asset may carry a lab-only marker. (Route PATH strings like
+// "/lab/porcelain" legitimately live in the client router manifest, so the
+// markers below are UI identifiers — CSS token prefix, component + stub text —
+// not route segments.)
+const devOnlyUiMarkers = ['--il-', 'AuroraIntro', 'IntroDropDemo', 'Lab stub'];
+const clientAssetFiles = files.filter(
+  (file) =>
+    file.startsWith('_app/immutable/') &&
+    (file.endsWith('.js') || file.endsWith('.css')),
+);
+const leakedDevUi = [];
+for (const file of clientAssetFiles) {
+  const source = await readFile(join(buildDir, file), 'utf8');
+  const marker = devOnlyUiMarkers.find((m) => source.includes(m));
+  if (marker) leakedDevUi.push(`${file} (contains "${marker}")`);
+}
+assert(
+  leakedDevUi.length === 0,
+  'Dev-only lab/bench UI leaked into the production build — the ' +
+    'app-strip-dev-only-routes plugin likely stopped matching a route:\n' +
+    leakedDevUi.map((file) => `  - ${file}`).join('\n'),
+);
+
 console.log(
   [
     'Static output audit passed.',
+    `Dev-only UI markers in client bundle: 0 (${clientAssetFiles.length} assets scanned)`,
     `App entry asset: ${appEntryAsset}`,
     `Start entry asset: ${startEntryAsset}`,
     `Route node assets: ${routeNodeAssets.length}`,

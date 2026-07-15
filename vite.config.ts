@@ -90,6 +90,30 @@ const rawThreadedCodecWorkers: Plugin = {
   },
 };
 
+// The /lab and /bench-svg routes are dev-only tools. Their +page.svelte files
+// guard on `dev` and render "Not found" in production — but that is a RUNTIME
+// check, so the route component and its heavy `$lib/lab` deps are still emitted
+// as client chunks and precached by the service worker (build.filter in
+// service-worker.ts caches every emitted asset). That is ~200 KB of dead
+// experimental UI installed on every visit, contradicting the invariant those
+// routes assert ("must NEVER be emitted into a production build").
+//
+// This enforces it: in production builds ONLY, replace each dev-only +page.svelte
+// with a tiny "Not found" stub, so none of the lab/bench UI (or its $lib/lab
+// code, which nothing else imports) is bundled, emitted, or precached. `vite dev`
+// is untouched, so the lab stays fully usable while developing.
+const DEV_ONLY_PAGE_RE = /\/src\/routes\/(?:lab|bench-svg)\/.*\+page\.svelte$/;
+const stripDevOnlyRoutesInProd: Plugin = {
+  name: 'app-strip-dev-only-routes',
+  apply: 'build',
+  enforce: 'pre',
+  load(id) {
+    const path = id.split('?')[0].split('\\').join('/');
+    if (DEV_ONLY_PAGE_RE.test(path)) return '<p>Not found.</p>\n';
+    return null;
+  },
+};
+
 // Exported so vitest.config.ts resolves the same aliases (it does NOT inherit
 // this file: a standalone vitest.config takes full precedence, and without
 // these an aliased import inside any transitively-loaded source module makes
@@ -110,7 +134,12 @@ export const appAliases = {
 };
 
 export default defineConfig({
-  plugins: [rawThreadedCodecWorkers, crossOriginIsolation, sveltekit()],
+  plugins: [
+    rawThreadedCodecWorkers,
+    crossOriginIsolation,
+    stripDevOnlyRoutesInProd,
+    sveltekit(),
+  ],
   optimizeDeps: {
     // Only imported inside lazily-spawned codec workers (and the SW), so Vite's
     // start-up scan never sees it; it gets discovered mid-session on the first
