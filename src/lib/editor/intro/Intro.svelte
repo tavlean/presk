@@ -21,12 +21,22 @@
   interface Props {
     /** Hand chosen files (from drop/picker/paste) up to the page. */
     onFiles: (files: ImportedFile[]) => void;
+    /** Reused for paste feedback (no image / clipboard read failed). */
+    onMessage?: (text: string) => void;
   }
-  let { onFiles }: Props = $props();
+  let { onFiles, onMessage }: Props = $props();
 
   const formatsLine = 'WebP · AVIF · JPEG XL · JPEG · PNG';
 
+  // Backs the quiet "paste" action; keyboard ⌘V is handled separately by
+  // onWindowPaste (synchronous clipboardData, no permission prompt).
+  const supportsClipboardRead =
+    typeof navigator !== 'undefined' &&
+    !!navigator.clipboard &&
+    'read' in navigator.clipboard;
+
   let fileInput = $state<HTMLInputElement>();
+  let folderInput = $state<HTMLInputElement>();
 
   // Entrance reveal — released next frame so the transition plays from the
   // start state on mount.
@@ -92,10 +102,38 @@
     fileInput?.click();
   }
 
+  function onFolder() {
+    folderInput?.click();
+  }
+
+  // Shared by the file and folder inputs: fromFileList carries each file's
+  // webkitRelativePath, so a folder pick keeps its structure for bulk import.
   function onPick(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
     if (input.files?.length) onFiles(fromFileList(input.files));
     input.value = '';
+  }
+
+  // Explicit paste action for pointer users without a keyboard: reads the async
+  // clipboard, delivers the first image, and reports a miss through onMessage.
+  async function onPasteClick() {
+    if (!supportsClipboardRead) return;
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const type = item.types.find((t) => t.startsWith('image/'));
+        if (type) {
+          const blob = await item.getType(type);
+          onFiles([
+            { file: new File([blob], 'pasted-image', { type: blob.type }) },
+          ]);
+          return;
+        }
+      }
+      onMessage?.('No image found on the clipboard.');
+    } catch {
+      onMessage?.("Couldn't read the clipboard.");
+    }
   }
 
   // Catch a Cmd/Ctrl+V paste of an image anywhere on the landing screen.
@@ -212,6 +250,19 @@
     <button type="button" class="pill browse" onclick={onBrowse}>
       Browse files
     </button>
+    <!-- Quiet secondary actions: the folder + click-paste paths the frame
+         promotion had dropped, restored without adding chrome. -->
+    <p class="secondary">
+      or
+      <button type="button" class="linklike" onclick={onFolder}
+        >choose a folder</button
+      >
+      {#if supportsClipboardRead}
+        · <button type="button" class="linklike" onclick={onPasteClick}
+          >paste</button
+        >
+      {/if}
+    </p>
     <input
       bind:this={fileInput}
       class="visually-hidden"
@@ -220,6 +271,18 @@
       multiple
       tabindex="-1"
       aria-hidden="true"
+      onchange={onPick}
+    />
+    <!-- Folder picker: no `accept` (surfaces every file; routeFiles filters to
+         supported images), webkitdirectory for whole-folder bulk import. -->
+    <input
+      bind:this={folderInput}
+      class="visually-hidden"
+      type="file"
+      multiple
+      tabindex="-1"
+      aria-hidden="true"
+      {...{ webkitdirectory: true }}
       onchange={onPick}
     />
   </div>
@@ -504,6 +567,31 @@
   }
   .browse {
     margin-top: 4px;
+  }
+
+  /* Quiet secondary actions under the primary CTA. */
+  .secondary {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--i-text-3);
+  }
+  .linklike {
+    appearance: none;
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    color: var(--i-text-2);
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+  .linklike:hover {
+    text-decoration: underline;
+  }
+  .linklike:focus-visible {
+    outline: 2px solid var(--i-accent);
+    outline-offset: 2px;
+    border-radius: 3px;
   }
   @supports (corner-shape: squircle) {
     .pill {
