@@ -26,7 +26,7 @@ Because each side is independent, you can also compare **two compressed versions
 When you change a setting, Frisp rebuilds that side's preview through three steps:
 
 1. **Decode** — your file is read and turned into raw pixels (an in-memory image). This is what lets Frisp re-save it in any format.
-2. **Preprocess** — optional adjustments applied _before_ re-saving, namely **Resize** (scale the image down or up) and **Quantize** (reduce the number of colors). If you don't touch these, the image passes through unchanged.
+2. **Preprocess** — optional adjustments applied _before_ re-saving: **Resize** (scale the image down or up), **Film grain** (bake in filmic noise), and **Quantize** (reduce the number of colors), applied in that order (resize → grain → quantize). If you don't touch these, the image passes through unchanged.
 3. **Encode** — the pixels are handed to the codec (the compressor) for your chosen format, which produces the final compressed file.
 
 > **Jargon check — "codec":** short for _coder/decoder_ — the engine that knows how to write (and read) a particular image format. Frisp bundles one codec per format (for example MozJPEG for JPEG, OxiPNG for PNG).
@@ -35,7 +35,7 @@ Heavy codecs run in the background (in Web Workers / WebAssembly) so the app sta
 
 ## The basic workflow, end to end
 
-1. **Load an image.** Drag and drop a file onto the window, or click to open your computer's file picker. Frisp reads common formats — JPEG, PNG, WebP, GIF, BMP, and (where your browser supports them) AVIF and JPEG XL; SVG files are rasterized (converted to pixels).
+1. **Load an image.** Drag and drop a file onto the window, or click to open your computer's file picker. Frisp reads common formats — JPEG, PNG, WebP, GIF, BMP, and (where your browser supports them) AVIF and JPEG XL; SVG files default to an optimized vector output (their markup is shrunk, not rasterized to pixels).
 2. **Look at the compare view.** The left pane shows your original. The right pane immediately shows a first compressed preview (Frisp starts you on **WebP** by default, while the left side stays on the original).
 3. **Pick a format and settings for the right side.** Each side has its own options panel. Choose the output format and adjust its quality (and, if you like, resize or reduce colors). Every change re-encodes that side automatically — no "apply" button.
 4. **Compare.** Drag the slider, zoom, and pan to judge whether the compressed version still looks good enough.

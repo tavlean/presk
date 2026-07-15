@@ -28,6 +28,10 @@ path.
 - `src/routes/`: SvelteKit routes and app entry.
 - `src/lib/`: Svelte editor/bulk UI, worker bridge, compression adapter,
   diagnostics, and service-worker registration.
+- `src/lib/svg/`: the SVG vector-optimize lane. SVGO worker client, the
+  deterministic auto-search with its multi-scale visual gate, SVG-to-ImageData
+  rendering, and the optimize options/config. Loaded only via dynamic import so
+  `svgo`/`fflate` stay out of the main bundle.
 - `src/client/lazy-app/`: framework-neutral image pipeline, bulk engine, browser
   decode helpers, worker bridge runtime, and filename helpers.
 - `src/features/`: codec and processor runtime modules.
@@ -44,12 +48,18 @@ path.
 1. `src/routes/+page.svelte` accepts picker, drag/drop, and paste imports.
 2. `EditorSession` owns single-image side state, saved settings, undo/redo,
    decoded-source reuse, and the shared result cache.
-3. `src/lib/compress.ts` delegates decode/preprocess/process/encode work to the
-   shared image pipeline and codec worker bridge.
+3. Raster sources: `src/lib/compress.ts` delegates decode/preprocess/process/
+   encode work to the shared image pipeline and codec worker bridge.
 4. `src/lib/sveltekit-worker-bridge.ts` calls `src/worker/codec-worker.ts` for
    codec and processor work.
-5. Output components render before/after comparison from object URLs.
-6. Single-image export downloads a file; bulk export writes a client ZIP.
+5. Vector (SVG) sources take a separate lane: `EditorSession` defaults the
+   output side to `'svg'` and dispatches to `src/lib/svg/optimize.ts`, which
+   runs SVGO in a lazy worker with a deterministic auto-search, gates each
+   candidate on a multi-scale pixel diff, keeps the smaller of optimized vs
+   original, and returns the SVG file plus raw/gzip sizes. Raster output formats
+   stay available for SVG sources through steps 3–4.
+6. Output components render before/after comparison from object URLs.
+7. Single-image export downloads a file; bulk export writes a client ZIP.
 
 ## Build And Runtime
 

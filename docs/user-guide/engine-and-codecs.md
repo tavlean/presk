@@ -54,11 +54,13 @@ So you can open GIF, BMP, SVG, and QOI files even though none of them are output
 
 ### Helpers behind the editing controls
 
-Two more libraries power the editing options rather than an output format:
+A few more engines power the editing options and the SVG lane rather than a bitmap output format:
 
 - **Resize** uses the Rust `resize` crate (`0.8.9`) for its high-quality methods, plus the **hqx** pixel-art scaler (`v0.1.3`).
+- **Film grain** is a local processor (`src/features/processors/grain/`, plain JavaScript, no WASM) that bakes filmic monochrome noise into the pixels as a **preprocess** step. It runs in the order **resize → grain → quantize**, sitting between resize and quantize, so a reduced-palette request still lands on exactly that many colors (the quantizer dithers the grain into the palette). Its **"Film grain"** Amount slider sets the strength; an Advanced **"Grain size"** control sets the particle scale.
 - **Reduce palette / quantize** uses **imagequant** (libimagequant `2.18.0`).
 - **Rotate** uses a small local Rust module (`squoosh-rotate`) that runs before everything else.
+- **SVG optimization** uses **SVGO** (`v4`) in a lazy Web Worker (`src/lib/svg/`). When you open an SVG, Frisp defaults to a first-class **"SVG (optimized)"** vector output that shrinks the markup itself rather than rasterizing it to pixels.
 
 These are documented in their own guides; they're listed here so you can see the full set of engines Frisp ships.
 
@@ -81,4 +83,4 @@ The service worker only activates on the **real deployed site**. During developm
 
 ## Under the hood
 
-Frisp is a maintained Svelte fork of Google's Squoosh, and it reuses Squoosh's committed codec artifacts under `codecs/` rather than rebuilding them on every install — the project even records that there are roughly 80 committed JS/WASM artifacts, including baseline, threaded, SIMD, and Node-targeted builds (`docs/codec-provenance.md`). The single-image editor and future bulk helpers share one framework-neutral pipeline so both paths can produce the same results, with heavy work dispatched to a codec worker (`src/lib/compress.ts`). The recorded versions above are the _rebuild recipe inputs_; the provenance doc is candid that they document how each codec would be rebuilt rather than proving every shipped `.wasm` was generated from exactly those inputs.
+Frisp is a maintained Svelte fork of Google's Squoosh, and it reuses Squoosh's committed codec artifacts under `codecs/` rather than rebuilding them on every install — the project even records that there are 63 committed JS/WASM artifacts, including baseline, threaded, SIMD, and Node-targeted builds (`docs/codec-provenance.md`). The single-image editor and future bulk helpers share one framework-neutral pipeline so both paths can produce the same results, with heavy work dispatched to a codec worker (`src/lib/compress.ts`). The recorded versions above are the _rebuild recipe inputs_; the provenance doc is candid that they document how each codec would be rebuilt rather than proving every shipped `.wasm` was generated from exactly those inputs.

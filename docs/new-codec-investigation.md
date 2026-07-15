@@ -1,12 +1,15 @@
 # New-Codec Investigation — Researched, NOT Added
 
-Last updated: 2026-07-12. Status: **investigation record — three verdicts
-superseded (see below); HEIC still open.**
+Last updated: 2026-07-15. Status: **investigation record — SVGO SHIPPED (the
+vector lane is live, stages S1–S6; only the S8 benchmark remains open); jpegli
+and JPEG→JXL transcode superseded → build; HEIC still open.**
 
 This doc records a research pass on four candidate new codecs/processors that
 came out of the codec audit ([codec-upgrade-audit.md](codec-upgrade-audit.md)
-§4–5). **None of these are wired into the app.** This is decision material, not a
-plan to execute — each entry says what it would add, whether a usable
+§4–5). **SVGO has since shipped — the vector lane is live in the editor (stages
+S1–S6); only its S8 benchmark remains open.** The other three are not wired in.
+This is decision material, not a plan to execute — each entry says what it would
+add, whether a usable
 browser/WASM build exists, the effort, and a recommendation. Re-decide when you
 have appetite; the WASM build toolchain (emcc/cmake/wasm-pack/docker) is not
 installed here, so anything needing a codec recompile cannot be done in this repo
@@ -16,24 +19,29 @@ as-is.
 
 | Candidate | What it adds | Recommendation |
 |-----------|--------------|----------------|
-| **SVGO v4** (SVG/vector optimizer) | Optimizes SVG/vector files the raster pipeline can't touch | **KEEP — do first.** Pure JS, official browser bundle, no WASM/toolchain. |
+| **SVGO v4** (SVG/vector optimizer) | Optimizes SVG/vector files the raster pipeline can't touch | **SHIPPED.** The vector lane is live (stages S1–S6); only the S8 benchmark remains. Pure JS, official browser bundle, no WASM/toolchain. |
 | **libheif decode-only HEIC input** | Opens iPhone `.heic` (browsers can't decode it), convert out | **LATER.** Strong, but defer for LGPL + WASM weight; do SVGO first. |
 | **jpegli WASM encoder** | Better quality-per-byte standard `.jpg` than MozJPEG | **SUPERSEDED 2026-07-11 → BUILD**: [specs/2026-07-11-jpegli-codec.md](specs/2026-07-11-jpegli-codec.md) |
 | **Lossless JPEG→JXL transcode** | Recompress `.jpg` to `.jxl` ~20% smaller, reversible | **SUPERSEDED 2026-07-11 → BUILD** (after the jxl 0.12 upgrade): [specs/2026-07-11-jpeg-to-jxl-transcode.md](specs/2026-07-11-jpeg-to-jxl-transcode.md) |
 
-The one to act on first is **SVGO**: it is the only candidate that adds a format
-the app cannot handle today, and it needs no codec toolchain.
+**SVGO shipped first.** It was the only candidate that added a format the app
+could not handle before, and it needed no codec toolchain. The vector lane is
+now live (stages S1–S6); the S8 benchmark is the only open piece.
 
 ---
 
-## 1. SVGO v4 — SVG / vector optimization — **KEEP / do first**
+## 1. SVGO v4 — SVG / vector optimization — **SHIPPED**
 
-> **SUPERSEDED 2026-07-12 by a full analysis.** A four-agent research pass
-> (nano published-technique analysis, optimizer landscape, techniques,
-> integration audit — public sources only) produced a phased approach
-> targeting parity with ImageOptim and match-or-beat vs vecta nano:
-> [svg-optimization-analysis.md](svg-optimization-analysis.md). Maintainer
-> decision pending there. The entry below is the original short verdict.
+> **SHIPPED 2026-07-12.** A four-agent research pass (nano published-technique
+> analysis, optimizer landscape, techniques, integration audit; public sources
+> only) produced a phased approach targeting parity with ImageOptim and
+> match-or-beat vs vecta nano:
+> [svg-optimization-analysis.md](svg-optimization-analysis.md). That approach
+> was approved and BUILT. The vector lane is live in the editor (stages S1–S6:
+> `svgo` runtime dep, the `src/lib/svg/` worker pipeline plus auto-search, the
+> `SvgOptions.svelte` options panel, and `'svg'` as an editor output format);
+> only the S8 benchmark remains open. The entry below is the original short
+> verdict.
 
 - **What it adds:** Optimizes SVG/vector files, which the raster codec pipeline
   cannot touch at all. Complements the existing codecs rather than competing with

@@ -41,6 +41,7 @@ Notes that apply throughout:
 | JPEG XL            | `jxl`         | `jxl`      | `image/jxl`   | both               | yes                                       |
 | JPEG               | `mozJPEG`     | `jpg`      | `image/jpeg`  | lossy              | yes                                       |
 | PNG                | `oxiPNG`      | `png`      | `image/png`   | lossless           | yes                                       |
+| SVG                | `svg`         | `svg`      | `image/svg+xml` | optimizer (gated) | yes (`SvgOptions.svelte`)                 |
 
 - The label/ext for `jxl` are read from `encoderMap.jxl.meta` so they stay in
   sync (hence "JPEG XL"). `webP` and `avif` use hard-coded labels in
@@ -48,9 +49,16 @@ Notes that apply throughout:
   names **JPEG** and **PNG** (rather than the encoder names MozJPEG/OxiPNG); the
   underlying encoder is surfaced as a hover tooltip (title attribute) on the
   picker — JPEG→MozJPEG, PNG→OxiPNG, JPEG XL→libjxl, WebP→libwebp, AVIF→libaom.
-- **Every output format is an always-available WASM codec** — there is no runtime
-  feature detection. (QOI and the canvas/browser encoders were removed from the
-  picker on 2026-06-27; QOI's decoder remains for import.)
+- **Every raster output format is an always-available WASM codec** — there is no
+  runtime feature detection. (QOI and the canvas/browser encoders were removed from
+  the picker on 2026-06-27; QOI's decoder remains for import.)
+- **`svg` is the one exception — a vector-source-only lane, not a raster codec.**
+  It only appears in the picker when the source is an SVG (`isVectorSource`), where
+  `availableFormats` prepends it (`SVG` label, `SVGO` tooltip) and side 1 defaults
+  to it; it runs SVGO (JS, in a lazy worker) over the source text rather than
+  encoding pixels. Its `lossy/lossless` cell reads "optimizer (gated)" because Auto
+  mode trades numeric precision for size behind a multi-scale visual gate. See the
+  dedicated section below.
 - The format `<select>` always prepends an **"Original Image"** entry whose value
   is `identity`. (It no longer appends the source filename; a richer source-image
   info display is planned separately.)
@@ -252,6 +260,57 @@ No hidden options — the `EncodeOptions` interface is exactly `{ level, interla
 
 ---
 
+## SVG (`svg`) — the vector-source optimize lane
+
+Menu label is **SVG**; encoded with **SVGO** (v4, shown as a hover tooltip on the
+picker). Not a raster codec: it minifies the SVG _text_ in a lazy worker
+(`src/lib/svg/svg-optimizer.worker.ts`) and never rasterises. Only offered when the
+source is an SVG; side 1 (the "after") defaults to it. Options shape:
+`src/lib/svg/optimize-options.ts` (`SvgOptimizeOptions`); panel:
+`SvgOptions.svelte`. The whole raster "Edit" block (Resize / Film grain / Reduce
+palette) is hidden while this lane is active — raster processors don't apply.
+
+**Always visible**
+
+| UI label | key    | control | values            | default |
+| -------- | ------ | ------- | ----------------- | ------- |
+| Mode     | `mode` | select  | `auto` / `manual` | `auto`  |
+
+**Auto mode** shows a hint ("Tries several settings and keeps the smallest result
+that renders identically.") and, once a result lands, a winner line via
+`describeWinner` (e.g. "Auto: precision 2 · reused paths"). It searches a precision
+ladder (p3 → p2/p1/p0, or p4 if p3 fails the gate) plus `reusePaths` /
+`convertStyleToAttrs` add-on trials, admitting a candidate only after multi-scale
+pixel checks (`visual-gate.ts`, pixelmatch, normalized by painted pixels) at
+64/256/natural px over transparent + light + dark backgrounds. Auto respects
+`keepTitleDesc` but ignores the other manual toggles.
+
+**Manual mode**
+
+| UI label  | key         | control | range / values | default |
+| --------- | ----------- | ------- | -------------- | ------- |
+| Precision | `precision` | range   | 0–4, step 1    | 3       |
+
+**Manual → Advanced settings** (Revealer)
+
+| UI label                     | key                    | control  | default |
+| ---------------------------- | ---------------------- | -------- | ------- |
+| Multipass                    | `multipass`            | checkbox | true    |
+| Keep title & description     | `keepTitleDesc`        | checkbox | true    |
+| Reuse identical paths        | `reusePaths`           | checkbox | false   |
+| Convert styles to attributes | `convertStyleToAttrs`  | checkbox | false   |
+| Remove off-canvas paths      | `removeOffCanvasPaths` | checkbox | false   |
+| Remove width/height          | `removeDimensions`     | checkbox | false   |
+
+Notes: transform precision is derived as `min(precision + 2, 5)` (matrix math needs
+headroom); `removeDimensions` is manual-only (not searched by Auto). The output never
+regresses — `keepOriginalSvg` reverts to the source text (0% change) when the
+optimized bytes aren't smaller — and sources above 5 MB are rejected. Results carry a
+`svg` block (`optimizedText`, `rawBytes`, `gzipBytes`, `originalGzipBytes`, `winner`)
+that drives the Results panel's second "gzip: <n> · was <n>" line.
+
+---
+
 ## Generic fallback in `OptionsPanel.svelte`
 
 For any non-`identity` format with no dedicated panel branch:
@@ -260,17 +319,22 @@ For any non-`identity` format with no dedicated panel branch:
   (min 0, max 100, step 1) bound to `options.quality`.
 - Otherwise → `"<label> has no adjustable options."`
 
-No shipped format hits this fallback today — all five output formats have a
-dedicated options panel. It remains as a safety net for a future encoder added
-without one. (QOI, which previously hit the "no adjustable options" branch, was
-removed from the picker on 2026-06-27; its decoder stays for import.)
+No shipped format hits this fallback today — all five raster output formats have a
+dedicated options panel, as does the `svg` lane (`SvgOptions.svelte`). It remains as
+a safety net for a future encoder added without one. (QOI, which previously hit the
+"no adjustable options" branch, was removed from the picker on 2026-06-27; its
+decoder stays for import.)
 
 ## Editor-side ("Edit") controls shared by every real encoder
 
-These live above the Compress section (hidden for the Original side) and are not
-encoder options, but affect every output format: a **Resize** section
-(`ResizeOptions.svelte`, gated by `processorState.resize.enabled`) and a
-**Reduce palette** section (`QuantizeOptions.svelte`, gated by
-`processorState.quantize.enabled`). Per-side title-bar buttons: **Copy settings to
-other side**, **Save side settings**, **Import saved side settings** (import disabled
-until something is saved).
+These live above the Compress section (hidden for the Original side, and hidden
+entirely on the `svg` lane) and are not encoder options, but affect every raster
+output format. In panel/pipeline order: a **Resize** section (`ResizeOptions.svelte`,
+gated by `processorState.resize.enabled`), a **Film grain** section
+(`GrainOptions.svelte`, gated by `processorState.grain.enabled`), and a **Reduce
+palette** section (`QuantizeOptions.svelte`, gated by
+`processorState.quantize.enabled`). The pipeline applies them resize → grain →
+quantize. Film grain exposes an **Amount** slider (0–100, default 12) plus an
+Advanced **Grain size** slider (1–100, default 20; 20 units = 1px). Per-side
+title-bar buttons: **Copy settings to other side**, **Save side settings**, **Import
+saved side settings** (import disabled until something is saved).

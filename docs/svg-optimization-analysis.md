@@ -1,8 +1,12 @@
 # SVG Import/Export & Optimization — Analysis and Recommended Approach
 
-Last updated: 2026-07-12. Status: **direction APPROVED by maintainer
-2026-07-12** (he is a daily SVG user and wants this in Frisp instead of
-external tools); sequencing vs other tracks still open.
+Last updated: 2026-07-15. Status: **SHIPPED (stages S1–S6 live); only the S8
+benchmark remains open.** The vector lane is merged and live: the SVGO worker
+pipeline under `src/lib/svg/`, the `SvgOptions.svelte` options panel, and
+`'svg'` as an editor output format. Direction was approved by the maintainer on
+2026-07-12 (he is a daily SVG user and wanted this in Frisp instead of external
+tools) and Phases 1+2 shipped together. The design record below is preserved
+as-is; the open S8 benchmark content is unchanged.
 
 The maintainer's ask (2026-07-12): import SVGs, export optimized SVGs, matching
 or beating his current workflow — **vecta.io/nano** as the default compressor,
@@ -70,8 +74,8 @@ Not 4.0.0 — 4.0.1 fixes an XML entity-expansion DoS. Alternatives ruled out:
 
 Frisp **already imports SVG** (rasterizes via `<img>` — `processSvg` in
 [image-pipeline-shared.ts:222](../src/client/lazy-app/image-pipeline-shared.ts);
-bulk accepts `.svg`; the Vector resize method re-renders from source). New work
-is the SVG **output** lane:
+bulk accepts `.svg`; the Vector resize method re-renders from source). The
+shipped SVG **output** lane (stages S1–S6):
 
 - SVG source → right side defaults to **"Optimized SVG"**; raster formats stay
   available (existing rasterize path untouched). SVG is never offered for

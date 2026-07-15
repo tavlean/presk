@@ -55,6 +55,33 @@ Shapes: `src/features/processors/resize/shared/meta.ts`,
   when it changes the size, so enabling Resize at 100% (or toggling
   `premultiply`/`linearRGB` there) re-encodes nothing.
 
+### Grain / "Film grain" (`src/features/processors/grain`)
+
+Options panel: `src/lib/editor/options/GrainOptions.svelte`.
+Shapes: `grain/shared/meta.ts`, `processor-types.ts`.
+Applied by `grain/shared/apply.ts` — pure JS over RGBA bytes, no WASM/codec.
+
+| Field    | Range              | UI? | Notes                                                                |
+| -------- | ------------------ | --- | ------------------------------------------------------------------- |
+| `amount` | 0–100 (default 12) | yes | "Amount" slider — grain strength (σ ≈ 0.44·amount at mid-gray).      |
+| `size`   | 1–100 (default 20) | yes | Advanced "Grain size" slider — 20 units = 1px; ≤20 finest, 40 ≈ 2px. |
+
+- **Runs after resize, before quantize** (`image-pipeline-shared.ts`
+  `processImage`: resize → grain → quantize), so grain is applied at output
+  resolution and a palette-reduction pass dithers it into the palette.
+- **Baked into pixels, not codec-native** — identical for every output format
+  (JPEG/WebP/PNG have no native grain; AVIF FGS and JXL photon-noise were rejected
+  for v1). Model calibrated against reference exports; rationale in
+  `docs/specs/2026-07-12-film-grain.md`.
+- **Deterministic**: fixed-seed xorshift32, one PRNG step per pixel, writes skipped
+  where alpha = 0 — same input + amount ⇒ identical bytes, so the result cache,
+  undo/redo, and bulk staleness contracts stay exact.
+- **`grainIsReal()`** (enabled && amount > 0) gates the pipeline, encode signature,
+  and bulk recipe, so "enabled at amount 0" is a true no-op. A live pre-encode
+  preview renders while a grain-only pass is in flight
+  (`EditorSession.updateGrainPreview`), suppressed when a real resize or palette
+  reduction also sits between the source and the encoder.
+
 ### Quantize / "Reduce palette" (`src/features/processors/quantize`)
 
 Options panel: `src/lib/editor/options/QuantizeOptions.svelte`.
@@ -81,9 +108,36 @@ Shape: `rotate/shared/meta.ts`. Runs **before** processing.
 | -------- | --------------------------------- | ------------------------------------------------- |
 | `rotate` | `0` (default), `90`, `180`, `270` | ~500B WASM module; grows memory to hold 2x image. |
 
+### SVG optimization lane (SVGO)
+
+Options: `src/lib/svg/optimize-options.ts` (`SvgOptimizeOptions`). Panel:
+`src/lib/editor/options/SvgOptions.svelte`. Not a raster processor and not a
+`codecs/` artifact — a separate lane that minifies SVG _text_, offered only when the
+source is an SVG (side 1 defaults to it). The raster preprocessor/processor state
+never applies to this lane.
+
+- **Lazy worker** (`src/lib/svg/svg-optimizer.worker.ts`): runs SVGO (`svgo/browser`
+  v4) plus fflate gzip off the main thread; `optimizer-client.ts` owns the single
+  worker and terminates it on abort. `editor-session.svelte.ts` (`encodeSide`)
+  dispatches to the dynamically-imported `optimizeSvgSide` (`src/lib/svg/optimize.ts`)
+  only when a side's format is `svg`, so svgo/fflate stay out of the main bundle.
+- **Auto-search** (`auto-search.ts`): a deterministic precision ladder
+  (p3 → p2/p1/p0, or p4 when p3 fails) with `reusePaths` / `convertStyleToAttrs`
+  add-on trials, each admitted only after a multi-scale visual gate
+  (`visual-gate.ts`, pixelmatch, mismatch normalized by painted pixels) renders at
+  64/256/natural px over transparent + light + dark backgrounds. `pickWinner` keeps
+  the smallest gzip that passed. Manual mode applies the knobs directly.
+- **Config** (`svgo-config.ts`): one `preset-default` override point; transform
+  precision = `min(precision + 2, 5)`. Never ships a regression — `keepOriginalSvg`
+  reverts to the source text when the optimized bytes aren't smaller; sources above
+  5 MB are rejected. Preview rasterisation reuses the shared SVG import path
+  (`render.ts` → `processSvg`).
+- Libraries: **svgo `^4.0.1`**, **pixelmatch `^7.2.0`** (visual gate), **fflate
+  `^0.8.3`** (gzip sizing) — npm dependencies, not `codecs/` artifacts.
+
 ## Codecs / libraries
 
-WASM/JS artifacts live under `codecs/` (inherited from Squoosh; ~80 committed
+WASM/JS artifacts live under `codecs/` (inherited from Squoosh; ~63 committed
 JS/WASM artifacts). Each codec is wired through `src/features/{encoders,decoders}`.
 
 | Codec / role           | Library (upstream)               | Version / commit (recorded locally)                             | Threads               | SIMD                    | App wiring                                                                                    |

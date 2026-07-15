@@ -63,5 +63,7 @@ or started failing) — so it can gate a codec upgrade in CI.
   same settings is usually a real win, but a big drop can also mean lower default
   quality — for headline claims, sanity-check quality visually (or add a
   perceptual metric like SSIMULACRA2 later).
-- Once multithreading is wired (see `docs/threading-enablement.md`), re-baseline:
-  threaded encodes change the speed numbers substantially.
+- Multithreading is wired (see `docs/threading-enablement.md`) — AVIF, JPEG XL,
+  and OxiPNG encode multi-core — so the baseline already reflects threaded
+  encodes. Re-baseline (on the same machine) after any further threading change,
+  since threaded encodes shift the speed numbers substantially.
