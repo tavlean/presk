@@ -10,7 +10,7 @@
   import type { Attachment } from 'svelte/attachments';
   import { fromFileList, type ImportedFile } from '$lib/bulk/import-sources';
   import { APP_NAME } from 'shared/brand';
-  import { startBlobAnim } from '$lib/editor/intro/blob-anim';
+  import { startBlobAnim } from './blob-anim';
 
   interface Props {
     /** Hand chosen files (from picker/folder/paste) up to the page. */

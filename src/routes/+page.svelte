@@ -307,7 +307,7 @@
       </aside>
     </div>
   {:else}
-    <Intro onFiles={routeFiles} onMessage={(t) => snackbar.show(t)} />
+    <Intro onFiles={routeFiles} />
     {#if dev}
       <p class="intro-diag">
         <a href={resolve('/diagnostics')}>Pipeline diagnostics →</a>
