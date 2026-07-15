@@ -1,6 +1,6 @@
 # Frisp Product Roadmap
 
-Last updated: 2026-07-11.
+Last updated: 2026-07-12.
 
 The SvelteKit migration is now **closed** (`main` is the production app). This
 roadmap is the product track that follows it — not a migration phase list. The
@@ -68,8 +68,9 @@ is the technical reference.
 > **2026-07-03 — Phase 2 shipped.** Minimum Useful Bulk is now production:
 > multi-file and folder import, batch routing on the main route, global WebP
 > settings + per-image tweaks, Stack resting stage, Save all as ZIP with the
-> keep-original-when-larger guard, remove+Undo, and bulk e2e coverage. Next
-> milestone: Phase 2b contextual left panel, then Phase 3 overrides polish.
+> keep-original-when-larger guard, remove+Undo, and bulk e2e coverage. Phase 2b
+> (contextual left panel) also landed 2026-07-03; next milestone is Phase 3
+> overrides polish.
 
 > **Test note.** Phase 2 shipped with the focused unit-test subset for the bulk
 > engine plus a production bulk e2e smoke suite. See [test-plan.md](test-plan.md)
@@ -271,18 +272,20 @@ Deferred polish/features:
 
 ## Testing
 
-The app today has a strong Playwright E2E suite (codec/threading/offline) but
-**a Vitest unit layer**, and the framework-neutral bulk engine under
-`src/client/lazy-app/bulk/` has no automated coverage. The full strategy —
-two layers (fast unit tests run always; expensive E2E runs only when codec/build
-files change), the gap analysis, the per-module unit-test plan, E2E additions,
-and CI changes — lives in **[test-plan.md](test-plan.md)**. That doc is the
-single reference for all test work.
+The app has both a strong Playwright E2E suite (codec/threading/offline) and a
+Vitest unit layer under `tests/unit/` (run by `npm test` via `test:unit`). The
+framework-neutral bulk engine under `src/client/lazy-app/bulk/` is covered —
+`tests/unit/` includes queue, size, session, snapshot, import, export, settings,
+and runtime tests that import it directly. The full strategy — two layers (fast
+unit tests run always; expensive E2E runs only when codec/build files change),
+the gap analysis, the per-module unit-test plan, E2E additions, and CI changes —
+lives in **[test-plan.md](test-plan.md)**. That doc is the single reference for
+all test work.
 
 Sequencing is deliberately flexible: the plan can be picked up as a dedicated
-pass later. The one exception worth weighing **before** building bulk is a small
-unit-test subset for the bulk engine's core logic (queue counters, stale-output
-requeue, snapshot parse/restore) — see the note under Bulk Optimization.
+pass later. The bulk engine's core-logic tests (queue counters, stale-output
+requeue, snapshot parse/restore) shipped with bulk Phase 2 on 2026-07-03 — see
+the note under Bulk Optimization.
 
 ## Upstream Mining
 

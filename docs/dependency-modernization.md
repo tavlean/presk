@@ -42,8 +42,15 @@ and no longer describe this branch.
   format across contributors) didn't apply, and its auto-`prettier --write`
   reflowed Markdown and mangled docs. Deleted `.husky/`, the `husky`/`lint-staged`
   devDeps, the `prepare` script, and the `lint-staged` config; also dropped `md`
-  from the Prettier globs. Formatting is now manual (`npm run format`). See
-  [STATUS.md](STATUS.md). Do not reintroduce git hooks here without a reason.
+  from the Prettier globs. See [STATUS.md](STATUS.md).
+- Git hooks: **re-added a code-only pre-commit hook on 2026-07-01.**
+  `package.json` now uses `simple-git-hooks` (`pre-commit: npx lint-staged`) with
+  a `lint-staged` config that formats code globs only
+  (`*.{js,css,json,ts,tsx,svelte}`), plus a `prepare` script
+  (`node scripts/install-git-hooks.mjs`) that installs the hook. `*.md` is
+  deliberately kept out of the glob so the hook never reflows Markdown — the
+  behavior that got the old Husky hook removed. This setup is lighter than Husky
+  (no `.husky/` dir), so the Markdown-mangling problem does not come back.
 
 ## Near-Term Follow-Up
 

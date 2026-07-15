@@ -115,8 +115,7 @@ Extract to plain modules first (improves the code *and* enables the test):
   `isValidProcessorState`, `snapshotProcessorStateForEncode`, `buildSide`,
   download-name logic → `editor-session-helpers.ts`. Unlocks table-testing
   malformed-localStorage and encode-snapshot logic.
-- **Medium:** `prettySize` (`Results.svelte`) → `pretty-bytes.ts` (parity-
-  sensitive byte formatting); the WebP lossless-preset table +
+- **Medium:** the WebP lossless-preset table +
   `determineLosslessQuality`/`setLosslessPreset` (`WebpOptions.svelte`) →
   `webp-lossless.ts`.
 - **Medium:** `ResizeOptions` aspect-lock arithmetic →

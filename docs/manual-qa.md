@@ -128,6 +128,27 @@ inputs.
 
 ## Bulk
 
-Bulk UI is roadmap work and is not part of migration closeout. When bulk work
-starts, add QA for multi-file import, queue progress, per-image status,
-overrides, retry/cancel, export-all, and object URL cleanup.
+Production bulk shipped 2026-07-03 (`BulkMode.svelte`, entered from the main
+route). Automated coverage is `tests/e2e/bulk.spec.ts`; use these steps for
+release and cross-browser manual checks.
+
+1. Select two or more images from the intro file picker (or drag/drop them).
+   Bulk mode opens: the batch view appears and the bottom strip shows one cell
+   per imported file. Importing a single image instead keeps the classic
+   two-up editor (no strip).
+2. Watch per-image progress: each cell shows a working state while encoding,
+   then resolves to a size-change delta once ready. The batch info panel fills
+   in aggregate totals (original size, output size, bytes saved).
+3. Adjust a global setting (e.g. WebP quality) and confirm only images without
+   a relevant per-image override reprocess.
+4. Select one cell, change a control while it is selected, and confirm the cell
+   is flagged as overridden (override indicator) and that "reset to global" is
+   available. Editing global settings should not clobber that override.
+5. Remove a cell and confirm the Undo snackbar restores it from cache without a
+   fresh working pass.
+6. Save all: click "Save all" and confirm a ZIP downloads with one entry per
+   ready image. With the keep-originals guard enabled, an image whose encode is
+   larger than its source is exported as the original file; with the guard off,
+   the (larger) encoded output is exported instead.
+7. Confirm object URLs are released when the batch is torn down (navigate away
+   or exit bulk) so memory does not leak across sessions.
