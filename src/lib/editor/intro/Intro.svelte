@@ -1,8 +1,9 @@
 <script lang="ts">
   // The landing screen — the "frame" design promoted from the intro lab
   // (docs/lab-intro-page.md). The whole viewport is the drop zone, ringed by a
-  // dashed viewfinder, with the chrome reduced to HUD micro-copy pinned to the
-  // frame's inner corners. It themes off the OS (color-scheme: light dark), like
+  // dashed viewfinder, with the chrome reduced to HUD micro-copy inside the
+  // frame (brand top-left, the format list centered along the bottom). It themes
+  // off the OS (color-scheme: light dark), like
   // the rest of the landing. Real drops/picks/pastes route up through onFiles.
   //
   // The app wraps everything in a global fileDrop (see +page.svelte). This
@@ -165,7 +166,7 @@
   <!-- Soft inner glow — its own layer so the blur never touches the stroke. -->
   <div class="frame-glow" aria-hidden="true"></div>
 
-  <!-- HUD corners: the chrome, pinned just inside the frame. -->
+  <!-- HUD chrome: brand pinned top-left, formats centered along the bottom. -->
   <div class="hud hud-tl">
     <span class="brand">
       <!-- eslint-disable-next-line svelte/no-at-html-tags — build-time SVG string from our own repo -->
@@ -173,12 +174,8 @@
       <span class="brand-name">{APP_NAME}</span>
     </span>
   </div>
-  <div class="hud hud-bl">
+  <div class="hud hud-bc">
     <span class="hud-line">{formatsLine}</span>
-  </div>
-  <div class="hud hud-br">
-    <span class="hud-line">offline · open source · private</span>
-    <span class="hud-line">{APP_NAME} — images never leave your device</span>
   </div>
 
   <!-- Center column: the invitation, swapped in place (min-height reserved) so
@@ -223,15 +220,15 @@
         {#if dragActive}
           Release to <span class="accent">add.</span>
         {:else}
-          <span class="hl-pointer">Drop images anywhere.</span>
-          <span class="hl-touch">Add an image.</span>
+          <span class="hl-pointer">Drop images to optimize.</span>
+          <span class="hl-touch">Add images to optimize.</span>
         {/if}
       </span>
     </h1>
 
     <p class="subline">
-      Free, open-source image compression that runs entirely in your browser.
-      Nothing ever uploads.
+      Free, open-source image compression that runs offline in your browser.
+      Nothing uploads.
     </p>
 
     <div class="cta">
@@ -442,15 +439,12 @@
     top: calc(var(--frame-inset) + 22px);
     left: calc(var(--frame-inset) + var(--hud-pad));
   }
-  .hud-bl {
+  .hud-bc {
     bottom: calc(var(--frame-inset) + var(--hud-pad));
-    left: calc(var(--frame-inset) + var(--hud-pad));
-  }
-  .hud-br {
-    bottom: calc(var(--frame-inset) + var(--hud-pad));
-    right: calc(var(--frame-inset) + var(--hud-pad));
-    align-items: flex-end;
-    text-align: right;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+    text-align: center;
   }
   .hud-line {
     font-size: 11.5px;
@@ -567,10 +561,11 @@
 
   .subline {
     margin: 0;
-    max-width: 44ch;
-    font-size: 16px;
+    max-width: 46ch;
+    font-size: 18px;
     line-height: 1.5;
     color: var(--i-text-2);
+    text-wrap: balance;
   }
 
   /* Quiet pill button. */
@@ -683,21 +678,8 @@
     .hud-tl {
       top: calc(var(--frame-inset) + 14px);
     }
-    .hud-bl,
-    .hud-br {
-      left: 50%;
-      right: auto;
-      transform: translateX(-50%);
-      align-items: center;
-      text-align: center;
-      width: max-content;
+    .hud-bc {
       max-width: calc(100% - 2 * var(--frame-inset) - 2 * var(--hud-pad));
-    }
-    .hud-bl {
-      bottom: calc(var(--frame-inset) + var(--hud-pad) + 46px);
-    }
-    .hud-br {
-      bottom: calc(var(--frame-inset) + var(--hud-pad));
     }
     .hud-line {
       font-size: 11px;
