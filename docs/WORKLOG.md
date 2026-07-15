@@ -27,8 +27,14 @@ here:
   added a `max-width:560px` layout (the two bottom HUD corners collided on
   phones) and a coarse-pointer headline ("Add an image." instead of the drop
   instruction); gave the `<h1>` a stable accessible name carrying the app
-  identity; and restored the "choose a folder" + "paste" actions the promotion
-  had dropped, rewiring the snackbar feedback.
+  identity; and reworked the import affordances — the redundant "choose a
+  folder" pick link was dropped (folders still import by drag), and "paste"
+  moved inline beside Browse as a ghost button with a Nucleo clipboard icon,
+  snackbar feedback rewired. Wordmark set to weight 850.
+- **Precache trim.** Stopped precaching the QOI encoder — QOI is no longer a
+  user output (the encoder is only hit by the diagnostics webp-pipeline probe),
+  so it was dead weight in every install shell. The QOI decoder stays for `.qoi`
+  inputs; the encoder is still runtime-cacheable if the probe runs.
 - **Dead lab code shipped to prod.** `/lab` + `/bench-svg` guard on `dev` at
   RUNTIME, so their chunks (~234 KB) were still emitted and precached. Added the
   `app-strip-dev-only-routes` Vite plugin (`apply: 'build'`) that stubs those

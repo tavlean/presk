@@ -14,7 +14,8 @@ browser, the build is static, and offline reload must work after load.
   production intro and the lab. The landing was replaced by the **"frame"**
   design promoted from the intro lab (`src/lib/editor/intro/Intro.svelte`): a
   full-viewport dashed viewfinder with HUD corner micro-copy, a "Browse files"
-  button plus quiet "choose a folder / paste" actions, OS theming. The retired
+  button plus a quiet inline "paste" action (folders import by drag), OS
+  theming. The retired
   coral "aurora" blob landing is preserved as a dev-only exhibit at
   `/lab/intro/aurora`. Review-driven hardening the same day: WCAG-AA contrast on
   the HUD copy, a mobile layout + touch-first headline, a stable accessible
