@@ -473,7 +473,11 @@
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 11px;
+    /* Optical gap, not metric: the hexagon mark meets the wordmark at a single
+       right vertex with the edges receding above/below, so it reads looser than
+       the number implies. 8px (~0.4x the wordmark cap height at the vertex)
+       lands the perceived gap where a unified lockup wants it. */
+    gap: 8px;
     line-height: 1;
     color: var(--i-text-1);
   }
