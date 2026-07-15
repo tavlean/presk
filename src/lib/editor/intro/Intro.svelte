@@ -30,7 +30,7 @@
   }
   let { onFiles, onMessage }: Props = $props();
 
-  const formatsLine = 'WebP · SVG · AVIF · JPEG XL · PNG · JPEG';
+  const formats = ['WebP', 'SVG', 'AVIF', 'JPEG XL', 'PNG', 'JPEG'];
 
   // Backs the quiet "paste" action; keyboard ⌘V is handled separately by
   // onWindowPaste (synchronous clipboardData, no permission prompt).
@@ -175,7 +175,11 @@
     </span>
   </div>
   <div class="hud hud-bc">
-    <span class="hud-line">{formatsLine}</span>
+    <ul class="hud-line formats" aria-label="Supported image formats">
+      {#each formats as format}
+        <li>{format}</li>
+      {/each}
+    </ul>
   </div>
 
   <!-- Center column: the invitation, swapped in place (min-height reserved) so
@@ -220,8 +224,8 @@
         {#if dragActive}
           Release to <span class="accent">add.</span>
         {:else}
-          <span class="hl-pointer">Drop images to optimize.</span>
-          <span class="hl-touch">Add images to optimize.</span>
+          <span class="hl-verb">Drop</span><span class="hl-verb-touch">Add</span
+          > images to optimize.
         {/if}
       </span>
     </h1>
@@ -452,6 +456,17 @@
     letter-spacing: 0.14em;
     color: var(--i-text-3);
   }
+  /* The format list: separate items with generous breathing room, wrapping
+     centered on narrow screens. */
+  .formats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
 
   /* Brand lockup: logomark badge (currentColor) + wordmark, tinted by --i-text-1
      so it reads graphite on light and near-white on dark. */
@@ -545,16 +560,16 @@
   .headline .accent {
     color: var(--i-accent);
   }
-  /* Pointer vs touch headline: coarse-pointer devices can't drag or press ⌘V,
-     so they get a tap-first line instead of the drop instruction. */
-  .hl-touch {
+  /* Coarse-pointer devices can't drag, so the headline verb swaps Drop -> Add
+     ("images to optimize." is shared). */
+  .hl-verb-touch {
     display: none;
   }
   @media (hover: none) and (pointer: coarse) {
-    .hl-pointer {
+    .hl-verb {
       display: none;
     }
-    .hl-touch {
+    .hl-verb-touch {
       display: inline;
     }
   }
