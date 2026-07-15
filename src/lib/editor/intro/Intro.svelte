@@ -473,13 +473,13 @@
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
+    gap: 11px;
     line-height: 1;
     color: var(--i-text-1);
   }
   .brand-mark {
     display: inline-grid;
-    height: 22.5px;
+    height: 27.5px;
   }
   .brand-mark :global(svg) {
     height: 100%;
@@ -487,7 +487,8 @@
     display: block;
   }
   .brand-name {
-    font-size: 18px;
+    /* Scaled with the mark (27.5 : 22 keeps the original 1.25 mark:text ratio). */
+    font-size: 22px;
     font-weight: 850;
     letter-spacing: -0.02em;
   }
@@ -549,13 +550,15 @@
     font-size: clamp(36px, 6vw, 76px);
     font-weight: 900;
     letter-spacing: -0.03em;
-    line-height: 1.02;
+    /* Tight display leading, but not so tight the two wrapped lines kiss —
+       1.05 keeps the impact while giving the descenders room over line two. */
+    line-height: 1.05;
     color: var(--i-text-1);
     text-wrap: balance;
     /* Reserve two display lines: the idle line wraps to two at the widths the
        design ships at, while the drag line is one — reserving the taller state
-       keeps the column from jumping on drag. */
-    min-height: 2.04em;
+       keeps the column from jumping on drag. (2 × line-height.) */
+    min-height: 2.1em;
   }
   .headline .accent {
     color: var(--i-accent);
@@ -617,7 +620,9 @@
     justify-content: center;
     flex-wrap: wrap;
     gap: 12px;
-    margin-top: 4px;
+    /* Extra separation (30px total, atop the column's 18px) so the button row
+       reads as its own action group, distinct from the heading+subheading. */
+    margin-top: 12px;
   }
   .cta-or {
     font-size: 14px;
