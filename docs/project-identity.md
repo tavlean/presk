@@ -24,7 +24,7 @@ rename now touches ONLY:
 
 1. `src/shared/brand.ts` — `APP_NAME` (display) and `APP_SLUG` (identifier).
 2. `package.json` — `name` + `homepage`.
-3. Brand art: `static/wordmark.svg`, `static/logo.svg`, `static/favicon.svg`,
+3. Brand art: `static/logo.svg`, `static/favicon.svg`,
    `src/lib/brand/logomark.svg` (+ the `static/favicon.png` /
    `static/apple-touch-icon.png` rasters if restyled).
 4. Prose docs / README — a grep-replace of the old name (attribution excluded).

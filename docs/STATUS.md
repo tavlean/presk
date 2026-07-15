@@ -116,7 +116,7 @@ browser, the build is static, and offline reload must work after load.
   `src/shared/brand.ts` (`APP_NAME`); every internal identifier is brand-free
   (`.editor-root`, `app-generated`, `__appEmscripten*`, `registerServiceWorker`,
   SW cache `app-${version}`, localStorage `app:*` — frozen schema,
-  `static/wordmark.svg`). A future rename = brand.ts + package.json + art +
+  `static/logo.svg`). A future rename = brand.ts + package.json + art +
   prose docs (procedure: `docs/project-identity.md`). Verified: `npm run check`
   + full e2e (61 passed / 1 expected skip). **Resolved:** the sqush.app sunset
   Worker (`infra/sqush-sunset/`) is deployed and serves the old zones with
