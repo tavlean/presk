@@ -18,10 +18,9 @@ test.describe('landing', () => {
     await expect(
       page.getByRole('button', { name: 'Browse files' }),
     ).toBeVisible();
-    // The folder picker restored after the frame promotion.
-    await expect(
-      page.getByRole('button', { name: 'choose a folder' }),
-    ).toBeVisible();
+    // The quiet paste action beside Browse (shown when the async clipboard is
+    // available, which it is in both test engines on a secure origin).
+    await expect(page.getByRole('button', { name: 'paste' })).toBeVisible();
     // The visible headline is aria-hidden and swaps on drag; the heading's
     // accessible name stays stable and carries the app identity.
     await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName(

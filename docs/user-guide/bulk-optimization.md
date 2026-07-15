@@ -17,9 +17,9 @@ uploaded.
 
 There are three common ways to start:
 
-- Drag several image files onto Frisp.
+- Drag several image files — or a whole folder — onto Frisp.
 - Click **Browse files** in the middle and pick more than one image.
-- Use the quiet **choose a folder** link under **Browse files** to import a whole folder.
+- Paste an image with ⌘/Ctrl+V, or the quiet **paste** action next to **Browse files**.
 
 If you import **2 or more supported images**, Frisp opens the batch view. If you
 import **1 image**, Frisp opens the normal single-image editor exactly as before.

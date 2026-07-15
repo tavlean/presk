@@ -39,7 +39,6 @@
     'read' in navigator.clipboard;
 
   let fileInput = $state<HTMLInputElement>();
-  let folderInput = $state<HTMLInputElement>();
 
   // Entrance reveal — released next frame so the transition plays from the
   // start state on mount.
@@ -105,12 +104,8 @@
     fileInput?.click();
   }
 
-  function onFolder() {
-    folderInput?.click();
-  }
-
-  // Shared by the file and folder inputs: fromFileList carries each file's
-  // webkitRelativePath, so a folder pick keeps its structure for bulk import.
+  // fromFileList carries each file's webkitRelativePath, so a multi-select keeps
+  // any folder structure the OS reports for bulk import.
   function onPick(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
     if (input.files?.length) onFiles(fromFileList(input.files));
@@ -239,22 +234,78 @@
       Nothing ever uploads.
     </p>
 
-    <button type="button" class="pill browse" onclick={onBrowse}>
-      Browse files
-    </button>
-    <!-- Quiet secondary actions: the folder + click-paste paths the frame
-         promotion had dropped, restored without adding chrome. -->
-    <p class="secondary">
-      or
-      <button type="button" class="linklike" onclick={onFolder}
-        >choose a folder</button
-      >
+    <div class="cta">
+      <button type="button" class="pill browse" onclick={onBrowse}>
+        Browse files
+      </button>
       {#if supportsClipboardRead}
-        · <button type="button" class="linklike" onclick={onPasteClick}
-          >paste</button
+        <span class="cta-or">or</span>
+        <button
+          type="button"
+          class="paste"
+          onclick={onPasteClick}
+          title="Paste an image from your clipboard"
         >
+          <!-- Nucleo "clipboard-arrow-in" (duotone), matching the tray icon. -->
+          <svg
+            class="paste-icon"
+            viewBox="0 0 18 18"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="m6.25 2.75v.5c0 .5523.4477 1 1 1h3.5c.5523 0 1-.4477 1-1v-.5h1c1.105 0 2 .895 2 2v9.5c0 1.105-.895 2-2 2h-7.5c-1.105 0-2-.895-2-2V4.75c0-1.105.895-2 2-2h1Z"
+              fill="currentColor"
+              fill-rule="evenodd"
+              opacity="0.3"
+            />
+            <rect
+              x="6.25"
+              y="1.25"
+              width="5.5"
+              height="3"
+              rx="1"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+            />
+            <polyline
+              points="11 7.5 8.25 10.25 11 13"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+            />
+            <path
+              d="m6.25 2.75h-1c-1.105 0-2 .895-2 2v9.5c0 1.105.895 2 2 2h7.5c1.105 0 2-.895 2-2v-1"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+            />
+            <path
+              d="m14.75 7.25v-2.5c0-1.105-.895-2-2-2h-1"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+            />
+            <line
+              x1="8.5"
+              y1="10.25"
+              x2="14.75"
+              y2="10.25"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+            />
+          </svg>
+          paste
+        </button>
       {/if}
-    </p>
+    </div>
     <input
       bind:this={fileInput}
       class="visually-hidden"
@@ -263,18 +314,6 @@
       multiple
       tabindex="-1"
       aria-hidden="true"
-      onchange={onPick}
-    />
-    <!-- Folder picker: no `accept` (surfaces every file; routeFiles filters to
-         supported images), webkitdirectory for whole-folder bulk import. -->
-    <input
-      bind:this={folderInput}
-      class="visually-hidden"
-      type="file"
-      multiple
-      tabindex="-1"
-      aria-hidden="true"
-      {...{ webkitdirectory: true }}
       onchange={onPick}
     />
   </div>
@@ -440,7 +479,7 @@
   }
   .brand-name {
     font-size: 16px;
-    font-weight: 800;
+    font-weight: 850;
     letter-spacing: -0.02em;
   }
 
@@ -561,36 +600,59 @@
     outline: 2px solid var(--i-accent);
     outline-offset: 2px;
   }
-  .browse {
+  /* Browse + the quiet paste action sit on one row. */
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-top: 4px;
   }
-
-  /* Quiet secondary actions under the primary CTA. */
-  .secondary {
-    margin: 2px 0 0;
-    font-size: 13px;
+  .cta-or {
+    font-size: 14px;
     color: var(--i-text-3);
   }
-  .linklike {
+
+  /* Ghost button: a quiet icon+label at rest that fills in on hover/focus, so
+     it reads as clickable without competing with the primary Browse pill. */
+  .paste {
     appearance: none;
-    border: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border: 1px solid transparent;
+    border-radius: 12px;
     background: none;
-    padding: 0;
-    font: inherit;
     color: var(--i-text-2);
-    text-underline-offset: 2px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
+    transition:
+      color 150ms ease,
+      background-color 150ms ease,
+      border-color 150ms ease;
   }
-  .linklike:hover {
-    text-decoration: underline;
+  .paste:hover {
+    color: var(--i-text-1);
+    background: var(--i-surface);
+    border-color: var(--i-border);
+    box-shadow: var(--i-shadow-control);
   }
-  .linklike:focus-visible {
+  .paste:focus-visible {
     outline: 2px solid var(--i-accent);
     outline-offset: 2px;
-    border-radius: 3px;
+  }
+  .paste-icon {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    display: block;
   }
   @supports (corner-shape: squircle) {
-    .pill {
+    .pill,
+    .paste {
       corner-shape: squircle;
       border-radius: 15px;
     }
