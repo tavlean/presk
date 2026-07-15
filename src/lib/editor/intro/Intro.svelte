@@ -606,7 +606,7 @@
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
     margin-top: 4px;
   }
   .cta-or {
