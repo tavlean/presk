@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- SVG is the primary favicon: crisp at every size and theme-aware (the
+         mark is graphite in light UI, white in dark). PNG is the fallback for
+         engines without SVG-favicon support. Apple touch icon must be PNG. -->
+    <link rel="icon" type="image/svg+xml" href="%sveltekit.assets%/favicon.svg" />
     <link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png" />
     <link
       rel="apple-touch-icon"
