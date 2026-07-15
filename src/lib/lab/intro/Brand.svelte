@@ -1,16 +1,12 @@
 <script lang="ts">
-  // The frisp lockup for the intro-lab variants: origami-bird mark + lowercase
-  // wordmark. Uses /logo-dark-mode.webp — the GRAPHITE bird (real alpha) — in
-  // BOTH modes: maintainer doctrine 2026-07-10 is graphite-as-main-identity
-  // with the orange/blue accents reserved for rare moments. A light-mode
-  // filter deepens the grey so it holds against the warm porcelain page.
-  // (/logo.webp = the coral bird, now the accent-tier asset;
-  // /logo-light-mode.webp has an opaque tile baked in — never use it here.)
-  import { asset } from '$app/paths';
+  // The Frisp lockup for the intro-lab variants: logomark badge + wordmark. The
+  // mark rides currentColor (via --il-text-1), so it themes with the page —
+  // graphite on light, near-white on dark — no per-mode brightness filter needed.
   import { APP_NAME } from 'shared/brand';
+  import Logomark from '$lib/lab/Logomark.svelte';
 
   interface Props {
-    /** Wordmark font size in px; the bird scales with it. */
+    /** Wordmark font size in px; the mark scales with it. */
     size?: number;
   }
 
@@ -18,13 +14,7 @@
 </script>
 
 <span class="brand" style="--brand-size: {size}px">
-  <img
-    class="bird"
-    src={asset('/logo-dark-mode.webp')}
-    alt=""
-    width="176"
-    height="176"
-  />
+  <Logomark size={size * 1.35} />
   <span class="name">{APP_NAME}</span>
 </span>
 
@@ -32,18 +22,10 @@
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: calc(var(--brand-size) * 0.35);
+    gap: calc(var(--brand-size) * 0.4);
     line-height: 1;
-  }
-  .bird {
-    /* Slightly taller than the text so the mark reads as the anchor. */
-    width: calc(var(--brand-size) * 1.35);
-    height: calc(var(--brand-size) * 1.35);
-    display: block;
-    /* The steel bird is tuned for dark; deepen it in light so it doesn't
-       wash out on porcelain. light-dark() can't feed a filter's strength
-       directly, so gate on the resolved scheme via a custom property. */
-    filter: brightness(var(--il-bird-brightness, 1)) contrast(1.02);
+    /* currentColor for the mark; the wordmark reuses it too. */
+    color: var(--il-text-1);
   }
   .name {
     font-size: var(--brand-size);

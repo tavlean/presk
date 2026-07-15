@@ -9,6 +9,7 @@
   import { resolve } from '$app/paths';
   import { APP_NAME } from 'shared/brand';
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
+  import Logomark from '$lib/lab/Logomark.svelte';
 
   interface Props {
     session: EditorSession;
@@ -31,27 +32,8 @@
 
 <header class="hy-topbar">
   <div class="hy-brand-panel">
-    <span class="hy-logo" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
-        <rect
-          x="4"
-          y="4"
-          width="16"
-          height="16"
-          rx="5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-        />
-        <path
-          d="M9 15V9h5M9 12h4"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+    <span class="hy-logo">
+      <Logomark size={22} />
     </span>
     <span class="hy-wordmark">{APP_NAME}</span>
     <nav class="hy-nav" aria-label="Sections">
@@ -209,11 +191,6 @@
     width: 24px;
     height: 24px;
     color: var(--pc-text-1);
-  }
-  .hy-logo svg {
-    width: 22px;
-    height: 22px;
-    display: block;
   }
 
   .hy-wordmark {

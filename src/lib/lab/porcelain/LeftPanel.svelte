@@ -11,6 +11,7 @@
   import type { EditorSession } from '$lib/editor/editor-session.svelte';
   import Segmented from './Segmented.svelte';
   import LabOptionsPanel from './LabOptionsPanel.svelte';
+  import Logomark from '$lib/lab/Logomark.svelte';
 
   interface Props {
     session: EditorSession;
@@ -89,26 +90,7 @@
   {:else if file}
     <header class="head">
       <div class="brand">
-        <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
-          <rect
-            x="4"
-            y="4"
-            width="16"
-            height="16"
-            rx="5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-          />
-          <path
-            d="M9 15V9h5M9 12h4"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <Logomark size={16} />
         <span class="wordmark">{APP_NAME}</span>
       </div>
       <p class="project-title" title={file.name}>{file.name}</p>
@@ -175,11 +157,7 @@
     align-items: center;
     gap: 7px;
     margin-bottom: 4px;
-  }
-
-  .logo {
-    width: 16px;
-    height: 16px;
+    /* currentColor for the logomark. */
     color: var(--pc-text-1);
   }
 

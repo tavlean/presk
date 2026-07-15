@@ -5,6 +5,7 @@
   // result), and a circular "+" that adds images to the session gallery. Frisp
   // has no accounts, so the reference's avatar/pro chips are honestly omitted.
   import { resolve } from '$app/paths';
+  import Logomark from '$lib/lab/Logomark.svelte';
 
   interface Props {
     /** The right side's download URL, or undefined while encoding / no result. */
@@ -36,27 +37,8 @@
 
 <header class="dr-topbar">
   <div class="dr-topbar-panel">
-    <span class="dr-logo" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
-        <rect
-          x="3"
-          y="3"
-          width="18"
-          height="18"
-          rx="5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-        />
-        <path
-          d="M8 15.5V8.5h6M8 12h4.5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+    <span class="dr-logo">
+      <Logomark size={22} />
     </span>
     <nav class="dr-nav" aria-label="Sections">
       <span class="dr-nav-item active" aria-current="page">Editor</span>
@@ -182,11 +164,6 @@
     width: 26px;
     height: 26px;
     color: var(--dr-text-1);
-  }
-  .dr-logo svg {
-    width: 22px;
-    height: 22px;
-    display: block;
   }
 
   .dr-nav {

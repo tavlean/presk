@@ -43,10 +43,6 @@
   --il-accent-2: light-dark(#2276c9, #53b2ff);
   --il-good: light-dark(#1f8a5d, #3ddc97);
 
-  /* The graphite bird (see Brand.svelte) is tuned for dark surfaces; in
-     light mode it's darkened via filter so it anchors on porcelain. */
-  --il-bird-brightness: light-dark(0.62, 1);
-
   --il-focus: light-dark(#2276c9, #53b2ff);
 
   --il-shadow-card: light-dark(
