@@ -84,8 +84,8 @@ The two **preview-only** display toggles live together behind a single **View op
 ### Drag-and-drop to load or replace
 
 - **What it does:** Lets you drop an image file **anywhere on the page** to load it — or, if the editor is already open, to replace the current image. This works because the whole app is a drop zone; the browser's default "open the file in a new tab" behaviour is suppressed.
-- **Range & default:** Always active, on the intro screen and inside the editor. While you drag a file over the window, a coral dashed full-page overlay fades in to show it's a valid drop target. Drags that carry only text or links (no actual files) are ignored — no overlay, no interference. A dropped file whose type isn't an image is rejected with a "…doesn't look like an image." message and not loaded.
-- **How to choose:** Drag from your file manager straight onto the page — faster than the "Select an image" button. Drop a new file mid-edit to swap images while keeping the editor open.
+- **Range & default:** Always active, on the intro screen and inside the editor. What the drag looks like depends on where you are: **inside the editor**, a coral dashed full-page overlay fades in to show it's a valid drop target; **on the intro screen**, the landing's own dashed viewfinder frame lights up instead (its accent stroke and inner glow), because the intro handles its own drops rather than the page-wide overlay. Drags that carry only text or links (no actual files) are ignored, so there's no overlay and no interference. A dropped file that isn't a supported image is skipped, and if nothing supported is left you get a "No supported images found." message.
+- **How to choose:** Drag from your file manager straight onto the page, which is faster than the **Browse files** button. Drop a new file mid-edit to swap images while keeping the editor open.
 - **Recommended starting point:** Use it as the quick way to start or switch images.
 
 ### Undo / Redo
