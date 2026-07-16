@@ -607,9 +607,19 @@ assert(
 // UI or its $lib/lab deps are emitted or precached. Assert that holds: no
 // emitted client asset may carry a lab-only marker. (Route PATH strings like
 // "/lab/porcelain" legitimately live in the client router manifest, so the
-// markers below are UI identifiers — CSS token prefix, component + stub text —
-// not route segments.)
-const devOnlyUiMarkers = ['--il-', 'AuroraIntro', 'IntroDropDemo', 'Lab stub'];
+// markers below are UI identifiers — one CSS token prefix per lab skin (those
+// survive minification; component names may not), plus component + stub text —
+// not route segments. The skin prefixes also catch a production file
+// accidentally importing $lib/lab code directly, e.g. the porcelain crop tool.)
+const devOnlyUiMarkers = [
+  '--il-', // intro lab variants
+  '--pc-', // porcelain skin (incl. the crop tool)
+  '--dr-', // darkroom skin
+  '--hy-', // hybrid skin
+  'AuroraIntro',
+  'IntroDropDemo',
+  'Lab stub',
+];
 const clientAssetFiles = files.filter(
   (file) =>
     file.startsWith('_app/immutable/') &&

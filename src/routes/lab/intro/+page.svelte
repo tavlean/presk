@@ -1,6 +1,7 @@
 <script lang="ts">
   import { dev } from '$app/environment';
   import { resolve } from '$app/paths';
+  import { APP_NAME } from 'shared/brand';
 
   const variants = [
     {
@@ -51,7 +52,7 @@
 {#if dev}
   <main class="intro-index">
     <header>
-      <p class="eyebrow">frisp lab</p>
+      <p class="eyebrow">{APP_NAME} lab</p>
       <h1>Intro page</h1>
       <p class="lede">
         Takes on the landing screen — minimal full-viewport single section, real

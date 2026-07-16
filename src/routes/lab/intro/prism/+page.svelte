@@ -167,7 +167,7 @@
       </div>
 
       <!-- RIGHT: the slim trust column. -->
-      <ul class="micro" aria-label="What frisp does with your images">
+      <ul class="micro" aria-label="What {APP_NAME} does with your images">
         <li>Everything local</li>
         <li>Nothing uploaded</li>
         <li>Open source · Free</li>

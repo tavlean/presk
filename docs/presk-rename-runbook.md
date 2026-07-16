@@ -137,7 +137,7 @@ Redirects run BEFORE Workers, so the Worker replaces the Redirect Rule.
 - [x] Cloudflare Pages on `presk.app`; `sqush.app` → `presk.app` redirect was replaced by the Phase F Worker.
 - [x] Wordmark re-exported as "Presk" (`static/wordmark.svg`, commit `e180977d`).
 - [x] Phase F deploy + Redirect-Rule swap — DONE 2026-07-05 (Worker live, rule deleted, verified).
-- [ ] Logo/favicon art (`static/logo.webp`, favicons, tavlean `logo.webp`) — no text in them, purely optional restyle, whenever.
+- [x] Logo/favicon art — superseded by the 2026-07-15 Frisp rebrand (new logomark, theme-aware SVG favicon, regenerated rasters; the `.webp` logo assets were deleted).
 - [x] `MEMORY.md` + project brief updated to record the rename (2026-07-05).
 
 ## Postscript — Presk → Frisp, same day (2026-07-05, evening)

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { dev } from '$app/environment';
   import { resolve } from '$app/paths';
+  import { APP_NAME } from 'shared/brand';
 
   const experiments = [
     {
@@ -47,7 +48,7 @@
 {#if dev}
   <main class="lab-index">
     <header class="head">
-      <p class="eyebrow">frisp</p>
+      <p class="eyebrow">{APP_NAME}</p>
       <h1 class="title">Lab</h1>
       <p class="lede">
         Dev-only experiments — each is the real editor wearing a different skin.
