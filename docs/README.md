@@ -120,6 +120,7 @@ Every project doc: what it holds, when to **read** it, when to **update** it.
 | [dependency-modernization.md](dependency-modernization.md) | The dependency-graph modernization state. | Modernizing/bumping deps. | Dependencies are modernized/bumped meaningfully. |
 | [parity-audit.md](parity-audit.md) | Editor feature-parity vs the original Squoosh + the deviation log. | Changing editor features; verifying parity. | A feature changes, parity is verified, or a deviation is added/closed. |
 | [manual-qa.md](manual-qa.md) | The manual QA checklist (pre-release / after risky changes). | Before a release or after build/worker/codec changes. | A new feature/path needs a manual check, or a step changes. |
+| [mobile-save-ux.md](mobile-save-ux.md) | Where saved images land on iOS/Android today + the researched Web Share button plan (decision open). | Touching the download/share affordances or planning the Share button. | The share button ships, or platform download/share behavior changes. |
 
 ### Reference / notes
 

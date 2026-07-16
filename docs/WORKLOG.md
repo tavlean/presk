@@ -4,6 +4,30 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-17 (Fable) — Landing drag/drop + paste e2e; Safari silent-drop fix
+
+Closed the e2e gap the fable pass flagged: `tests/e2e/landing.spec.ts` now
+drives synthetic drops (1 file → single editor, 2 → bulk), the drag-feedback
+contract (headline swap + the global overlay must stay asleep — pins the
+stopPropagation routing), the window ⌘V paste, and the async-clipboard paste
+button (stubbed `navigator.clipboard.read` — success, imageless, rejected;
+stubbing avoids WebKit's ungrantable clipboard permission). 20/20 landing
+specs green on both engines; full suite 88 passed / 2 skipped.
+
+Writing them surfaced a REAL bug: WebKit hands out drop items whose
+`webkitGetAsEntry().file()` rejects (NotFoundError) even though
+`getAsFile()` works — `fromDataTransfer`'s entry-first read turned such
+drops into a silent no-op (`8bdea572` fixes it: plain-file items are
+snapshotted synchronously via `getAsFile`; the async entry walk is now
+directories-only). Unit tests pin the whole `fromDataTransfer` contract.
+**Gotchas for synthetic drag tests:** WebKit's DragEvent constructor ignores
+`dataTransfer` in the init dict — dispatch generic Events with the property
+defined on the instance; synthetic items never produce directory entries, so
+folder traversal stays unit-tested only (see bulk.spec.ts's header note).
+
+Also researched mobile save/download UX (iOS + Android) → findings and a
+recommended Share-button design in `docs/mobile-save-ux.md`; decision open.
+
 ## 2026-07-16 (Fable) — Fable pass over the rebrand + frame-landing window
 
 Senior review of every commit from 2026-07-14→16 (rebrand, frame-landing
