@@ -1,9 +1,13 @@
 <script lang="ts">
   import { prettySize, prettySizeParts } from './pretty-size';
+  import { canShareFile, share } from '$lib/share-file';
+  import { snackbar } from './snackbar-store.svelte';
   import type { CompressOutcome } from '$lib/compress';
 
   // The result footer of each side's panel: output filesize + a semantic
-  // delta badge (green = smaller, red = larger) and the download button.
+  // delta badge (green = smaller, red = larger), the download button, and —
+  // where the OS share sheet accepts the output — a quiet Share companion
+  // (the mobile path to the photo library; see docs/mobile-save-ux.md).
   // Accent-tinted per side via the inherited --main-theme-color /
   // --hot-theme-color custom properties.
 
@@ -19,6 +23,8 @@
     isOriginal: boolean;
     downloadHref: string;
     downloadName: string;
+    /** The encoded output, for the OS share sheet (null hides Share). */
+    shareFile?: File | null;
     /** Short format label shown under the size. */
     typeLabel: string;
     loading: boolean;
@@ -33,10 +39,27 @@
     isOriginal,
     downloadHref,
     downloadName,
+    shareFile = null,
     typeLabel,
     loading,
     disabled,
   }: Props = $props();
+
+  // The share sheet saves under the file's own name, so carry the download
+  // name onto the shared file (encoders name their output generically).
+  const namedShareFile = $derived(
+    shareFile && downloadName && shareFile.name !== downloadName
+      ? new File([shareFile], downloadName, { type: shareFile.type })
+      : shareFile,
+  );
+  // Sharing the untouched source is noise — the Original side never offers it.
+  const canShare = $derived(!isOriginal && canShareFile(namedShareFile));
+
+  async function onShare() {
+    if (!namedShareFile) return;
+    const failure = await share(namedShareFile);
+    if (failure) void snackbar.show(failure);
+  }
 
   const pretty = $derived(size === null ? null : prettySizeParts(size));
   const direction = $derived(
@@ -100,31 +123,55 @@
       </span>
     {/if}
   </div>
-  <a
-    class="download"
-    class:ghost={isOriginal}
-    class:download-disable={disabled}
-    href={disabled ? undefined : downloadHref}
-    download={disabled ? undefined : downloadName}
-    title="Download"
-    aria-disabled={disabled}
-  >
-    {#if loading}
-      <span class="spinner" aria-hidden="true"></span>
-    {:else}
-      <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M12 3v10.2m0 0l4.2-4.2M12 13.2L7.8 9M4.5 16.5v2.3c0 .9.8 1.7 1.7 1.7h11.6c.9 0 1.7-.8 1.7-1.7v-2.3"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+  <div class="actions">
+    {#if canShare}
+      <button
+        type="button"
+        class="share"
+        class:download-disable={disabled}
+        onclick={onShare}
+        title="Share"
+        aria-label="Share"
+      >
+        <!-- The Save arrow, mirrored: up and out of the tray. -->
+        <svg class="share-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 13.2V3m0 0L7.8 7.2M12 3l4.2 4.2M4.5 16.5v2.3c0 .9.8 1.7 1.7 1.7h11.6c.9 0 1.7-.8 1.7-1.7v-2.3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
     {/if}
-    <span class="download-text">Save</span>
-  </a>
+    <a
+      class="download"
+      class:ghost={isOriginal}
+      class:download-disable={disabled}
+      href={disabled ? undefined : downloadHref}
+      download={disabled ? undefined : downloadName}
+      title="Download"
+      aria-disabled={disabled}
+    >
+      {#if loading}
+        <span class="spinner" aria-hidden="true"></span>
+      {:else}
+        <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 3v10.2m0 0l4.2-4.2M12 13.2L7.8 9M4.5 16.5v2.3c0 .9.8 1.7 1.7 1.7h11.6c.9 0 1.7-.8 1.7-1.7v-2.3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      {/if}
+      <span class="download-text">Save</span>
+    </a>
+  </div>
 </div>
 
 <style>
@@ -135,6 +182,12 @@
     gap: 10px;
     padding: 10px var(--horizontal-padding, 16px) 12px;
     min-width: 0;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .stats {
@@ -259,6 +312,48 @@
     outline-offset: 2px;
   }
 
+  /* Share: Save's quiet circular sibling — outline style so the gradient
+     pill stays the one primary action. */
+  .share {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--surface-raise);
+    color: var(--text-2);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    transition:
+      color 150ms ease,
+      background-color 150ms ease,
+      transform 150ms ease,
+      opacity 200ms ease,
+      filter 200ms ease;
+  }
+
+  .share:hover {
+    color: var(--text-1);
+    background: var(--surface-raise-2);
+    transform: translateY(-1px);
+  }
+
+  .share:active {
+    transform: translateY(0);
+  }
+
+  .share:focus-visible {
+    outline: 2px solid var(--main-theme-color);
+    outline-offset: 2px;
+  }
+
+  .share-icon {
+    width: 15px;
+    height: 15px;
+  }
+
   /* The Original side: quieter outline button (still downloads the source). */
   .download.ghost {
     background: var(--surface-raise);
@@ -324,6 +419,11 @@
     .download {
       width: 30px;
       padding: 0;
+    }
+
+    .share {
+      width: 30px;
+      height: 30px;
     }
   }
 </style>

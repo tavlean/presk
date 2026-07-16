@@ -266,6 +266,7 @@
     svg={result?.svg}
     downloadHref={result?.outputUrl ?? '#'}
     {downloadName}
+    shareFile={result?.outputFile ?? null}
     loading={working}
     disabled={!result || working}
   />
