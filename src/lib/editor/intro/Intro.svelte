@@ -699,9 +699,8 @@
     border: 0;
   }
 
-  /* Narrow screens: the two bottom HUD corners are both bottom-anchored and
-     collide (~200px of copy each into ~290px of width). Collapse them into one
-     centered, wrapping stack — formats above the privacy lines. */
+  /* Narrow screens: tuck the HUD in closer to the frame and cap the format
+     list's width so it wraps inside the viewfinder instead of touching it. */
   @media (max-width: 560px) {
     .intro-frame {
       --hud-pad: 16px;

@@ -123,7 +123,7 @@ Suggested future smoke:
 
 Prefer a real photo for release QA; `tests/fixtures/photo.jpg` (or
 `photo-large.jpg`) is a good lightweight smoke asset. The static brand SVGs
-(`logo.svg`, `wordmark.svg`, `favicon.svg`) are design assets, not photo test
+(`logo.svg`, `favicon.svg`) are design assets, not photo test
 inputs.
 
 ## Bulk

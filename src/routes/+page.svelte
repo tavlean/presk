@@ -179,7 +179,9 @@
   <!-- Tell mobile browsers (Safari/Chrome) what to tint the toolbar + status
        bar. Without it they sample the body background — the always-dark editor
        canvas — so the bars stayed dark even on the light landing. The landing
-       follows the OS theme; the editor/bulk view is always dark. -->
+       follows the OS theme; the editor/bulk view is always dark. The hex values
+       mirror Intro's --i-page tokens and the body canvas below (and #0c0c0f =
+       the editor's --bg-0) — keep them in sync. -->
   {#if isLanding}
     <meta
       name="theme-color"
