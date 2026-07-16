@@ -484,10 +484,17 @@
   .brand-mark {
     display: inline-grid;
     height: 27.5px;
+    /* Pin the width from the mark's aspect ratio (viewBox 1650×1800) rather than
+       leaving it to the inline SVG's intrinsic sizing. iOS Safari can drop an
+       auto-width, viewBox-only SVG to zero width after a relayout (e.g. the
+       Satoshi web-font swapping in once cached), which slides the wordmark back
+       over the mark — and it sticks across refreshes because the font stays
+       cached. A CSS-computed box width never depends on that. */
+    aspect-ratio: 1650 / 1800;
   }
   .brand-mark :global(svg) {
     height: 100%;
-    width: auto;
+    width: 100%;
     display: block;
   }
   .brand-name {
