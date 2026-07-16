@@ -37,6 +37,12 @@
   const undoTitle = $derived(isMac ? 'Undo (⌘Z)' : 'Undo (Ctrl+Z)');
   const redoTitle = $derived(isMac ? 'Redo (⇧⌘Z)' : 'Redo (Ctrl+Shift+Z)');
 
+  // The landing screen shows until an image loads or a batch opens. Both the
+  // mobile browser chrome (theme-color) and the page canvas follow it: the
+  // landing is theme-aware (light in light mode), while the editor/bulk view has
+  // no light theme and is always dark.
+  const isLanding = $derived(!bulkStore.hasJobs && !session.file);
+
   onMount(() => {
     isMac = /mac|iphone|ipad/i.test(
       navigator.platform || navigator.userAgent || '',
@@ -86,6 +92,15 @@
   });
   $effect(() => session.seedResizeDimensions());
   $effect(() => session.persistSettings());
+
+  // Mirror the current view onto the root data-view attribute so the global
+  // body canvas and the OS color-scheme can switch with it (see the style
+  // block). The intro paints its own theme-aware surface on top; this keeps the
+  // body behind it in step, which is what mobile browsers sample for the bars.
+  $effect(() => {
+    document.documentElement.dataset.view = isLanding ? 'landing' : 'app';
+    return () => delete document.documentElement.dataset.view;
+  });
 
   function pickFiles(list: ArrayLike<File> | null | undefined) {
     session.pickFiles(list, () => pushState('', { editor: true }));
@@ -161,6 +176,24 @@
 
 <svelte:head>
   <title>{session.docTitle}</title>
+  <!-- Tell mobile browsers (Safari/Chrome) what to tint the toolbar + status
+       bar. Without it they sample the body background — the always-dark editor
+       canvas — so the bars stayed dark even on the light landing. The landing
+       follows the OS theme; the editor/bulk view is always dark. -->
+  {#if isLanding}
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#f4f3f1"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#111113"
+    />
+  {:else}
+    <meta name="theme-color" content="#0c0c0f" />
+  {/if}
 </svelte:head>
 
 <svelte:window onkeydown={onKeydown} />
@@ -319,13 +352,28 @@
 </div>
 
 <style>
-  /* Body reset + font stack live in the root +layout.svelte; this page only
-     owns its full-height sizing and dark background. */
+  /* Body reset + font stack live in the root +layout.svelte; this page owns the
+     full-height sizing and the canvas behind everything. */
   :global(html),
   :global(body) {
     height: 100%;
   }
+  /* The landing is the default view and follows the OS theme, so light mode is
+     genuinely light — the body itself, not just the intro surface painted over
+     it. This is also what the mobile browser chrome samples. The editor and
+     bulk views have no light theme, so [data-view='app'] forces the dark canvas
+     back (the attribute is mirrored from the current view in script). */
+  :global(html) {
+    color-scheme: light dark;
+  }
   :global(body) {
+    background: light-dark(#f4f3f1, #111113);
+    color: light-dark(#1a1a1e, #f5f5f7);
+  }
+  :global(html[data-view='app']) {
+    color-scheme: dark;
+  }
+  :global(html[data-view='app'] body) {
     background: #0c0c0f;
     color: #f5f5f7;
   }
