@@ -1,9 +1,9 @@
-# Mobile save/download behavior + the Share plan
+# Mobile save/download behavior + the Share button
 
 Research summary (2026-07-17, web-verified against WebKit/Chromium sources)
-for how Frisp's save buttons behave on phones today and what a better flow
-looks like. Read when touching the download/share affordances; update when
-the share button ships or platform behavior changes.
+for how Frisp's save buttons behave on phones, and the Share button built on
+it (SHIPPED 2026-07-17 — see the last section). Read when touching the
+download/share affordances; update when platform behavior changes.
 
 ## Where a saved image lands today
 
@@ -54,16 +54,21 @@ Rules for a correct implementation:
   exists — macOS Safari, Chrome 128+) users expect a deterministic save,
   and the bulk ZIP can't go through share at all.
 
-## Recommended shape (pending maintainer decision)
+## Shipped implementation (2026-07-17)
 
-1. Single editor: add a quiet **Share** action beside the download control in
-   the Results footer, shown only when `canShare({files})` passes for the
-   actual result file. On iOS standalone it becomes the primary save path.
-2. Bulk: per-image share can ride the same component; **Save-all ZIP stays a
-   download**. Optional Android nicety, low priority: `showSaveFilePicker()`
-   for the ZIP (Chrome 132+, 2025-01).
-3. Copy: keep the distinction plain — "Download" vs "Share" (the share sheet
-   itself says "Save Image", so no need to over-promise in our label).
+- `src/lib/share-file.ts` — `canShareFile()` (validates the exact finished
+  file) + `share()` (maps AbortError → silent, real failures → a snackbar
+  message). All the constraints above are encoded in its comments.
+- `Results.svelte` — a quiet circular Share button beside the Save pill
+  (mirrored arrow icon), rendered only when `canShareFile` passes and never
+  on the Original side; the shared file carries the download name. The bulk
+  focus view inherits it through `OptionsPanel`; the bulk global scope hides
+  the footer as before.
+- **Save-all ZIP stays a download** (ZIP is not Web Share-able). Parked,
+  low priority: `showSaveFilePicker()` for the ZIP on Android Chrome 132+.
+- Verified: unit tests (`tests/unit/share-file.test.ts`), full e2e suite
+  unchanged, and in-browser checks (share payload is `files` alone, renamed
+  correctly; failure snackbar; button absent where the API is unsupported).
 
 Squoosh (upstream) never shipped output sharing — it only registers as a
-share *target* for incoming images. This would be a genuine UX edge over it.
+share *target* for incoming images. This is a genuine UX edge over it.

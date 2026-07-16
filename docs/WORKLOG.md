@@ -4,6 +4,22 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-17 (Fable) — Share button: the mobile path to the photo library
+
+Built the Share action designed in [mobile-save-ux.md](mobile-save-ux.md)
+(`6f82067a`): `src/lib/share-file.ts` (canShareFile + share; AbortError is a
+dismissed sheet, not an error) and a quiet circular Share button beside Save
+in `Results.svelte` — rendered only when the OS share sheet accepts the exact
+output file, never on the Original side. On iOS the sheet offers "Save Image"
+straight into Photos and works in the installed PWA (where blob downloads can
+dead-end in Quick Look). Bulk focus view inherits it via OptionsPanel; the
+Save-all ZIP stays a download (ZIP isn't Web Share-able). Gotchas encoded in
+the helper's comments: share `files` alone (WebKit drops the file if text/url
+ride along), call share() straight from the tap (activation expires), carry
+the download name onto the shared File. Verified: 149 unit tests, full e2e
+88/88 unchanged, and live in-browser (payload shape, rename, failure
+snackbar, hidden-when-unsupported). Docs updated to shipped state.
+
 ## 2026-07-17 (Fable) — Landing drag/drop + paste e2e; Safari silent-drop fix
 
 Closed the e2e gap the fable pass flagged: `tests/e2e/landing.spec.ts` now
