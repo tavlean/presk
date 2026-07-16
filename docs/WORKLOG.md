@@ -4,6 +4,33 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
+## 2026-07-16 (Fable) — Fable pass over the rebrand + frame-landing window
+
+Senior review of every commit from 2026-07-14→16 (rebrand, frame-landing
+promotion, lab/bench build stripping, QOI precache trim, e2e re-anchoring,
+docs sweep). Verdict: the window's work holds up — no behavior divergence from
+the recorded intent was found, so all corrections were craft-level (two
+commits, behavior identical):
+
+- **Comment truth.** Intro's narrow-screen comment described a retired
+  two-corner HUD layout; the `theme-color` metas in `+page.svelte` now state
+  their sync constraint (the hex values must match Intro's `--i-page` tokens,
+  the body canvas, and the editor's `--bg-0` — three files, one palette).
+- **Brand doctrine in the lab.** Three dev-only lab pages still displayed
+  literal lowercase `frisp` (pre-dating the 2026-07-14 casing reversal); they
+  now render `{APP_NAME}` like everything else.
+- **Audit hardening.** `audit:static-output`'s dev-UI leak markers only covered
+  the intro lab (`--il-`). Added one CSS token prefix per skin (`--pc-`,
+  `--dr-`, `--hy-`) — these survive minification and also catch a production
+  file accidentally importing `$lib/lab` code directly (the realistic case:
+  porcelain's crop tool, which is slated to port to a winning skin someday).
+  Verified zero false positives against the current production bundle.
+- **Doc drift.** `manual-qa.md` listed the deleted `wordmark.svg` as a current
+  asset; the Presk runbook's open logo-art item was superseded by the rebrand.
+
+Known gap (flagged, not built): no e2e drives the landing's drag/drop, paste
+(keyboard or button), or touch copy — the suite covers Browse + heading only.
+
 ## 2026-07-15 (Opus) — Rebrand, "frame" landing, and a review-driven hardening pass
 
 Two shipped changes plus a hardening batch. **Rebrand:** new Frisp logomark +
