@@ -22,7 +22,7 @@
     "preview": "vite preview",
     "sync": "node scripts/patch-codec-wrappers.mjs",
     "test": "npm run check && npm run test:unit && PLAYWRIGHT_SKIP_BUILD=1 npm run test:e2e",
-    "test:unit": "vitest run",
+    "test:unit": "svelte-kit sync && vitest run",
     "test:e2e": "playwright test",
     "bench": "playwright test --config benchmarks/playwright.config.ts",
     "bench:compare": "node benchmarks/compare.mjs",
