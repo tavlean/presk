@@ -4,7 +4,38 @@ Short session-by-session build log: what changed, why, and the gotchas a future
 session must know. Newest first. (Live project state stays in
 [STATUS.md](STATUS.md); this is the narrative trail.)
 
-## 2026-07-17 (Fable) — Share button: the mobile path to the photo library
+## 2026-07-18 (Fable) — Lab restructure + design unification + Nucleo icons
+
+Six maintainer asks, all in the dev-only lab, executed with three parallel
+Opus worktree agents under Fable review. (1) **Navigation** (`a7d83258`):
+`/lab` is a two-door index (main ui / intro page); a thin fixed tab bar
+(`LabTabs` in the new `routes/lab/+layout.svelte`) flips skins/intro variants
+in place; `/lab/intro` redirects to billboard; the production intro gained a
+dev-only "lab ↗" HUD link. KEY MECHANISM: the layout's `.lab-viewport` is
+`position:fixed` with a `transform`, making it the containing block for every
+skin's `position:fixed` chrome — whole experiments shift below the bar with
+zero per-skin offsets. `app-strip-dev-only-routes` now also stubs lab
+layouts (pass-through) in prod builds. (2) **Direct-open**: skins auto-load
+via `$lib/lab/lab-source.ts` — module-level "last file used in any lab skin,
+else bundled sample (tests/fixtures/photo.jpg via ?url)" — so tab switches
+keep the image being judged. (3) **Icons** (`7be0141e`, `0965d533`): 27
+pure-stroke Nucleo UI glyphs in `src/lib/lab/icons/` (18×18, currentColor,
+stroke 1.5) + `LabIcon.svelte` host; exporter strips duotone accent layers
+(`data-stroke="none"`) — that stripping is also why `info.svg` had to be
+REDRAWN by hand (its dot was an accent layer; the letterform read as "1").
+Theme cycling shows the mode's glyph: sun-moon/sun/moon (maintainer call).
+(4) **Design unification** (`4276f213` hybrid, `944a641f` porcelain,
+`71eaf75d` darkroom; spec = specs/2026-07-18-lab-design-unification.md):
+one bar system per skin, Export/Save the only primaries, nothing floating
+over the canvas — porcelain collapsed five islands into ONE toolbar and CSS-
+docks the production Output zoom cluster into its centre slot; darkroom
+docks that cluster into the filmstrip bar; hybrid merged its three top-right
+islands into one pill. Output's own glyphs stay production Material icons
+(component is read-only). Net ≈ −1,000 lines. Gotchas: after merging lab
+branches while `vite dev` runs, the open page can hold STALE HMR modules
+(deleted-file import errors, mixed-theme surfaces) — hard-reload before
+diagnosing; worktree agents need `ln -s <main>/node_modules` AND a widened
+`server.fs.allow` to run the dev server (the symlink resolves outside it).
 
 Built the Share action designed in [mobile-save-ux.md](mobile-save-ux.md)
 (`6f82067a`): `src/lib/share-file.ts` (canShareFile + share; AbortError is a

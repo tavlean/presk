@@ -1,11 +1,22 @@
 # Frisp Status
 
-Last updated: 2026-07-15.
+Last updated: 2026-07-18.
 
 Read this first. Frisp is a local-first image optimizer: image work stays in the
 browser, the build is static, and offline reload must work after load.
 
 ## Current State
+
+- **Lab restructured + design-unified (2026-07-18).** `/lab` is a two-door
+  index (main ui / intro page) with a thin tab bar flipping skins/intro
+  variants in place; skins open straight into the editor (shared
+  last-file-or-sample source); all three skins got a unification pass — one
+  bar system each, docked zoom clusters, Export/Save as the only primaries,
+  and ONE shared Nucleo icon set (`src/lib/lab/icons/` + `LabIcon`). The
+  production intro has a dev-only "lab ↗" link. Spec + audit:
+  [specs/2026-07-18-lab-design-unification.md](specs/2026-07-18-lab-design-unification.md);
+  narrative in [WORKLOG.md](WORKLOG.md). The re-style DIRECTION decision
+  (porcelain/darkroom/hybrid) is still pending.
 
 - **Rebrand + new landing SHIPPED (2026-07-15).** New Frisp logomark + wordmark
   across the app and a theme-aware SVG favicon (`static/favicon.svg` is the
