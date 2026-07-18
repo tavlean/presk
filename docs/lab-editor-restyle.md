@@ -1,5 +1,16 @@
 # Editor re-style lab — porcelain, darkroom & hybrid (2026-07-07)
 
+> **2026-07-18 update:** lab navigation was restructured — `/lab` is now a
+> two-door index (main ui / intro page) and a thin tab bar over every
+> experiment flips skins/variants in place; skins auto-load a shared sample
+> (or the last file dropped anywhere in the lab) instead of showing a drop
+> screen. A design unification + shared Nucleo icon pass ran across all
+> three skins the same day: see
+> [specs/2026-07-18-lab-design-unification.md](specs/2026-07-18-lab-design-unification.md)
+> for the audit verdicts and per-skin worklists. Details below that
+> describe per-skin theme pills, the old card index, or hand-drawn icons
+> predate that pass.
+
 Three dev-only lab experiments exploring a full visual re-skin (and, in two
 of them, a re-arrangement) of the single-image editor — the first two
 translated from reference screenshots the maintainer supplied in chat, the
