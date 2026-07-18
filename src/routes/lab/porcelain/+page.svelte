@@ -23,6 +23,7 @@
   import ThemeSwitch, {
     type ThemeMode,
   } from '$lib/lab/porcelain/ThemeSwitch.svelte';
+  import { labSourceFile, rememberLabSource } from '$lib/lab/lab-source';
   import '$lib/editor/theme.css';
   import '$lib/lab/porcelain/porcelain.css';
 
@@ -48,7 +49,19 @@
     isMac = /mac|iphone|ipad/i.test(
       navigator.platform || navigator.userAgent || '',
     );
+    // Open straight into the editor: the file last used in any lab skin, else
+    // the bundled sample. A real drop that lands first wins (checked on both
+    // sides of the await).
+    let alive = true;
+    if (!session.file) {
+      void labSourceFile().then((file) => {
+        if (!alive || session.file) return;
+        original = file;
+        pickFiles([file]);
+      });
+    }
     return () => {
+      alive = false;
       session.dispose();
       cropTool?.dispose();
     };
@@ -108,6 +121,7 @@
     closeCrop();
     original = first.file;
     cropSnapshot = null;
+    rememberLabSource(first.file);
     pickFiles([first.file]);
   }
 
@@ -122,6 +136,7 @@
       closeCrop();
       original = first;
       cropSnapshot = null;
+      rememberLabSource(first);
     }
     pickFiles(input.files);
     input.value = '';

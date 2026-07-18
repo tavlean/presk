@@ -103,6 +103,11 @@ const rawThreadedCodecWorkers: Plugin = {
 // code, which nothing else imports) is bundled, emitted, or precached. `vite dev`
 // is untouched, so the lab stays fully usable while developing.
 const DEV_ONLY_PAGE_RE = /\/src\/routes\/(?:lab|bench-svg)\/.*\+page\.svelte$/;
+// Layouts under those trees (the lab tab bar) become bare pass-throughs: a
+// layout must still render its children or every stubbed page under it would
+// disappear from the build output.
+const DEV_ONLY_LAYOUT_RE =
+  /\/src\/routes\/(?:lab|bench-svg)\/.*\+layout\.svelte$/;
 const stripDevOnlyRoutesInProd: Plugin = {
   name: 'app-strip-dev-only-routes',
   apply: 'build',
@@ -110,6 +115,8 @@ const stripDevOnlyRoutesInProd: Plugin = {
   load(id) {
     const path = id.split('?')[0].split('\\').join('/');
     if (DEV_ONLY_PAGE_RE.test(path)) return '<p>Not found.</p>\n';
+    if (DEV_ONLY_LAYOUT_RE.test(path))
+      return '<script>let { children } = $props();</script>{@render children()}\n';
     return null;
   },
 };

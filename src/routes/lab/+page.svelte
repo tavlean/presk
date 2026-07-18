@@ -3,44 +3,24 @@
   import { resolve } from '$app/paths';
   import { APP_NAME } from 'shared/brand';
 
-  const experiments = [
+  // Two doors, not one per experiment: each opens the FIRST variant of its
+  // group, and the lab layout's tab bar flips between the rest in place.
+  const groups = [
     {
-      name: 'porcelain',
+      name: 'main ui',
       href: resolve('/lab/porcelain'),
-      vignette: 'porcelain',
-      tag: null,
+      vignette: 'ui',
       tagline:
-        'Light, airy, squircle — the current layout in a porcelain skin.',
-      caption:
-        'Floating toolbar · Edit/Compress tabs · Variations-style compare',
-    },
-    {
-      name: 'darkroom',
-      href: resolve('/lab/darkroom'),
-      vignette: 'darkroom',
-      tag: null,
-      tagline:
-        'Dense pro-tool — icon rail, eye-enabled sections, session filmstrip.',
-      caption: 'Rail + flyouts · Inspector chips · Filmstrip → bulk',
-    },
-    {
-      name: 'hybrid',
-      href: resolve('/lab/hybrid'),
-      vignette: 'hybrid',
-      tag: 'recommended',
-      tagline:
-        "Darkroom's architecture in porcelain's skin — one bottom bar, no stray panels.",
-      caption: 'Rail + flyouts · Eye sections · Zoom docked in the strip',
+        'The editor re-skins — three takes on the same real editor, one tab away from each other.',
+      caption: 'porcelain · darkroom · hybrid (recommended)',
     },
     {
       name: 'intro page',
-      href: resolve('/lab/intro'),
+      href: resolve('/lab/intro/billboard'),
       vignette: 'intro',
-      tag: null,
       tagline:
-        'Six takes on the landing screen — minimal full-viewport drop area, tiny header + footer.',
-      caption:
-        'billboard · frame · split · ledger · prism · showcase — light + dark',
+        'Takes on the landing screen, including the shipped frame and the retired aurora.',
+      caption: 'billboard · frame · split · ledger · prism · showcase · aurora',
     },
   ] as const;
 </script>
@@ -51,54 +31,39 @@
       <p class="eyebrow">{APP_NAME}</p>
       <h1 class="title">Lab</h1>
       <p class="lede">
-        Dev-only experiments — each is the real editor wearing a different skin.
-        Pick by looking.
+        Dev-only experiments — real code wearing different skins. Pick by
+        looking; switch variants with the tab bar at the top of each page.
       </p>
     </header>
 
     <ul class="grid">
-      {#each experiments as exp (exp.name)}
+      {#each groups as group (group.name)}
         <li>
-          <a class="card" href={exp.href}>
-            <!-- Per-experiment vignettes are INTENTIONALLY fixed light/dark
-                 (they preview each skin's own palette), so they do NOT follow
-                 the page's system color-scheme. -->
-            <div class="vignette vignette--{exp.vignette}">
-              {#if exp.vignette === 'porcelain'}
-                <div class="p-toolbar"></div>
-                <div class="p-panel p-panel--left"></div>
-                <div class="p-panel p-panel--right"></div>
-              {:else if exp.vignette === 'darkroom'}
-                <div class="d-rail">
-                  <span></span><span></span><span></span><span></span>
-                </div>
-                <div class="d-inspector"></div>
-                <div class="d-strip">
+          <a class="card" href={group.href}>
+            <!-- Vignettes are INTENTIONALLY fixed light (they preview each
+                 group's own palette), so they do NOT follow the page's system
+                 color-scheme. -->
+            <div class="vignette vignette--{group.vignette}">
+              {#if group.vignette === 'ui'}
+                <div class="u-rail">
                   <span></span><span></span><span></span>
                 </div>
-              {:else if exp.vignette === 'intro'}
+                <div class="u-inspector"></div>
+                <div class="u-strip">
+                  <span></span><span></span><span></span>
+                </div>
+              {:else}
                 <div class="i-header"></div>
                 <div class="i-headline"></div>
                 <div class="i-headline i-headline--short"></div>
                 <div class="i-drop"></div>
                 <div class="i-footer"></div>
-              {:else}
-                <div class="h-rail">
-                  <span></span><span></span><span></span>
-                </div>
-                <div class="h-inspector"></div>
-                <div class="h-strip">
-                  <span></span><span></span><span></span>
-                </div>
-              {/if}
-              {#if exp.tag}
-                <span class="tag">{exp.tag}</span>
               {/if}
             </div>
             <div class="meta">
-              <p class="name">{exp.name}</p>
-              <p class="tagline">{exp.tagline}</p>
-              <p class="caption">{exp.caption}</p>
+              <p class="name">{group.name}</p>
+              <p class="tagline">{group.tagline}</p>
+              <p class="caption">{group.caption}</p>
             </div>
           </a>
         </li>
@@ -140,7 +105,7 @@
     min-height: 100vh;
     /* The background must cover the full viewport, not just the centred
        column — the column is constrained via responsive side padding. */
-    padding: 56px max(24px, calc((100vw - 980px) / 2)) 40px;
+    padding: 56px max(24px, calc((100vw - 780px) / 2)) 40px;
     background: var(--bg);
     color: var(--text-1);
   }
@@ -184,11 +149,11 @@
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 18px;
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 640px) {
     .grid {
       grid-template-columns: 1fr;
     }
@@ -247,49 +212,55 @@
     overflow: hidden;
   }
 
-  .tag {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 3px 8px;
-    border-radius: 999px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: #ffffff;
-    background: #2f6d4f;
+  /* --- ui vignette: ALWAYS light warm (rail + inspector + strip mock) --- */
+  .vignette--ui {
+    background: #f4f2ef;
   }
-
-  /* --- porcelain vignette: ALWAYS light (previews its own warm skin) --- */
-  .vignette--porcelain {
-    background: #f2f1ef;
-  }
-  .p-toolbar {
+  .u-rail {
     position: absolute;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 42%;
-    height: 12px;
-    border-radius: 999px;
+    top: 14px;
+    bottom: 44px;
+    left: 12px;
+    width: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    padding-top: 4px;
+  }
+  .u-rail span {
+    width: 14px;
+    height: 14px;
+    border-radius: 5px;
     background: #ffffff;
-    box-shadow: 0 3px 10px rgba(70, 60, 50, 0.12);
+    box-shadow: 0 1px 3px rgba(70, 60, 50, 0.12);
   }
-  .p-panel {
+  .u-inspector {
     position: absolute;
-    top: 38px;
-    bottom: 16px;
-    border-radius: 14px;
+    top: 14px;
+    bottom: 44px;
+    right: 14px;
+    width: 38%;
+    border-radius: 10px;
     background: #ffffff;
-    box-shadow: 0 6px 18px rgba(70, 60, 50, 0.1);
+    box-shadow: 0 6px 16px rgba(70, 60, 50, 0.1);
   }
-  .p-panel--left {
-    left: 16px;
-    width: 30%;
+  .u-strip {
+    position: absolute;
+    left: 44px;
+    right: 14px;
+    bottom: 12px;
+    height: 22px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
   }
-  .p-panel--right {
-    right: 16px;
-    width: 40%;
+  .u-strip span {
+    width: 30px;
+    height: 20px;
+    border-radius: 5px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(70, 60, 50, 0.12);
   }
 
   /* --- intro vignette: light warm landing mock (headline + drop + chrome) --- */
@@ -338,114 +309,6 @@
     height: 5px;
     border-radius: 999px;
     background: rgba(30, 25, 20, 0.12);
-  }
-
-  /* --- darkroom vignette: ALWAYS dark (previews its own near-black skin) --- */
-  .vignette--darkroom {
-    background: #161616;
-  }
-  .d-rail {
-    position: absolute;
-    top: 14px;
-    bottom: 44px;
-    left: 12px;
-    width: 22px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 7px;
-    padding-top: 4px;
-  }
-  .d-rail span {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    background: #2c2c2c;
-  }
-  .d-inspector {
-    position: absolute;
-    top: 14px;
-    bottom: 44px;
-    right: 14px;
-    width: 38%;
-    border-radius: 8px;
-    background: #202020;
-    border: 1px solid #2c2c2c;
-  }
-  .d-strip {
-    position: absolute;
-    left: 44px;
-    right: 14px;
-    bottom: 12px;
-    height: 22px;
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .d-strip span {
-    width: 30px;
-    height: 20px;
-    border-radius: 4px;
-  }
-  .d-strip span:nth-child(1) {
-    background: #6b5a48;
-  }
-  .d-strip span:nth-child(2) {
-    background: #43566b;
-  }
-  .d-strip span:nth-child(3) {
-    background: #4a5a48;
-  }
-
-  /* --- hybrid vignette: ALWAYS light warm (darkroom shapes, porcelain skin) --- */
-  .vignette--hybrid {
-    background: #f4f2ef;
-  }
-  .h-rail {
-    position: absolute;
-    top: 14px;
-    bottom: 44px;
-    left: 12px;
-    width: 22px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 7px;
-    padding-top: 4px;
-  }
-  .h-rail span {
-    width: 14px;
-    height: 14px;
-    border-radius: 5px;
-    background: #ffffff;
-    box-shadow: 0 1px 3px rgba(70, 60, 50, 0.12);
-  }
-  .h-inspector {
-    position: absolute;
-    top: 14px;
-    bottom: 44px;
-    right: 14px;
-    width: 38%;
-    border-radius: 10px;
-    background: #ffffff;
-    box-shadow: 0 6px 16px rgba(70, 60, 50, 0.1);
-  }
-  .h-strip {
-    position: absolute;
-    left: 44px;
-    right: 14px;
-    bottom: 12px;
-    height: 22px;
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .h-strip span {
-    width: 30px;
-    height: 20px;
-    border-radius: 5px;
-    background: #ffffff;
-    box-shadow: 0 1px 3px rgba(70, 60, 50, 0.12);
   }
 
   /* --- Text block --- */

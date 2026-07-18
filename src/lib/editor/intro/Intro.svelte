@@ -11,6 +11,8 @@
   // over the intro routes exactly once (here, not the global) and never triggers
   // the global pink overlay — the viewfinder is our drag feedback instead.
   import { onMount } from 'svelte';
+  import { dev } from '$app/environment';
+  import { resolve } from '$app/paths';
   import type { Attachment } from 'svelte/attachments';
   import {
     fromDataTransfer,
@@ -181,6 +183,10 @@
       {/each}
     </ul>
   </div>
+  {#if dev}
+    <!-- Dev-only door to the experiments; never rendered in production. -->
+    <a class="hud hud-tr lab-link" href={resolve('/lab')}>lab ↗</a>
+  {/if}
 
   <!-- Center column: the invitation, swapped in place (min-height reserved) so
        the drag state never shifts the layout. -->
@@ -449,6 +455,25 @@
     transform: translateX(-50%);
     align-items: center;
     text-align: center;
+  }
+  .hud-tr {
+    top: calc(var(--frame-inset) + 22px);
+    right: calc(var(--frame-inset) + var(--hud-pad));
+  }
+  .lab-link {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    text-decoration: none;
+    color: var(--i-text-3);
+  }
+  .lab-link:hover {
+    color: var(--i-text-1);
+  }
+  .lab-link:focus-visible {
+    outline: 2px solid var(--i-accent, currentColor);
+    outline-offset: 3px;
+    border-radius: 4px;
   }
   .hud-line {
     font-size: 11.5px;

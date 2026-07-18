@@ -25,6 +25,7 @@
   import Inspector from '$lib/lab/hybrid/Inspector.svelte';
   import Filmstrip from '$lib/lab/hybrid/Filmstrip.svelte';
   import type { ThemeMode } from '$lib/lab/hybrid/ThemeToggle.svelte';
+  import { labSourceFile, rememberLabSource } from '$lib/lab/lab-source';
   import '$lib/editor/theme.css';
   import '$lib/lab/hybrid/hybrid.css';
 
@@ -60,6 +61,7 @@
   function addFiles(files: File[]): void {
     const images = files.filter((file) => file.type.startsWith('image/'));
     if (images.length === 0) return;
+    rememberLabSource(images[0]);
 
     let firstNew: File | null = null;
     for (const file of images) {
@@ -156,7 +158,19 @@
       (systemDark = event.matches);
     media.addEventListener('change', onMedia);
 
+    // Open straight into the editor: the file last used in any lab skin, else
+    // the bundled sample. A real drop that lands first wins (checked on both
+    // sides of the await).
+    let alive = true;
+    if (gallery.length === 0) {
+      void labSourceFile().then((file) => {
+        if (!alive || gallery.length > 0) return;
+        addFiles([file]);
+      });
+    }
+
     return () => {
+      alive = false;
       media.removeEventListener('change', onMedia);
       // Revoke every gallery object URL and dispose the session's workers/effects.
       for (const entry of gallery) URL.revokeObjectURL(entry.url);
