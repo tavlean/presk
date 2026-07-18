@@ -1,6 +1,8 @@
 # Lab Main-UI design unification + Nucleo icon pass
 
-Last updated: 2026-07-18 · Status: in progress
+Last updated: 2026-07-18 · Status: done (executed same day — hybrid
+`4276f213`, porcelain `944a641f`, darkroom `71eaf75d`; gates: check clean,
+149 unit, 88/88 e2e)
 
 The three `/lab` editor skins (porcelain, darkroom, hybrid) grew organically
 and it shows: each screen mixes several floating-bar styles, controls sit in
