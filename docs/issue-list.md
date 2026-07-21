@@ -1,6 +1,6 @@
 # Issue List
 
-Last updated: 2026-07-10.
+Last updated: 2026-07-21.
 
 Small backlog seed. The big tracks live in their own plans — see
 [README.md](README.md) for the map. Product work belongs in
@@ -55,6 +55,28 @@ Small backlog seed. The big tracks live in their own plans — see
    `encoderState` rather than per-control ids — intentional interim seam (the
    production UI still writes legacy full option objects); resolves with the
    WS-G UI half.
+8. **`hqx` + `contain` resize crops the wrong region (correctness).** In
+   `src/features/processors/resize/worker/runtime.ts` (the `fitMethod === 'contain'`
+   block, ~L140), the contain-crop box is computed from the ORIGINAL source
+   dimensions — `getContainOffsets(data.width, data.height, …)` — but then applied
+   via `crop()` to the already hqx-upscaled `input` buffer (width = `data.width ×
+   factor`). `crop` reads at the upscaled stride using original-space offsets, so it
+   extracts a mangled top-left slice instead of the intended letterbox, corrupting
+   the output. Only bites the niche combo `method: 'hqx'` + `fitMethod: 'contain'`
+   while upscaling (hqx is a no-op at factor 1); also present in upstream Squoosh.
+   Fix: pass `input.width`/`input.height` to `getContainOffsets` (or crop before
+   hqx). Found in the 2026-07-21 xhigh code review.
+9. **SVG auto-optimize picks by gzip but reverts by raw bytes (SVG lane).**
+   `autoSearch` (`src/lib/svg/auto-search.ts`) ranks candidates by gzip transfer
+   size, but `keepOriginalSvg` (`src/lib/svg/optimize.ts`, ~L28) reverts to the
+   original when `optimized.rawBytes >= source.rawBytes`. A candidate that is
+   smaller gzipped yet larger raw — e.g. `reusePaths`/`convertStyleToAttrs` adding
+   markup that compresses well — is discarded and the panel shows 0%, so the guard's
+   metric (raw) contradicts the optimizer's objective (gzip), which is also the
+   headline number in the SVG size panel. Uncommon (SVGO usually shrinks both) and
+   arguably a deliberate "never ship a larger file" policy, so confirm intent before
+   changing. See [specs/2026-07-12-svg-optimization.md](specs/2026-07-12-svg-optimization.md).
+   Found in the 2026-07-21 xhigh code review.
 
 ## Pointers (not tracked here)
 
